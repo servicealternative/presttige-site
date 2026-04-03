@@ -2,91 +2,1034 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Presttige Founding Members</title>
+  <meta name="description" content="Apply for Presttige Founding Membership. Limited early access for selected members in key global cities." />
   <style>
+    :root {
+      --bg: #060606;
+      --panel: #101010;
+      --panel-2: #151515;
+      --line: rgba(212, 176, 106, 0.18);
+      --gold: #d4b06a;
+      --gold-strong: #e0bc74;
+      --text: #f5f5f5;
+      --muted: #b7b7b7;
+      --muted-2: #8e8e8e;
+      --white-soft: rgba(255,255,255,0.92);
+      --shadow: 0 20px 60px rgba(0,0,0,0.45);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --max: 1240px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Arial, sans-serif;
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.88)),
+        radial-gradient(circle at top right, rgba(212,176,106,0.10), transparent 26%),
+        radial-gradient(circle at top left, rgba(212,176,106,0.05), transparent 20%),
+        #060606;
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      background: linear-gradient(90deg, #8b0000, #e00000);
       color: #fff;
-    }
-    .test-banner {
-      background: red;
-      color: white;
-      padding: 12px;
       text-align: center;
-      font-size: 20px;
-      font-weight: bold;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
-    header {
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+      background: rgba(6, 6, 6, 0.78);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 86px;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: var(--gold);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      width: 26px;
+      height: 26px;
+      border: 1px solid rgba(212,176,106,0.55);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav a {
+      color: var(--white-soft);
+      font-size: 15px;
+      transition: 0.25s ease;
+    }
+
+    .nav a:hover {
+      color: var(--gold);
+    }
+
+    .header-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 22px;
+      border-radius: 999px;
+      background: var(--gold);
+      color: #111;
+      font-weight: 700;
+      transition: 0.25s ease;
+      box-shadow: 0 8px 24px rgba(212,176,106,0.18);
+    }
+
+    .header-cta:hover,
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      background: var(--gold-strong);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 72px 0 44px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 34px;
+      align-items: stretch;
+    }
+
+    .hero-copy,
+    .hero-card {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(18,18,18,0.92), rgba(9,9,9,0.96));
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: 58px 54px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(212,176,106,0.08);
+      color: var(--gold);
+      border: 1px solid rgba(212,176,106,0.18);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: clamp(44px, 7vw, 78px);
+      line-height: 0.94;
+      letter-spacing: -0.04em;
+      max-width: 760px;
+    }
+
+    .hero-subtitle {
+      font-size: 22px;
+      line-height: 1.45;
+      color: var(--muted);
+      max-width: 760px;
+      margin: 0 0 28px;
+    }
+
+    .hero-note {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 40px;
+      padding: 0 15px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--white-soft);
+      font-size: 14px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 54px;
+      padding: 0 26px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 16px;
+      transition: 0.25s ease;
+    }
+
+    .primary-btn {
+      background: var(--gold);
+      color: #111;
+      box-shadow: 0 10px 28px rgba(212,176,106,0.18);
+    }
+
+    .secondary-btn {
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #fff;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .secondary-btn:hover {
+      border-color: rgba(212,176,106,0.4);
+      color: var(--gold);
+    }
+
+    .hero-card {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .price-panel {
+      border: 1px solid rgba(212,176,106,0.18);
+      background: linear-gradient(180deg, rgba(212,176,106,0.08), rgba(255,255,255,0.02));
+      border-radius: 22px;
+      padding: 28px;
+    }
+
+    .price-label {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .price-value {
+      font-size: 54px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      margin-bottom: 12px;
+    }
+
+    .price-value span {
+      font-size: 20px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    .price-copy {
+      color: var(--muted);
+      font-size: 15px;
+      margin: 0 0 20px;
+    }
+
+    .mini-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .mini-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--white-soft);
+      font-size: 15px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin-top: 8px;
+      flex: 0 0 auto;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .stat {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--gold);
+      font-size: 24px;
+      margin-bottom: 6px;
+      letter-spacing: -0.03em;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .section {
+      padding: 30px 0 20px;
+    }
+
+    .section-title-wrap {
+      margin-bottom: 22px;
+    }
+
+    .section-kicker {
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 48px);
+      letter-spacing: -0.04em;
+      line-height: 1.02;
+    }
+
+    .section-intro {
+      max-width: 800px;
+      color: var(--muted);
+      font-size: 18px;
+      margin-top: 14px;
+    }
+
+    .benefits-grid,
+    .details-grid,
+    .cities-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .benefits-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .details-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cities-grid {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(17,17,17,0.95), rgba(10,10,10,0.98));
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card:hover {
+      border-color: rgba(212,176,106,0.24);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .city-card {
+      text-align: center;
+      padding: 22px 16px;
+    }
+
+    .city-card strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: var(--white-soft);
+    }
+
+    .city-card span {
+      color: var(--muted-2);
+      font-size: 14px;
+    }
+
+    .membership-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 10px;
+    }
+
+    .membership-panel {
+      background: linear-gradient(180deg, rgba(18,18,18,0.95), rgba(10,10,10,0.98));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 22px;
+      padding: 28px;
+    }
+
+    .membership-panel h3 {
+      margin: 0 0 16px;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .membership-panel ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .membership-panel li {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .membership-panel li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    .timeline {
+      margin-top: 10px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 18px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .timeline-item strong {
+      color: var(--gold);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .timeline-item div {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .faq {
+      display: grid;
+      gap: 14px;
+    }
+
+    .faq-item {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 20px 22px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .faq-item strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 17px;
+      color: var(--white-soft);
+    }
+
+    .faq-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .final-cta {
+      padding: 44px 0 90px;
+    }
+
+    .final-cta-box {
+      border: 1px solid rgba(212,176,106,0.2);
+      border-radius: 30px;
+      background:
+        linear-gradient(180deg, rgba(212,176,106,0.10), rgba(255,255,255,0.02)),
+        rgba(10,10,10,0.96);
+      box-shadow: var(--shadow);
+      padding: 42px;
+      text-align: center;
+    }
+
+    .final-cta-box h2 {
+      margin: 0 0 14px;
+      font-size: clamp(32px, 4vw, 50px);
+      letter-spacing: -0.04em;
+    }
+
+    .final-cta-box p {
+      margin: 0 auto 24px;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .micro {
+      margin-top: 16px;
+      color: var(--muted-2);
+      font-size: 13px;
+    }
+
+    .site-footer {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 22px 0 34px;
+    }
+
+    .footer-inner {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px 40px;
-      border-bottom: 1px solid #222;
+      gap: 18px;
+      flex-wrap: wrap;
+      color: var(--muted-2);
+      font-size: 14px;
     }
-    .logo {
-      color: #d4b06a;
-      font-size: 22px;
-      font-weight: bold;
-      letter-spacing: 2px;
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
     }
-    .cta {
-      background: #d4b06a;
-      color: #000;
-      padding: 10px 18px;
-      border-radius: 20px;
-      text-decoration: none;
-      font-weight: bold;
+
+    .footer-links a:hover {
+      color: var(--gold);
     }
-    .hero {
-      padding: 80px 40px;
-      text-align: center;
+
+    @media (max-width: 1180px) {
+      .hero-grid,
+      .benefits-grid,
+      .membership-box,
+      .details-grid,
+      .cities-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cities-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
-    .hero h1 {
-      font-size: 48px;
-      margin-bottom: 20px;
+
+    @media (max-width: 860px) {
+      .header-inner {
+        min-height: 76px;
+      }
+
+      .nav {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 34px;
+      }
+
+      .hero-copy,
+      .hero-card,
+      .membership-panel,
+      .final-cta-box {
+        padding: 24px;
+      }
+
+      .hero-copy {
+        padding-top: 30px;
+      }
+
+      h1 {
+        font-size: 46px;
+      }
+
+      .hero-subtitle,
+      .section-intro,
+      .final-cta-box p {
+        font-size: 17px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
     }
-    .hero p {
-      font-size: 18px;
-      color: #ccc;
-      max-width: 600px;
-      margin: 0 auto 40px;
-    }
-    .price {
-      font-size: 36px;
-      margin-bottom: 30px;
-      color: #d4b06a;
-    }
-    .button {
-      background: #d4b06a;
-      color: #000;
-      padding: 14px 28px;
-      border-radius: 30px;
-      font-size: 18px;
-      text-decoration: none;
-      font-weight: bold;
-      display: inline-block;
+
+    @media (max-width: 560px) {
+      .container {
+        width: min(var(--max), calc(100% - 24px));
+      }
+
+      .topbar {
+        font-size: 12px;
+        padding: 9px 12px;
+      }
+
+      .brand {
+        font-size: 14px;
+        letter-spacing: 0.12em;
+      }
+
+      .header-cta,
+      .primary-btn,
+      .secondary-btn {
+        width: 100%;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+
+      .cities-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .price-value {
+        font-size: 44px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="test-banner">FOUNDERS PAGE ACTIVE</div>
 
-  <header>
-    <div class="logo">PRESTTIGE</div>
-    <a href="/index.html" class="cta">Back</a>
+  <div class="topbar">Founding Membership Preview · Limited Early Access</div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/index.html" class="brand">
+        <span class="brand-mark">P</span>
+        <span>Presttige</span>
+      </a>
+
+      <nav class="nav">
+        <a href="#benefits">Benefits</a>
+        <a href="#membership">Membership</a>
+        <a href="#launch">Launch</a>
+        <a href="#cities">Cities</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <a href="#join" class="header-cta">Become a Founder</a>
+    </div>
   </header>
 
-  <section class="hero">
-    <h1>Founding Members</h1>
-    <p>
-      You are not joining a platform.<br>
-      You are defining it.
-    </p>
-    <div class="price">$49 / month</div>
-    <a href="#" class="button">Become a Founder</a>
-  </section>
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">Founding Members · Private Release</div>
+
+          <h1>Join before the world does.</h1>
+
+          <p class="hero-subtitle">
+            Presttige is building a highly selective global membership platform around access,
+            presence, discretion and premium social positioning. Founding Members enter first,
+            shape the early identity, and secure priority status from launch.
+          </p>
+
+          <div class="hero-note">
+            <div class="chip">Launch target: June 1</div>
+            <div class="chip">7-day refund window</div>
+            <div class="chip">Cancel anytime</div>
+            <div class="chip">Founder status is not recoverable once lost</div>
+          </div>
+
+          <div class="hero-actions">
+            <a href="#join" class="primary-btn">Become a Founder</a>
+            <a href="/index.html" class="secondary-btn">Back to main site</a>
+          </div>
+        </div>
+
+        <aside class="hero-card">
+          <div class="price-panel">
+            <div class="price-label">Founding Membership</div>
+            <div class="price-value">$49 <span>/ month</span></div>
+            <p class="price-copy">
+              Early-stage entry pricing for selected members before wider expansion.
+            </p>
+
+            <ul class="mini-list">
+              <li><span class="dot"></span><span>Early access position before broader rollout</span></li>
+              <li><span class="dot"></span><span>Founding Member recognition from launch</span></li>
+              <li><span class="dot"></span><span>Priority consideration in initial city expansion</span></li>
+              <li><span class="dot"></span><span>7-day refund period from subscription start</span></li>
+            </ul>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <strong>5</strong>
+              <span>Priority launch cities</span>
+            </div>
+            <div class="stat">
+              <strong>01 Jun</strong>
+              <span>Target launch date</span>
+            </div>
+            <div class="stat">
+              <strong>7 days</strong>
+              <span>Refund policy window</span>
+            </div>
+            <div class="stat">
+              <strong>Private</strong>
+              <span>Selective positioning from day one</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="benefits">
+      <div class="container">
+        <div class="section-title-wrap">
+          <div class="section-kicker">Why Founder status matters</div>
+          <h2>Not just early access. Early position.</h2>
+          <div class="section-intro">
+            This is not a generic waitlist. The Founding Membership is the first layer of the
+            Presttige network and the earliest version of the brand’s inner circle.
+          </div>
+        </div>
+
+        <div class="benefits-grid">
+          <div class="card">
+            <h3>Priority entry</h3>
+            <p>
+              Founders enter the system before broader audience acquisition, before later pricing
+              evolution, and before wider city exposure.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>First-wave positioning</h3>
+            <p>
+              Your profile and status sit inside the earliest release phase, when the platform’s
+              tone, quality and initial community identity are being defined.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Permanent significance</h3>
+            <p>
+              Founder status is meaningful because it is time-sensitive. If a Founder cancels,
+              that status is lost and is not restored later.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="membership">
+      <div class="container">
+        <div class="section-title-wrap">
+          <div class="section-kicker">Membership structure</div>
+          <h2>Clear, simple and selective.</h2>
+          <div class="section-intro">
+            Presttige Founding Membership is intentionally direct. The objective is to secure
+            serious early members, not inflate numbers.
+          </div>
+        </div>
+
+        <div class="membership-box">
+          <div class="membership-panel">
+            <h3>What you receive</h3>
+            <ul>
+              <li>Founding Member subscription at $49/month.</li>
+              <li>Priority access ahead of wider public expansion.</li>
+              <li>Positioning within the first official city rollout wave.</li>
+              <li>Early alignment with the brand before broader market scaling.</li>
+              <li>Inclusion in the premium-first phase of Presttige development.</li>
+            </ul>
+          </div>
+
+          <div class="membership-panel">
+            <h3>Important conditions</h3>
+            <ul>
+              <li>7-day refund policy from the start of the subscription.</li>
+              <li>Cancellation is allowed at any time.</li>
+              <li>Once Founder status is lost, it is lost permanently.</li>
+              <li>Membership does not guarantee universal acceptance into all future layers or features.</li>
+              <li>Presttige remains private, selective and quality-led by design.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="launch">
+      <div class="container">
+        <div class="section-title-wrap">
+          <div class="section-kicker">Launch plan</div>
+          <h2>Built for key cities first.</h2>
+          <div class="section-intro">
+            The first growth phase is focused and intentional. We are not launching everywhere.
+            We are building density where brand positioning matters most.
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <strong>Now</strong>
+            <div>Founding Membership page is open for selected early subscribers.</div>
+          </div>
+          <div class="timeline-item">
+            <strong>Pre-launch</strong>
+            <div>Campaigns and brand acquisition begin across priority cities with controlled positioning.</div>
+          </div>
+          <div class="timeline-item">
+            <strong>June 1</strong>
+            <div>Target launch date for the first official release stage.</div>
+          </div>
+          <div class="timeline-item">
+            <strong>After launch</strong>
+            <div>Expansion logic will follow traction, quality, city response and member profile strength.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cities">
+      <div class="container">
+        <div class="section-title-wrap">
+          <div class="section-kicker">Priority cities</div>
+          <h2>Initial focus markets.</h2>
+          <div class="section-intro">
+            Founder acquisition will begin through a selected city strategy, combining prestige,
+            visibility, international traffic and social relevance.
+          </div>
+        </div>
+
+        <div class="cities-grid">
+          <div class="card city-card">
+            <strong>Dubai</strong>
+            <span>Primary launch focus</span>
+          </div>
+          <div class="card city-card">
+            <strong>New York</strong>
+            <span>Global relevance</span>
+          </div>
+          <div class="card city-card">
+            <strong>London</strong>
+            <span>Prestige market</span>
+          </div>
+          <div class="card city-card">
+            <strong>Europe +1</strong>
+            <span>To be selected</span>
+          </div>
+          <div class="card city-card">
+            <strong>Brazil +1</strong>
+            <span>To be selected</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-title-wrap">
+          <div class="section-kicker">Why now</div>
+          <h2>The value is in being early.</h2>
+          <div class="section-intro">
+            Once Presttige moves into broader visibility, the meaning of Founder status changes.
+            This stage exists only now, before scale.
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <div class="card">
+            <h3>Before the crowd</h3>
+            <p>
+              Founder status only has meaning because it sits ahead of mainstream awareness.
+              Joining later is different by definition.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Before pricing evolution</h3>
+            <p>
+              As positioning, demand and product layers mature, pricing and structure may evolve.
+              Founders enter at the earliest membership level.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-title-wrap">
+          <div class="section-kicker">Frequently asked</div>
+          <h2>What serious members usually want to know.</h2>
+        </div>
+
+        <div class="faq">
+          <div class="faq-item">
+            <strong>What is the Founder price?</strong>
+            <p>$49 per month.</p>
+          </div>
+
+          <div class="faq-item">
+            <strong>Is there a refund policy?</strong>
+            <p>Yes. There is a 7-day refund window from the start of the subscription.</p>
+          </div>
+
+          <div class="faq-item">
+            <strong>Can I cancel?</strong>
+            <p>Yes. You can cancel anytime, but Founder status is permanently lost once cancelled.</p>
+          </div>
+
+          <div class="faq-item">
+            <strong>Does Founder status mean public mass access?</strong>
+            <p>No. Presttige is being positioned as private, selective and brand-led from the beginning.</p>
+          </div>
+
+          <div class="faq-item">
+            <strong>When is launch targeted?</strong>
+            <p>The current target date is June 1.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta" id="join">
+      <div class="container">
+        <div class="final-cta-box">
+          <h2>Become a Presttige Founder.</h2>
+          <p>
+            Enter before expansion, secure early status, and align yourself with the first official phase
+            of the Presttige membership network.
+          </p>
+
+          <!-- REPLACE THIS LINK WITH YOUR STRIPE PAYMENT LINK -->
+          <a href="#" class="primary-btn">Become a Founder</a>
+
+          <div class="micro">
+            $49/month · 7-day refund window · Cancel anytime · Founder status is not recoverable after cancellation
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>© PRESTTIGE</div>
+      <div class="footer-links">
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+        <a href="/cookies.html">Cookies</a>
+      </div>
+    </div>
+  </footer>
+
 </body>
 </html>
