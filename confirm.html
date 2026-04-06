@@ -220,43 +220,45 @@
       }
 
       try {
-        const response = await fetch(`${CONFIRM_API_BASE}?token=${encodeURIComponent(token)}`, {
-          method: "GET"
-        });
+  const response = await fetch(`${CONFIRM_API_BASE}?token=${encodeURIComponent(token)}`);
 
-        const text = await response.text();
+  let text = "";
+  try {
+    text = await response.text();
+  } catch (e) {}
 
-        if (!response.ok) {
-          setState(
-            "error",
-            "Unable to confirm",
-            text || "We could not validate your request at this time."
-          );
-          return;
-        }
+  if (response.status === 200) {
 
-        if (text.toLowerCase().includes("already confirmed")) {
-          setState(
-            "success",
-            "Already confirmed",
-            "Your request has already been confirmed."
-          );
-          return;
-        }
-
-        setState(
-          "success",
-          "Request confirmed",
-          "Your request has been confirmed successfully. We will contact you shortly."
-        );
-      } catch (error) {
-        setState(
-          "error",
-          "Confirmation unavailable",
-          "A temporary error occurred while validating your request. Please try again later."
-        );
-      }
+    if (text.toLowerCase().includes("already confirmed")) {
+      setState(
+        "success",
+        "Already confirmed",
+        "Your request has already been confirmed."
+      );
+      return;
     }
+
+    setState(
+      "success",
+      "Request confirmed",
+      "Your request has been confirmed successfully. We will contact you shortly."
+    );
+
+  } else {
+    setState(
+      "error",
+      "Unable to confirm",
+      text || "We could not validate your request."
+    );
+  }
+
+} catch (error) {
+  setState(
+    "error",
+    "Confirmation unavailable",
+    "A temporary error occurred while validating your request. Please try again later."
+  );
+}
 
     runConfirmation();
   </script>
