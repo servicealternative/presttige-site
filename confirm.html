@@ -207,57 +207,63 @@
     }
 
     async function runConfirmation() {
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get("token");
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
 
-      if (!token) {
+  if (!token) {
+    setState(
+      "error",
+      "Invalid link",
+      "This confirmation link is incomplete or invalid."
+    );
+    return;
+  }
+
+  try {
+    const url = `${CONFIRM_API_BASE}?token=${encodeURIComponent(token)}`;
+    console.log("Calling:", url);
+
+    const response = await fetch(url);
+
+    console.log("Status:", response.status);
+
+    const text = await response.text();
+    console.log("Response text:", text);
+
+    if (response.status === 200) {
+
+      if (text.toLowerCase().includes("already confirmed")) {
         setState(
-          "error",
-          "Invalid link",
-          "This confirmation link is incomplete or invalid."
+          "success",
+          "Already confirmed",
+          "Your request has already been confirmed."
         );
         return;
       }
 
-      try {
-  const response = await fetch(`${CONFIRM_API_BASE}?token=${encodeURIComponent(token)}`);
-
-  let text = "";
-  try {
-    text = await response.text();
-  } catch (e) {}
-
-  if (response.status === 200) {
-
-    if (text.toLowerCase().includes("already confirmed")) {
       setState(
         "success",
-        "Already confirmed",
-        "Your request has already been confirmed."
+        "Request confirmed",
+        "Your request has been confirmed successfully. We will contact you shortly."
       );
-      return;
+
+    } else {
+      setState(
+        "error",
+        "Unable to confirm",
+        text || "We could not validate your request."
+      );
     }
 
-    setState(
-      "success",
-      "Request confirmed",
-      "Your request has been confirmed successfully. We will contact you shortly."
-    );
+  } catch (error) {
+    console.error("Error:", error);
 
-  } else {
     setState(
       "error",
-      "Unable to confirm",
-      text || "We could not validate your request."
+      "Confirmation unavailable",
+      "A temporary error occurred while validating your request."
     );
   }
-
-} catch (error) {
-  setState(
-    "error",
-    "Confirmation unavailable",
-    "A temporary error occurred while validating your request. Please try again later."
-  );
 }
 
     runConfirmation();
