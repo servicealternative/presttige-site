@@ -1,425 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-H7BFLVL4F5"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-H7BFLVL4F5');
-</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PRESTTIGE</title>
-  <meta name="description" content="Private Access. Redefined." />
+  <title>Presttige</title>
+
   <style>
-    :root {
-      --bg: #050505;
-      --text: #f4f1eb;
-      --muted: rgba(244,241,235,0.78);
-      --line: rgba(255,255,255,0.10);
-      --accent: #d1ae72;
-      --hero-image: url('/assets/images/jet-hero.jpg');
-      --max: 1320px;
-      --radius: 28px;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
     body {
-      background: #050505;
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
-      overflow-x: hidden;
-    }
-    a { color: inherit; text-decoration: none; }
-    .container { width: min(var(--max), calc(100% - 40px)); margin: 0 auto; }
-
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 30;
-      background: rgba(0,0,0,0.82);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .topbar-inner {
-      min-height: 78px;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0b0b0b;
+      color: #ffffff;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
-    }
-    .brand {
-  display: inline-flex;
-  align-items: center;
-}
-
-.logo {
-  height: 36px;
-  width: auto;
-  display: block;
-}
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 40px;
-      color: rgba(244,241,235,0.82);
-      font-size: 0.98rem;
-    }
-    .nav a:hover { color: var(--text); }
-    .nav-cta, .btn-primary {
-      display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 46px;
-      padding: 0 24px;
+      height: 100vh;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 500px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+    }
+
+    p {
+      color: #b5b5b5;
+      margin-bottom: 40px;
+    }
+
+    /* BUTTON STYLE */
+    .founder-btn {
+      padding: 14px 28px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      transition: 0.25s ease;
-    }
-    .nav-cta {
-      background: rgba(255,255,255,0.03);
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #cfa96a 0%, #e1c28d 100%);
-      color: #0d0d0d;
-      border-color: transparent;
+      border: 1px solid rgba(212, 176, 106, 0.55);
+      background: linear-gradient(135deg, #e0bf7a 0%, #cfa85c 100%);
+      color: #111;
+      font-size: 1rem;
       font-weight: 600;
-      box-shadow: 0 12px 28px rgba(209,174,114,0.24);
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
-    .nav-cta:hover, .btn-primary:hover {
+
+    .founder-btn:hover {
       transform: translateY(-1px);
     }
 
-    .hero-wrap {
-      padding: 0 0 28px;
-      background: #050505;
-    }
-    .hero {
-  width: min(100%, calc(100% - 40px));
-  margin: 0 auto;
-  min-height: calc(100vh - 92px);
-  border-radius: 0;
-  overflow: hidden;
-  position: relative;
-  background:
-    linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.18) 38%, rgba(0,0,0,0.08) 100%),
-    linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.2) 100%),
-    url('/assets/images/jet-hero.jpg') center center / cover no-repeat;
-  border: 1px solid rgba(255,255,255,0.06);
-}
-    .hero-inner {
-      min-height: calc(100vh - 92px);
-      display: flex;
-      align-items: center;
-      padding: 76px 68px;
-    }
-    .hero-copy {
-      max-width: 560px;
-    }
-    .hero h1 {
-      font-size: clamp(3.2rem, 7vw, 6.2rem);
-      line-height: 0.94;
-      letter-spacing: -0.05em;
-      font-weight: 700;
-      margin-bottom: 22px;
-    }
-    .hero-sub {
-      font-size: 1.32rem;
-      color: var(--muted);
-      margin-bottom: 34px;
-      max-width: 520px;
-    }
-
-    .section {
-      padding: 88px 0;
-    }
-    .section-title {
-      font-size: clamp(1.8rem, 4vw, 2.8rem);
-      letter-spacing: -0.03em;
-      margin-bottom: 18px;
-    }
-    .section-copy {
-      max-width: 760px;
-      color: rgba(244,241,235,0.72);
-      font-size: 1.05rem;
-      line-height: 1.7;
-    }
-    .cards {
-      margin-top: 34px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-    }
-    .card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 22px;
-      padding: 28px;
-    }
-    .card-number {
-      color: var(--accent);
-      font-size: 0.88rem;
-      letter-spacing: 0.16em;
-      margin-bottom: 14px;
-    }
-    .card h3 {
-      font-size: 1.18rem;
-      margin-bottom: 10px;
-    }
-    .card p {
-      color: rgba(244,241,235,0.72);
-      line-height: 1.6;
-    }
-
-    .cta-block {
-      margin-top: 20px;
-      padding: 38px;
-      border-radius: 28px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
-    }
-   .cta-block h3 {
-      font-size: clamp(1.6rem, 4vw, 2.5rem);
-      letter-spacing: -0.03em;
-      margin-bottom: 8px;
-    }
-    .cta-block p {
-      color: rgba(244,241,235,0.72);
-      max-width: 620px;
-    }
-
-.footer {
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding: 25px 0;
-  color: #888;
-}
-
-/* 🔥 alinhamento com o site */
-.footer-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: nowrap;
-
-  width: min(var(--max), calc(100% - 100px));
-  margin: 0 auto;
-}
-
-/* esquerda */
-.footer-left {
-  font-size: 0.78rem;
-  color: #888;
-  opacity: 0.75;
-  white-space: nowrap;
-}
-
-.copyright-symbol {
-  font-size: 0.65rem;
-  margin-right: 4px;
-  position: relative;
-  top: -1px;
-}
-
-/* direita */
-.footer-right {
-  display: flex;
-  gap: 16px; /* 🔥 antes 32px → agora mais tight */
-  font-size: 0.78rem;
-  white-space: nowrap;
-}
-
-.footer-right a {
-  color: #888;
-  text-decoration: none;
-  opacity: 0.75;
-  transition: 0.25s;
-}
-
-.footer-right a:hover {
-  opacity: 1;
-  color: #d1ae72;
-}
-
-    @media (max-width: 980px) {
-      .nav { display: none; }
-      .hero-inner {
-        padding: 48px 28px;
-        align-items: end;
-      }
-      .cards, .cta-block {
-        grid-template-columns: 1fr;
-        display: grid;
-      }
-      .cta-block {
-        padding: 28px;
-      }
-    }
-
-    @media (max-width: 720px) {
-      .container, .hero { width: min(100%, calc(100% - 20px)); }
-      .topbar-inner { min-height: 70px; }
-      .brand { font-size: 0.74rem; letter-spacing: 0.28em; }
-      .nav-cta { min-height: 42px; padding: 0 18px; }
-      .hero {
-        min-height: 78vh;
-        border-radius: 0 0 24px 24px;
-        background-position: center center;
-      }
-      .hero-inner {
-        min-height: 78vh;
-        padding: 36px 18px 24px;
-      }
-      .hero h1 {
-        font-size: clamp(2.6rem, 13vw, 4.2rem);
-        margin-bottom: 14px;
-      }
-      .hero-sub {
-        font-size: 1rem;
-        margin-bottom: 22px;
-      }
-      .btn-primary {
-        width: 100%;
-      }
-      .section {
-        padding: 62px 0;
-      }
-      .cards {
-        grid-template-columns: 1fr;
-      }
-      .cta-block {
-        padding: 24px 18px;
-      }
-      .footer-inner {
-        flex-direction: column;
-        align-items: flex-start;
-      }
+    /* DISABLED STATE */
+    .founder-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
     }
   </style>
 </head>
+
 <body>
-  <header class="topbar">
-    <div class="container topbar-inner">
-      <a href="#top" class="brand">
-  <img src="assets/images/presttige-p-lettering-nofund.png" alt="Presttige" class="logo">
-</a>
-      <nav class="nav">
-        <a href="#concept">Concept</a>
-        <a href="#how-it-works">How it works</a>
-        <a href="#membership">Membership</a>
-      </nav>
-      <span class="btn-primary btn-disabled">Become a Founder</span>
-    </div>
-  </header>
 
-  <main id="top">
-    <div class="hero-wrap">
-      <section class="hero">
-        <div class="hero-inner">
-          <div class="hero-copy">
-            <h1>Private Access.<br>Redefined.</h1>
-            <p class="hero-sub">Invitation-only aviation and lifestyle platform.</p>
-            <a class="btn-primary" href="https://apply.presttige.net" target="_blank" rel="noopener noreferrer" onclick="trackApplyClick('hero')">Request Access</a>
-          </div>
-        </div>
-      </section>
-    </div>
+  <div class="container">
+    <h1>Presttige</h1>
+    <p>Private. Selective. Prestigious.</p>
 
-    <section class="section" id="concept">
-      <div class="container">
-        <h2 class="section-title">Concept</h2>
-        <p class="section-copy">Presttige is a private access platform built around discretion, presence and curated entry. The experience is selective by design and every application is reviewed individually.</p>
-      </div>
-    </section>
-
-    <section class="section" id="how-it-works">
-      <div class="container">
-        <h2 class="section-title">How it works</h2>
-        <div class="cards">
-          <article class="card">
-            <div class="card-number">01</div>
-            <h3>Apply</h3>
-            <p>Submit your profile through the private access form.</p>
-          </article>
-          <article class="card">
-            <div class="card-number">02</div>
-            <h3>Review</h3>
-            <p>Applications are assessed privately and individually.</p>
-          </article>
-          <article class="card">
-            <div class="card-number">03</div>
-            <h3>Access</h3>
-            <p>Selected profiles receive the next step directly.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="membership">
-      <div class="container">
-        <div class="cta-block">
-          <div>
-            <h3>Membership is selective.</h3>
-            <p>Applications are reviewed privately. Access is granted selectively.</p>
-          </div>
-          <a class="btn-primary" href="https://apply.presttige.net" target="_blank" rel="noopener noreferrer" onclick="trackApplyClick('membership')">Request Access</a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-  <div class="container footer-inner">
-    <div class="footer-left">
-  <span class="copyright-symbol">©</span> Ulttra Data
-</div>
-    <div class="footer-right">
-      <a href="privacy.html">Privacy</a>
-<a href="terms.html">Terms</a>
-<a href="cookies.html">Cookie Preferences</a>
-    </div>
+    <!-- DISABLED BUTTON -->
+    <button class="founder-btn disabled">
+      Become a Founder — Private Release
+    </button>
   </div>
-</footer>
 
+  <!-- PAYMENT FEEDBACK -->
   <script>
-    function trackApplyClick(position) {
-      gtag('event', 'click_apply', {
-        cta_position: position,
-        destination_url: 'https://apply.presttige.net',
-        page_location: window.location.href
-      });
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+
+    if (payment === "success") {
+      alert("Payment successful. Welcome to Presttige.");
     }
 
-    let scroll90Tracked = false;
-
-    window.addEventListener('scroll', function () {
-      if (scroll90Tracked) return;
-
-      const scrollTop = window.scrollY || window.pageYOffset;
-      const windowHeight = window.innerHeight;
-      const docHeight = document.documentElement.scrollHeight;
-      const scrolledPercent = ((scrollTop + windowHeight) / docHeight) * 100;
-
-      if (scrolledPercent >= 90) {
-        scroll90Tracked = true;
-        gtag('event', 'scroll_90', {
-          page_location: window.location.href
-        });
-      }
-    });
-
-    setTimeout(function () {
-      gtag('event', 'time_30s', {
-        page_location: window.location.href
-      });
-    }, 30000);
+    if (payment === "cancel") {
+      alert("Payment cancelled.");
+    }
   </script>
+
 </body>
 </html>
