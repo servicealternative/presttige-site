@@ -53,15 +53,15 @@
       gap: 24px;
     }
     .brand {
-  display: inline-flex;
-  align-items: center;
-}
+      display: inline-flex;
+      align-items: center;
+    }
 
-.logo {
-  height: 36px;
-  width: auto;
-  display: block;
-}
+    .logo {
+      height: 36px;
+      width: auto;
+      display: block;
+    }
     .nav {
       display: flex;
       align-items: center;
@@ -99,18 +99,18 @@
       background: #050505;
     }
     .hero {
-  width: min(100%, calc(100% - 40px));
-  margin: 0 auto;
-  min-height: calc(100vh - 92px);
-  border-radius: 0;
-  overflow: hidden;
-  position: relative;
-  background:
-    linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.18) 38%, rgba(0,0,0,0.08) 100%),
-    linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.2) 100%),
-    url('/assets/images/jet-hero.jpg') center center / cover no-repeat;
-  border: 1px solid rgba(255,255,255,0.06);
-}
+      width: min(100%, calc(100% - 40px));
+      margin: 0 auto;
+      min-height: calc(100vh - 92px);
+      border-radius: 0;
+      overflow: hidden;
+      position: relative;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.18) 38%, rgba(0,0,0,0.08) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.2) 100%),
+        url('/assets/images/jet-hero.jpg') center center / cover no-repeat;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
     .hero-inner {
       min-height: calc(100vh - 92px);
       display: flex;
@@ -196,57 +196,53 @@
       max-width: 620px;
     }
 
-.footer {
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding: 25px 0;
-  color: #888;
-}
+    .footer {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 25px 0;
+      color: #888;
+    }
 
-/* 🔥 alinhamento com o site */
-.footer-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: nowrap;
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: nowrap;
+      width: min(var(--max), calc(100% - 100px));
+      margin: 0 auto;
+    }
 
-  width: min(var(--max), calc(100% - 100px));
-  margin: 0 auto;
-}
+    .footer-left {
+      font-size: 0.78rem;
+      color: #888;
+      opacity: 0.75;
+      white-space: nowrap;
+    }
 
-/* esquerda */
-.footer-left {
-  font-size: 0.78rem;
-  color: #888;
-  opacity: 0.75;
-  white-space: nowrap;
-}
+    .copyright-symbol {
+      font-size: 0.65rem;
+      margin-right: 4px;
+      position: relative;
+      top: -1px;
+    }
 
-.copyright-symbol {
-  font-size: 0.65rem;
-  margin-right: 4px;
-  position: relative;
-  top: -1px;
-}
+    .footer-right {
+      display: flex;
+      gap: 16px;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
 
-/* direita */
-.footer-right {
-  display: flex;
-  gap: 16px; /* 🔥 antes 32px → agora mais tight */
-  font-size: 0.78rem;
-  white-space: nowrap;
-}
+    .footer-right a {
+      color: #888;
+      text-decoration: none;
+      opacity: 0.75;
+      transition: 0.25s;
+    }
 
-.footer-right a {
-  color: #888;
-  text-decoration: none;
-  opacity: 0.75;
-  transition: 0.25s;
-}
-
-.footer-right a:hover {
-  opacity: 1;
-  color: #d1ae72;
-}
+    .footer-right a:hover {
+      opacity: 1;
+      color: #d1ae72;
+    }
 
     @media (max-width: 980px) {
       .nav { display: none; }
@@ -308,8 +304,8 @@
   <header class="topbar">
     <div class="container topbar-inner">
       <a href="#top" class="brand">
-  <img src="assets/images/presttige-p-lettering-nofund.png" alt="Presttige" class="logo">
-</a>
+        <img src="assets/images/presttige-p-lettering-nofund.png" alt="Presttige" class="logo">
+      </a>
       <nav class="nav">
         <a href="#concept">Concept</a>
         <a href="#how-it-works">How it works</a>
@@ -376,17 +372,17 @@
   </main>
 
   <footer class="footer">
-  <div class="container footer-inner">
-    <div class="footer-left">
-  <span class="copyright-symbol">©</span> Ulttra Data
-</div>
-    <div class="footer-right">
-      <a href="privacy.html">Privacy</a>
-<a href="terms.html">Terms</a>
-<a href="cookies.html">Cookie Preferences</a>
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <span class="copyright-symbol">©</span> Ulttra Data
+      </div>
+      <div class="footer-right">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="cookies.html">Cookie Preferences</a>
+      </div>
     </div>
-  </div>
-</footer>
+  </footer>
 
   <script>
     function trackApplyClick(position) {
@@ -420,6 +416,21 @@
         page_location: window.location.href
       });
     }, 30000);
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const params = new URLSearchParams(window.location.search);
+      const payment = params.get('payment');
+
+      if (payment === 'success') {
+        alert('Payment successful. Welcome to Presttige.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      if (payment === 'cancel') {
+        alert('Payment cancelled.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    });
   </script>
 </body>
 </html>
