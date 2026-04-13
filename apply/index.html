@@ -24,7 +24,6 @@ h1 {
     font-size: 32px;
     font-weight: 300;
     text-align: center;
-    margin-bottom: 10px;
 }
 
 .subtitle {
@@ -87,7 +86,7 @@ button {
 </div>
 
 <script>
-const API_URL = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/create-lead"; // ajustar se necessário
+const API_URL = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/create-lead";
 
 document.getElementById("applyForm").addEventListener("submit", async function(e) {
     e.preventDefault();
@@ -98,7 +97,7 @@ document.getElementById("applyForm").addEventListener("submit", async function(e
     const age = document.getElementById("age").value;
 
     try {
-        await fetch(API_URL, {
+        const res = await fetch(API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -111,10 +110,15 @@ document.getElementById("applyForm").addEventListener("submit", async function(e
             })
         });
 
+        const data = await res.json();
+
+        console.log("Lead created:", data);
+
         document.getElementById("applyForm").style.display = "none";
         document.getElementById("successMessage").style.display = "block";
 
     } catch (error) {
+        console.error(error);
         alert("Error submitting application.");
     }
 });
