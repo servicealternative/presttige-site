@@ -1,4 +1,4 @@
-const API_BASE = "const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
 
 const ENDPOINTS = {
   checkout: `${API_BASE}/gateway`,
@@ -6,9 +6,6 @@ const ENDPOINTS = {
   member: `${API_BASE}/member`
 };
 
-// ----------------------------
-// GET PARAMS
-// ----------------------------
 function getParams() {
   const params = new URLSearchParams(window.location.search);
   return {
@@ -17,9 +14,6 @@ function getParams() {
   };
 }
 
-// ----------------------------
-// START CHECKOUT
-// ----------------------------
 function startCheckout(product, plan = "", term = "") {
   const { lead_id, token } = getParams();
 
@@ -28,17 +22,19 @@ function startCheckout(product, plan = "", term = "") {
     return;
   }
 
-  let url = `${ENDPOINTS.checkout}?lead_id=${lead_id}&token=${token}&product=${product}`;
+  let url = `${ENDPOINTS.checkout}?lead_id=${encodeURIComponent(lead_id)}&token=${encodeURIComponent(token)}&product=${encodeURIComponent(product)}`;
 
-  if (plan) url += `&plan=${plan}`;
-  if (term) url += `&term=${term}`;
+  if (plan) {
+    url += `&plan=${encodeURIComponent(plan)}`;
+  }
+
+  if (term) {
+    url += `&term=${encodeURIComponent(term)}`;
+  }
 
   window.location.href = url;
 }
 
-// ----------------------------
-// BUTTON ACTIONS
-// ----------------------------
 function goFounder() {
   startCheckout("founder");
 }
@@ -51,9 +47,6 @@ function goMembership() {
   startCheckout("membership", "mid", "monthly");
 }
 
-// ----------------------------
-// SUCCESS PAGE HANDLER
-// ----------------------------
 function handleSuccess() {
   const { lead_id, token } = getParams();
 
@@ -67,9 +60,6 @@ function handleSuccess() {
   }
 }
 
-// ----------------------------
-// MEMBER AREA VALIDATION
-// ----------------------------
 async function loadMember() {
   const token = localStorage.getItem("presttige_token");
   const lead_id = localStorage.getItem("presttige_lead_id");
@@ -81,6 +71,9 @@ async function loadMember() {
 
   const res = await fetch(ENDPOINTS.validate, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({ token, lead_id })
   });
 
@@ -93,8 +86,8 @@ async function loadMember() {
 
   document.body.innerHTML = `
     <h1>Member Area</h1>
-    <p>Status: ${data.access_status}</p>
-    <p>Product: ${data.product}</p>
+    <p>Status: ${data.access_status || "-"}</p>
+    <p>Product: ${data.product || "-"}</p>
     <p>Plan: ${data.plan || "-"}</p>
   `;
 }
