@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Presttige — Private Application</title>
+
+<style>
+body {
+    margin: 0;
+    background: #0b0b0c;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.container {
+    max-width: 500px;
+    margin: auto;
+    padding: 80px 20px;
+}
+
+h1 {
+    font-size: 32px;
+    font-weight: 300;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    text-align: center;
+    opacity: 0.6;
+    margin-bottom: 40px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border: none;
+    background: #1a1a1c;
+    color: white;
+    border-radius: 6px;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    background: #d4b06a;
+    border: none;
+    color: black;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.success {
+    text-align: center;
+    margin-top: 30px;
+    opacity: 0.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Request Access</h1>
+<p class="subtitle">Private. Selective. Prestigious.</p>
+
+<form id="applyForm">
+    <input type="text" id="name" placeholder="Full name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="text" id="instagram" placeholder="Instagram username">
+    <input type="number" id="age" placeholder="Age">
+
+    <button type="submit">Submit Application</button>
+</form>
+
+<div class="success" id="successMessage" style="display:none;">
+    Application received.<br>
+    Your profile is now under review.<br>
+    You will be contacted if approved.
+</div>
+
+</div>
+
+<script>
+const API_URL = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/create-lead"; // ajustar se necessário
+
+document.getElementById("applyForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const instagram = document.getElementById("instagram").value;
+    const age = document.getElementById("age").value;
+
+    try {
+        await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                instagram,
+                age
+            })
+        });
+
+        document.getElementById("applyForm").style.display = "none";
+        document.getElementById("successMessage").style.display = "block";
+
+    } catch (error) {
+        alert("Error submitting application.");
+    }
+});
+</script>
+
+</body>
+</html>
