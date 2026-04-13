@@ -94,6 +94,12 @@
       transform: translateY(-1px);
     }
 
+    .btn-disabled {
+      opacity: 0.65;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
     .hero-wrap {
       padding: 0 0 28px;
       background: #050505;
@@ -322,7 +328,7 @@
           <div class="hero-copy">
             <h1>Private Access.<br>Redefined.</h1>
             <p class="hero-sub">Invitation-only aviation and lifestyle platform.</p>
-            <a class="btn-primary" href="https://apply.presttige.net" target="_blank" rel="noopener noreferrer" onclick="trackApplyClick('hero')">Request Access</a>
+            <a class="btn-primary" href="/apply/" onclick="trackApplyClick('hero')">Request Access</a>
           </div>
         </div>
       </section>
@@ -365,7 +371,7 @@
             <h3>Membership is selective.</h3>
             <p>Applications are reviewed privately. Access is granted selectively.</p>
           </div>
-          <a class="btn-primary" href="https://apply.presttige.net" target="_blank" rel="noopener noreferrer" onclick="trackApplyClick('membership')">Request Access</a>
+          <a class="btn-primary" href="/apply/" onclick="trackApplyClick('membership')">Request Access</a>
         </div>
       </div>
     </section>
@@ -388,7 +394,7 @@
     function trackApplyClick(position) {
       gtag('event', 'click_apply', {
         cta_position: position,
-        destination_url: 'https://apply.presttige.net',
+        destination_url: '/apply/',
         page_location: window.location.href
       });
     }
