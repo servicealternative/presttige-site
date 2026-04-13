@@ -1,4 +1,4 @@
-const API_BASE = "https://YOUR_API_GATEWAY_URL";
+const API_BASE = "const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
 
 const ENDPOINTS = {
   checkout: `${API_BASE}/gateway`,
