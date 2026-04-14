@@ -402,7 +402,7 @@
           <div class="hero-copy">
             <h1>Private Access.<br>Redefined.</h1>
             <p class="hero-sub">Invitation-only aviation and lifestyle platform.</p>
-            <a class="btn-primary" href="/apply.html" onclick="trackApplyClick('hero')">Request Access</a>
+            <a class="btn-primary" href="/apply-page.html" onclick="trackApplyClick('hero')">Request Access</a>
           </div>
         </div>
       </section>
@@ -452,7 +452,7 @@
             <p>Applications are reviewed privately. Access is granted selectively.</p>
           </div>
 
-          <a class="btn-primary" href="/apply.html" onclick="trackApplyClick('membership')">Request Access</a>
+          <a class="btn-primary" href="/apply-page.html" onclick="trackApplyClick('membership')">Request Access</a>
         </div>
       </div>
     </section>
@@ -476,7 +476,7 @@
     function trackApplyClick(position) {
       gtag('event', 'click_apply', {
         cta_position: position,
-        destination_url: '/apply.html',
+        destination_url: '/apply-page.html',
         page_location: window.location.href
       });
     }
