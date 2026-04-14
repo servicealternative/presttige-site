@@ -9,12 +9,10 @@
     gtag('js', new Date());
     gtag('config', 'G-H7BFLVL4F5');
   </script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRESTTIGE</title>
   <meta name="description" content="Private Access. Redefined." />
-
   <style>
     :root {
       --bg: #050505;
@@ -27,32 +25,16 @@
       --radius: 28px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
       background: #050505;
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
       overflow-x: hidden;
     }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .container {
-      width: min(var(--max), calc(100% - 40px));
-      margin: 0 auto;
-    }
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(var(--max), calc(100% - 40px)); margin: 0 auto; }
 
     .topbar {
       position: sticky;
@@ -62,7 +44,6 @@
       backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
-
     .topbar-inner {
       min-height: 78px;
       display: flex;
@@ -70,7 +51,6 @@
       justify-content: space-between;
       gap: 24px;
     }
-
     .brand {
       display: inline-flex;
       align-items: center;
@@ -81,7 +61,6 @@
       width: auto;
       display: block;
     }
-
     .nav {
       display: flex;
       align-items: center;
@@ -89,13 +68,8 @@
       color: rgba(244,241,235,0.82);
       font-size: 0.98rem;
     }
-
-    .nav a:hover {
-      color: var(--text);
-    }
-
-    .nav-cta,
-    .btn-primary {
+    .nav a:hover { color: var(--text); }
+    .nav-cta, .btn-primary {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -105,21 +79,18 @@
       border: 1px solid rgba(255,255,255,0.12);
       transition: 0.25s ease;
     }
-
     .nav-cta {
       background: rgba(255,255,255,0.03);
     }
-
     .btn-primary {
       background: linear-gradient(135deg, #cfa96a 0%, #e1c28d 100%);
       color: #0d0d0d;
       border-color: transparent;
       font-weight: 600;
       box-shadow: 0 12px 28px rgba(209,174,114,0.24);
+      cursor: pointer;
     }
-
-    .nav-cta:hover,
-    .btn-primary:hover {
+    .nav-cta:hover, .btn-primary:hover {
       transform: translateY(-1px);
     }
 
@@ -133,7 +104,6 @@
       padding: 0 0 28px;
       background: #050505;
     }
-
     .hero {
       width: min(100%, calc(100% - 40px));
       margin: 0 auto;
@@ -147,18 +117,15 @@
         url('/assets/images/jet-hero.jpg') center center / cover no-repeat;
       border: 1px solid rgba(255,255,255,0.06);
     }
-
     .hero-inner {
       min-height: calc(100vh - 92px);
       display: flex;
       align-items: center;
       padding: 76px 68px;
     }
-
     .hero-copy {
       max-width: 560px;
     }
-
     .hero h1 {
       font-size: clamp(3.2rem, 7vw, 6.2rem);
       line-height: 0.94;
@@ -166,7 +133,6 @@
       font-weight: 700;
       margin-bottom: 22px;
     }
-
     .hero-sub {
       font-size: 1.32rem;
       color: var(--muted);
@@ -177,46 +143,39 @@
     .section {
       padding: 88px 0;
     }
-
     .section-title {
       font-size: clamp(1.8rem, 4vw, 2.8rem);
       letter-spacing: -0.03em;
       margin-bottom: 18px;
     }
-
     .section-copy {
       max-width: 760px;
       color: rgba(244,241,235,0.72);
       font-size: 1.05rem;
       line-height: 1.7;
     }
-
     .cards {
       margin-top: 34px;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px;
     }
-
     .card {
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 22px;
       padding: 28px;
     }
-
     .card-number {
       color: var(--accent);
       font-size: 0.88rem;
       letter-spacing: 0.16em;
       margin-bottom: 14px;
     }
-
     .card h3 {
       font-size: 1.18rem;
       margin-bottom: 10px;
     }
-
     .card p {
       color: rgba(244,241,235,0.72);
       line-height: 1.6;
@@ -233,13 +192,11 @@
       justify-content: space-between;
       gap: 24px;
     }
-
     .cta-block h3 {
       font-size: clamp(1.6rem, 4vw, 2.5rem);
       letter-spacing: -0.03em;
       margin-bottom: 8px;
     }
-
     .cta-block p {
       color: rgba(244,241,235,0.72);
       max-width: 620px;
@@ -293,87 +250,174 @@
       color: #d1ae72;
     }
 
-    @media (max-width: 980px) {
-      .nav {
-        display: none;
-      }
+    /* APPLY MODAL */
+    .apply-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
+    .apply-modal.active {
+      display: flex;
+    }
+
+    .apply-panel {
+      width: min(100%, 520px);
+      background: rgba(10,10,10,0.96);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+    }
+
+    .apply-panel h2 {
+      font-size: 1.8rem;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+
+    .apply-panel p {
+      color: rgba(244,241,235,0.72);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .apply-form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .apply-field label {
+      display: block;
+      font-size: 0.9rem;
+      color: rgba(244,241,235,0.82);
+      margin-bottom: 8px;
+    }
+
+    .apply-field input {
+      width: 100%;
+      min-height: 50px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 0 16px;
+      outline: none;
+    }
+
+    .apply-field input:focus {
+      border-color: rgba(209,174,114,0.7);
+      box-shadow: 0 0 0 3px rgba(209,174,114,0.12);
+    }
+
+    .apply-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 24px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      cursor: pointer;
+      transition: 0.25s ease;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+    }
+
+    .apply-message {
+      margin-top: 14px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      min-height: 22px;
+      color: rgba(244,241,235,0.78);
+    }
+
+    .apply-message.success {
+      color: #d1ae72;
+    }
+
+    .apply-message.error {
+      color: #ffb4b4;
+    }
+
+    @media (max-width: 980px) {
+      .nav { display: none; }
       .hero-inner {
         padding: 48px 28px;
         align-items: end;
       }
-
-      .cards,
-      .cta-block {
+      .cards, .cta-block {
         grid-template-columns: 1fr;
         display: grid;
       }
-
       .cta-block {
         padding: 28px;
       }
     }
 
     @media (max-width: 720px) {
-      .container,
-      .hero {
-        width: min(100%, calc(100% - 20px));
-      }
-
-      .topbar-inner {
-        min-height: 70px;
-      }
-
-      .brand {
-        font-size: 0.74rem;
-        letter-spacing: 0.28em;
-      }
-
-      .nav-cta {
-        min-height: 42px;
-        padding: 0 18px;
-      }
-
+      .container, .hero { width: min(100%, calc(100% - 20px)); }
+      .topbar-inner { min-height: 70px; }
+      .brand { font-size: 0.74rem; letter-spacing: 0.28em; }
+      .nav-cta { min-height: 42px; padding: 0 18px; }
       .hero {
         min-height: 78vh;
         border-radius: 0 0 24px 24px;
         background-position: center center;
       }
-
       .hero-inner {
         min-height: 78vh;
         padding: 36px 18px 24px;
       }
-
       .hero h1 {
         font-size: clamp(2.6rem, 13vw, 4.2rem);
         margin-bottom: 14px;
       }
-
       .hero-sub {
         font-size: 1rem;
         margin-bottom: 22px;
       }
-
       .btn-primary {
         width: 100%;
       }
-
       .section {
         padding: 62px 0;
       }
-
       .cards {
         grid-template-columns: 1fr;
       }
-
       .cta-block {
         padding: 24px 18px;
       }
-
       .footer-inner {
         flex-direction: column;
         align-items: flex-start;
+      }
+      .apply-panel {
+        padding: 22px;
+        border-radius: 22px;
+      }
+      .apply-actions {
+        flex-direction: column;
+      }
+      .btn-secondary {
+        width: 100%;
       }
     }
   </style>
@@ -384,13 +428,11 @@
       <a href="#top" class="brand">
         <img src="assets/images/presttige-p-lettering-nofund.png" alt="Presttige" class="logo">
       </a>
-
       <nav class="nav">
         <a href="#concept">Concept</a>
         <a href="#how-it-works">How it works</a>
         <a href="#membership">Membership</a>
       </nav>
-
       <span class="btn-primary btn-disabled">Become a Founder</span>
     </div>
   </header>
@@ -402,7 +444,7 @@
           <div class="hero-copy">
             <h1>Private Access.<br>Redefined.</h1>
             <p class="hero-sub">Invitation-only aviation and lifestyle platform.</p>
-            <a class="btn-primary" href="/apply-page.html" onclick="trackApplyClick('hero')">Request Access</a>
+            <a class="btn-primary" href="#" onclick="openApply(event, 'hero')">Request Access</a>
           </div>
         </div>
       </section>
@@ -411,30 +453,24 @@
     <section class="section" id="concept">
       <div class="container">
         <h2 class="section-title">Concept</h2>
-        <p class="section-copy">
-          Presttige is a private access platform built around discretion, presence and curated entry.
-          The experience is selective by design and every application is reviewed individually.
-        </p>
+        <p class="section-copy">Presttige is a private access platform built around discretion, presence and curated entry. The experience is selective by design and every application is reviewed individually.</p>
       </div>
     </section>
 
     <section class="section" id="how-it-works">
       <div class="container">
         <h2 class="section-title">How it works</h2>
-
         <div class="cards">
           <article class="card">
             <div class="card-number">01</div>
             <h3>Apply</h3>
             <p>Submit your profile through the private access form.</p>
           </article>
-
           <article class="card">
             <div class="card-number">02</div>
             <h3>Review</h3>
             <p>Applications are assessed privately and individually.</p>
           </article>
-
           <article class="card">
             <div class="card-number">03</div>
             <h3>Access</h3>
@@ -451,8 +487,7 @@
             <h3>Membership is selective.</h3>
             <p>Applications are reviewed privately. Access is granted selectively.</p>
           </div>
-
-          <a class="btn-primary" href="/apply-page.html" onclick="trackApplyClick('membership')">Request Access</a>
+          <a class="btn-primary" href="#" onclick="openApply(event, 'membership')">Request Access</a>
         </div>
       </div>
     </section>
@@ -463,7 +498,6 @@
       <div class="footer-left">
         <span class="copyright-symbol">©</span> Ulttra Data
       </div>
-
       <div class="footer-right">
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
@@ -472,13 +506,147 @@
     </div>
   </footer>
 
+  <!-- APPLY MODAL -->
+  <div id="applyModal" class="apply-modal" aria-hidden="true">
+    <div class="apply-panel">
+      <h2>Request Access</h2>
+      <p>Submit your details for private review. Access is granted selectively.</p>
+
+      <form class="apply-form" onsubmit="submitApplyForm(event)">
+        <div class="apply-field">
+          <label for="applyName">Name</label>
+          <input id="applyName" name="name" type="text" autocomplete="name" required>
+        </div>
+
+        <div class="apply-field">
+          <label for="applyEmail">Email</label>
+          <input id="applyEmail" name="email" type="email" autocomplete="email" required>
+        </div>
+
+        <div class="apply-field">
+          <label for="applyPhone">Phone</label>
+          <input id="applyPhone" name="phone" type="tel" autocomplete="tel">
+        </div>
+
+        <div class="apply-actions">
+          <button id="applySubmitBtn" class="btn-primary" type="submit">Submit</button>
+          <button class="btn-secondary" type="button" onclick="closeApply()">Close</button>
+        </div>
+
+        <div id="applyMessage" class="apply-message"></div>
+      </form>
+    </div>
+  </div>
+
   <script>
+    const APPLY_API_URL = 'REPLACE_WITH_YOUR_REAL_CREATE_LEAD_ENDPOINT';
+    let applySource = '';
+
     function trackApplyClick(position) {
       gtag('event', 'click_apply', {
         cta_position: position,
-        destination_url: '/apply-page.html',
+        destination_url: 'modal_apply',
         page_location: window.location.href
       });
+    }
+
+    function openApply(event, position) {
+      if (event) event.preventDefault();
+      applySource = position || '';
+      trackApplyClick(applySource || 'unknown');
+      document.getElementById('applyModal').classList.add('active');
+      document.getElementById('applyModal').setAttribute('aria-hidden', 'false');
+      clearApplyMessage();
+    }
+
+    function closeApply() {
+      document.getElementById('applyModal').classList.remove('active');
+      document.getElementById('applyModal').setAttribute('aria-hidden', 'true');
+    }
+
+    function setApplyMessage(message, type) {
+      const el = document.getElementById('applyMessage');
+      el.textContent = message || '';
+      el.className = 'apply-message' + (type ? ' ' + type : '');
+    }
+
+    function clearApplyMessage() {
+      setApplyMessage('', '');
+    }
+
+    async function submitApplyForm(event) {
+      event.preventDefault();
+
+      const submitBtn = document.getElementById('applySubmitBtn');
+      const name = document.getElementById('applyName').value.trim();
+      const email = document.getElementById('applyEmail').value.trim().toLowerCase();
+      const phone = document.getElementById('applyPhone').value.trim();
+
+      if (!name || !email) {
+        setApplyMessage('Please complete the required fields.', 'error');
+        return;
+      }
+
+      if (APPLY_API_URL === 'REPLACE_WITH_YOUR_REAL_CREATE_LEAD_ENDPOINT') {
+        setApplyMessage('API endpoint not configured yet.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      clearApplyMessage();
+
+      try {
+        const response = await fetch(APPLY_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            data: {
+              fields: [
+                { key: "name", value: name },
+                { key: "email", value: email },
+                { key: "phone", value: phone },
+                { key: "source", value: applySource || 'website' }
+              ]
+            }
+          })
+        });
+
+        const text = await response.text();
+        let payload = null;
+
+        try {
+          payload = text ? JSON.parse(text) : null;
+        } catch (e) {
+          payload = text;
+        }
+
+        if (!response.ok) {
+          throw new Error((payload && payload.message) || 'Submission failed.');
+        }
+
+        gtag('event', 'generate_lead', {
+          method: 'website_apply_modal',
+          page_location: window.location.href
+        });
+
+        setApplyMessage('Application submitted successfully.', 'success');
+        document.getElementById('applyName').value = '';
+        document.getElementById('applyEmail').value = '';
+        document.getElementById('applyPhone').value = '';
+
+        setTimeout(() => {
+          closeApply();
+        }, 1200);
+
+      } catch (error) {
+        setApplyMessage(error.message || 'Error submitting application.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
     }
 
     let scroll90Tracked = false;
@@ -517,6 +685,18 @@
       if (payment === 'cancel') {
         alert('Payment cancelled.');
         window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeApply();
+      }
+    });
+
+    document.getElementById('applyModal').addEventListener('click', function (event) {
+      if (event.target === this) {
+        closeApply();
       }
     });
   </script>
