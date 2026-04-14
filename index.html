@@ -20,10 +20,8 @@
       --bg: #050505;
       --text: #f4f1eb;
       --muted: rgba(244,241,235,0.78);
-      --line: rgba(255,255,255,0.10);
       --accent: #d1ae72;
       --max: 1320px;
-      --radius: 28px;
     }
 
     * {
@@ -45,6 +43,8 @@
 
     body.modal-open {
       overflow: hidden;
+      position: fixed;
+      width: 100%;
     }
 
     a {
@@ -150,6 +150,11 @@
       cursor: not-allowed;
     }
 
+    .btn-inline-reset {
+      border: none;
+      outline: none;
+    }
+
     .hero-wrap {
       padding: 0 0 28px;
       background: #050505;
@@ -159,7 +164,6 @@
       width: min(100%, calc(100% - 40px));
       margin: 0 auto;
       min-height: calc(100vh - 92px);
-      border-radius: 0;
       overflow: hidden;
       position: relative;
       background:
@@ -314,36 +318,38 @@
       color: #d1ae72;
     }
 
-    .btn-inline-reset {
-      border: none;
-      outline: none;
-    }
-
     .apply-modal {
       position: fixed;
       inset: 0;
-      z-index: 9999;
+      z-index: 99999;
       display: none;
       align-items: center;
       justify-content: center;
       padding: 20px;
-      background: rgba(0, 0, 0, 0.82);
-      backdrop-filter: blur(10px);
     }
 
     .apply-modal.active {
       display: flex;
     }
 
+    .apply-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(10px);
+      pointer-events: auto;
+    }
+
     .apply-panel {
+      position: relative;
+      z-index: 100000;
       width: min(100%, 560px);
-      background: rgba(10,10,10,0.96);
+      background: rgba(10,10,10,0.98);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 28px;
       padding: 30px;
       box-shadow: 0 30px 80px rgba(0,0,0,0.45);
-      position: relative;
-      z-index: 10000;
+      pointer-events: auto;
     }
 
     .apply-panel h2 {
@@ -417,21 +423,16 @@
     }
 
     @media (max-width: 980px) {
-      .nav {
-        display: none;
-      }
-
+      .nav { display: none; }
       .hero-inner {
         padding: 48px 28px;
         align-items: end;
       }
-
       .cards,
       .cta-block {
         grid-template-columns: 1fr;
         display: grid;
       }
-
       .cta-block {
         padding: 28px;
       }
@@ -600,8 +601,9 @@
     </div>
   </footer>
 
-  <!-- APPLY MODAL -->
   <div id="applyModal" class="apply-modal" aria-hidden="true">
+    <div class="apply-backdrop"></div>
+
     <div class="apply-panel">
       <h2>Request Access</h2>
       <p>Submit your details for private review. Access is granted selectively.</p>
@@ -634,6 +636,7 @@
 
   <script>
     let applySource = '';
+    let savedScrollY = 0;
 
     function trackApplyClick(position) {
       gtag('event', 'click_apply', {
@@ -648,9 +651,12 @@
       trackApplyClick(applySource || 'unknown');
 
       const modal = document.getElementById('applyModal');
+      savedScrollY = window.scrollY || window.pageYOffset || 0;
+
       modal.classList.add('active');
       modal.setAttribute('aria-hidden', 'false');
       document.body.classList.add('modal-open');
+      document.body.style.top = `-${savedScrollY}px`;
       clearApplyMessage();
 
       setTimeout(() => {
@@ -664,6 +670,8 @@
       modal.classList.remove('active');
       modal.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('modal-open');
+      document.body.style.top = '';
+      window.scrollTo(0, savedScrollY);
     }
 
     function setApplyMessage(message, type) {
@@ -689,7 +697,7 @@
         return;
       }
 
-      const API_URL = 'https://rvkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/create-lead';
+      const API_URL = 'https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/create-lead';
 
       try {
         submitBtn.disabled = true;
