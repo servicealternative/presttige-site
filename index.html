@@ -43,6 +43,10 @@
       overflow-x: hidden;
     }
 
+    body.modal-open {
+      overflow: hidden;
+    }
+
     a {
       color: inherit;
       text-decoration: none;
@@ -110,6 +114,9 @@
       border: 1px solid rgba(255,255,255,0.12);
       transition: 0.25s ease;
       cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      text-decoration: none;
     }
 
     .btn-primary {
@@ -307,6 +314,11 @@
       color: #d1ae72;
     }
 
+    .btn-inline-reset {
+      border: none;
+      outline: none;
+    }
+
     /* Modal */
     .apply-modal {
       position: fixed;
@@ -331,6 +343,8 @@
       border-radius: 28px;
       padding: 30px;
       box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+      position: relative;
+      z-index: 10000;
     }
 
     .apply-panel h2 {
@@ -366,6 +380,8 @@
       background: rgba(255,255,255,0.04);
       color: var(--text);
       outline: none;
+      appearance: none;
+      -webkit-appearance: none;
     }
 
     .apply-field input:focus {
@@ -514,7 +530,7 @@
           <div class="hero-copy">
             <h1>Private Access.<br>Redefined.</h1>
             <p class="hero-sub">Invitation-only aviation and lifestyle platform.</p>
-            <a class="btn-primary" href="#" onclick="openApply(event, 'hero')">Request Access</a>
+            <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('hero')">Request Access</button>
           </div>
         </div>
       </section>
@@ -564,7 +580,7 @@
             <p>Applications are reviewed privately. Access is granted selectively.</p>
           </div>
 
-          <a class="btn-primary" href="#" onclick="openApply(event, 'membership')">Request Access</a>
+          <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('membership')">Request Access</button>
         </div>
       </div>
     </section>
@@ -585,25 +601,25 @@
   </footer>
 
   <!-- APPLY MODAL -->
-  <div id="applyModal" class="apply-modal" aria-hidden="true">
-    <div class="apply-panel">
+  <div id="applyModal" class="apply-modal" aria-hidden="true" onclick="handleModalBackgroundClick(event)">
+    <div class="apply-panel" onclick="event.stopPropagation()">
       <h2>Request Access</h2>
       <p>Submit your details for private review. Access is granted selectively.</p>
 
-      <form class="apply-form" onsubmit="handleApplyFrontend(event)">
+      <form class="apply-form" autocomplete="off" novalidate onsubmit="handleApplyFrontend(event)">
         <div class="apply-field">
           <label for="applyName">Name</label>
-          <input id="applyName" name="name" type="text" autocomplete="name" required>
+          <input id="applyName" name="presttige_name" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" required>
         </div>
 
         <div class="apply-field">
           <label for="applyEmail">Email</label>
-          <input id="applyEmail" name="email" type="email" autocomplete="email" required>
+          <input id="applyEmail" name="presttige_email" type="email" autocomplete="off" autocapitalize="off" spellcheck="false" required>
         </div>
 
         <div class="apply-field">
           <label for="applyPhone">Phone</label>
-          <input id="applyPhone" name="phone" type="tel" autocomplete="tel">
+          <input id="applyPhone" name="presttige_phone" type="tel" autocomplete="off" autocapitalize="off" spellcheck="false">
         </div>
 
         <div class="apply-actions">
@@ -627,21 +643,33 @@
       });
     }
 
-    function openApply(event, position) {
-      if (event) event.preventDefault();
+    function openApply(position) {
       applySource = position || '';
       trackApplyClick(applySource || 'unknown');
 
       const modal = document.getElementById('applyModal');
       modal.classList.add('active');
       modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('modal-open');
       clearApplyMessage();
+
+      setTimeout(() => {
+        const firstField = document.getElementById('applyName');
+        if (firstField) firstField.focus();
+      }, 50);
     }
 
     function closeApply() {
       const modal = document.getElementById('applyModal');
       modal.classList.remove('active');
       modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-open');
+    }
+
+    function handleModalBackgroundClick(event) {
+      if (event.target.id === 'applyModal') {
+        closeApply();
+      }
     }
 
     function setApplyMessage(message, type) {
@@ -758,12 +786,6 @@
 
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') {
-        closeApply();
-      }
-    });
-
-    document.getElementById('applyModal').addEventListener('click', function (event) {
-      if (event.target === this) {
         closeApply();
       }
     });
