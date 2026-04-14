@@ -54,7 +54,8 @@
 
     button,
     input,
-    textarea {
+    textarea,
+    select {
       font: inherit;
     }
 
@@ -377,7 +378,8 @@
       margin-bottom: 8px;
     }
 
-    .apply-field input {
+    .apply-field input,
+    .apply-field select {
       width: 100%;
       min-height: 52px;
       padding: 0 16px;
@@ -390,7 +392,12 @@
       -webkit-appearance: none;
     }
 
-    .apply-field input:focus {
+    .apply-field select option {
+      color: #111;
+    }
+
+    .apply-field input:focus,
+    .apply-field select:focus {
       border-color: rgba(209,174,114,0.75);
       box-shadow: 0 0 0 3px rgba(209,174,114,0.12);
     }
@@ -607,22 +614,50 @@
 
     <div class="apply-panel">
       <h2>Request Access</h2>
-      <p>Submit your details for private review. Access is granted selectively.</p>
+      <p>Enter your details to begin the application process. You will receive an email to validate your address before continuing.</p>
 
       <form class="apply-form" autocomplete="off" novalidate onsubmit="handleApplyFrontend(event)">
+        <input id="applicationType" type="hidden" value="access">
+        <input id="campaignId" type="hidden" value="">
+
         <div class="apply-field">
-          <label for="applyName">Name</label>
-          <input id="applyName" name="presttige_name" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" required>
+          <label for="applyName">Full Name</label>
+          <input id="applyName" name="presttige_name" type="text" autocomplete="name" autocapitalize="words" spellcheck="false" required>
         </div>
 
         <div class="apply-field">
           <label for="applyEmail">Email</label>
-          <input id="applyEmail" name="presttige_email" type="email" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+          <input id="applyEmail" name="presttige_email" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" required>
         </div>
 
         <div class="apply-field">
-          <label for="applyPhone">Phone</label>
-          <input id="applyPhone" name="presttige_phone" type="tel" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <label for="applyCountry">Country</label>
+          <select id="applyCountry" name="presttige_country" required>
+            <option value="">Select country</option>
+            <option>United Arab Emirates</option>
+            <option>Saudi Arabia</option>
+            <option>Qatar</option>
+            <option>Kuwait</option>
+            <option>Bahrain</option>
+            <option>Oman</option>
+            <option>United Kingdom</option>
+            <option>United States</option>
+            <option>France</option>
+            <option>Italy</option>
+            <option>Spain</option>
+            <option>Portugal</option>
+            <option>Switzerland</option>
+            <option>Germany</option>
+            <option>Netherlands</option>
+            <option>Belgium</option>
+            <option>Luxembourg</option>
+            <option>Monaco</option>
+            <option>Singapore</option>
+            <option>Hong Kong</option>
+            <option>Turkey</option>
+            <option>Brazil</option>
+            <option>Other</option>
+          </select>
         </div>
 
         <div class="apply-actions">
@@ -640,9 +675,9 @@
     let savedScrollY = 0;
 
     function trackApplyClick(position) {
-      gtag('event', 'click_apply', {
+      gtag('event', 'click_apply_access', {
+        application_type: 'access',
         cta_position: position,
-        destination_url: 'modal_apply',
         page_location: window.location.href
       });
     }
@@ -691,9 +726,11 @@
       const submitBtn = document.getElementById('applySubmitBtn');
       const name = document.getElementById('applyName').value.trim();
       const email = document.getElementById('applyEmail').value.trim().toLowerCase();
-      const phone = document.getElementById('applyPhone').value.trim();
+      const country = document.getElementById('applyCountry').value.trim();
+      const applicationType = document.getElementById('applicationType').value.trim();
+      const campaignId = document.getElementById('campaignId').value.trim();
 
-      if (!name || !email) {
+      if (!name || !email || !country) {
         setApplyMessage('Please complete the required fields.', 'error');
         return;
       }
@@ -704,6 +741,13 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Submitting...';
         setApplyMessage('Submitting...', '');
+
+        gtag('event', 'submit_form_step_1', {
+          application_type: applicationType,
+          source: applySource || 'unknown',
+          campaign_id: campaignId || '',
+          page_location: window.location.href
+        });
 
         const response = await fetch(API_URL, {
           method: 'POST',
@@ -717,7 +761,10 @@
               fields: [
                 { key: 'name', value: name },
                 { key: 'email', value: email },
-                { key: 'phone', value: phone }
+                { key: 'country', value: country },
+                { key: 'application_type', value: applicationType },
+                { key: 'source', value: applySource || 'unknown' },
+                { key: 'campaign_id', value: campaignId }
               ]
             }
           })
@@ -739,20 +786,11 @@
           throw new Error(backendMessage);
         }
 
-        gtag('event', 'generate_lead', {
-          method: 'website_apply_modal',
-          page_location: window.location.href
-        });
-
-        setApplyMessage('Application submitted successfully.', 'success');
-
-        document.getElementById('applyName').value = '';
-        document.getElementById('applyEmail').value = '';
-        document.getElementById('applyPhone').value = '';
+        setApplyMessage('Check your email to continue.', 'success');
 
         setTimeout(() => {
-          window.location.replace('https://presttige.net/thank-you.html');
-        }, 1200);
+          window.location.replace(`https://presttige.net/check-email.html?email=${encodeURIComponent(email)}`);
+        }, 900);
 
       } catch (error) {
         const message = error && error.message ? error.message : 'Unknown error';
@@ -767,7 +805,7 @@
           setApplyMessage(message, 'error');
         }
 
-        console.error('Presttige apply submit error:', error);
+        console.error('Presttige step 1 submit error:', error);
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Continue';
@@ -797,21 +835,6 @@
         page_location: window.location.href
       });
     }, 30000);
-
-    document.addEventListener('DOMContentLoaded', function () {
-      const params = new URLSearchParams(window.location.search);
-      const payment = params.get('payment');
-
-      if (payment === 'success') {
-        alert('Payment successful. Welcome to Presttige.');
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-
-      if (payment === 'cancel') {
-        alert('Payment cancelled.');
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    });
 
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') {
