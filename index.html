@@ -130,6 +130,13 @@
       transform: translateY(-1px);
     }
 
+    .btn-primary:disabled,
+    .btn-secondary:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .btn-disabled {
       opacity: 0.65;
       pointer-events: none;
@@ -600,7 +607,7 @@
         </div>
 
         <div class="apply-actions">
-          <button class="btn-primary" type="submit">Continue</button>
+          <button id="applySubmitBtn" class="btn-primary" type="submit">Continue</button>
           <button class="btn-secondary" type="button" onclick="closeApply()">Close</button>
         </div>
 
@@ -647,11 +654,12 @@
       setApplyMessage('', '');
     }
 
-    function handleApplyFrontend(event) {
+    async function handleApplyFrontend(event) {
       event.preventDefault();
 
+      const submitBtn = document.getElementById('applySubmitBtn');
       const name = document.getElementById('applyName').value.trim();
-      const email = document.getElementById('applyEmail').value.trim();
+      const email = document.getElementById('applyEmail').value.trim().toLowerCase();
       const phone = document.getElementById('applyPhone').value.trim();
 
       if (!name || !email) {
@@ -659,13 +667,54 @@
         return;
       }
 
-      gtag('event', 'begin_checkout', {
-        event_category: 'lead_form',
-        event_label: applySource || 'website',
-        page_location: window.location.href
-      });
+      const API_URL = 'https://rvkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/create-lead';
 
-      setApplyMessage('Frontend ready. Next step is API connection.', 'success');
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+        setApplyMessage('Submitting...', '');
+
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            data: {
+              fields: [
+                { key: "name", value: name },
+                { key: "email", value: email },
+                { key: "phone", value: phone }
+              ]
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Request failed');
+        }
+
+        gtag('event', 'generate_lead', {
+          method: 'website_apply_modal',
+          page_location: window.location.href
+        });
+
+        setApplyMessage('Application submitted successfully.', 'success');
+
+        document.getElementById('applyName').value = '';
+        document.getElementById('applyEmail').value = '';
+        document.getElementById('applyPhone').value = '';
+
+        setTimeout(() => {
+          closeApply();
+        }, 1200);
+
+      } catch (error) {
+        setApplyMessage('Error submitting application.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Continue';
+      }
     }
 
     let scroll90Tracked = false;
