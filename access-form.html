@@ -311,8 +311,8 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const leadId = params.get('lead_id');
-    document.getElementById('leadId').value = leadId || '';
+    const leadId = params.get('lead_id') || params.get('leadId') || '';
+    document.getElementById('leadId').value = leadId;
 
     function setMessage(text, type) {
       const el = document.getElementById('formMessage');
@@ -321,7 +321,7 @@
     }
 
     function validLeadId(id) {
-      return typeof id === 'string' && id.startsWith('fdm_') && id.length >= 8;
+      return typeof id === 'string' && /^fdm_[A-Za-z0-9]+$/.test(id);
     }
 
     if (!validLeadId(leadId)) {
@@ -330,7 +330,8 @@
     } else {
       gtag('event', 'begin_form_step_2', {
         application_type: 'access',
-        page_location: window.location.href
+        page_location: window.location.href,
+        lead_id_present: true
       });
     }
 
