@@ -77,76 +77,30 @@
   </div>
 
   <script>
-    async function verifyEmail() {
+    (function () {
       const params = new URLSearchParams(window.location.search);
       const token = params.get('token');
-      const leadId = params.get('lead_id');
-      const type = params.get('type') || 'access';
 
       const messageEl = document.getElementById('message');
       const fallbackBtn = document.getElementById('fallbackBtn');
 
-      if (!token || !leadId) {
+      if (!token) {
         messageEl.textContent = 'Invalid verification link.';
         messageEl.classList.add('error');
         fallbackBtn.classList.remove('hidden');
         return;
       }
 
-      const API_URL = 'https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/verify-email';
+      const apiUrl =
+        'https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/verify-email?token=' +
+        encodeURIComponent(token);
 
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            token: token,
-            lead_id: leadId,
-            type: type
-          })
-        });
-
-        const rawText = await response.text();
-        let parsed = null;
-
-        try {
-          parsed = rawText ? JSON.parse(rawText) : null;
-        } catch (e) {
-          parsed = rawText;
-        }
-
-        if (!response.ok) {
-          const backendMessage =
-            (parsed && typeof parsed === 'object' && (parsed.message || parsed.error)) ||
-            `Request failed (${response.status})`;
-          throw new Error(backendMessage);
-        }
-
-        messageEl.textContent = 'Email verified. Redirecting…';
-
-        const redirectUrl =
-          parsed && parsed.redirect_url
-            ? parsed.redirect_url
-            : `https://presttige.net/access-form.html?lead_id=${encodeURIComponent(leadId)}`;
-
-        setTimeout(() => {
-          window.location.replace(redirectUrl);
-        }, 900);
-
-      } catch (error) {
-        const message = error && error.message ? error.message : 'Verification failed.';
-        messageEl.textContent = message;
-        messageEl.classList.add('error');
-        fallbackBtn.classList.remove('hidden');
-        console.error('Presttige verify email error:', error);
-      }
-    }
-
-    verifyEmail();
+      // Importante:
+      // não usamos fetch aqui.
+      // Redirecionamos o browser diretamente para o endpoint,
+      // e o Lambda devolve o redirect final para access-form.html?lead_id=...
+      window.location.replace(apiUrl);
+    })();
   </script>
 </body>
 </html>
