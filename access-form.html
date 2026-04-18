@@ -174,7 +174,7 @@
 
     .phone-row {
       display: grid;
-      grid-template-columns: minmax(132px, 160px) 1fr;
+      grid-template-columns: minmax(108px, 124px) 1fr;
       gap: 12px;
     }
 
@@ -202,6 +202,16 @@
 
     .subfield.hidden {
       display: none;
+    }
+
+    .locked-field select {
+      background: rgba(255,255,255,0.025);
+      color: rgba(244,241,235,0.72);
+      border-color: rgba(255,255,255,0.07);
+    }
+
+    .locked-note {
+      color: rgba(244,241,235,0.42);
     }
 
     .field small {
@@ -351,9 +361,10 @@
         </div>
 
         <div class="grid-2">
-          <div class="field">
+          <div class="field locked-field" id="countryField">
             <label for="country">Country <span class="required-mark">*</span></label>
             <select id="country" required></select>
+            <small class="locked-note" id="countryLockedNote">Selected earlier in your application.</small>
           </div>
 
           <div class="field">
@@ -393,26 +404,24 @@
 
         <div class="grid-2">
           <div class="field">
-            <label for="occupation">Occupation <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
-            <input id="occupation" type="text" />
-          </div>
-
-          <div class="field">
             <label for="tiktok">TikTok <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
             <input id="tiktok" type="text" placeholder="@username or full URL" />
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="field">
-            <label for="company">Company <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
-            <input id="company" type="text" />
           </div>
 
           <div class="field">
             <label for="website">Website <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
             <input id="website" type="url" placeholder="https://..." />
           </div>
+        </div>
+
+        <div class="field">
+          <label for="occupationFull">Occupation <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
+          <input id="occupationFull" type="text" />
+        </div>
+
+        <div class="field">
+          <label for="company">Company <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
+          <input id="company" type="text" />
         </div>
 
         <div class="field">
@@ -645,6 +654,8 @@
     const leadId = params.get('lead_id') || params.get('leadId') || '';
     document.getElementById('leadId').value = leadId;
     const countrySelect = document.getElementById('country');
+    const countryField = document.getElementById('countryField');
+    const countryLockedNote = document.getElementById('countryLockedNote');
     const phoneCountrySelect = document.getElementById('phoneCountry');
     const phoneDialCode = document.getElementById('phoneDialCode');
     const phoneCountryHint = document.getElementById('phoneCountryHint');
@@ -733,6 +744,22 @@
       const selectedCountry = getCountryByName(phoneCountrySelect.value);
       phoneDialCode.textContent = selectedCountry && selectedCountry.dial ? selectedCountry.dial : '+';
       phoneCountryHint.textContent = selectedCountry ? 'Selected country: ' + selectedCountry.name : 'Select your country code, then enter only the phone number.';
+    }
+
+    function applyStoredCountryContext() {
+      const storedCountry =
+        localStorage.getItem('presttige_country') ||
+        sessionStorage.getItem('presttige_country') ||
+        '';
+
+      if (storedCountry && getCountryByName(storedCountry)) {
+        countrySelect.value = storedCountry;
+        countryLockedNote.textContent = 'Confirmed from Step 1.';
+      } else {
+        countryLockedNote.textContent = 'Selected earlier in your application.';
+      }
+
+      countryField.classList.add('locked-field');
     }
 
     function getCityOptionsForCountry(countryName) {
@@ -1134,6 +1161,7 @@
       }
     });
 
+    applyStoredCountryContext();
     updatePhoneDialCode();
     populateCitySelect(countrySelect.value);
 
@@ -1159,7 +1187,7 @@
       clearFieldError('cityOther');
     });
 
-    ['phoneCountry', 'phone', 'age', 'instagram', 'linkedin', 'occupation', 'company', 'website', 'tiktok', 'bio', 'why', 'cityOther'].forEach(function (id) {
+    ['phoneCountry', 'phone', 'age', 'instagram', 'linkedin', 'occupationFull', 'company', 'website', 'tiktok', 'bio', 'why', 'cityOther'].forEach(function (id) {
       const el = document.getElementById(id);
       if (!el) return;
       el.addEventListener('input', function () {
@@ -1250,7 +1278,7 @@
         city: citySelect.value === 'Other' ? cityOtherInput.value.trim() : citySelect.value.trim(),
         instagram: document.getElementById('instagram').value.trim(),
         linkedin: linkedinInput.value.trim(),
-        occupation: document.getElementById('occupation').value.trim(),
+        occupation: document.getElementById('occupationFull').value.trim(),
         company: document.getElementById('company').value.trim(),
         website: document.getElementById('website').value.trim(),
         tiktok: document.getElementById('tiktok').value.trim(),
