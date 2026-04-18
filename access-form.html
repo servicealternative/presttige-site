@@ -174,7 +174,7 @@
 
     .phone-row {
       display: grid;
-      grid-template-columns: minmax(108px, 124px) 1fr;
+      grid-template-columns: minmax(96px, 112px) 1fr;
       gap: 12px;
     }
 
@@ -208,6 +208,8 @@
       background: rgba(255,255,255,0.025);
       color: rgba(244,241,235,0.72);
       border-color: rgba(255,255,255,0.07);
+      cursor: not-allowed;
+      pointer-events: none;
     }
 
     .locked-note {
@@ -363,7 +365,7 @@
         <div class="grid-2">
           <div class="field locked-field" id="countryField">
             <label for="country">Country <span class="required-mark">*</span></label>
-            <select id="country" required></select>
+            <select id="country" required disabled></select>
             <small class="locked-note" id="countryLockedNote">Selected earlier in your application.</small>
           </div>
 
@@ -376,17 +378,24 @@
           </div>
         </div>
 
-        <div class="field">
-          <label>Do you have a LinkedIn profile? <span class="required-mark">*</span></label>
-          <div class="inline-options" role="radiogroup" aria-label="Do you have a LinkedIn profile?">
-            <label class="inline-option">
-              <input type="radio" name="hasLinkedin" value="yes" />
-              <span>Yes</span>
-            </label>
-            <label class="inline-option">
-              <input type="radio" name="hasLinkedin" value="no" />
-              <span>No</span>
-            </label>
+        <div class="grid-2" id="linkedinRow">
+          <div class="field">
+            <label>Do you have a LinkedIn profile? <span class="required-mark">*</span></label>
+            <div class="inline-options" role="radiogroup" aria-label="Do you have a LinkedIn profile?">
+              <label class="inline-option">
+                <input type="radio" name="hasLinkedin" value="yes" />
+                <span>Yes</span>
+              </label>
+              <label class="inline-option">
+                <input type="radio" name="hasLinkedin" value="no" />
+                <span>No</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field hidden" id="linkedinField">
+            <label for="linkedin">LinkedIn <span class="required-mark" id="linkedinRequiredMark">*</span></label>
+            <input id="linkedin" type="text" placeholder="https://www.linkedin.com/in/yourname" autocapitalize="off" autocorrect="off" spellcheck="false" />
           </div>
         </div>
 
@@ -396,21 +405,9 @@
             <input id="instagram" type="text" placeholder="@username or full URL" autocapitalize="off" autocorrect="off" spellcheck="false" required />
           </div>
 
-          <div class="field hidden" id="linkedinField">
-            <label for="linkedin">LinkedIn <span class="required-mark" id="linkedinRequiredMark">*</span></label>
-            <input id="linkedin" type="text" placeholder="https://www.linkedin.com/in/yourname" autocapitalize="off" autocorrect="off" spellcheck="false" />
-          </div>
-        </div>
-
-        <div class="grid-2">
           <div class="field">
             <label for="tiktok">TikTok <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
             <input id="tiktok" type="text" placeholder="@username or full URL" />
-          </div>
-
-          <div class="field">
-            <label for="website">Website <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
-            <input id="website" type="url" placeholder="https://..." />
           </div>
         </div>
 
@@ -419,9 +416,16 @@
           <input id="occupationFull" type="text" />
         </div>
 
-        <div class="field">
-          <label for="company">Company <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
-          <input id="company" type="text" />
+        <div class="grid-2">
+          <div class="field">
+            <label for="company">Company <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
+            <input id="company" type="text" />
+          </div>
+
+          <div class="field">
+            <label for="website">Website <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
+            <input id="website" type="url" placeholder="https://..." />
+          </div>
         </div>
 
         <div class="field">
@@ -663,7 +667,7 @@
     const linkedinInput = document.getElementById('linkedin');
     const linkedinRequiredMark = document.getElementById('linkedinRequiredMark');
     const linkedinRadios = document.querySelectorAll('input[name="hasLinkedin"]');
-    const socialFieldsRow = document.getElementById('socialFieldsRow');
+    const linkedinRow = document.getElementById('linkedinRow');
     const citySelect = document.getElementById('citySelect');
     const cityOtherWrap = document.getElementById('cityOtherWrap');
     const cityOtherInput = document.getElementById('cityOther');
@@ -731,7 +735,7 @@
       const hasLinkedin = choice === 'yes';
 
       linkedinField.classList.toggle('hidden', !hasLinkedin);
-      socialFieldsRow.classList.toggle('single-column', !hasLinkedin);
+      linkedinRow.classList.toggle('single-column', !hasLinkedin);
       linkedinInput.required = hasLinkedin;
       linkedinRequiredMark.style.display = hasLinkedin ? 'inline' : 'none';
 
