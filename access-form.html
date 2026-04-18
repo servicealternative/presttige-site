@@ -100,6 +100,10 @@
       gap: 16px;
     }
 
+    .grid-2.single-column {
+      grid-template-columns: 1fr;
+    }
+
     .field label {
       display: block;
       margin-bottom: 8px;
@@ -170,7 +174,7 @@
 
     .phone-row {
       display: grid;
-      grid-template-columns: minmax(200px, 240px) 1fr;
+      grid-template-columns: minmax(132px, 160px) 1fr;
       gap: 12px;
     }
 
@@ -190,6 +194,14 @@
 
     .phone-input-wrap input {
       padding-left: 72px;
+    }
+
+    .subfield {
+      margin-top: 12px;
+    }
+
+    .subfield.hidden {
+      display: none;
     }
 
     .field small {
@@ -329,7 +341,7 @@
                 <input id="phone" type="tel" autocomplete="tel-national" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="numeric" required />
               </div>
             </div>
-            <small>Select your country code, then enter only the phone number.</small>
+            <small id="phoneCountryHint">Selected country: United States of America</small>
           </div>
 
           <div class="field">
@@ -345,20 +357,11 @@
           </div>
 
           <div class="field">
-            <label for="city">City <span class="required-mark">*</span></label>
-            <input id="city" type="text" autocomplete="address-level2" required />
-          </div>
-        </div>
-
-        <div class="grid-2">
-          <div class="field">
-            <label for="instagram">Instagram <span class="required-mark">*</span></label>
-            <input id="instagram" type="text" placeholder="@username or full URL" autocapitalize="off" autocorrect="off" spellcheck="false" required />
-          </div>
-
-          <div class="field">
-            <label for="occupation">Occupation <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
-            <input id="occupation" type="text" />
+            <label for="citySelect">City <span class="required-mark">*</span></label>
+            <select id="citySelect" required></select>
+            <div class="subfield hidden" id="cityOtherWrap">
+              <input id="cityOther" type="text" autocomplete="address-level2" placeholder="Enter your city" />
+            </div>
           </div>
         </div>
 
@@ -376,9 +379,28 @@
           </div>
         </div>
 
-        <div class="field hidden" id="linkedinField">
-          <label for="linkedin">LinkedIn <span class="required-mark" id="linkedinRequiredMark">*</span></label>
-          <input id="linkedin" type="text" placeholder="Profile URL" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <div class="grid-2" id="socialFieldsRow">
+          <div class="field">
+            <label for="instagram">Instagram <span class="required-mark">*</span></label>
+            <input id="instagram" type="text" placeholder="@username or full URL" autocapitalize="off" autocorrect="off" spellcheck="false" required />
+          </div>
+
+          <div class="field hidden" id="linkedinField">
+            <label for="linkedin">LinkedIn <span class="required-mark" id="linkedinRequiredMark">*</span></label>
+            <input id="linkedin" type="text" placeholder="https://www.linkedin.com/in/yourname" autocapitalize="off" autocorrect="off" spellcheck="false" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="occupation">Occupation <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
+            <input id="occupation" type="text" />
+          </div>
+
+          <div class="field">
+            <label for="tiktok">TikTok <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
+            <input id="tiktok" type="text" placeholder="@username or full URL" />
+          </div>
         </div>
 
         <div class="grid-2">
@@ -391,11 +413,6 @@
             <label for="website">Website <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
             <input id="website" type="url" placeholder="https://..." />
           </div>
-        </div>
-
-        <div class="field">
-          <label for="tiktok">TikTok <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
-          <input id="tiktok" type="text" placeholder="@username or full URL" />
         </div>
 
         <div class="field">
@@ -630,10 +647,39 @@
     const countrySelect = document.getElementById('country');
     const phoneCountrySelect = document.getElementById('phoneCountry');
     const phoneDialCode = document.getElementById('phoneDialCode');
+    const phoneCountryHint = document.getElementById('phoneCountryHint');
     const linkedinField = document.getElementById('linkedinField');
     const linkedinInput = document.getElementById('linkedin');
     const linkedinRequiredMark = document.getElementById('linkedinRequiredMark');
     const linkedinRadios = document.querySelectorAll('input[name="hasLinkedin"]');
+    const socialFieldsRow = document.getElementById('socialFieldsRow');
+    const citySelect = document.getElementById('citySelect');
+    const cityOtherWrap = document.getElementById('cityOtherWrap');
+    const cityOtherInput = document.getElementById('cityOther');
+    const MIN_LONG_TEXT_LENGTH = 50;
+
+    const CITY_SUGGESTIONS = {
+      'United States of America': ['New York', 'Los Angeles', 'Miami', 'Chicago', 'San Francisco', 'Other'],
+      'United Kingdom': ['London', 'Manchester', 'Birmingham', 'Edinburgh', 'Liverpool', 'Other'],
+      'United Arab Emirates': ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Other'],
+      'Saudi Arabia': ['Riyadh', 'Jeddah', 'Dammam', 'Mecca', 'Medina', 'Other'],
+      'Qatar': ['Doha', 'Al Rayyan', 'Al Wakrah', 'Lusail', 'Other'],
+      'Kuwait': ['Kuwait City', 'Hawalli', 'Salmiya', 'Farwaniya', 'Other'],
+      'Bahrain': ['Manama', 'Muharraq', 'Riffa', 'Isa Town', 'Other'],
+      'Oman': ['Muscat', 'Salalah', 'Sohar', 'Nizwa', 'Other'],
+      'France': ['Paris', 'Lyon', 'Marseille', 'Nice', 'Other'],
+      'Germany': ['Berlin', 'Munich', 'Hamburg', 'Frankfurt', 'Other'],
+      'Italy': ['Milan', 'Rome', 'Florence', 'Naples', 'Other'],
+      'Portugal': ['Lisbon', 'Porto', 'Braga', 'Faro', 'Other'],
+      'Spain': ['Madrid', 'Barcelona', 'Valencia', 'Seville', 'Other'],
+      'Switzerland': ['Zurich', 'Geneva', 'Basel', 'Lausanne', 'Other'],
+      'Netherlands': ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Other'],
+      'Belgium': ['Brussels', 'Antwerp', 'Ghent', 'Bruges', 'Other'],
+      'Singapore': ['Singapore', 'Other'],
+      'Hong Kong': ['Hong Kong', 'Kowloon', 'New Territories', 'Other'],
+      'Brazil': ['Sao Paulo', 'Rio de Janeiro', 'Brasilia', 'Belo Horizonte', 'Other'],
+      'Turkey': ['Istanbul', 'Ankara', 'Izmir', 'Antalya', 'Other']
+    };
 
     function buildOrderedCountries() {
       const priority = PRIORITY_COUNTRIES
@@ -674,6 +720,7 @@
       const hasLinkedin = choice === 'yes';
 
       linkedinField.classList.toggle('hidden', !hasLinkedin);
+      socialFieldsRow.classList.toggle('single-column', !hasLinkedin);
       linkedinInput.required = hasLinkedin;
       linkedinRequiredMark.style.display = hasLinkedin ? 'inline' : 'none';
 
@@ -685,6 +732,36 @@
     function updatePhoneDialCode() {
       const selectedCountry = getCountryByName(phoneCountrySelect.value);
       phoneDialCode.textContent = selectedCountry && selectedCountry.dial ? selectedCountry.dial : '+';
+      phoneCountryHint.textContent = selectedCountry ? 'Selected country: ' + selectedCountry.name : 'Select your country code, then enter only the phone number.';
+    }
+
+    function getCityOptionsForCountry(countryName) {
+      return CITY_SUGGESTIONS[countryName] || ['Other'];
+    }
+
+    function updateCityFieldVisibility() {
+      const requiresManualCity = citySelect.value === 'Other';
+      cityOtherWrap.classList.toggle('hidden', !requiresManualCity);
+      cityOtherInput.required = requiresManualCity;
+
+      if (!requiresManualCity) {
+        cityOtherInput.value = '';
+      }
+    }
+
+    function populateCitySelect(countryName) {
+      const options = getCityOptionsForCountry(countryName);
+      citySelect.innerHTML = '';
+
+      options.forEach(function (city) {
+        const option = document.createElement('option');
+        option.value = city;
+        option.textContent = city;
+        citySelect.appendChild(option);
+      });
+
+      citySelect.value = options[0] || 'Other';
+      updateCityFieldVisibility();
     }
 
     function isValidLinkedin(value) {
@@ -979,6 +1056,7 @@
     function validatePhoneForCountry(rawPhone, countryName) {
       const phoneLib = window.libphonenumber;
       const regionCode = COUNTRY_REGION_CODES[countryName];
+      const selectedCountry = getCountryByName(countryName);
       const digits = normalizePhoneForValidation(rawPhone, countryName);
 
       if (!digits) {
@@ -1018,8 +1096,10 @@
       }
 
       try {
-        const parsed = phoneLib.parsePhoneNumberFromString(digits, regionCode);
-        if (!parsed || parsed.country !== regionCode || !parsed.isPossible()) {
+        const dialDigits = selectedCountry && selectedCountry.dial ? selectedCountry.dial.replace(/\D/g, '') : '';
+        const fullNumber = dialDigits ? '+' + dialDigits + digits : digits;
+        const parsed = phoneLib.parsePhoneNumberFromString(fullNumber, regionCode);
+        if (!parsed || parsed.country !== regionCode || !parsed.isValid()) {
           return {
             valid: false,
             message: 'Phone number length is not valid for ' + countryName + '.'
@@ -1043,7 +1123,8 @@
     });
 
     populateCountrySelect(phoneCountrySelect, function (country) {
-      return country.dial ? country.name + ' (' + country.dial + ')' : country.name;
+      const shortCode = COUNTRY_REGION_CODES[country.name] || '';
+      return country.dial ? country.dial + (shortCode ? ' · ' + shortCode : '') : country.name;
     });
 
     PRIORITY_COUNTRIES.forEach(function (countryName, index) {
@@ -1054,6 +1135,7 @@
     });
 
     updatePhoneDialCode();
+    populateCitySelect(countrySelect.value);
 
     linkedinRadios.forEach(function (radio) {
       radio.addEventListener('change', updateLinkedinVisibility);
@@ -1064,7 +1146,20 @@
       clearFieldError('phone');
     });
 
-    ['phoneCountry', 'phone', 'age', 'country', 'city', 'instagram', 'linkedin', 'occupation', 'company', 'website', 'tiktok', 'bio', 'why'].forEach(function (id) {
+    countrySelect.addEventListener('change', function () {
+      populateCitySelect(countrySelect.value);
+      clearFieldError('country');
+      clearFieldError('citySelect');
+      clearFieldError('cityOther');
+    });
+
+    citySelect.addEventListener('change', function () {
+      updateCityFieldVisibility();
+      clearFieldError('citySelect');
+      clearFieldError('cityOther');
+    });
+
+    ['phoneCountry', 'phone', 'age', 'instagram', 'linkedin', 'occupation', 'company', 'website', 'tiktok', 'bio', 'why', 'cityOther'].forEach(function (id) {
       const el = document.getElementById(id);
       if (!el) return;
       el.addEventListener('input', function () {
@@ -1144,6 +1239,7 @@
 
       const submitBtn = document.getElementById('submitBtn');
       clearAllFieldErrors();
+      setMessage('', '');
 
       const payload = {
         lead_id: leadId,
@@ -1151,7 +1247,7 @@
         phone_country: phoneCountrySelect.value.trim(),
         phone: document.getElementById('phone').value.trim(),
         age: document.getElementById('age').value.trim(),
-        city: document.getElementById('city').value.trim(),
+        city: citySelect.value === 'Other' ? cityOtherInput.value.trim() : citySelect.value.trim(),
         instagram: document.getElementById('instagram').value.trim(),
         linkedin: linkedinInput.value.trim(),
         occupation: document.getElementById('occupation').value.trim(),
@@ -1167,7 +1263,7 @@
         if (!payload.phone_country || !payload.phone) setFieldError('phone', 'Phone and country code are required.');
         if (!payload.age) setFieldError('age', 'Age is required.');
         if (!payload.country) setFieldError('country', 'Country is required.');
-        if (!payload.city) setFieldError('city', 'City is required.');
+        if (!payload.city) setFieldError(citySelect.value === 'Other' ? 'cityOther' : 'citySelect', 'City is required.');
         if (!payload.instagram) setFieldError('instagram', 'Instagram is required.');
         if (!payload.bio) setFieldError('bio', 'Short introduction is required.');
         if (!payload.why) setFieldError('why', 'This answer is required.');
@@ -1182,34 +1278,46 @@
       }
 
       if (!isValidInstagram(payload.instagram)) {
-        setMessage('Please provide a valid Instagram handle or URL.', 'error');
+        setMessage('', '');
         setFieldError('instagram', 'Please provide a valid Instagram handle or URL.');
         return;
       }
 
       if (!getLinkedinChoice()) {
-        setMessage('Please tell us whether you have a LinkedIn profile.', 'error');
+        setMessage('', '');
         setFieldError(document.querySelector('input[name="hasLinkedin"]'), 'Please choose Yes or No.');
         return;
       }
 
       if (getLinkedinChoice() === 'yes' && !isValidLinkedin(payload.linkedin)) {
-        setMessage('Please provide a valid LinkedIn profile URL.', 'error');
-        setFieldError('linkedin', 'Please provide a valid LinkedIn profile URL.');
+        setMessage('', '');
+        setFieldError('linkedin', 'Please enter a valid LinkedIn profile URL (example: https://www.linkedin.com/in/yourname).');
         return;
       }
 
       if (payload.website) {
         if (!isValidAbsoluteUrl(payload.website)) {
-          setMessage('Please provide a valid website URL or leave the field empty.', 'error');
+          setMessage('', '');
           setFieldError('website', 'Please provide a valid website URL.');
           return;
         }
       }
 
       if (payload.tiktok && !isValidTikTok(payload.tiktok)) {
-        setMessage('Please provide a valid TikTok handle or URL, or leave the field empty.', 'error');
+        setMessage('', '');
         setFieldError('tiktok', 'Please provide a valid TikTok handle or URL.');
+        return;
+      }
+
+      if (payload.bio.length < MIN_LONG_TEXT_LENGTH) {
+        setMessage('', '');
+        setFieldError('bio', 'Please enter at least 50 characters.');
+        return;
+      }
+
+      if (payload.why.length < MIN_LONG_TEXT_LENGTH) {
+        setMessage('', '');
+        setFieldError('why', 'Please enter at least 50 characters.');
         return;
       }
 
