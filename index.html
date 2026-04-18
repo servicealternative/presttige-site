@@ -402,6 +402,24 @@
       box-shadow: 0 0 0 3px rgba(209,174,114,0.12);
     }
 
+    .apply-field.has-error input,
+    .apply-field.has-error select {
+      border-color: rgba(255,180,180,0.9);
+      box-shadow: 0 0 0 3px rgba(255,180,180,0.12);
+    }
+
+    .apply-error-note {
+      display: none;
+      margin-top: 8px;
+      color: #ffb4b4;
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .apply-field.has-error .apply-error-note {
+      display: block;
+    }
+
     .apply-actions {
       display: flex;
       gap: 12px;
@@ -632,32 +650,7 @@
 
         <div class="apply-field">
           <label for="applyCountry">Country</label>
-          <select id="applyCountry" name="presttige_country" required>
-            <option value="">Select country</option>
-            <option>United Arab Emirates</option>
-            <option>Saudi Arabia</option>
-            <option>Qatar</option>
-            <option>Kuwait</option>
-            <option>Bahrain</option>
-            <option>Oman</option>
-            <option>United Kingdom</option>
-            <option>United States</option>
-            <option>France</option>
-            <option>Italy</option>
-            <option>Spain</option>
-            <option>Portugal</option>
-            <option>Switzerland</option>
-            <option>Germany</option>
-            <option>Netherlands</option>
-            <option>Belgium</option>
-            <option>Luxembourg</option>
-            <option>Monaco</option>
-            <option>Singapore</option>
-            <option>Hong Kong</option>
-            <option>Turkey</option>
-            <option>Brazil</option>
-            <option>Other</option>
-          </select>
+          <select id="applyCountry" name="presttige_country" required></select>
         </div>
 
         <div class="apply-actions">
@@ -673,6 +666,237 @@
   <script>
     let applySource = '';
     let savedScrollY = 0;
+    const APPLY_COUNTRIES = [
+      'United States of America',
+      'United Kingdom',
+      'United Arab Emirates',
+      'Afghanistan',
+      'Albania',
+      'Algeria',
+      'Andorra',
+      'Angola',
+      'Antigua and Barbuda',
+      'Argentina',
+      'Armenia',
+      'Australia',
+      'Austria',
+      'Azerbaijan',
+      'Bahamas',
+      'Bahrain',
+      'Bangladesh',
+      'Barbados',
+      'Belarus',
+      'Belgium',
+      'Belize',
+      'Benin',
+      'Bhutan',
+      'Bolivia',
+      'Bosnia and Herzegovina',
+      'Botswana',
+      'Brazil',
+      'Brunei',
+      'Bulgaria',
+      'Burkina Faso',
+      'Burundi',
+      'Cambodia',
+      'Cameroon',
+      'Canada',
+      'Cape Verde',
+      'Central African Republic',
+      'Chad',
+      'Chile',
+      'China',
+      'Colombia',
+      'Comoros',
+      'Congo',
+      'Costa Rica',
+      'Croatia',
+      'Cuba',
+      'Cyprus',
+      'Czech Republic',
+      'Democratic Republic of the Congo',
+      'Denmark',
+      'Djibouti',
+      'Dominica',
+      'Dominican Republic',
+      'Ecuador',
+      'Egypt',
+      'El Salvador',
+      'Equatorial Guinea',
+      'Eritrea',
+      'Estonia',
+      'Eswatini',
+      'Ethiopia',
+      'Fiji',
+      'Finland',
+      'France',
+      'Gabon',
+      'Gambia',
+      'Georgia',
+      'Germany',
+      'Ghana',
+      'Greece',
+      'Grenada',
+      'Guatemala',
+      'Guinea',
+      'Guinea-Bissau',
+      'Guyana',
+      'Haiti',
+      'Honduras',
+      'Hungary',
+      'Iceland',
+      'India',
+      'Indonesia',
+      'Iran',
+      'Iraq',
+      'Ireland',
+      'Israel',
+      'Italy',
+      'Ivory Coast',
+      'Jamaica',
+      'Japan',
+      'Jordan',
+      'Kazakhstan',
+      'Kenya',
+      'Kiribati',
+      'Kuwait',
+      'Kyrgyzstan',
+      'Laos',
+      'Latvia',
+      'Lebanon',
+      'Lesotho',
+      'Liberia',
+      'Libya',
+      'Liechtenstein',
+      'Lithuania',
+      'Luxembourg',
+      'Madagascar',
+      'Malawi',
+      'Malaysia',
+      'Maldives',
+      'Mali',
+      'Malta',
+      'Marshall Islands',
+      'Mauritania',
+      'Mauritius',
+      'Mexico',
+      'Micronesia',
+      'Moldova',
+      'Monaco',
+      'Mongolia',
+      'Montenegro',
+      'Morocco',
+      'Mozambique',
+      'Myanmar',
+      'Namibia',
+      'Nauru',
+      'Nepal',
+      'Netherlands',
+      'New Zealand',
+      'Nicaragua',
+      'Niger',
+      'Nigeria',
+      'North Korea',
+      'North Macedonia',
+      'Norway',
+      'Oman',
+      'Pakistan',
+      'Palau',
+      'Palestine',
+      'Panama',
+      'Papua New Guinea',
+      'Paraguay',
+      'Peru',
+      'Philippines',
+      'Poland',
+      'Portugal',
+      'Qatar',
+      'Romania',
+      'Russia',
+      'Rwanda',
+      'Saint Kitts and Nevis',
+      'Saint Lucia',
+      'Saint Vincent and the Grenadines',
+      'Samoa',
+      'San Marino',
+      'Sao Tome and Principe',
+      'Saudi Arabia',
+      'Senegal',
+      'Serbia',
+      'Seychelles',
+      'Sierra Leone',
+      'Singapore',
+      'Slovakia',
+      'Slovenia',
+      'Solomon Islands',
+      'Somalia',
+      'South Africa',
+      'South Korea',
+      'South Sudan',
+      'Spain',
+      'Sri Lanka',
+      'Sudan',
+      'Suriname',
+      'Sweden',
+      'Switzerland',
+      'Syria',
+      'Taiwan',
+      'Tajikistan',
+      'Tanzania',
+      'Thailand',
+      'Timor-Leste',
+      'Togo',
+      'Tonga',
+      'Trinidad and Tobago',
+      'Tunisia',
+      'Turkey',
+      'Turkmenistan',
+      'Tuvalu',
+      'Uganda',
+      'Ukraine',
+      'Uruguay',
+      'Uzbekistan',
+      'Vanuatu',
+      'Vatican City',
+      'Venezuela',
+      'Vietnam',
+      'Yemen',
+      'Zambia',
+      'Zimbabwe'
+    ];
+    const APPLY_PRIORITY_COUNTRIES = [
+      'United States of America',
+      'United Kingdom',
+      'United Arab Emirates'
+    ];
+
+    function populateApplyCountrySelect() {
+      const select = document.getElementById('applyCountry');
+      if (!select) return;
+
+      const priority = APPLY_PRIORITY_COUNTRIES.filter(function (name) {
+        return APPLY_COUNTRIES.includes(name);
+      });
+
+      const remaining = APPLY_COUNTRIES
+        .filter(function (name) {
+          return !APPLY_PRIORITY_COUNTRIES.includes(name);
+        })
+        .sort(function (a, b) {
+          return a.localeCompare(b);
+        });
+
+      select.innerHTML = '';
+
+      priority.concat(remaining).forEach(function (country) {
+        const option = document.createElement('option');
+        option.value = country;
+        option.textContent = country;
+        select.appendChild(option);
+      });
+
+      select.value = APPLY_PRIORITY_COUNTRIES[0];
+    }
 
     function trackApplyClick(position) {
       gtag('event', 'click_apply_access', {
@@ -694,6 +918,7 @@
       document.body.classList.add('modal-open');
       document.body.style.top = `-${savedScrollY}px`;
       clearApplyMessage();
+      clearAllApplyFieldErrors();
 
       setTimeout(() => {
         const firstField = document.getElementById('applyName');
@@ -720,6 +945,40 @@
       setApplyMessage('', '');
     }
 
+    function setApplyFieldError(inputId, message) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const field = input.closest('.apply-field');
+      if (!field) return;
+      field.classList.add('has-error');
+
+      let note = field.querySelector('.apply-error-note');
+      if (!note) {
+        note = document.createElement('div');
+        note.className = 'apply-error-note';
+        field.appendChild(note);
+      }
+      note.textContent = message;
+    }
+
+    function clearApplyFieldError(inputId) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const field = input.closest('.apply-field');
+      if (!field) return;
+      field.classList.remove('has-error');
+    }
+
+    function clearAllApplyFieldErrors() {
+      document.querySelectorAll('.apply-field').forEach(function (field) {
+        field.classList.remove('has-error');
+      });
+    }
+
+    function isValidEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    }
+
     async function handleApplyFrontend(event) {
       event.preventDefault();
 
@@ -729,9 +988,19 @@
       const country = document.getElementById('applyCountry').value.trim();
       const applicationType = document.getElementById('applicationType').value.trim();
       const campaignId = document.getElementById('campaignId').value.trim();
+      clearAllApplyFieldErrors();
 
       if (!name || !email || !country) {
         setApplyMessage('Please complete the required fields.', 'error');
+        if (!name) setApplyFieldError('applyName', 'Full name is required.');
+        if (!email) setApplyFieldError('applyEmail', 'Email is required.');
+        if (!country) setApplyFieldError('applyCountry', 'Country is required.');
+        return;
+      }
+
+      if (!isValidEmail(email)) {
+        setApplyMessage('Please provide a valid email address.', 'error');
+        setApplyFieldError('applyEmail', 'Please provide a valid email address.');
         return;
       }
 
@@ -811,6 +1080,19 @@
         submitBtn.textContent = 'Continue';
       }
     }
+
+    ['applyName', 'applyEmail', 'applyCountry'].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', function () {
+        clearApplyFieldError(id);
+      });
+      el.addEventListener('change', function () {
+        clearApplyFieldError(id);
+      });
+    });
+
+    populateApplyCountrySelect();
 
     let scroll90Tracked = false;
 

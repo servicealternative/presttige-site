@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-H7BFLVL4F5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.11.14/bundle/libphonenumber-max.js"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
@@ -106,6 +107,11 @@
       color: rgba(244,241,235,0.86);
     }
 
+    .required-mark {
+      color: var(--accent);
+      margin-left: 4px;
+    }
+
     .field input,
     .field textarea,
     .field select {
@@ -132,12 +138,86 @@
       box-shadow: 0 0 0 3px rgba(209,174,114,0.12);
     }
 
+    .field.hidden {
+      display: none;
+    }
+
+    .inline-options {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .inline-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 52px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .inline-option input {
+      width: auto;
+      min-height: auto;
+      padding: 0;
+      margin: 0;
+    }
+
+    .phone-row {
+      display: grid;
+      grid-template-columns: minmax(200px, 240px) 1fr;
+      gap: 12px;
+    }
+
+    .phone-input-wrap {
+      position: relative;
+    }
+
+    .phone-prefix {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(244,241,235,0.72);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .phone-input-wrap input {
+      padding-left: 72px;
+    }
+
     .field small {
       display: block;
       color: rgba(244,241,235,0.45);
       margin-top: 7px;
       line-height: 1.5;
       font-size: 0.84rem;
+    }
+
+    .field.has-error input,
+    .field.has-error textarea,
+    .field.has-error select,
+    .field.has-error .inline-option {
+      border-color: rgba(255,180,180,0.9);
+      box-shadow: 0 0 0 3px rgba(255,180,180,0.12);
+    }
+
+    .field-error-note {
+      display: none;
+      margin-top: 8px;
+      color: var(--danger);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .field.has-error .field-error-note {
+      display: block;
     }
 
     .actions {
@@ -211,6 +291,10 @@
         grid-template-columns: 1fr;
       }
 
+      .phone-row {
+        grid-template-columns: 1fr;
+      }
+
       .actions {
         flex-direction: column;
       }
@@ -237,39 +321,64 @@
 
         <div class="grid-2">
           <div class="field">
-            <label for="phone">Phone</label>
-            <input id="phone" type="tel" autocomplete="tel" required />
-            <small>Include country code.</small>
+            <label for="phone">Phone <span class="required-mark">*</span></label>
+          <div class="phone-row">
+              <select id="phoneCountry" required></select>
+              <div class="phone-input-wrap">
+                <span class="phone-prefix" id="phoneDialCode">+1</span>
+                <input id="phone" type="tel" autocomplete="tel-national" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="numeric" required />
+              </div>
+            </div>
+            <small>Select your country code, then enter only the phone number.</small>
           </div>
 
           <div class="field">
-            <label for="age">Age</label>
+            <label for="age">Age <span class="required-mark">*</span></label>
             <input id="age" type="text" inputmode="numeric" required />
           </div>
         </div>
 
         <div class="grid-2">
           <div class="field">
-            <label for="city">City</label>
-            <input id="city" type="text" autocomplete="address-level2" required />
+            <label for="country">Country <span class="required-mark">*</span></label>
+            <select id="country" required></select>
           </div>
 
           <div class="field">
-            <label for="instagram">Instagram</label>
-            <input id="instagram" type="text" placeholder="@username or full URL" required />
+            <label for="city">City <span class="required-mark">*</span></label>
+            <input id="city" type="text" autocomplete="address-level2" required />
           </div>
         </div>
 
         <div class="grid-2">
           <div class="field">
-            <label for="linkedin">LinkedIn</label>
-            <input id="linkedin" type="text" placeholder="Profile URL" required />
+            <label for="instagram">Instagram <span class="required-mark">*</span></label>
+            <input id="instagram" type="text" placeholder="@username or full URL" autocapitalize="off" autocorrect="off" spellcheck="false" required />
           </div>
 
           <div class="field">
             <label for="occupation">Occupation <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
             <input id="occupation" type="text" />
           </div>
+        </div>
+
+        <div class="field">
+          <label>Do you have a LinkedIn profile? <span class="required-mark">*</span></label>
+          <div class="inline-options" role="radiogroup" aria-label="Do you have a LinkedIn profile?">
+            <label class="inline-option">
+              <input type="radio" name="hasLinkedin" value="yes" />
+              <span>Yes</span>
+            </label>
+            <label class="inline-option">
+              <input type="radio" name="hasLinkedin" value="no" />
+              <span>No</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field hidden" id="linkedinField">
+          <label for="linkedin">LinkedIn <span class="required-mark" id="linkedinRequiredMark">*</span></label>
+          <input id="linkedin" type="text" placeholder="Profile URL" autocapitalize="off" autocorrect="off" spellcheck="false" />
         </div>
 
         <div class="grid-2">
@@ -290,12 +399,12 @@
         </div>
 
         <div class="field">
-          <label for="bio">Short Introduction</label>
+          <label for="bio">Short Introduction <span class="required-mark">*</span></label>
           <textarea id="bio" required></textarea>
         </div>
 
         <div class="field">
-          <label for="why">Why do you want access to Presttige?</label>
+          <label for="why">Why do you want access to Presttige? <span class="required-mark">*</span></label>
           <textarea id="why" required></textarea>
         </div>
 
@@ -310,14 +419,704 @@
   </div>
 
   <script>
+    const COUNTRIES = [
+      { name: 'United States of America', dial: '+1' },
+      { name: 'United Kingdom', dial: '+44' },
+      { name: 'United Arab Emirates', dial: '+971' },
+      { name: 'Afghanistan', dial: '+93' },
+      { name: 'Albania', dial: '+355' },
+      { name: 'Algeria', dial: '+213' },
+      { name: 'Andorra', dial: '+376' },
+      { name: 'Angola', dial: '+244' },
+      { name: 'Antigua and Barbuda', dial: '+1-268' },
+      { name: 'Argentina', dial: '+54' },
+      { name: 'Armenia', dial: '+374' },
+      { name: 'Australia', dial: '+61' },
+      { name: 'Austria', dial: '+43' },
+      { name: 'Azerbaijan', dial: '+994' },
+      { name: 'Bahamas', dial: '+1-242' },
+      { name: 'Bahrain', dial: '+973' },
+      { name: 'Bangladesh', dial: '+880' },
+      { name: 'Barbados', dial: '+1-246' },
+      { name: 'Belarus', dial: '+375' },
+      { name: 'Belgium', dial: '+32' },
+      { name: 'Belize', dial: '+501' },
+      { name: 'Benin', dial: '+229' },
+      { name: 'Bhutan', dial: '+975' },
+      { name: 'Bolivia', dial: '+591' },
+      { name: 'Bosnia and Herzegovina', dial: '+387' },
+      { name: 'Botswana', dial: '+267' },
+      { name: 'Brazil', dial: '+55' },
+      { name: 'Brunei', dial: '+673' },
+      { name: 'Bulgaria', dial: '+359' },
+      { name: 'Burkina Faso', dial: '+226' },
+      { name: 'Burundi', dial: '+257' },
+      { name: 'Cambodia', dial: '+855' },
+      { name: 'Cameroon', dial: '+237' },
+      { name: 'Canada', dial: '+1' },
+      { name: 'Cape Verde', dial: '+238' },
+      { name: 'Central African Republic', dial: '+236' },
+      { name: 'Chad', dial: '+235' },
+      { name: 'Chile', dial: '+56' },
+      { name: 'China', dial: '+86' },
+      { name: 'Colombia', dial: '+57' },
+      { name: 'Comoros', dial: '+269' },
+      { name: 'Congo', dial: '+242' },
+      { name: 'Costa Rica', dial: '+506' },
+      { name: 'Croatia', dial: '+385' },
+      { name: 'Cuba', dial: '+53' },
+      { name: 'Cyprus', dial: '+357' },
+      { name: 'Czech Republic', dial: '+420' },
+      { name: 'Democratic Republic of the Congo', dial: '+243' },
+      { name: 'Denmark', dial: '+45' },
+      { name: 'Djibouti', dial: '+253' },
+      { name: 'Dominica', dial: '+1-767' },
+      { name: 'Dominican Republic', dial: '+1-809' },
+      { name: 'Ecuador', dial: '+593' },
+      { name: 'Egypt', dial: '+20' },
+      { name: 'El Salvador', dial: '+503' },
+      { name: 'Equatorial Guinea', dial: '+240' },
+      { name: 'Eritrea', dial: '+291' },
+      { name: 'Estonia', dial: '+372' },
+      { name: 'Eswatini', dial: '+268' },
+      { name: 'Ethiopia', dial: '+251' },
+      { name: 'Fiji', dial: '+679' },
+      { name: 'Finland', dial: '+358' },
+      { name: 'France', dial: '+33' },
+      { name: 'Gabon', dial: '+241' },
+      { name: 'Gambia', dial: '+220' },
+      { name: 'Georgia', dial: '+995' },
+      { name: 'Germany', dial: '+49' },
+      { name: 'Ghana', dial: '+233' },
+      { name: 'Greece', dial: '+30' },
+      { name: 'Grenada', dial: '+1-473' },
+      { name: 'Guatemala', dial: '+502' },
+      { name: 'Guinea', dial: '+224' },
+      { name: 'Guinea-Bissau', dial: '+245' },
+      { name: 'Guyana', dial: '+592' },
+      { name: 'Haiti', dial: '+509' },
+      { name: 'Honduras', dial: '+504' },
+      { name: 'Hungary', dial: '+36' },
+      { name: 'Iceland', dial: '+354' },
+      { name: 'India', dial: '+91' },
+      { name: 'Indonesia', dial: '+62' },
+      { name: 'Iran', dial: '+98' },
+      { name: 'Iraq', dial: '+964' },
+      { name: 'Ireland', dial: '+353' },
+      { name: 'Israel', dial: '+972' },
+      { name: 'Italy', dial: '+39' },
+      { name: 'Ivory Coast', dial: '+225' },
+      { name: 'Jamaica', dial: '+1-876' },
+      { name: 'Japan', dial: '+81' },
+      { name: 'Jordan', dial: '+962' },
+      { name: 'Kazakhstan', dial: '+7' },
+      { name: 'Kenya', dial: '+254' },
+      { name: 'Kiribati', dial: '+686' },
+      { name: 'Kuwait', dial: '+965' },
+      { name: 'Kyrgyzstan', dial: '+996' },
+      { name: 'Laos', dial: '+856' },
+      { name: 'Latvia', dial: '+371' },
+      { name: 'Lebanon', dial: '+961' },
+      { name: 'Lesotho', dial: '+266' },
+      { name: 'Liberia', dial: '+231' },
+      { name: 'Libya', dial: '+218' },
+      { name: 'Liechtenstein', dial: '+423' },
+      { name: 'Lithuania', dial: '+370' },
+      { name: 'Luxembourg', dial: '+352' },
+      { name: 'Madagascar', dial: '+261' },
+      { name: 'Malawi', dial: '+265' },
+      { name: 'Malaysia', dial: '+60' },
+      { name: 'Maldives', dial: '+960' },
+      { name: 'Mali', dial: '+223' },
+      { name: 'Malta', dial: '+356' },
+      { name: 'Marshall Islands', dial: '+692' },
+      { name: 'Mauritania', dial: '+222' },
+      { name: 'Mauritius', dial: '+230' },
+      { name: 'Mexico', dial: '+52' },
+      { name: 'Micronesia', dial: '+691' },
+      { name: 'Moldova', dial: '+373' },
+      { name: 'Monaco', dial: '+377' },
+      { name: 'Mongolia', dial: '+976' },
+      { name: 'Montenegro', dial: '+382' },
+      { name: 'Morocco', dial: '+212' },
+      { name: 'Mozambique', dial: '+258' },
+      { name: 'Myanmar', dial: '+95' },
+      { name: 'Namibia', dial: '+264' },
+      { name: 'Nauru', dial: '+674' },
+      { name: 'Nepal', dial: '+977' },
+      { name: 'Netherlands', dial: '+31' },
+      { name: 'New Zealand', dial: '+64' },
+      { name: 'Nicaragua', dial: '+505' },
+      { name: 'Niger', dial: '+227' },
+      { name: 'Nigeria', dial: '+234' },
+      { name: 'North Korea', dial: '+850' },
+      { name: 'North Macedonia', dial: '+389' },
+      { name: 'Norway', dial: '+47' },
+      { name: 'Oman', dial: '+968' },
+      { name: 'Pakistan', dial: '+92' },
+      { name: 'Palau', dial: '+680' },
+      { name: 'Palestine', dial: '+970' },
+      { name: 'Panama', dial: '+507' },
+      { name: 'Papua New Guinea', dial: '+675' },
+      { name: 'Paraguay', dial: '+595' },
+      { name: 'Peru', dial: '+51' },
+      { name: 'Philippines', dial: '+63' },
+      { name: 'Poland', dial: '+48' },
+      { name: 'Portugal', dial: '+351' },
+      { name: 'Qatar', dial: '+974' },
+      { name: 'Romania', dial: '+40' },
+      { name: 'Russia', dial: '+7' },
+      { name: 'Rwanda', dial: '+250' },
+      { name: 'Saint Kitts and Nevis', dial: '+1-869' },
+      { name: 'Saint Lucia', dial: '+1-758' },
+      { name: 'Saint Vincent and the Grenadines', dial: '+1-784' },
+      { name: 'Samoa', dial: '+685' },
+      { name: 'San Marino', dial: '+378' },
+      { name: 'Sao Tome and Principe', dial: '+239' },
+      { name: 'Saudi Arabia', dial: '+966' },
+      { name: 'Senegal', dial: '+221' },
+      { name: 'Serbia', dial: '+381' },
+      { name: 'Seychelles', dial: '+248' },
+      { name: 'Sierra Leone', dial: '+232' },
+      { name: 'Singapore', dial: '+65' },
+      { name: 'Slovakia', dial: '+421' },
+      { name: 'Slovenia', dial: '+386' },
+      { name: 'Solomon Islands', dial: '+677' },
+      { name: 'Somalia', dial: '+252' },
+      { name: 'South Africa', dial: '+27' },
+      { name: 'South Korea', dial: '+82' },
+      { name: 'South Sudan', dial: '+211' },
+      { name: 'Spain', dial: '+34' },
+      { name: 'Sri Lanka', dial: '+94' },
+      { name: 'Sudan', dial: '+249' },
+      { name: 'Suriname', dial: '+597' },
+      { name: 'Sweden', dial: '+46' },
+      { name: 'Switzerland', dial: '+41' },
+      { name: 'Syria', dial: '+963' },
+      { name: 'Taiwan', dial: '+886' },
+      { name: 'Tajikistan', dial: '+992' },
+      { name: 'Tanzania', dial: '+255' },
+      { name: 'Thailand', dial: '+66' },
+      { name: 'Timor-Leste', dial: '+670' },
+      { name: 'Togo', dial: '+228' },
+      { name: 'Tonga', dial: '+676' },
+      { name: 'Trinidad and Tobago', dial: '+1-868' },
+      { name: 'Tunisia', dial: '+216' },
+      { name: 'Turkey', dial: '+90' },
+      { name: 'Turkmenistan', dial: '+993' },
+      { name: 'Tuvalu', dial: '+688' },
+      { name: 'Uganda', dial: '+256' },
+      { name: 'Ukraine', dial: '+380' },
+      { name: 'Uruguay', dial: '+598' },
+      { name: 'Uzbekistan', dial: '+998' },
+      { name: 'Vanuatu', dial: '+678' },
+      { name: 'Vatican City', dial: '+379' },
+      { name: 'Venezuela', dial: '+58' },
+      { name: 'Vietnam', dial: '+84' },
+      { name: 'Yemen', dial: '+967' },
+      { name: 'Zambia', dial: '+260' },
+      { name: 'Zimbabwe', dial: '+263' }
+    ];
+
+    const PRIORITY_COUNTRIES = [
+      'United States of America',
+      'United Kingdom',
+      'United Arab Emirates'
+    ];
+
     const params = new URLSearchParams(window.location.search);
     const leadId = params.get('lead_id') || params.get('leadId') || '';
     document.getElementById('leadId').value = leadId;
+    const countrySelect = document.getElementById('country');
+    const phoneCountrySelect = document.getElementById('phoneCountry');
+    const phoneDialCode = document.getElementById('phoneDialCode');
+    const linkedinField = document.getElementById('linkedinField');
+    const linkedinInput = document.getElementById('linkedin');
+    const linkedinRequiredMark = document.getElementById('linkedinRequiredMark');
+    const linkedinRadios = document.querySelectorAll('input[name="hasLinkedin"]');
+
+    function buildOrderedCountries() {
+      const priority = PRIORITY_COUNTRIES
+        .map(function (countryName) {
+          return COUNTRIES.find(function (country) {
+            return country.name === countryName;
+          });
+        })
+        .filter(Boolean);
+
+      const remaining = COUNTRIES
+        .filter(function (country) {
+          return !PRIORITY_COUNTRIES.includes(country.name);
+        })
+        .sort(function (a, b) {
+          return a.name.localeCompare(b.name);
+        });
+
+      return priority.concat(remaining);
+    }
+
+    function populateCountrySelect(select, formatter) {
+      buildOrderedCountries().forEach(function (country) {
+        const option = document.createElement('option');
+        option.value = country.name;
+        option.textContent = formatter(country);
+        select.appendChild(option);
+      });
+    }
+
+    function getLinkedinChoice() {
+      const selected = document.querySelector('input[name="hasLinkedin"]:checked');
+      return selected ? selected.value : '';
+    }
+
+    function updateLinkedinVisibility() {
+      const choice = getLinkedinChoice();
+      const hasLinkedin = choice === 'yes';
+
+      linkedinField.classList.toggle('hidden', !hasLinkedin);
+      linkedinInput.required = hasLinkedin;
+      linkedinRequiredMark.style.display = hasLinkedin ? 'inline' : 'none';
+
+      if (!hasLinkedin) {
+        linkedinInput.value = '';
+      }
+    }
+
+    function updatePhoneDialCode() {
+      const selectedCountry = getCountryByName(phoneCountrySelect.value);
+      phoneDialCode.textContent = selectedCountry && selectedCountry.dial ? selectedCountry.dial : '+';
+    }
+
+    function isValidLinkedin(value) {
+      if (!value) {
+        return false;
+      }
+
+      const normalized = value.trim();
+
+      if (normalized.startsWith('linkedin.com/') || normalized.startsWith('www.linkedin.com/')) {
+        return true;
+      }
+
+      try {
+        const url = normalized.startsWith('http') ? new URL(normalized) : new URL('https://' + normalized);
+        return url.hostname.replace(/^www\./, '') === 'linkedin.com';
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function isValidInstagram(value) {
+      if (!value) {
+        return false;
+      }
+
+      const normalized = value.trim();
+      if (/^@?[A-Za-z0-9._]{1,30}$/.test(normalized)) {
+        return true;
+      }
+
+      try {
+        const url = normalized.startsWith('http') ? new URL(normalized) : new URL('https://' + normalized);
+        const hostname = url.hostname.replace(/^www\./, '');
+        return hostname === 'instagram.com';
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function isValidTikTok(value) {
+      if (!value) {
+        return false;
+      }
+
+      const normalized = value.trim();
+      if (/^@?[A-Za-z0-9._]{2,24}$/.test(normalized)) {
+        return true;
+      }
+
+      try {
+        const url = normalized.startsWith('http') ? new URL(normalized) : new URL('https://' + normalized);
+        const hostname = url.hostname.replace(/^www\./, '');
+        return hostname === 'tiktok.com';
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function isValidAbsoluteUrl(value) {
+      try {
+        const url = new URL(value);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch (error) {
+        return false;
+      }
+    }
+
+    const COUNTRY_REGION_CODES = {
+      'United States of America': 'US',
+      'United Kingdom': 'GB',
+      'United Arab Emirates': 'AE',
+      'Afghanistan': 'AF',
+      'Albania': 'AL',
+      'Algeria': 'DZ',
+      'Andorra': 'AD',
+      'Angola': 'AO',
+      'Antigua and Barbuda': 'AG',
+      'Argentina': 'AR',
+      'Armenia': 'AM',
+      'Australia': 'AU',
+      'Austria': 'AT',
+      'Azerbaijan': 'AZ',
+      'Bahamas': 'BS',
+      'Bahrain': 'BH',
+      'Bangladesh': 'BD',
+      'Barbados': 'BB',
+      'Belarus': 'BY',
+      'Belgium': 'BE',
+      'Belize': 'BZ',
+      'Benin': 'BJ',
+      'Bhutan': 'BT',
+      'Bolivia': 'BO',
+      'Bosnia and Herzegovina': 'BA',
+      'Botswana': 'BW',
+      'Brazil': 'BR',
+      'Brunei': 'BN',
+      'Bulgaria': 'BG',
+      'Burkina Faso': 'BF',
+      'Burundi': 'BI',
+      'Cambodia': 'KH',
+      'Cameroon': 'CM',
+      'Canada': 'CA',
+      'Cape Verde': 'CV',
+      'Central African Republic': 'CF',
+      'Chad': 'TD',
+      'Chile': 'CL',
+      'China': 'CN',
+      'Colombia': 'CO',
+      'Comoros': 'KM',
+      'Congo': 'CG',
+      'Costa Rica': 'CR',
+      'Croatia': 'HR',
+      'Cuba': 'CU',
+      'Cyprus': 'CY',
+      'Czech Republic': 'CZ',
+      'Democratic Republic of the Congo': 'CD',
+      'Denmark': 'DK',
+      'Djibouti': 'DJ',
+      'Dominica': 'DM',
+      'Dominican Republic': 'DO',
+      'Ecuador': 'EC',
+      'Egypt': 'EG',
+      'El Salvador': 'SV',
+      'Equatorial Guinea': 'GQ',
+      'Eritrea': 'ER',
+      'Estonia': 'EE',
+      'Eswatini': 'SZ',
+      'Ethiopia': 'ET',
+      'Fiji': 'FJ',
+      'Finland': 'FI',
+      'France': 'FR',
+      'Gabon': 'GA',
+      'Gambia': 'GM',
+      'Georgia': 'GE',
+      'Germany': 'DE',
+      'Ghana': 'GH',
+      'Greece': 'GR',
+      'Grenada': 'GD',
+      'Guatemala': 'GT',
+      'Guinea': 'GN',
+      'Guinea-Bissau': 'GW',
+      'Guyana': 'GY',
+      'Haiti': 'HT',
+      'Honduras': 'HN',
+      'Hungary': 'HU',
+      'Iceland': 'IS',
+      'India': 'IN',
+      'Indonesia': 'ID',
+      'Iran': 'IR',
+      'Iraq': 'IQ',
+      'Ireland': 'IE',
+      'Israel': 'IL',
+      'Italy': 'IT',
+      'Ivory Coast': 'CI',
+      'Jamaica': 'JM',
+      'Japan': 'JP',
+      'Jordan': 'JO',
+      'Kazakhstan': 'KZ',
+      'Kenya': 'KE',
+      'Kiribati': 'KI',
+      'Kuwait': 'KW',
+      'Kyrgyzstan': 'KG',
+      'Laos': 'LA',
+      'Latvia': 'LV',
+      'Lebanon': 'LB',
+      'Lesotho': 'LS',
+      'Liberia': 'LR',
+      'Libya': 'LY',
+      'Liechtenstein': 'LI',
+      'Lithuania': 'LT',
+      'Luxembourg': 'LU',
+      'Madagascar': 'MG',
+      'Malawi': 'MW',
+      'Malaysia': 'MY',
+      'Maldives': 'MV',
+      'Mali': 'ML',
+      'Malta': 'MT',
+      'Marshall Islands': 'MH',
+      'Mauritania': 'MR',
+      'Mauritius': 'MU',
+      'Mexico': 'MX',
+      'Micronesia': 'FM',
+      'Moldova': 'MD',
+      'Monaco': 'MC',
+      'Mongolia': 'MN',
+      'Montenegro': 'ME',
+      'Morocco': 'MA',
+      'Mozambique': 'MZ',
+      'Myanmar': 'MM',
+      'Namibia': 'NA',
+      'Nauru': 'NR',
+      'Nepal': 'NP',
+      'Netherlands': 'NL',
+      'New Zealand': 'NZ',
+      'Nicaragua': 'NI',
+      'Niger': 'NE',
+      'Nigeria': 'NG',
+      'North Korea': 'KP',
+      'North Macedonia': 'MK',
+      'Norway': 'NO',
+      'Oman': 'OM',
+      'Pakistan': 'PK',
+      'Palau': 'PW',
+      'Palestine': 'PS',
+      'Panama': 'PA',
+      'Papua New Guinea': 'PG',
+      'Paraguay': 'PY',
+      'Peru': 'PE',
+      'Philippines': 'PH',
+      'Poland': 'PL',
+      'Portugal': 'PT',
+      'Qatar': 'QA',
+      'Romania': 'RO',
+      'Russia': 'RU',
+      'Rwanda': 'RW',
+      'Saint Kitts and Nevis': 'KN',
+      'Saint Lucia': 'LC',
+      'Saint Vincent and the Grenadines': 'VC',
+      'Samoa': 'WS',
+      'San Marino': 'SM',
+      'Sao Tome and Principe': 'ST',
+      'Saudi Arabia': 'SA',
+      'Senegal': 'SN',
+      'Serbia': 'RS',
+      'Seychelles': 'SC',
+      'Sierra Leone': 'SL',
+      'Singapore': 'SG',
+      'Slovakia': 'SK',
+      'Slovenia': 'SI',
+      'Solomon Islands': 'SB',
+      'Somalia': 'SO',
+      'South Africa': 'ZA',
+      'South Korea': 'KR',
+      'South Sudan': 'SS',
+      'Spain': 'ES',
+      'Sri Lanka': 'LK',
+      'Sudan': 'SD',
+      'Suriname': 'SR',
+      'Sweden': 'SE',
+      'Switzerland': 'CH',
+      'Syria': 'SY',
+      'Taiwan': 'TW',
+      'Tajikistan': 'TJ',
+      'Tanzania': 'TZ',
+      'Thailand': 'TH',
+      'Timor-Leste': 'TL',
+      'Togo': 'TG',
+      'Tonga': 'TO',
+      'Trinidad and Tobago': 'TT',
+      'Tunisia': 'TN',
+      'Turkey': 'TR',
+      'Turkmenistan': 'TM',
+      'Tuvalu': 'TV',
+      'Uganda': 'UG',
+      'Ukraine': 'UA',
+      'Uruguay': 'UY',
+      'Uzbekistan': 'UZ',
+      'Vanuatu': 'VU',
+      'Vatican City': 'VA',
+      'Venezuela': 'VE',
+      'Vietnam': 'VN',
+      'Yemen': 'YE',
+      'Zambia': 'ZM',
+      'Zimbabwe': 'ZW'
+    };
+
+    function getCountryByName(name) {
+      return COUNTRIES.find(function (country) {
+        return country.name === name;
+      }) || null;
+    }
+
+    function normalizePhoneForValidation(rawPhone, countryName) {
+      const selectedCountry = getCountryByName(countryName);
+      let digits = String(rawPhone || '').replace(/\D/g, '');
+
+      if (!digits) {
+        return '';
+      }
+
+      if (selectedCountry && selectedCountry.dial) {
+        const dialDigits = selectedCountry.dial.replace(/\D/g, '');
+        if (dialDigits && digits.startsWith(dialDigits)) {
+          digits = digits.slice(dialDigits.length);
+        }
+      }
+
+      return digits;
+    }
+
+    function validatePhoneForCountry(rawPhone, countryName) {
+      const phoneLib = window.libphonenumber;
+      const regionCode = COUNTRY_REGION_CODES[countryName];
+      const digits = normalizePhoneForValidation(rawPhone, countryName);
+
+      if (!digits) {
+        return {
+          valid: false,
+          message: 'Phone number is required.'
+        };
+      }
+
+      if (!phoneLib || typeof phoneLib.parsePhoneNumberFromString !== 'function' || typeof phoneLib.validatePhoneNumberLength !== 'function') {
+        return {
+          valid: false,
+          message: 'Phone validation is temporarily unavailable. Please refresh and try again.'
+        };
+      }
+
+      if (!regionCode) {
+        return {
+          valid: false,
+          message: 'Phone validation is not configured for the selected country.'
+        };
+      }
+
+      const lengthResult = phoneLib.validatePhoneNumberLength(digits, regionCode);
+      if (lengthResult === 'TOO_SHORT') {
+        return {
+          valid: false,
+          message: 'Phone number is too short for ' + countryName + '.'
+        };
+      }
+
+      if (lengthResult === 'TOO_LONG') {
+        return {
+          valid: false,
+          message: 'Phone number is too long for ' + countryName + '.'
+        };
+      }
+
+      try {
+        const parsed = phoneLib.parsePhoneNumberFromString(digits, regionCode);
+        if (!parsed || parsed.country !== regionCode || !parsed.isPossible()) {
+          return {
+            valid: false,
+            message: 'Phone number length is not valid for ' + countryName + '.'
+          };
+        }
+
+        return {
+          valid: true,
+          message: ''
+        };
+      } catch (error) {
+        return {
+          valid: false,
+          message: 'Phone number length is not valid for ' + countryName + '.'
+        };
+      }
+    }
+
+    populateCountrySelect(countrySelect, function (country) {
+      return country.name;
+    });
+
+    populateCountrySelect(phoneCountrySelect, function (country) {
+      return country.dial ? country.name + ' (' + country.dial + ')' : country.name;
+    });
+
+    PRIORITY_COUNTRIES.forEach(function (countryName, index) {
+      if (index === 0) {
+        countrySelect.value = countryName;
+        phoneCountrySelect.value = countryName;
+      }
+    });
+
+    updatePhoneDialCode();
+
+    linkedinRadios.forEach(function (radio) {
+      radio.addEventListener('change', updateLinkedinVisibility);
+    });
+
+    phoneCountrySelect.addEventListener('change', function () {
+      updatePhoneDialCode();
+      clearFieldError('phone');
+    });
+
+    ['phoneCountry', 'phone', 'age', 'country', 'city', 'instagram', 'linkedin', 'occupation', 'company', 'website', 'tiktok', 'bio', 'why'].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', function () {
+        clearFieldError(el);
+      });
+      el.addEventListener('change', function () {
+        clearFieldError(el);
+      });
+    });
+
+    linkedinRadios.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        clearFieldError(radio);
+      });
+    });
+
+    updateLinkedinVisibility();
 
     function setMessage(text, type) {
       const el = document.getElementById('formMessage');
       el.textContent = text || '';
       el.className = 'message' + (type ? ' ' + type : '');
+    }
+
+    function setFieldError(target, message) {
+      const element = typeof target === 'string' ? document.getElementById(target) : target;
+      if (!element) return;
+      const field = element.closest('.field');
+      if (!field) return;
+
+      field.classList.add('has-error');
+      let note = field.querySelector('.field-error-note');
+      if (!note) {
+        note = document.createElement('div');
+        note.className = 'field-error-note';
+        field.appendChild(note);
+      }
+      note.textContent = message;
+    }
+
+    function clearFieldError(target) {
+      const element = typeof target === 'string' ? document.getElementById(target) : target;
+      if (!element) return;
+      const field = element.closest('.field');
+      if (!field) return;
+      field.classList.remove('has-error');
+    }
+
+    function clearAllFieldErrors() {
+      document.querySelectorAll('.field').forEach(function (field) {
+        field.classList.remove('has-error');
+      });
     }
 
     function validLeadId(id) {
@@ -344,14 +1143,17 @@
       }
 
       const submitBtn = document.getElementById('submitBtn');
+      clearAllFieldErrors();
 
       const payload = {
         lead_id: leadId,
+        country: countrySelect.value.trim(),
+        phone_country: phoneCountrySelect.value.trim(),
         phone: document.getElementById('phone').value.trim(),
         age: document.getElementById('age').value.trim(),
         city: document.getElementById('city').value.trim(),
         instagram: document.getElementById('instagram').value.trim(),
-        linkedin: document.getElementById('linkedin').value.trim(),
+        linkedin: linkedinInput.value.trim(),
         occupation: document.getElementById('occupation').value.trim(),
         company: document.getElementById('company').value.trim(),
         website: document.getElementById('website').value.trim(),
@@ -360,8 +1162,54 @@
         why: document.getElementById('why').value.trim()
       };
 
-      if (!payload.phone || !payload.age || !payload.city || !payload.instagram || !payload.linkedin || !payload.bio || !payload.why) {
+      if (!payload.country || !payload.phone_country || !payload.phone || !payload.age || !payload.city || !payload.instagram || !payload.bio || !payload.why) {
         setMessage('Please complete the required fields.', 'error');
+        if (!payload.phone_country || !payload.phone) setFieldError('phone', 'Phone and country code are required.');
+        if (!payload.age) setFieldError('age', 'Age is required.');
+        if (!payload.country) setFieldError('country', 'Country is required.');
+        if (!payload.city) setFieldError('city', 'City is required.');
+        if (!payload.instagram) setFieldError('instagram', 'Instagram is required.');
+        if (!payload.bio) setFieldError('bio', 'Short introduction is required.');
+        if (!payload.why) setFieldError('why', 'This answer is required.');
+        return;
+      }
+
+      const phoneValidation = validatePhoneForCountry(payload.phone, payload.phone_country);
+      if (!phoneValidation.valid) {
+        setMessage(phoneValidation.message, 'error');
+        setFieldError('phone', phoneValidation.message);
+        return;
+      }
+
+      if (!isValidInstagram(payload.instagram)) {
+        setMessage('Please provide a valid Instagram handle or URL.', 'error');
+        setFieldError('instagram', 'Please provide a valid Instagram handle or URL.');
+        return;
+      }
+
+      if (!getLinkedinChoice()) {
+        setMessage('Please tell us whether you have a LinkedIn profile.', 'error');
+        setFieldError(document.querySelector('input[name="hasLinkedin"]'), 'Please choose Yes or No.');
+        return;
+      }
+
+      if (getLinkedinChoice() === 'yes' && !isValidLinkedin(payload.linkedin)) {
+        setMessage('Please provide a valid LinkedIn profile URL.', 'error');
+        setFieldError('linkedin', 'Please provide a valid LinkedIn profile URL.');
+        return;
+      }
+
+      if (payload.website) {
+        if (!isValidAbsoluteUrl(payload.website)) {
+          setMessage('Please provide a valid website URL or leave the field empty.', 'error');
+          setFieldError('website', 'Please provide a valid website URL.');
+          return;
+        }
+      }
+
+      if (payload.tiktok && !isValidTikTok(payload.tiktok)) {
+        setMessage('Please provide a valid TikTok handle or URL, or leave the field empty.', 'error');
+        setFieldError('tiktok', 'Please provide a valid TikTok handle or URL.');
         return;
       }
 
