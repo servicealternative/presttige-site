@@ -3,7 +3,15 @@ import boto3
 import uuid
 import hmac
 import hashlib
+import sys
+from pathlib import Path
 from datetime import datetime
+
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.append(str(BACKEND_ROOT))
+
+from email_utils import build_email_html
 
 # AWS
 dynamodb = boto3.resource("dynamodb")
@@ -11,7 +19,7 @@ table = dynamodb.Table("presttige-db")
 ses = boto3.client("ses", region_name="us-east-1")
 
 # CONFIG
-SECRET = "presttige_super_secret_2026_secure_key"
+TOKEN_SECRET = os.environ.get("TOKEN_SECRET", "")
 FROM_EMAIL = "info@presttige.net"
 VERIFY_BASE_URL = "https://presttige.net/verify-email.html"
 
@@ -37,7 +45,7 @@ def generate_lead_id():
 def generate_token(lead_id, email):
     raw = f"{lead_id}:{email}:email_verify"
     return hmac.new(
-        SECRET.encode(),
+        TOKEN_SECRET.encode(),
         raw.encode(),
         hashlib.sha256
     ).hexdigest()
@@ -79,6 +87,9 @@ def lambda_handler(event, context):
         return response(200, {"message": "OK"})
 
     try:
+        if not TOKEN_SECRET:
+            return response(500, {"error": "config_error"})
+
         raw_body = event.get("body", "{}")
 
         if event.get("isBase64Encoded"):
@@ -129,28 +140,14 @@ def lambda_handler(event, context):
                 },
                 "Body": {
                     "Html": {
-                        "Data": f"""
-                        <div style="background:#050505;color:#f4f1eb;padding:40px;font-family:Arial,sans-serif;">
-                          <div style="max-width:620px;margin:0 auto;">
-                            <h2 style="margin-bottom:16px;">Confirm your email to continue</h2>
-
-                            <p>Hello {name},</p>
-
-                            <p>Please confirm your email address to continue your Presttige application.</p>
-
-                            <div style="margin:32px 0;">
-                              <a href="{verify_link}"
-                                 style="display:inline-block;padding:14px 24px;background:#d1ae72;color:#0d0d0d;text-decoration:none;border-radius:999px;font-weight:600;">
-                                Confirm Email
-                              </a>
-                            </div>
-
-                            <p style="font-size:14px;opacity:0.7;">
-                              If you did not request access, you can ignore this email.
-                            </p>
-                          </div>
-                        </div>
-                        """
+                        "Data": build_email_html(
+                            title="Confirm your email to continue",
+                            greeting_name=name,
+                            body_html="<p>Please confirm your email address to continue your Presttige application.</p>",
+                            cta_label="Confirm Email",
+                            cta_url=verify_link,
+                            footer_note="If you did not request access, you can ignore this email."
+                        )
                     }
                 }
             }

@@ -3,7 +3,15 @@ import os
 import boto3
 import hmac
 import hashlib
+import sys
+from pathlib import Path
 from datetime import datetime
+
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.append(str(BACKEND_ROOT))
+
+from email_utils import build_email_html
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("presttige-db")
@@ -94,30 +102,18 @@ def send_offer_email(email, name, offer_link):
             },
             "Body": {
                 "Html": {
-                    "Data": f"""
-                    <div style="background:#050505;color:#f4f1eb;padding:40px;font-family:Arial,sans-serif;">
-                      <div style="max-width:620px;margin:0 auto;">
-                        <h2 style="margin-bottom:16px;">Your private invitation is ready</h2>
-
-                        <p>Hello {name},</p>
-
+                    "Data": build_email_html(
+                        title="Your private invitation is ready",
+                        greeting_name=name,
+                        body_html="""
                         <p>Your Presttige private offer is now active.</p>
 
                         <p>This invitation remains valid for 72 hours from the moment it is issued.</p>
-
-                        <div style="margin:32px 0;">
-                          <a href="{offer_link}"
-                             style="display:inline-block;padding:14px 24px;background:#d1ae72;color:#0d0d0d;text-decoration:none;border-radius:999px;font-weight:600;">
-                            Open Private Offer
-                          </a>
-                        </div>
-
-                        <p style="font-size:14px;opacity:0.7;">
-                          If your invitation expires, a new cycle must be issued manually.
-                        </p>
-                      </div>
-                    </div>
-                    """
+                        """,
+                        cta_label="Open Private Offer",
+                        cta_url=offer_link,
+                        footer_note="If your invitation expires, a new cycle must be issued manually."
+                    )
                 }
             }
         }
