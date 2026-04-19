@@ -648,17 +648,17 @@
         <input id="campaignId" type="hidden" value="">
 
         <div class="apply-field">
-          <label for="applyName">Full Name</label>
+          <label for="applyName">Full Name *</label>
           <input id="applyName" name="presttige_name" type="text" autocomplete="name" autocapitalize="words" spellcheck="false" required>
         </div>
 
         <div class="apply-field">
-          <label for="applyEmail">Email</label>
+          <label for="applyEmail">Email *</label>
           <input id="applyEmail" name="presttige_email" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" required>
         </div>
 
         <div class="apply-field">
-          <label for="applyCountry">Country</label>
+          <label for="applyCountry">Country *</label>
           <select id="applyCountry" name="presttige_country" required></select>
         </div>
 
@@ -897,14 +897,6 @@
 
       select.innerHTML = '';
 
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.textContent = 'Country';
-      placeholder.disabled = true;
-      placeholder.selected = true;
-      placeholder.hidden = true;
-      select.appendChild(placeholder);
-
       priority.concat(remaining).forEach(function (country) {
         const option = document.createElement('option');
         option.value = country;
@@ -912,7 +904,7 @@
         select.appendChild(option);
       });
 
-      select.value = '';
+      select.selectedIndex = -1;
     }
 
     function trackApplyClick(position) {
