@@ -62,15 +62,18 @@
     }
 
     .topbar-inner {
-      min-height: 76px;
+      min-height: 88px;
       display: flex;
       align-items: center;
     }
 
     .logo {
-      height: 34px;
-      width: auto;
+      width: 82px;
+      height: 82px;
       display: block;
+      object-fit: cover;
+      transform: scale(1.44);
+      transform-origin: center;
     }
 
     .hero {
@@ -275,6 +278,15 @@
         width: min(100%, calc(100% - 20px));
       }
 
+      .topbar-inner {
+        min-height: 80px;
+      }
+
+      .logo {
+        width: 72px;
+        height: 72px;
+      }
+
       .hero {
         padding: 26px 0 46px;
       }
@@ -289,7 +301,7 @@
 <body>
   <header class="topbar">
     <div class="container topbar-inner">
-      <img src="/assets/images/presttige-p-lettering-nofund.png" alt="Presttige" class="logo">
+      <img src="/assets/images/presttige-p-ring.png" alt="Presttige" class="logo">
     </div>
   </header>
 

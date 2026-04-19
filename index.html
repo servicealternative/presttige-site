@@ -74,7 +74,7 @@
     }
 
     .topbar-inner {
-      min-height: 78px;
+      min-height: 92px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -84,12 +84,18 @@
     .brand {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
+      width: 78px;
+      height: 78px;
+      flex: 0 0 78px;
     }
 
     .logo {
-      height: 36px;
-      width: auto;
+      width: 100%;
+      height: 100%;
       display: block;
+      object-fit: contain;
+      transform: none;
     }
 
     .nav {
@@ -471,12 +477,14 @@
       }
 
       .topbar-inner {
-        min-height: 70px;
+        min-height: 80px;
+        gap: 14px;
       }
 
       .brand {
-        font-size: 0.74rem;
-        letter-spacing: 0.28em;
+        width: 70px;
+        height: 70px;
+        flex-basis: 70px;
       }
 
       .hero {
@@ -537,7 +545,7 @@
   <header class="topbar">
     <div class="container topbar-inner">
       <a href="#top" class="brand">
-        <img src="assets/images/presttige-p-lettering-nofund.png" alt="Presttige" class="logo">
+        <img src="assets/images/presttige-p-ring.png" alt="Presttige" class="logo">
       </a>
 
       <nav class="nav">
@@ -546,7 +554,7 @@
         <a href="#membership">Membership</a>
       </nav>
 
-      <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('header')">Request Access</button>
+      <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('header')">Request Private Access</button>
     </div>
   </header>
 
@@ -557,7 +565,7 @@
           <div class="hero-copy">
             <h1>Private Access.<br>Redefined.</h1>
             <p class="hero-sub">Invitation-only aviation and lifestyle platform.</p>
-            <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('hero')">Request Access</button>
+            <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('hero')">Request Private Access</button>
           </div>
         </div>
       </section>
@@ -607,7 +615,7 @@
             <p>Applications are reviewed privately. Access is granted selectively.</p>
           </div>
 
-          <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('membership')">Request Access</button>
+          <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('membership')">Request Private Access</button>
         </div>
       </div>
     </section>
