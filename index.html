@@ -897,6 +897,14 @@
 
       select.innerHTML = '';
 
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Country';
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      placeholder.hidden = true;
+      select.appendChild(placeholder);
+
       priority.concat(remaining).forEach(function (country) {
         const option = document.createElement('option');
         option.value = country;
@@ -904,7 +912,7 @@
         select.appendChild(option);
       });
 
-      select.value = APPLY_PRIORITY_COUNTRIES[0];
+      select.value = '';
     }
 
     function trackApplyClick(position) {
