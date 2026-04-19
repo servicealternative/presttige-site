@@ -106,13 +106,14 @@ def send_offer_email(email, name, offer_link):
                         title="Your private invitation is ready",
                         greeting_name=name,
                         body_html="""
-                        <p>Your Presttige private offer is now active.</p>
-
-                        <p>This invitation remains valid for 72 hours from the moment it is issued.</p>
+                        <p>Your profile has been selected to proceed.</p>
+                        <p>Your private Presttige invitation is now active and available through the secure link below.</p>
+                        <p>This invitation remains open for 72 hours from the moment it is issued.</p>
+                        <p>After that, access to this invitation window expires unless a new cycle is issued.</p>
                         """,
                         cta_label="Open Private Offer",
                         cta_url=offer_link,
-                        footer_note="If your invitation expires, a new cycle must be issued manually."
+                        footer_note="This invitation is personal and time-limited."
                     )
                 }
             }

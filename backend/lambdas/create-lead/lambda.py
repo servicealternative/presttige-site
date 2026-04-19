@@ -144,10 +144,10 @@ def lambda_handler(event, context):
                         "Data": build_email_html(
                             title="Confirm your email to continue",
                             greeting_name=name,
-                            body_html="<p>Please confirm your email address to continue your Presttige application.</p>",
+                            body_html="<p>Your request has been received.</p><p>To continue, please confirm your email address using the secure link below.</p><p>This step is required before your application can proceed.</p>",
                             cta_label="Confirm Email",
                             cta_url=verify_link,
-                            footer_note="If you did not request access, you can ignore this email."
+                            footer_note="If you did not initiate this request, no action is required."
                         )
                     }
                 }
