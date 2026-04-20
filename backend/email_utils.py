@@ -13,7 +13,7 @@ def build_email_html(title, greeting_name, body_html, cta_label=None, cta_url=No
     cta_html = ""
     if cta_label and cta_url:
         cta_html = f"""
-        <div style="margin:32px 0;">
+        <div style="margin:32px 0 24px 0;">
           <a href="{cta_url}"
              style="display:inline-block;padding:14px 24px;background:#d1ae72;color:#0d0d0d;text-decoration:none;border-radius:999px;font-weight:600;">
             {cta_label}
@@ -24,7 +24,7 @@ def build_email_html(title, greeting_name, body_html, cta_label=None, cta_url=No
     footer_html = ""
     if footer_note:
         footer_html = f"""
-        <p style="font-size:14px;opacity:0.7;">
+        <p style="margin:0;font-size:14px;line-height:1.6;opacity:0.7;">
           {footer_note}
         </p>
         """
@@ -32,15 +32,19 @@ def build_email_html(title, greeting_name, body_html, cta_label=None, cta_url=No
     return f"""
     <div style="background:#050505;color:#f4f1eb;padding:40px;font-family:Arial,sans-serif;">
       <div style="max-width:620px;margin:0 auto;">
-        <h2 style="margin-bottom:16px;">{title}</h2>
+        <h2 style="margin:0 0 16px 0;line-height:1.2;">{title}</h2>
 
-        <p>Hello {greeting_name},</p>
+        <p style="margin:0;font-weight:600;line-height:1.5;">Hello {greeting_name},</p>
 
-        {body_html}
+        <div style="margin-top:24px;font-size:16px;line-height:1.75;color:#f4f1eb;">
+          {body_html}
+        </div>
 
         {cta_html}
 
-        {footer_html}
+        <div style="margin-top:0;">
+          {footer_html}
+        </div>
 
         {render_email_signature()}
       </div>
