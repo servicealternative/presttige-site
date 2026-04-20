@@ -12,7 +12,7 @@ def render_email_signature():
 def build_email_html(title, greeting_name, body_html, cta_label=None, cta_url=None, footer_note=None):
     formatted_body_html = (
         body_html
-        .replace("<p>", '<p style="margin:0 0 16px 0;">')
+        .replace("<p>", '<p style="margin:0;">')
         .replace("<ul>", '<ul style="margin:0 0 16px 20px;padding:0;">')
         .replace("<ol>", '<ol style="margin:0 0 16px 20px;padding:0;">')
     )
@@ -31,7 +31,7 @@ def build_email_html(title, greeting_name, body_html, cta_label=None, cta_url=No
     footer_html = ""
     if footer_note:
         footer_html = f"""
-        <p style="margin:0;font-size:14px;line-height:1.6;color:#6f6f6f;">
+        <p style="margin:0;font-size:16px;line-height:1.75;color:#6f6f6f;">
           {footer_note}
         </p>
         """
@@ -40,15 +40,10 @@ def build_email_html(title, greeting_name, body_html, cta_label=None, cta_url=No
     <div style="margin:0;padding:0;background:#ffffff;color:#171717;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#ffffff;color:#171717;font-family:Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;">
         <tr>
-          <td align="center" style="padding:34px 18px 40px 18px;">
+          <td align="center" style="padding:36px 18px 0 18px;">
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:560px;">
               <tr>
-                <td style="padding:0 0 4px 0;">
-                  <h2 style="margin:0;font-size:32px;font-weight:600;line-height:1.15;letter-spacing:-0.02em;color:#171717;">{title}</h2>
-                </td>
-              </tr>
-              <tr>
-                <td style="padding-top:24px;">
+                <td style="padding-top:0;">
                   <p style="margin:0;font-size:16px;font-weight:600;line-height:1.5;color:#171717;">Hello {greeting_name},</p>
                 </td>
               </tr>
@@ -63,12 +58,18 @@ def build_email_html(title, greeting_name, body_html, cta_label=None, cta_url=No
                 </td>
               </tr>
               <tr>
-                <td style="padding-top:2px;">
+                <td style="padding:2px 0 36px 0;">
                   {footer_html}
                 </td>
               </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#050505;padding:0 18px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:560px;margin:0 auto;">
               <tr>
-                <td>
+                <td style="padding:28px 0 30px 0;">
                   {render_email_signature()}
                 </td>
               </tr>
