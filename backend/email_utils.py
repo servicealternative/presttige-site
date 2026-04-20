@@ -22,7 +22,7 @@ def build_email_html(title, greeting_name, body_html, cta_label=None, cta_url=No
         cta_html = f"""
         <div style="margin:34px 0 26px 0;">
           <a href="{cta_url}"
-             style="display:inline-block;padding:13px 22px;background:#d1ae72;color:#0d0d0d;text-decoration:none;border-radius:999px;font-weight:600;font-size:14px;line-height:1;">
+             style="display:inline-block;padding:13px 22px;background:#d1ae72;color:#171717;text-decoration:none;border-radius:999px;font-weight:600;font-size:14px;line-height:1;">
             {cta_label}
           </a>
         </div>
@@ -37,8 +37,8 @@ def build_email_html(title, greeting_name, body_html, cta_label=None, cta_url=No
         """
 
     return f"""
-    <div style="margin:0;padding:0;background:#ffffff;color:#171717;">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#ffffff;color:#171717;font-family:Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;">
+    <div style="margin:0;padding:0;background:#f4f1eb;color:#2b2b2b;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f4f1eb;color:#2b2b2b;font-family:Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;">
         <tr>
           <td align="center" style="padding:36px 18px 0 18px;">
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:560px;">

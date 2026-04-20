@@ -18,10 +18,18 @@
 
   <style>
     :root {
-      --bg: #050505;
-      --text: #f4f1eb;
-      --muted: rgba(244,241,235,0.78);
-      --accent: #d1ae72;
+      --surface-cream: #f4f1eb;
+      --ink-black: #171717;
+      --ink-body: #2b2b2b;
+      --ink-muted: #6f6f6f;
+      --ink-deep: #050505;
+      --gold-accent: #d1ae72;
+      --gold-cta: #d1ae72;
+      --gold-cta-gradient: linear-gradient(135deg, #cfa96a 0%, #e1c28d 100%);
+      --bg: var(--surface-cream);
+      --text: var(--ink-body);
+      --muted: var(--ink-muted);
+      --accent: var(--gold-accent);
       --max: 1320px;
     }
 
@@ -36,7 +44,7 @@
     }
 
     body {
-      background: #050505;
+      background: var(--surface-cream);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
       overflow-x: hidden;
@@ -49,7 +57,7 @@
     }
 
     a {
-      color: inherit;
+      color: var(--gold-accent);
       text-decoration: none;
     }
 
@@ -108,7 +116,7 @@
     }
 
     .nav a:hover {
-      color: var(--text);
+      color: var(--surface-cream);
     }
 
     .btn-primary,
@@ -129,8 +137,9 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #cfa96a 0%, #e1c28d 100%);
-      color: #0d0d0d;
+      background: var(--gold-cta);
+      background-image: var(--gold-cta-gradient);
+      color: var(--ink-black);
       border-color: transparent;
       font-weight: 600;
       box-shadow: 0 12px 28px rgba(209,174,114,0.24);
@@ -166,7 +175,7 @@
 
     .hero-wrap {
       padding: 0 0 28px;
-      background: #050505;
+      background: var(--surface-cream);
     }
 
     .hero {
@@ -216,11 +225,12 @@
       font-size: clamp(1.8rem, 4vw, 2.8rem);
       letter-spacing: -0.03em;
       margin-bottom: 18px;
+      color: var(--ink-black);
     }
 
     .section-copy {
       max-width: 760px;
-      color: rgba(244,241,235,0.72);
+      color: var(--ink-muted);
       font-size: 1.05rem;
       line-height: 1.7;
     }
@@ -233,8 +243,8 @@
     }
 
     .card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(23,23,23,0.03);
+      border: 1px solid rgba(23,23,23,0.08);
       border-radius: 22px;
       padding: 28px;
     }
@@ -252,7 +262,7 @@
     }
 
     .card p {
-      color: rgba(244,241,235,0.72);
+      color: var(--ink-muted);
       line-height: 1.6;
     }
 
@@ -260,8 +270,8 @@
       margin-top: 20px;
       padding: 38px;
       border-radius: 28px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(23,23,23,0.03);
+      border: 1px solid rgba(23,23,23,0.08);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -275,14 +285,15 @@
     }
 
     .cta-block p {
-      color: rgba(244,241,235,0.72);
+      color: var(--ink-muted);
       max-width: 620px;
     }
 
     .footer {
-      border-top: 1px solid rgba(255,255,255,0.08);
+      background: var(--ink-deep);
+      border-top: 1px solid rgba(244,241,235,0.08);
       padding: 25px 0;
-      color: #888;
+      color: var(--surface-cream);
     }
 
     .footer-inner {
@@ -317,7 +328,7 @@
     }
 
     .footer-right a {
-      color: #888;
+      color: rgba(244,241,235,0.78);
       text-decoration: none;
       opacity: 0.75;
       transition: 0.25s;
@@ -325,7 +336,7 @@
 
     .footer-right a:hover {
       opacity: 1;
-      color: #d1ae72;
+      color: var(--gold-accent);
     }
 
     .apply-modal {
