@@ -12,7 +12,7 @@ BACKEND_ROOT = Path(__file__).resolve().parents[2]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.append(str(BACKEND_ROOT))
 
-from email_utils import build_email_html
+from email_utils import render_transactional_email_template
 
 # AWS
 dynamodb = boto3.resource("dynamodb")
@@ -165,14 +165,19 @@ def lambda_handler(event, context):
                 },
                 "Body": {
                     "Html": {
-                        "Data": build_email_html(
-                            title="Confirm your email to continue",
-                            greeting_name=name,
-                            body_html="<p>Your request has been received.</p><p>To continue, please confirm your email address using the secure link below.</p><p>This step is required before your application can proceed.</p>",
-                            cta_label="Confirm Email",
-                            cta_url=verify_link,
-                            footer_note="If you did not initiate this request, no action is required."
-                        )
+                        "Data": render_transactional_email_template({
+                            "subject": "Confirm your email to continue — Presttige",
+                            "preheader": "",
+                            "brand_url": "https://presttige.net",
+                            "eyebrow": "MEMBERSHIP · EMAIL VERIFICATION",
+                            "headline": "Confirm your email to continue",
+                            "body_html": "<p>Your request has been received.</p><p>To continue, please confirm your email address using the secure link below.</p><p>This step is required before your application can proceed.</p>",
+                            "cta_label": "Confirm Email",
+                            "cta_url": verify_link,
+                            "disclaimer": "If you did not initiate this request, no action is required.",
+                            "sign_off_name": "Member Services",
+                            "sign_off_title": "PRESTTIGE PRIVATE OFFICE",
+                        })
                     }
                 }
             }

@@ -3,10 +3,45 @@ from pathlib import Path
 
 BACKEND_ROOT = Path(__file__).resolve().parent
 SIGNATURE_PATH = BACKEND_ROOT / "email" / "signature.html"
+TRANSACTIONAL_TEMPLATE_PATH = BACKEND_ROOT / "email" / "presttige_transactional_email.html"
 
 
 def render_email_signature():
     return SIGNATURE_PATH.read_text(encoding="utf-8").strip()
+
+
+def render_transactional_email_template(context):
+    template = TRANSACTIONAL_TEMPLATE_PATH.read_text(encoding="utf-8")
+
+    if context.get("cta_url"):
+        cta_block_start = template.index("{{#cta_url}}")
+        cta_block_end = template.index("{{/cta_url}}") + len("{{/cta_url}}")
+        cta_block = template[cta_block_start:cta_block_end]
+        template = template.replace(cta_block, cta_block.replace("{{#cta_url}}", "").replace("{{/cta_url}}", ""))
+    else:
+        start = template.index("{{#cta_url}}")
+        end = template.index("{{/cta_url}}") + len("{{/cta_url}}")
+        template = template[:start] + template[end:]
+
+    if context.get("disclaimer"):
+        disclaimer_start = template.index("{{#disclaimer}}")
+        disclaimer_end = template.index("{{/disclaimer}}") + len("{{/disclaimer}}")
+        disclaimer_block = template[disclaimer_start:disclaimer_end]
+        template = template.replace(
+            disclaimer_block,
+            disclaimer_block.replace("{{#disclaimer}}", "").replace("{{/disclaimer}}", ""),
+        )
+    else:
+        start = template.index("{{#disclaimer}}")
+        end = template.index("{{/disclaimer}}") + len("{{/disclaimer}}")
+        template = template[:start] + template[end:]
+
+    template = template.replace("{{{body_html}}}", context.get("body_html", ""))
+
+    for key, value in context.items():
+        template = template.replace(f"{{{{{key}}}}}", value or "")
+
+    return template
 
 
 def build_email_html(title, greeting_name, body_html, cta_label=None, cta_url=None, footer_note=None):
