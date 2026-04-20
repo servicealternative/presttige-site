@@ -169,6 +169,7 @@ def lambda_handler(event, context):
                             "subject": "Confirm your email to continue — Presttige",
                             "preheader": "",
                             "brand_url": "https://presttige.net",
+                            "logo_url": "https://presttige.net/assets/images/presttige-p-lettering.png",
                             "eyebrow": "MEMBERSHIP · EMAIL VERIFICATION",
                             "headline": "Confirm your email to continue",
                             "body_html": "<p>Your request has been received.</p><p>To continue, please confirm your email address using the secure link below.</p><p>This step is required before your application can proceed.</p>",
