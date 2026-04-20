@@ -173,7 +173,7 @@ def lambda_handler(event, context):
                             "recipient_name": name,
                             "eyebrow": "MEMBERSHIP · EMAIL VERIFICATION",
                             "headline": "Confirm your email to continue",
-                            "body_html": "<p>Your request has been received.</p><p>To continue, please confirm your email address using the secure link below.</p><p>This step is required before your application can proceed.</p>",
+                            "body_html": "<p style=\"margin:0 0 16px 0;\">Your request has been received. To continue, please confirm your email address using the secure link below. This step is required before your application can proceed.</p>",
                             "cta_label": "Confirm Email",
                             "cta_url": verify_link,
                             "disclaimer": "If you did not initiate this request, no action is required.",
