@@ -60,25 +60,49 @@ def extract_fields_from_body(body):
     source = "unknown"
     campaign_id = ""
     referral_code = "unknown"
+    supported_keys = (
+        "name",
+        "email",
+        "country",
+        "application_type",
+        "source",
+        "campaign_id",
+        "referral_code",
+    )
+    mapped = {}
 
     data = body.get("data", {})
     fields = data.get("fields", [])
 
     if isinstance(fields, list):
-        mapped = {}
         for field in fields:
             key = field.get("key")
             value = field.get("value")
             if key:
                 mapped[key] = value
 
-        name = (mapped.get("name") or "").strip()
-        email = (mapped.get("email") or "").strip().lower()
-        country = (mapped.get("country") or "").strip()
-        application_type = (mapped.get("application_type") or "access").strip().lower()
-        source = (mapped.get("source") or "unknown").strip()
-        campaign_id = (mapped.get("campaign_id") or "").strip()
-        referral_code = (mapped.get("referral_code") or source or "unknown").strip() or "unknown"
+    if isinstance(data, dict):
+        for key in supported_keys:
+            if key not in mapped and data.get(key) is not None:
+                mapped[key] = data.get(key)
+
+    for key in supported_keys:
+        if key not in mapped and body.get(key) is not None:
+            mapped[key] = body.get(key)
+
+    if mapped:
+        def as_text(value):
+            if value is None:
+                return ""
+            return str(value).strip()
+
+        name = as_text(mapped.get("name"))
+        email = as_text(mapped.get("email")).lower()
+        country = as_text(mapped.get("country"))
+        application_type = as_text(mapped.get("application_type") or "access").lower()
+        source = as_text(mapped.get("source") or "unknown")
+        campaign_id = as_text(mapped.get("campaign_id"))
+        referral_code = as_text(mapped.get("referral_code") or source or "unknown") or "unknown"
 
     return name, email, country, application_type, source, campaign_id, referral_code
 
