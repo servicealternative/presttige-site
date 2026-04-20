@@ -680,6 +680,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const leadId = params.get('lead_id') || params.get('leadId') || '';
+    const countryFromQuery = params.get('country') || '';
     document.getElementById('leadId').value = leadId;
     const countrySelect = document.getElementById('country');
     const countryField = document.getElementById('countryField');
@@ -774,16 +775,38 @@
       phoneCountryHint.textContent = selectedCountry ? 'Selected country: ' + selectedCountry.name : 'Select your country code, then enter only the phone number.';
     }
 
-    function applyStoredCountryContext() {
-      const storedCountry =
+    function persistCountryContext(countryName) {
+      if (!countryName) return;
+
+      try {
+        localStorage.setItem('presttige_country', countryName);
+        sessionStorage.setItem('presttige_country', countryName);
+      } catch (storageError) {
+        console.warn('Unable to persist country context', storageError);
+      }
+    }
+
+    function getStoredCountryContext() {
+      const resolvedCountry =
+        countryFromQuery ||
         localStorage.getItem('presttige_country') ||
         sessionStorage.getItem('presttige_country') ||
         '';
 
+      return getCountryByName(resolvedCountry) ? resolvedCountry : '';
+    }
+
+    function applyStoredCountryContext() {
+      const storedCountry = getStoredCountryContext();
+
       if (storedCountry && getCountryByName(storedCountry)) {
         countrySelect.value = storedCountry;
+        phoneCountrySelect.value = storedCountry;
+        persistCountryContext(storedCountry);
         countryLockedNote.textContent = 'Confirmed from Step 1.';
       } else {
+        countrySelect.value = PRIORITY_COUNTRIES[0];
+        phoneCountrySelect.value = PRIORITY_COUNTRIES[0];
         countryLockedNote.textContent = 'Selected earlier in your application.';
       }
 
@@ -1180,13 +1203,6 @@
     populateCountrySelect(phoneCountrySelect, function (country) {
       const shortCode = COUNTRY_REGION_CODES[country.name] || '';
       return country.dial ? country.dial + (shortCode ? ' · ' + shortCode : '') : country.name;
-    });
-
-    PRIORITY_COUNTRIES.forEach(function (countryName, index) {
-      if (index === 0) {
-        countrySelect.value = countryName;
-        phoneCountrySelect.value = countryName;
-      }
     });
 
     applyStoredCountryContext();

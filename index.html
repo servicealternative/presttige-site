@@ -1069,6 +1069,13 @@
           throw new Error(backendMessage);
         }
 
+        try {
+          localStorage.setItem('presttige_country', country);
+          sessionStorage.setItem('presttige_country', country);
+        } catch (storageError) {
+          console.warn('Unable to persist selected country', storageError);
+        }
+
         setApplyMessage('Check your email to continue.', 'success');
 
         setTimeout(() => {
