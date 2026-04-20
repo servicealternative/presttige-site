@@ -1201,8 +1201,7 @@
     });
 
     populateCountrySelect(phoneCountrySelect, function (country) {
-      const shortCode = COUNTRY_REGION_CODES[country.name] || '';
-      return country.dial ? country.dial + (shortCode ? ' ' + shortCode : '') : country.name;
+      return country.dial || country.name;
     });
 
     applyStoredCountryContext();
