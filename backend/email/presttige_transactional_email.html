@@ -29,6 +29,9 @@
     table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; display: block; }
     a { color: #A8864E; text-decoration: underline; }
+    p { margin: 0 0 16px 0; padding: 0; }
+    ul, ol { margin: 0 0 16px 0; padding-left: 20px; }
+    li { margin: 0 0 6px 0; }
     @media only screen and (max-width: 620px) {
       .container { width: 100% !important; max-width: 100% !important; }
       .px { padding-left: 28px !important; padding-right: 28px !important; }
@@ -64,10 +67,10 @@
 
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; letter-spacing: 0.22em; color: #A8864E; margin: 0 0 28px 0;">{{eyebrow}}</div>
 
-              <div class="h1 serif" style="font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 400; color: #111111; line-height: 1.25; margin: 0 0 28px 0;">{{headline}}</div>
+              <div class="h1 serif" style="font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 400; color: #111111; line-height: 1.25; margin: 0 0 36px 0;">{{headline}}</div>
 
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.75; color: #2A2620;">
-                <p style="margin: 0 0 18px 0;">Dear {{recipient_name}},</p>
+                <p style="margin: 0 0 28px 0; padding: 0;">Dear {{recipient_name}},</p>
                 {{{body_html}}}
               </div>
 
