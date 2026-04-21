@@ -145,6 +145,8 @@ def lambda_handler(event, context):
             "phone_status": "pending",
             "profile_status": "step_1",
             "review_status": "pending",
+            "application_received_sent": False,
+            "application_received_sent_at": None,
             "verification_token": verification_token,
             "created_at": now,
             "updated_at": now
