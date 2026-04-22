@@ -4,6 +4,7 @@ import boto3
 import uuid
 import hmac
 import hashlib
+import re
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -57,6 +58,7 @@ def extract_fields_from_body(body):
     name = None
     email = None
     country = None
+    phone = ""
     application_type = "access"
     source = "unknown"
     campaign_id = ""
@@ -65,6 +67,7 @@ def extract_fields_from_body(body):
         "name",
         "email",
         "country",
+        "phone",
         "application_type",
         "source",
         "campaign_id",
@@ -100,18 +103,30 @@ def extract_fields_from_body(body):
         name = as_text(mapped.get("name"))
         email = as_text(mapped.get("email")).lower()
         country = as_text(mapped.get("country"))
+        phone = as_text(mapped.get("phone"))
         application_type = as_text(mapped.get("application_type") or "access").lower()
         source = as_text(mapped.get("source") or "unknown")
         campaign_id = as_text(mapped.get("campaign_id"))
         referral_code = as_text(mapped.get("referral_code") or source or "unknown") or "unknown"
 
-    return name, email, country, application_type, source, campaign_id, referral_code
+    return name, email, country, phone, application_type, source, campaign_id, referral_code
 
 
 def email_already_exists(email):
     result = table.query(
         IndexName="email-index",
         KeyConditionExpression=Key("email").eq(email),
+        Limit=1,
+    )
+    return bool(result.get("Items"))
+
+
+def phone_already_exists(phone_full):
+    if not phone_full:
+        return False
+    result = table.query(
+        IndexName="phone-index",
+        KeyConditionExpression=Key("phone_full").eq(phone_full),
         Limit=1,
     )
     return bool(result.get("Items"))
@@ -133,7 +148,7 @@ def lambda_handler(event, context):
 
         body = json.loads(raw_body or "{}")
 
-        name, email, country, application_type, source, campaign_id, referral_code = extract_fields_from_body(body)
+        name, email, country, phone, application_type, source, campaign_id, referral_code = extract_fields_from_body(body)
 
         if not name or not email or not country:
             return response(400, {"error": "Missing required fields"})
@@ -148,6 +163,19 @@ def lambda_handler(event, context):
             return response(409, {
                 "error": "email_exists",
                 "message": "This email is already registered. If you need access to your existing application, contact founders@presttige.net"
+            })
+
+        phone_full = re.sub(r"[\s\-()]", "", phone)
+        if phone_already_exists(phone_full):
+            print(json.dumps({
+                "event": "duplicate_phone_attempt",
+                "phone_full": phone_full,
+                "source": source,
+                "campaign_id": campaign_id,
+            }))
+            return response(409, {
+                "error": "phone_exists",
+                "message": "This phone number is already registered. If you need access to your existing application, contact founders@presttige.net"
             })
 
         lead_id = generate_lead_id()
@@ -173,6 +201,10 @@ def lambda_handler(event, context):
             "created_at": now,
             "updated_at": now
         }
+        if phone:
+            item["phone"] = phone
+        if phone_full:
+            item["phone_full"] = phone_full
 
         table.put_item(Item=item)
 
