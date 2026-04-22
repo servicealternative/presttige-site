@@ -7,6 +7,7 @@ import hashlib
 import sys
 from pathlib import Path
 from datetime import datetime
+from boto3.dynamodb.conditions import Key
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 if str(BACKEND_ROOT) not in sys.path:
@@ -107,6 +108,15 @@ def extract_fields_from_body(body):
     return name, email, country, application_type, source, campaign_id, referral_code
 
 
+def email_already_exists(email):
+    result = table.query(
+        IndexName="email-index",
+        KeyConditionExpression=Key("email").eq(email),
+        Limit=1,
+    )
+    return bool(result.get("Items"))
+
+
 def lambda_handler(event, context):
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
         return response(200, {"message": "OK"})
@@ -127,6 +137,18 @@ def lambda_handler(event, context):
 
         if not name or not email or not country:
             return response(400, {"error": "Missing required fields"})
+
+        if email_already_exists(email):
+            print(json.dumps({
+                "event": "duplicate_email_attempt",
+                "email": email,
+                "source": source,
+                "campaign_id": campaign_id,
+            }))
+            return response(409, {
+                "error": "email_exists",
+                "message": "This email is already registered. If you need access to your existing application, contact founders@presttige.net"
+            })
 
         lead_id = generate_lead_id()
         verification_token = generate_token(lead_id, email)
