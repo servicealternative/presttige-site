@@ -58,9 +58,9 @@ def lambda_handler(event, context):
             )
 
         now = int(time.time())
-        reviewed_at = str(now)
         audit_timestamp = datetime.now(timezone.utc).isoformat()
         previous_cycle = item.get("approval_cycle", Decimal(0))
+        is_test = bool(item.get("is_test", False))
 
         metadata = build_metadata(event, context)
         audit_action = "requeue" if action == "standby" else action
@@ -69,7 +69,7 @@ def lambda_handler(event, context):
             invite_send_at = now + (DELAY_HOURS * 60 * 60)
             invite_expires_at = invite_send_at + (VALIDITY_HOURS * 60 * 60)
             reminder_due_at = invite_send_at + (48 * 60 * 60)
-            new_cycle = previous_cycle + Decimal(1)
+            new_cycle = previous_cycle
 
             write_audit_entry(
                 lead_id=lead_id,
@@ -78,14 +78,18 @@ def lambda_handler(event, context):
                 timestamp=audit_timestamp,
                 previous_state={
                     "review_status": item.get("review_status", ""),
+                    "approval_cycle": previous_cycle,
                     "review_cycle": previous_cycle,
                 },
                 new_state={
                     "review_status": "approved",
+                    "approval_cycle": new_cycle,
                     "review_cycle": new_cycle,
                 },
                 metadata=metadata,
+                is_test=is_test,
             )
+            reviewed_at = datetime.now(timezone.utc).isoformat()
 
             table.update_item(
                 Key={"lead_id": lead_id},
@@ -100,7 +104,8 @@ def lambda_handler(event, context):
                         reminder_due_at = :reminder_due_at,
                         reinvite_eligible = :reinvite_eligible,
                         reinvite_count = if_not_exists(reinvite_count, :zero),
-                        approval_cycle = if_not_exists(approval_cycle, :zero) + :one
+                        review_token_status = :review_token_status,
+                        review_token_used_at = :review_token_used_at
                 """,
                 ExpressionAttributeValues={
                     ":review_status": "approved",
@@ -112,8 +117,9 @@ def lambda_handler(event, context):
                     ":invite_expires_at": Decimal(invite_expires_at),
                     ":reminder_due_at": Decimal(reminder_due_at),
                     ":reinvite_eligible": True,
+                    ":review_token_status": "used",
+                    ":review_token_used_at": reviewed_at,
                     ":zero": Decimal(0),
-                    ":one": Decimal(1),
                 }
             )
 
@@ -127,14 +133,18 @@ def lambda_handler(event, context):
                 timestamp=audit_timestamp,
                 previous_state={
                     "review_status": item.get("review_status", ""),
+                    "approval_cycle": previous_cycle,
                     "review_cycle": previous_cycle,
                 },
                 new_state={
                     "review_status": "rejected",
+                    "approval_cycle": previous_cycle,
                     "review_cycle": previous_cycle,
                 },
                 metadata=metadata,
+                is_test=is_test,
             )
+            reviewed_at = datetime.now(timezone.utc).isoformat()
 
             table.update_item(
                 Key={"lead_id": lead_id},
@@ -144,7 +154,9 @@ def lambda_handler(event, context):
                         reviewed_at = :reviewed_at,
                         updated_at = :updated_at,
                         invite_status = :invite_status,
-                        reinvite_eligible = :reinvite_eligible
+                        reinvite_eligible = :reinvite_eligible,
+                        review_token_status = :review_token_status,
+                        review_token_used_at = :review_token_used_at
                 """,
                 ExpressionAttributeValues={
                     ":review_status": "rejected",
@@ -153,6 +165,8 @@ def lambda_handler(event, context):
                     ":updated_at": reviewed_at,
                     ":invite_status": "closed",
                     ":reinvite_eligible": False,
+                    ":review_token_status": "used",
+                    ":review_token_used_at": reviewed_at,
                 }
             )
 
@@ -166,14 +180,18 @@ def lambda_handler(event, context):
                 timestamp=audit_timestamp,
                 previous_state={
                     "review_status": item.get("review_status", ""),
+                    "approval_cycle": previous_cycle,
                     "review_cycle": previous_cycle,
                 },
                 new_state={
                     "review_status": "standby",
+                    "approval_cycle": previous_cycle,
                     "review_cycle": previous_cycle,
                 },
                 metadata=metadata,
+                is_test=is_test,
             )
+            reviewed_at = datetime.now(timezone.utc).isoformat()
 
             table.update_item(
                 Key={"lead_id": lead_id},
@@ -182,7 +200,9 @@ def lambda_handler(event, context):
                         token_status = :token_status,
                         reviewed_at = :reviewed_at,
                         updated_at = :updated_at,
-                        invite_status = :invite_status
+                        invite_status = :invite_status,
+                        review_token_status = :review_token_status,
+                        review_token_used_at = :review_token_used_at
                 """,
                 ExpressionAttributeValues={
                     ":review_status": "standby",
@@ -190,6 +210,8 @@ def lambda_handler(event, context):
                     ":reviewed_at": reviewed_at,
                     ":updated_at": reviewed_at,
                     ":invite_status": "standby",
+                    ":review_token_status": "used",
+                    ":review_token_used_at": reviewed_at,
                 }
             )
 
@@ -215,7 +237,7 @@ def build_metadata(event, context):
     }
 
 
-def write_audit_entry(lead_id, action, token_used, timestamp, previous_state, new_state, metadata):
+def write_audit_entry(lead_id, action, token_used, timestamp, previous_state, new_state, metadata, is_test=False):
     audit_table.put_item(
         Item={
             "audit_id": str(uuid.uuid4()),
@@ -227,6 +249,7 @@ def write_audit_entry(lead_id, action, token_used, timestamp, previous_state, ne
             "previous_state": previous_state,
             "new_state": new_state,
             "metadata": metadata,
+            "is_test": is_test,
         },
         ConditionExpression="attribute_not_exists(audit_id)",
     )
