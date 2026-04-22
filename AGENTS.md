@@ -104,6 +104,15 @@ When the user provides a template:
 
 ---
 
+## Audit trail rules
+
+- Review actions must write an append-only audit entry before changing lead state
+- If the audit write fails, the review action must fail and the lead must not be updated
+- Audit records are immutable: never update or delete existing audit entries
+- Reused review tokens must be rejected before state mutation
+
+---
+
 ## Output rules
 
 When completing tasks, report only:

@@ -283,3 +283,13 @@ CloudWatch log groups observed:
 | This snapshot | read-only; no system changes made during report generation |
 
 No further system changes should be made until architectural decisions are made from this snapshot.
+
+## 2026-04-22 Addendum — Item 7 Review Audit Trail
+
+| Resource | Region | Purpose | Configuration |
+|---|---:|---|---|
+| DynamoDB table `presttige-review-audit` | `us-east-1` | Append-only audit trail for review actions before lead state mutation | PK `audit_id` S, SK `timestamp` S, billing `PAY_PER_REQUEST` |
+| GSI `lead-id-index` | `us-east-1` | Query audit entries by lead | PK `lead_id` S, projection `ALL` |
+| GSI `action-timestamp-index` | `us-east-1` | Query review actions by action over time | PK `action` S, SK `timestamp` S, projection `ALL` |
+
+`presttige-review-action` now writes to `presttige-review-audit` before updating `presttige-db`. Reused tokens and non-pending leads are rejected before state mutation.
