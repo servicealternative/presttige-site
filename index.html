@@ -19,6 +19,26 @@
   <link rel="shortcut icon" href="/favicon.ico" />
   <!-- Google Analytics loads via consent-banner.js after user opt-in -->
   <script src="/assets/js/consent-banner.js" defer></script>
+  <script>
+    (function () {
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+
+      function resetHomepageScroll() {
+        if (window.location.hash) {
+          history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }
+
+      window.addEventListener('load', resetHomepageScroll);
+      window.addEventListener('pageshow', resetHomepageScroll);
+    })();
+  </script>
 
   <style>
     :root {
