@@ -1,0 +1,101 @@
+/* PRESTTIGE DESIGN TOKENS — v2026-04-23 */
+
+:root {
+  /* COLORS — Primary */
+  --ink-black: #0a0a0a;
+  --deep-charcoal: #1a1a1a;
+  --ivory-white: #f5f2eb;
+  --aged-bronze: #8b6f3a;
+  --mercury-gold: #c9a961;
+  --soft-gold: #e4c988;
+
+  /* COLORS — Accents */
+  --whisper-grey: #8a8580;
+  --linen: #ebe5d7;
+  --oxblood: #4a1f1f;
+
+  /* COLORS — Functional */
+  --pure-black: #000000;
+  --pure-white: #ffffff;
+
+  /* SPACING — 8px grid */
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 40px;
+  --space-xl: 64px;
+  --space-2xl: 96px;
+  --space-3xl: 144px;
+
+  /* TYPOGRAPHY — Families */
+  --font-serif: 'Cormorant Garamond', 'Didot', 'Bodoni 72', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, 'Courier New', monospace;
+
+  /* TYPOGRAPHY — Scale */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 48px;
+  --text-4xl: 64px;
+  --text-5xl: 72px;
+
+  /* LINE HEIGHTS */
+  --leading-tight: 1.1;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+  --leading-loose: 1.85;
+
+  /* LETTER SPACING */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-wider: 0.08em;
+  --tracking-widest: 0.15em;
+
+  /* TRANSITIONS */
+  --transition-slow: 400ms ease;
+  --transition-base: 300ms ease;
+
+  /* LAYOUT */
+  --max-content-width: 1280px;
+  --max-text-width: 640px;
+
+  /* Z-INDEX */
+  --z-base: 1;
+  --z-nav: 10;
+  --z-modal: 100;
+  --z-overlay: 99;
+}
+
+/* Base reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--ivory-white);
+  background: var(--ink-black);
+  overflow-x: hidden;
+}
+
+img, picture, video { max-width: 100%; height: auto; display: block; }
+button { font: inherit; cursor: pointer; background: none; border: none; color: inherit; }
+a { color: inherit; text-decoration: none; transition: opacity var(--transition-base); }
+a:hover { opacity: 0.7; }

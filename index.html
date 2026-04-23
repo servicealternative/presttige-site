@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRESTTIGE</title>
   <meta name="description" content="Private Access. Redefined." />
+  <!-- PRESTTIGE TYPOGRAPHY -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap">
+
+  <!-- PRESTTIGE DESIGN SYSTEM -->
+  <link rel="stylesheet" href="/assets/css/design-tokens.css">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -539,136 +546,148 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/assets/css/presttige.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="container topbar-inner">
-      <a href="#top" class="brand">
-        <img src="assets/images/presttige-p-ring.png" alt="Presttige" class="logo">
-      </a>
 
-      <nav class="nav">
-        <a href="#concept">Concept</a>
-        <a href="#how-it-works">How it works</a>
-        <a href="#membership">Membership</a>
-      </nav>
+<!-- TOPBAR — logo only, zero nav -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" aria-label="Presttige" class="topbar-logo">
+      <img src="/assets/images/presttige-p-ring.png" alt="Presttige">
+    </a>
+  </div>
+</header>
 
-      <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('header')">Request Private Access</button>
-    </div>
-  </header>
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-content">
+    <h1 class="hero-headline">You know why you're here.</h1>
+    <p class="hero-subheadline">A private network for those who recognize themselves.</p>
+  </div>
+</section>
 
-  <main id="top">
-    <div class="hero-wrap">
-      <section class="hero">
-        <div class="hero-inner">
-          <div class="hero-copy">
-            <h1>Private Access.<br>Redefined.</h1>
-            <p class="hero-sub">Invitation-only aviation and lifestyle platform.</p>
-            <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('hero')">Request Private Access</button>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <section class="section" id="concept">
-      <div class="container">
-        <h2 class="section-title">Concept</h2>
-        <p class="section-copy">
-          Presttige is a private access platform built around discretion, presence and curated entry.
-          The experience is selective by design and every application is reviewed individually.
-        </p>
-      </div>
-    </section>
-
-    <section class="section" id="how-it-works">
-      <div class="container">
-        <h2 class="section-title">How it works</h2>
-
-        <div class="cards">
-          <article class="card">
-            <div class="card-number">01</div>
-            <h3>Apply</h3>
-            <p>Submit your profile through the private access form.</p>
-          </article>
-
-          <article class="card">
-            <div class="card-number">02</div>
-            <h3>Review</h3>
-            <p>Applications are assessed privately and individually.</p>
-          </article>
-
-          <article class="card">
-            <div class="card-number">03</div>
-            <h3>Access</h3>
-            <p>Selected profiles receive the next step directly.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="membership">
-      <div class="container">
-        <div class="cta-block">
-          <div>
-            <h3>Membership is selective.</h3>
-            <p>Applications are reviewed privately. Access is granted selectively.</p>
-          </div>
-
-          <button class="btn-primary btn-inline-reset" type="button" onclick="openApply('membership')">Request Private Access</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-left">
-        <img src="assets/images/presttige-p-lettering-nofund.png" alt="Presttige" class="footer-logo">
-      </div>
-
-      <div class="footer-right">
-        <a href="/privacy/">Privacy</a>
-        <a href="/terms/">Terms</a>
-        <a href="#" onclick="window.PresttigeCookies.openPreferences(); return false;">Cookie Preferences</a>
-      </div>
-    </div>
-  </footer>
-
-  <div id="applyModal" class="apply-modal" aria-hidden="true">
-    <div class="apply-backdrop"></div>
-
-    <div class="apply-panel">
-      <h2>Request Access</h2>
-      <p>Enter your details to begin the application process. You will receive an email to validate your address before continuing.</p>
-
-      <form class="apply-form" autocomplete="off" novalidate onsubmit="handleApplyFrontend(event)">
-        <input id="applicationType" type="hidden" value="access">
-        <input id="campaignId" type="hidden" value="">
-
-        <div class="apply-field">
-          <label for="applyName">Full Name *</label>
-          <input id="applyName" name="presttige_name" type="text" autocomplete="name" autocapitalize="words" spellcheck="false" required>
-        </div>
-
-        <div class="apply-field">
-          <label for="applyEmail">Email *</label>
-          <input id="applyEmail" name="presttige_email" type="email" autocomplete="email" autocapitalize="off" spellcheck="false" required>
-        </div>
-
-        <div class="apply-field">
-          <label for="applyCountry">Country *</label>
-          <select id="applyCountry" name="presttige_country" required></select>
-        </div>
-
-        <div class="apply-actions">
-          <button id="applySubmitBtn" class="btn-primary" type="submit">Continue</button>
-          <button class="btn-secondary" type="button" onclick="closeApply()">Close</button>
-        </div>
-
-        <div id="applyMessage" class="apply-message"></div>
-      </form>
+<!-- PRESENCE (Concept) -->
+<section class="section section-presence" id="presence">
+  <div class="section-inner narrow">
+    <h2 class="section-title">Presence</h2>
+    <div class="section-body">
+      <p>Presttige is a private network for high-net-worth individuals who value their circle, their privacy, and their access.</p>
+      <p>It is mobile by design, because modern premium life is mobile by design.</p>
+      <p>The member does not pay for a venue. They pay for the network, the curation, the privacy, and the digital access that matches the life they already live.</p>
     </div>
   </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section section-howitworks" id="how-it-works">
+  <div class="section-inner">
+    <h2 class="section-title">How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">01</div>
+        <h3 class="step-title">Presence</h3>
+        <p class="step-body">Your interest is noted. The first step is to be known.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">02</div>
+        <h3 class="step-title">Curation</h3>
+        <p class="step-body">The Committee reviews each profile. Not for what you have, but for what you bring.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">03</div>
+        <h3 class="step-title">Circle</h3>
+        <p class="step-body">Selected profiles enter the circle. The rest is discovered from within.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BELONGING -->
+<section class="section section-belonging" id="belonging">
+  <div class="section-inner narrow">
+    <h2 class="section-title">Belonging</h2>
+    <div class="section-body">
+      <p>There are several ways to belong to Presttige — each with its own depth, its own reach, its own obligations.</p>
+      <p>The level is not chosen by the member. It is determined through conversation, consideration, and fit.</p>
+      <p>The details are private. Members learn more, once they belong.</p>
+    </div>
+  </div>
+</section>
+
+<!-- INVITATION -->
+<section class="section section-invitation" id="invitation">
+  <div class="section-inner narrow">
+    <h2 class="section-title">If you recognize yourself</h2>
+    <div class="section-body">
+      <p>If you recognize yourself in what is written, consider expressing interest.</p>
+      <p>There is no rush. There is no scarcity. The Committee meets when it meets.</p>
+      <p>What matters is fit. What matters is time. What matters is who you are, not who you think we want.</p>
+    </div>
+    <div class="section-cta">
+      <button class="btn-express-interest" id="openApplyModal" type="button">Express interest</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <img src="/assets/images/presttige-p-lettering-nofund.png" alt="Presttige">
+    </div>
+    <nav class="footer-links" aria-label="Legal">
+      <a href="/privacy/">Privacy</a>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <a href="/terms/">Terms</a>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <a href="#" id="cookiePrefsLink">Cookies</a>
+    </nav>
+    <div class="footer-copyright">© 2026 Presttige</div>
+  </div>
+</footer>
+
+<!-- APPLY MODAL (structure preserved for JS compatibility) -->
+<div class="apply-modal" id="applyModal" role="dialog" aria-modal="true" aria-labelledby="applyModalTitle" aria-hidden="true">
+  <div class="apply-modal-overlay" data-close-modal></div>
+  <div class="apply-modal-content">
+    <button class="apply-modal-close" type="button" data-close-modal aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 1L15 15M15 1L1 15" stroke="currentColor" stroke-width="1"/>
+      </svg>
+    </button>
+    <div class="apply-modal-inner" id="applyFormContainer">
+      <h2 class="apply-modal-title" id="applyModalTitle">A private conversation begins</h2>
+      <p class="apply-modal-body">Three details, for now. We will respond privately once the Committee has considered your profile.</p>
+      <form class="apply-form" id="applyForm" novalidate>
+        <div class="apply-field">
+          <label for="applyName" class="apply-label">Your name</label>
+          <input type="text" id="applyName" name="fullName" class="apply-input" required autocomplete="name">
+        </div>
+        <div class="apply-field">
+          <label for="applyEmail" class="apply-label">Your email</label>
+          <input type="email" id="applyEmail" name="email" class="apply-input" required autocomplete="email">
+        </div>
+        <div class="apply-field">
+          <label for="applyCountry" class="apply-label">Where you live</label>
+          <input type="text" id="applyCountry" name="country" class="apply-input" required autocomplete="country-name">
+        </div>
+        <div class="apply-submit">
+          <button type="submit" class="apply-btn-send">Send</button>
+        </div>
+        <div class="apply-error" id="applyError" hidden role="alert"></div>
+      </form>
+    </div>
+    <!-- Success state inline -->
+    <div class="apply-modal-success" id="applySuccess" hidden>
+      <p class="apply-success-title">Your interest is noted.</p>
+      <p class="apply-success-body">A verification email has been sent.<br>Please confirm it at your convenience.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PRESERVE existing script tags below — do not touch JS logic -->
 
   <script>
     let applySource = '';
@@ -885,6 +904,7 @@
     function populateApplyCountrySelect() {
       const select = document.getElementById('applyCountry');
       if (!select) return;
+      if (select.tagName !== 'SELECT') return;
 
       const priority = APPLY_PRIORITY_COUNTRIES.filter(function (name) {
         return APPLY_COUNTRIES.includes(name);
@@ -923,12 +943,16 @@
       trackApplyClick(applySource || 'unknown');
 
       const modal = document.getElementById('applyModal');
+      const formContainer = document.getElementById('applyFormContainer');
+      const successState = document.getElementById('applySuccess');
       savedScrollY = window.scrollY || window.pageYOffset || 0;
 
-      modal.classList.add('active');
+      modal.classList.add('is-open');
       modal.setAttribute('aria-hidden', 'false');
       document.body.classList.add('modal-open');
       document.body.style.top = `-${savedScrollY}px`;
+      if (formContainer) formContainer.hidden = false;
+      if (successState) successState.hidden = true;
       clearApplyMessage();
       clearAllApplyFieldErrors();
 
@@ -940,7 +964,7 @@
 
     function closeApply() {
       const modal = document.getElementById('applyModal');
-      modal.classList.remove('active');
+      modal.classList.remove('is-open');
       modal.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('modal-open');
       document.body.style.top = '';
@@ -948,9 +972,11 @@
     }
 
     function setApplyMessage(message, type) {
-      const el = document.getElementById('applyMessage');
+      const el = document.getElementById('applyError');
+      if (!el) return;
       el.textContent = message || '';
-      el.className = 'apply-message' + (type ? ' ' + type : '');
+      el.hidden = !message;
+      el.dataset.type = type || '';
     }
 
     function clearApplyMessage() {
@@ -994,12 +1020,12 @@
     async function handleApplyFrontend(event) {
       event.preventDefault();
 
-      const submitBtn = document.getElementById('applySubmitBtn');
+      const submitBtn = document.querySelector('.apply-btn-send');
       const name = document.getElementById('applyName').value.trim();
       const email = document.getElementById('applyEmail').value.trim().toLowerCase();
       const country = document.getElementById('applyCountry').value.trim();
-      const applicationType = document.getElementById('applicationType').value.trim();
-      const campaignId = document.getElementById('campaignId').value.trim();
+      const applicationType = 'access';
+      const campaignId = '';
       clearAllApplyFieldErrors();
 
       if (!name || !email || !country) {
@@ -1088,6 +1114,10 @@
         }
 
         setApplyMessage('Check your email to continue.', 'success');
+        const formContainer = document.getElementById('applyFormContainer');
+        const successState = document.getElementById('applySuccess');
+        if (formContainer) formContainer.hidden = true;
+        if (successState) successState.hidden = false;
 
         setTimeout(() => {
           window.location.replace(`https://presttige.net/check-email.html?email=${encodeURIComponent(email)}`);
@@ -1108,8 +1138,10 @@
 
         console.error('Presttige step 1 submit error:', error);
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Continue';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send';
+        }
       }
     }
 
@@ -1123,6 +1155,32 @@
         clearApplyFieldError(id);
       });
     });
+
+    const applyFormEl = document.getElementById('applyForm');
+    if (applyFormEl) {
+      applyFormEl.addEventListener('submit', handleApplyFrontend);
+    }
+
+    const openApplyModalBtn = document.getElementById('openApplyModal');
+    if (openApplyModalBtn) {
+      openApplyModalBtn.addEventListener('click', function () {
+        openApply('invitation');
+      });
+    }
+
+    document.querySelectorAll('[data-close-modal]').forEach(function (el) {
+      el.addEventListener('click', closeApply);
+    });
+
+    const cookiePrefsLink = document.getElementById('cookiePrefsLink');
+    if (cookiePrefsLink) {
+      cookiePrefsLink.addEventListener('click', function (event) {
+        event.preventDefault();
+        if (window.PresttigeCookies && typeof window.PresttigeCookies.openPreferences === 'function') {
+          window.PresttigeCookies.openPreferences();
+        }
+      });
+    }
 
     populateApplyCountrySelect();
 
