@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H7BFLVL4F5"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-H7BFLVL4F5');
-  </script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Confirm Founder Access | PRESTTIGE</title>
@@ -19,6 +10,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260421d" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260421d" />
   <link rel="apple-touch-icon" href="/assets/images/presttige-favicon.png?v=20260421d" />
+  <!-- Google Analytics loads via consent-banner.js after user opt-in -->
+  <script src="/assets/js/consent-banner.js" defer></script>
 
   <style>
     :root {
@@ -376,7 +369,7 @@
       <div class="footer-right">
         <a href="/privacy/">Privacy</a>
         <a href="/terms/">Terms</a>
-        <a href="/cookies/">Cookie Preferences</a>
+        <a href="#" onclick="window.PresttigeCookies.openPreferences(); return false;">Cookie Preferences</a>
       </div>
     </div>
   </footer>

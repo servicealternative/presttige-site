@@ -10,6 +10,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260421d" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260421d" />
   <link rel="apple-touch-icon" href="/assets/images/presttige-favicon.png?v=20260421d" />
+  <!-- Google Analytics loads via consent-banner.js after user opt-in -->
+  <script src="/assets/js/consent-banner.js" defer></script>
   <style>
     :root {
       --bg: #050505;
@@ -274,6 +276,9 @@
     </p>
   </main>
 
-  <footer class="container">© Mettalix LLC FZ</footer>
+  <footer class="container">
+    © Mettalix LLC FZ ·
+    <a href="#" onclick="window.PresttigeCookies.openPreferences(); return false;">Cookie Preferences</a>
+  </footer>
 </body>
 </html>

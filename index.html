@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H7BFLVL4F5"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-H7BFLVL4F5');
-  </script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRESTTIGE</title>
@@ -19,6 +10,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260421d" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260421d" />
   <link rel="apple-touch-icon" href="/assets/images/presttige-favicon.png?v=20260421d" />
+  <!-- Google Analytics loads via consent-banner.js after user opt-in -->
+  <script src="/assets/js/consent-banner.js" defer></script>
 
   <style>
     :root {
@@ -636,7 +629,7 @@
       <div class="footer-right">
         <a href="/privacy/">Privacy</a>
         <a href="/terms/">Terms</a>
-        <a href="/cookies/">Cookie Preferences</a>
+        <a href="#" onclick="window.PresttigeCookies.openPreferences(); return false;">Cookie Preferences</a>
       </div>
     </div>
   </footer>
@@ -680,6 +673,11 @@
   <script>
     let applySource = '';
     let savedScrollY = 0;
+    function trackEvent() {
+      if (typeof window.gtag === 'function') {
+        window.gtag.apply(null, arguments);
+      }
+    }
     const APPLY_COUNTRIES = [
       'United States of America',
       'United Kingdom',
@@ -913,7 +911,7 @@
     }
 
     function trackApplyClick(position) {
-      gtag('event', 'click_apply_access', {
+      trackEvent('event', 'click_apply_access', {
         application_type: 'access',
         cta_position: position,
         page_location: window.location.href
@@ -1025,7 +1023,7 @@
         submitBtn.textContent = 'Submitting...';
         setApplyMessage('Submitting...', '');
 
-        gtag('event', 'submit_form_step_1', {
+        trackEvent('event', 'submit_form_step_1', {
           application_type: applicationType,
           source: applySource || 'unknown',
           campaign_id: campaignId || '',
@@ -1140,14 +1138,14 @@
 
       if (scrolledPercent >= 90) {
         scroll90Tracked = true;
-        gtag('event', 'scroll_90', {
+        trackEvent('event', 'scroll_90', {
           page_location: window.location.href
         });
       }
     });
 
     setTimeout(function () {
-      gtag('event', 'time_30s', {
+      trackEvent('event', 'time_30s', {
         page_location: window.location.href
       });
     }, 30000);

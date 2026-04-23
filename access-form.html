@@ -1,14 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H7BFLVL4F5"></script>
   <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.11.14/bundle/libphonenumber-max.js"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-H7BFLVL4F5');
-  </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,6 +12,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260421d" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260421d" />
   <link rel="apple-touch-icon" href="/assets/images/presttige-favicon.png?v=20260421d" />
+  <!-- Google Analytics loads via consent-banner.js after user opt-in -->
+  <script src="/assets/js/consent-banner.js" defer></script>
 
   <style>
     :root {
@@ -473,6 +468,12 @@
   </div>
 
   <script>
+    function trackEvent() {
+      if (typeof window.gtag === 'function') {
+        window.gtag.apply(null, arguments);
+      }
+    }
+
     const COUNTRIES = [
       { name: 'United States of America', dial: '+1' },
       { name: 'United Kingdom', dial: '+44' },
@@ -1293,7 +1294,7 @@
       setMessage('Invalid or missing application reference.', 'error');
       document.getElementById('submitBtn').disabled = true;
     } else {
-      gtag('event', 'begin_form_step_2', {
+      trackEvent('event', 'begin_form_step_2', {
         application_type: 'access',
         page_location: window.location.href,
         lead_id_present: true
@@ -1397,7 +1398,7 @@
         submitBtn.textContent = 'Submitting...';
         setMessage('Submitting application...', '');
 
-        gtag('event', 'submit_form_step_2', {
+        trackEvent('event', 'submit_form_step_2', {
           application_type: 'access',
           page_location: window.location.href
         });
@@ -1428,7 +1429,7 @@
           throw new Error(backendMessage);
         }
 
-        gtag('event', 'application_completed', {
+        trackEvent('event', 'application_completed', {
           application_type: 'access',
           page_location: window.location.href
         });

@@ -10,6 +10,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260421d" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260421d" />
   <link rel="apple-touch-icon" href="/assets/images/presttige-favicon.png?v=20260421d" />
+  <!-- Google Analytics loads via consent-banner.js after user opt-in -->
+  <script src="/assets/js/consent-banner.js" defer></script>
   <style>
     :root {
       --bg: #050505;
@@ -181,6 +183,22 @@
       mechanism or cookie banner may be introduced.
     </p>
 
+    <h2>3A. Consent Banner and Preference Centre</h2>
+    <p>
+      The Website includes a cookie consent banner that allows you to accept, reject, or customise optional
+      cookie categories before non-essential analytics tools are loaded. You can change your choices at any
+      time by selecting “Cookie Preferences” in the footer.
+    </p>
+    <p>
+      Strictly necessary cookies support core site function and cannot be switched off through the banner.
+      Analytics cookies, including Google Analytics, are used only if you opt in. Marketing cookies are
+      reserved for future tools and remain off unless selected.
+    </p>
+    <p>
+      You may also delete existing cookies directly through your browser settings. Browser controls usually
+      allow you to remove cookies for a specific website, block future cookies, or clear stored site data.
+    </p>
+
     <h2>4. Managing Cookies</h2>
     <p>
       Most browsers allow you to manage, block, or delete cookies through browser settings. Please note that
@@ -208,6 +226,9 @@
     </p>
   </main>
 
-  <footer class="container">© Mettalix LLC FZ</footer>
+  <footer class="container">
+    © Mettalix LLC FZ ·
+    <a href="#" onclick="window.PresttigeCookies.openPreferences(); return false;">Cookie Preferences</a>
+  </footer>
 </body>
 </html>
