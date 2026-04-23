@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Sitemap: https://www.presttige.net/sitemap.xml
+
+# Block internal paths if any
+Disallow: /admin
+Disallow: /api
