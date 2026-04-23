@@ -1,3 +1,28 @@
 .DS_Store
 **/.DS_Store
 backups/
+
+# Reports directory (Codex execution logs)
+reports/
+
+# macOS
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Environment
+.env
+.env.local
+
+# Build artifacts
+node_modules/
+dist/
+build/
+
+# OS / IDE
+Thumbs.db
