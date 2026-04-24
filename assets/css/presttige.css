@@ -118,12 +118,19 @@ body {
 .hero {
   position: relative;
   min-height: 82vh;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   padding-top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 @media (min-width: 768px) {
   .hero {
