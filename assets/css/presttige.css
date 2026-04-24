@@ -654,7 +654,8 @@ body {
 }
 .legal-page .topbar-logo {
   justify-self: start;
-  margin-left: -1px;
+  margin-left: 0;
+  transform: translateY(1px);
   text-decoration: none;
   border-bottom: none;
   outline: none;
