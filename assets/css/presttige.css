@@ -621,6 +621,9 @@ body {
   max-width: calc(var(--max-text-width) + 32px);
 }
 .legal-page .legal-back-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
   padding-top: var(--space-lg);
   padding-bottom: 0;
 }
@@ -640,7 +643,11 @@ body {
   letter-spacing: 0.08em;
   color: var(--whisper-grey);
   opacity: 0.78;
+  text-decoration: none;
+  border-bottom: none;
 }
+.legal-page .back::before,
+.legal-page .back::after { content: none; display: none; }
 .legal-page .back:hover {
   color: var(--mercury-gold);
   opacity: 1;
