@@ -182,6 +182,10 @@ body {
   position: relative;
   overflow: visible;
   isolation: isolate;
+  min-height: calc(100svh - 64px);
+  display: flex;
+  align-items: center;
+  scroll-margin-top: 64px;
 }
 .section::before {
   display: none;
@@ -197,6 +201,7 @@ body {
 }
 .section-inner {
   max-width: var(--max-content-width);
+  width: 100%;
   margin: 0 auto;
   padding: 0 var(--space-md);
   position: relative;
@@ -227,6 +232,10 @@ body {
 .section-body p:last-child { margin-bottom: 0; }
 
 @media (min-width: 768px) {
+  .section {
+    min-height: calc(100svh - 72px);
+    scroll-margin-top: 72px;
+  }
   .section-inner { padding: 0 var(--space-lg); }
 }
 
