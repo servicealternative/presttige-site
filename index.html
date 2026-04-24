@@ -89,32 +89,6 @@
       margin: 0 auto;
     }
 
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 30;
-      background: rgba(0,0,0,0.82);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .topbar-inner {
-      min-height: 92px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
-    }
-
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 78px;
-      height: 78px;
-      flex: 0 0 78px;
-    }
-
     .logo {
       width: 100%;
       height: 100%;
@@ -502,17 +476,6 @@
         width: min(100%, calc(100% - 20px));
       }
 
-      .topbar-inner {
-        min-height: 80px;
-        gap: 14px;
-      }
-
-      .brand {
-        width: 70px;
-        height: 70px;
-        flex-basis: 70px;
-      }
-
       .hero {
         min-height: 78vh;
         border-radius: 0 0 24px 24px;
@@ -571,19 +534,7 @@
 <body>
 
 <!-- TOPBAR -->
-<header class="topbar" id="topbar">
-  <div class="topbar-inner">
-    <a href="#top" aria-label="Presttige" class="topbar-logo">
-      <img src="/assets/images/presttige-p-ring.png" alt="Presttige">
-    </a>
-    <nav class="topbar-nav" aria-label="Primary">
-      <a href="#presence" class="topbar-link">Presence</a>
-      <a href="#how-it-works" class="topbar-link">How it works</a>
-      <a href="#belonging" class="topbar-link">Belonging</a>
-    </nav>
-    <button class="topbar-cta" id="openApplyModalTop" type="button">Express interest</button>
-  </div>
-</header>
+<script src="/assets/js/site-header.js" data-variant="home"></script>
 
 <!-- HERO -->
 <section class="hero" id="top">
