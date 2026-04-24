@@ -339,6 +339,9 @@ body {
 .footer {
   padding: 0;
   background: transparent;
+  border-top: none;
+  outline: none;
+  box-shadow: none;
 }
 .footer-inner {
   max-width: var(--max-content-width);
