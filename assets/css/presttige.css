@@ -685,6 +685,14 @@ body {
 .legal-page .footer-copyright {
   font-size: 11px;
 }
+.legal-page .footer-links a {
+  color: var(--whisper-grey);
+  border-bottom: none;
+}
+.legal-page .footer-links a:hover {
+  color: var(--mercury-gold);
+  opacity: 1;
+}
 .legal-page a { color: var(--mercury-gold); border-bottom: 1px solid rgba(201,169,97,0.3); }
 .legal-page ul, .legal-page ol { padding-left: var(--space-lg); margin-bottom: var(--space-md); }
 @media (max-width: 767px) {
