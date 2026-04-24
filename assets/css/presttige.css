@@ -682,8 +682,16 @@ body {
   color: var(--ivory-white);
   margin-bottom: var(--space-md);
 }
+.legal-page .footer-copyright {
+  font-size: 11px;
+}
 .legal-page a { color: var(--mercury-gold); border-bottom: 1px solid rgba(201,169,97,0.3); }
 .legal-page ul, .legal-page ol { padding-left: var(--space-lg); margin-bottom: var(--space-md); }
+@media (max-width: 767px) {
+  .legal-page .footer-copyright {
+    font-size: 10px;
+  }
+}
 @media (min-width: 768px) {
   .legal-page .container {
     padding-left: var(--space-lg);
