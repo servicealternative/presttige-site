@@ -652,6 +652,16 @@ body {
   color: var(--mercury-gold);
   opacity: 1;
 }
+.legal-page .topbar-logo {
+  justify-self: start;
+  margin-left: 0;
+  text-decoration: none;
+  border-bottom: none;
+  outline: none;
+  box-shadow: none;
+}
+.legal-page .topbar-logo::before,
+.legal-page .topbar-logo::after { content: none; display: none; }
 .legal-page .legal-container,
 .legal-page .content {
   max-width: var(--max-text-width);
