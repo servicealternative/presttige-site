@@ -605,7 +605,6 @@ body {
 
 /* ============ LEGAL PAGES ============ */
 .legal-page {
-  background: var(--ink-black);
   color: var(--ivory-white);
   min-height: 100vh;
 }
