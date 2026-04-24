@@ -147,19 +147,24 @@
   <link rel="stylesheet" href="/assets/css/presttige.css">
 </head>
 <body class="legal-page">
-  <header class="container">
-    <div class="topbar">
-      <a href="/" class="logo-link">
-        <img src="/assets/images/presttige-p-ring.png" alt="Presttige" class="logo">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="/" aria-label="Presttige" class="topbar-logo">
+        <img src="/assets/images/presttige-p-ring.png" alt="Presttige">
       </a>
     </div>
-    <a href="/" class="back">← Back to Presttige</a>
-
-    <h1>Cookie Preferences</h1>
-    <div class="eff">Effective date: April 23rd, 2026</div>
   </header>
 
-  <main class="container">
+  <div class="container legal-back-row">
+    <a href="/" class="back">← Back to Presttige</a>
+  </div>
+
+  <section class="container legal-header">
+    <h1>Cookie Preferences</h1>
+    <div class="eff">Effective date: April 23rd, 2026</div>
+  </section>
+
+  <main class="container legal-content">
     <p>
       This Cookie Preferences notice explains how Mettalix LLC FZ uses cookies and similar technologies on
       presttige.net. Cookies are small text files placed on your device to help websites function,
@@ -242,9 +247,22 @@
         <span class="footer-sep" aria-hidden="true">·</span>
         <a href="/terms/">Terms</a>
         <span class="footer-sep" aria-hidden="true">·</span>
-        <a href="/cookies/">Cookies</a>
+        <a href="#" id="cookiePrefsLink">Cookies</a>
       </nav>
     </div>
   </footer>
+  <script>
+    (function () {
+      var cookiePrefsLink = document.getElementById('cookiePrefsLink');
+      if (cookiePrefsLink) {
+        cookiePrefsLink.addEventListener('click', function (event) {
+          if (window.PresttigeCookies && typeof window.PresttigeCookies.openPreferences === 'function') {
+            event.preventDefault();
+            window.PresttigeCookies.openPreferences();
+          }
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

@@ -611,60 +611,29 @@ body {
 }
 .legal-page .container {
   width: 100%;
-  max-width: var(--max-content-width);
   margin: 0 auto;
   padding-left: var(--space-md);
   padding-right: var(--space-md);
 }
-.legal-page header.container {
-  padding-top: 0;
-  padding-bottom: var(--space-xl);
-  border-bottom: none;
+.legal-page .legal-back-row,
+.legal-page .legal-header,
+.legal-page .legal-content {
+  max-width: calc(var(--max-text-width) + 32px);
 }
-.legal-page main.container {
-  max-width: var(--max-text-width);
-  padding-top: var(--space-xl);
+.legal-page .legal-back-row {
+  padding-top: var(--space-lg);
+  padding-bottom: 0;
+}
+.legal-page .legal-header {
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-xl);
+}
+.legal-page .legal-content {
+  padding-top: 0;
   padding-bottom: var(--space-2xl);
 }
-.legal-page .topbar {
-  position: relative;
-  top: auto;
-  left: auto;
-  right: auto;
-  z-index: auto;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  height: 64px;
-  margin-bottom: var(--space-sm);
-  padding: 0;
-  background: transparent;
-  border: 0;
-  transition: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-.legal-page .logo-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
-  overflow: visible;
-}
-.legal-page .logo {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
-  transform: none;
-}
 .legal-page .back {
-  display: block;
-  max-width: var(--max-text-width);
-  width: 100%;
-  margin: 0 auto var(--space-lg);
+  display: inline-block;
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   font-weight: 300;
@@ -676,19 +645,10 @@ body {
   color: var(--mercury-gold);
   opacity: 1;
 }
-.legal-page header.container h1,
-.legal-page header.container .eff {
-  max-width: var(--max-text-width);
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-}
 .legal-page .legal-container,
-.legal-page main,
 .legal-page .content {
   max-width: var(--max-text-width);
   margin: 0 auto;
-  padding: var(--space-3xl) var(--space-md);
 }
 .legal-page h1 {
   font-family: var(--font-serif);
@@ -729,12 +689,9 @@ body {
     padding-left: var(--space-lg);
     padding-right: var(--space-lg);
   }
-  .legal-page .topbar {
-    height: 72px;
-  }
-  .legal-page .logo-link {
-    width: 52px;
-    height: 52px;
-    flex-basis: 52px;
+  .legal-page .legal-back-row,
+  .legal-page .legal-header,
+  .legal-page .legal-content {
+    max-width: calc(var(--max-text-width) + 80px);
   }
 }
