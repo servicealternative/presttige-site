@@ -1127,15 +1127,7 @@
           console.warn('Unable to persist selected country', storageError);
         }
 
-        setApplyMessage('Check your email to continue.', 'success');
-        const formContainer = document.getElementById('applyFormContainer');
-        const successState = document.getElementById('applySuccess');
-        if (formContainer) formContainer.hidden = true;
-        if (successState) successState.hidden = false;
-
-        setTimeout(() => {
-          window.location.replace(`https://presttige.net/check-email.html?email=${encodeURIComponent(email)}`);
-        }, 900);
+        window.location.replace(`https://presttige.net/check-email.html?email=${encodeURIComponent(email)}`);
 
       } catch (error) {
         const message = error && error.message ? error.message : 'Unknown error';

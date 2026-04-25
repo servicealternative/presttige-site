@@ -9,64 +9,111 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260421d" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260421d" />
   <link rel="apple-touch-icon" href="/assets/images/presttige-favicon.png?v=20260421d" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Source+Serif+Pro:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
 
   <style>
-    body {
+    :root {
+      --primary: #0A0A0A;
+      --background: #F5F2ED;
+      --paper: #FBF9F4;
+      --accent: #8C7040;
+      --muted: #4A4A4A;
+      --hairline: #D9D2C5;
+      --danger: #8F4D47;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      background: #050505;
-      color: #f4f1eb;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+      padding: 0;
+    }
+
+    html,
+    body {
+      background: var(--background);
+      color: var(--primary);
+      font-family: "Source Serif Pro", Georgia, serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "liga" 1, "kern" 1;
+    }
+
+    .verify-page {
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
+      align-items: center;
+      padding: 60px 24px;
+      background: var(--background);
+    }
+
+    .verify-content {
+      max-width: 540px;
+      width: 100%;
       text-align: center;
-      padding: 24px;
     }
 
-    .box {
-      width: min(100%, 560px);
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 28px;
-      padding: 42px 30px;
+    .verify-eyebrow {
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.36em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
     }
 
-    h1 {
-      font-size: clamp(2rem, 5vw, 3rem);
-      margin-bottom: 16px;
-      letter-spacing: -0.04em;
+    .verify-title {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 36pt;
+      line-height: 1.15;
+      color: var(--primary);
+      margin-bottom: 32px;
+      letter-spacing: -0.005em;
     }
 
-    p {
-      color: rgba(244,241,235,0.74);
-      line-height: 1.7;
-      margin-bottom: 16px;
-    }
-
-    .status {
-      color: #d1ae72;
-      font-weight: 600;
-    }
-
-    .error {
-      color: #ffb4b4;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 46px;
-      padding: 0 24px;
-      border-radius: 999px;
+    .verify-divider {
+      width: 38px;
+      height: 0.5px;
+      background: var(--accent);
+      margin: 0 auto 28px auto;
       border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, #cfa96a 0%, #e1c28d 100%);
-      color: #0d0d0d;
-      font-weight: 600;
-      margin-top: 12px;
+    }
+
+    .verify-body {
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-style: italic;
+      font-size: 10.5pt;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 380px;
+      margin: 0 auto 44px auto;
+    }
+
+    .verify-body.error {
+      color: var(--danger);
+    }
+
+    .verify-link {
+      display: inline-block;
+      font-size: 8.5pt;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--muted);
       text-decoration: none;
+      border-bottom: 0.5px solid var(--hairline);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .verify-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
     }
 
     .hidden {
@@ -75,10 +122,14 @@
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>Email Verification</h1>
-    <p id="message" class="status">Verifying your email…</p>
-    <a id="fallbackBtn" class="btn hidden" href="/">Return to Presttige</a>
+  <div class="verify-page">
+    <div class="verify-content">
+      <div class="verify-eyebrow">Verification</div>
+      <h1 class="verify-title">Verifying your email.</h1>
+      <hr class="verify-divider" />
+      <p id="message" class="verify-body">One moment, please.</p>
+      <a id="fallbackLink" class="verify-link hidden" href="/">Return to Presttige</a>
+    </div>
   </div>
 
   <script>
@@ -87,12 +138,12 @@
       const token = params.get('token');
 
       const messageEl = document.getElementById('message');
-      const fallbackBtn = document.getElementById('fallbackBtn');
+      const fallbackLink = document.getElementById('fallbackLink');
 
       if (!token) {
         messageEl.textContent = 'Invalid verification link.';
         messageEl.classList.add('error');
-        fallbackBtn.classList.remove('hidden');
+        fallbackLink.classList.remove('hidden');
         return;
       }
 
@@ -100,11 +151,9 @@
         'https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/verify-email?token=' +
         encodeURIComponent(token);
 
-      // Importante:
-      // não usamos fetch aqui.
-      // Redirecionamos o browser diretamente para o endpoint,
-      // e o Lambda devolve o redirect final para access-form.html?lead_id=...
-      window.location.replace(apiUrl);
+      setTimeout(function () {
+        window.location.replace(apiUrl);
+      }, 60);
     })();
   </script>
 </body>

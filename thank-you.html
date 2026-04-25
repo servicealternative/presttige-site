@@ -1,73 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Presttige — Application Received</title>
-<link rel="shortcut icon" href="/favicon.ico?v=20260421d" type="image/x-icon">
-<link rel="icon" href="/favicon.ico?v=20260421d" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260421d">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260421d">
-<link rel="apple-touch-icon" href="/assets/images/presttige-favicon.png?v=20260421d">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Presttige — Application Received</title>
+  <link rel="shortcut icon" href="/favicon.ico?v=20260421d" type="image/x-icon" />
+  <link rel="icon" href="/favicon.ico?v=20260421d" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260421d" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260421d" />
+  <link rel="apple-touch-icon" href="/assets/images/presttige-favicon.png?v=20260421d" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Source+Serif+Pro:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
 
-<style>
-body{
-margin:0;
-background:#050505;
-color:white;
-font-family:-apple-system, Arial;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-text-align:center;
-}
+  <style>
+    :root {
+      --primary: #0A0A0A;
+      --background: #F5F2ED;
+      --paper: #FBF9F4;
+      --accent: #8C7040;
+      --muted: #4A4A4A;
+      --hairline: #D9D2C5;
+    }
 
-.box{
-max-width:500px;
-padding:40px;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-h1{
-font-size:40px;
-margin-bottom:20px;
-}
+    html,
+    body {
+      background: var(--background);
+      color: var(--primary);
+      font-family: "Source Serif Pro", Georgia, serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "liga" 1, "kern" 1;
+    }
 
-p{
-color:#aaa;
-margin-bottom:30px;
-}
+    .thank-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 24px;
+      background: var(--background);
+    }
 
-button{
-padding:12px 24px;
-background:#d1ae72;
-border:none;
-cursor:pointer;
-}
-</style>
+    .thank-content {
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .thank-eyebrow {
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.36em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+    }
+
+    .thank-title {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 36pt;
+      line-height: 1.15;
+      color: var(--primary);
+      margin-bottom: 32px;
+      letter-spacing: -0.005em;
+    }
+
+    .thank-divider {
+      width: 38px;
+      height: 0.5px;
+      background: var(--accent);
+      margin: 0 auto 28px auto;
+      border: none;
+    }
+
+    .thank-body {
+      font-size: 11pt;
+      line-height: 1.7;
+      color: var(--primary);
+      margin-bottom: 18px;
+    }
+
+    .thank-followup {
+      font-style: italic;
+      font-size: 10.5pt;
+      line-height: 1.6;
+      color: var(--muted);
+      margin-bottom: 48px;
+      max-width: 460px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .thank-link {
+      font-size: 8.5pt;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 0.5px solid var(--hairline);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .thank-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+  </style>
 </head>
-
 <body>
-
-<div class="box">
-
-<h1>Application Received</h1>
-
-<p>
-Your request has been submitted.<br><br>
-All applications are reviewed privately.<br>
-If selected, you will receive access instructions.
-</p>
-
-<button onclick="goHome()">Return to Presttige</button>
-
-</div>
-
-<script>
-function goHome(){
-window.location.href = "/";
-}
-</script>
-
+  <div class="thank-page">
+    <div class="thank-content">
+      <div class="thank-eyebrow">Application Received</div>
+      <h1 class="thank-title">Thank you.</h1>
+      <hr class="thank-divider" />
+      <p class="thank-body">Your application has been submitted.</p>
+      <p class="thank-followup">
+        All applications are reviewed privately and individually. If selected, you will receive access
+        instructions by email.
+      </p>
+      <a href="/" class="thank-link">Return to Presttige</a>
+    </div>
+  </div>
 </body>
 </html>
