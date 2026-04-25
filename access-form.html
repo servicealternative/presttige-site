@@ -15,19 +15,24 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Source+Serif+Pro:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <!-- Google Analytics loads via consent-banner.js after user opt-in -->
   <script src="/assets/js/consent-banner.js" defer></script>
 
   <style>
     :root {
-      --bg: #050505;
-      --panel: rgba(255,255,255,0.03);
-      --border: rgba(255,255,255,0.08);
-      --text: #f4f1eb;
-      --muted: rgba(244,241,235,0.72);
-      --accent: #d1ae72;
-      --danger: #ffb4b4;
-      --max: 860px;
+      --primary: #0A0A0A;
+      --background: #F5F2ED;
+      --paper: #FBF9F4;
+      --accent: #8C7040;
+      --accent-border: rgba(140, 112, 64, 0.4);
+      --muted: #6B6B6B;
+      --muted-soft: rgba(107, 107, 107, 0.7);
+      --hairline: #D9D2C5;
+      --danger: #8F4D47;
+      --max: 740px;
     }
 
     * {
@@ -36,11 +41,14 @@
       padding: 0;
     }
 
+    html,
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+      background: var(--background);
+      color: var(--primary);
+      font-family: "Source Serif Pro", Georgia, serif;
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "liga" 1, "kern" 1;
     }
 
     a {
@@ -55,46 +63,77 @@
     .page {
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 32px 20px;
+      padding: 64px 24px 56px;
+      background: var(--background);
     }
 
     .panel {
       width: min(100%, var(--max));
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 30px;
-      padding: 38px;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
     }
 
     .eyebrow {
-      color: var(--accent);
-      font-size: 0.82rem;
-      letter-spacing: 0.18em;
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.36em;
       text-transform: uppercase;
-      margin-bottom: 14px;
+      color: var(--accent);
+      margin-bottom: 20px;
     }
 
     h1 {
-      font-size: clamp(2.3rem, 6vw, 4rem);
-      line-height: 0.98;
-      letter-spacing: -0.05em;
-      margin-bottom: 18px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(2.6rem, 6vw, 4.25rem);
+      line-height: 1.08;
+      letter-spacing: -0.012em;
+      color: var(--primary);
+      margin-bottom: 22px;
+    }
+
+    .title-divider {
+      width: 38px;
+      height: 0.5px;
+      background: var(--accent);
+      border: none;
+      margin: 0 0 22px 0;
     }
 
     .intro {
       color: var(--muted);
-      line-height: 1.7;
-      font-size: 1.02rem;
-      max-width: 720px;
-      margin-bottom: 28px;
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-style: italic;
+      line-height: 1.65;
+      font-size: 10.5pt;
+      max-width: 580px;
+      margin-bottom: 30px;
     }
 
     .form {
       display: grid;
-      gap: 16px;
+      gap: 24px;
+    }
+
+    .form-section {
+      display: grid;
+      gap: 18px;
+    }
+
+    .section-heading {
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding-bottom: 8px;
+      border-bottom: 0.5px solid rgba(140, 112, 64, 0.22);
     }
 
     .grid-2 {
@@ -109,9 +148,12 @@
 
     .field label {
       display: block;
-      margin-bottom: 8px;
-      font-size: 0.94rem;
-      color: rgba(244,241,235,0.86);
+      margin-bottom: 7px;
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
     .required-mark {
@@ -123,44 +165,64 @@
     .field textarea,
     .field select {
       width: 100%;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      border-radius: 14px;
+      border: 0.5px solid var(--accent-border);
+      background: transparent;
+      color: var(--primary);
+      border-radius: 0;
       outline: none;
-      padding: 14px 16px;
-      min-height: 54px;
+      padding: 10px 12px;
+      min-height: 44px;
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-size: 11pt;
+      line-height: 1.35;
+      box-shadow: none;
     }
 
     .field select {
       -webkit-appearance: none;
       appearance: none;
       display: block;
-      min-height: 54px;
-      height: 54px;
+      min-height: 44px;
+      height: 44px;
       line-height: 1.2;
-      padding-right: 40px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23a8a8a8' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      padding-right: 38px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7' fill='none'%3E%3Cpath d='M1 1.5L5.5 5.5L10 1.5' stroke='%238C7040' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: right 16px center;
-      background-size: 12px 8px;
+      background-position: right 13px center;
+      background-size: 11px 7px;
+    }
+
+    .field select:required:invalid {
+      color: var(--muted-soft);
+      font-style: italic;
+    }
+
+    .field select option {
+      color: var(--primary);
+      font-style: normal;
     }
 
     .field textarea {
-      min-height: 130px;
+      min-height: 120px;
       resize: vertical;
-      padding-top: 14px;
+      padding-top: 12px;
+      line-height: 1.55;
     }
 
     .field input:focus,
     .field textarea:focus,
     .field select:focus {
-      border-color: rgba(209,174,114,0.78);
-      box-shadow: 0 0 0 3px rgba(209,174,114,0.12);
+      border-color: rgba(140, 112, 64, 0.72);
     }
 
     .field.hidden {
       display: none;
+    }
+
+    .field input::placeholder,
+    .field textarea::placeholder {
+      color: var(--muted-soft);
+      font-style: italic;
     }
 
     .inline-options {
@@ -170,28 +232,50 @@
     }
 
     .inline-option {
+      position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      min-height: 52px;
-      padding: 0 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
+      justify-content: center;
+      min-height: 38px;
+      min-width: 72px;
+      padding: 0;
+      border: 0.5px solid var(--accent-border);
+      background: transparent;
+      color: var(--primary);
       cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
 
     .inline-option input {
-      width: auto;
-      min-height: auto;
-      padding: 0;
-      margin: 0;
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .inline-option span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      width: 100%;
+      padding: 0 18px;
+      font-size: 10.5pt;
+      color: var(--primary);
+    }
+
+    .inline-option input:checked + span {
+      box-shadow: inset 0 0 0 1px rgba(140, 112, 64, 0.65);
+      background: rgba(140, 112, 64, 0.08);
+    }
+
+    .inline-option:has(input:checked) {
+      border-color: rgba(140, 112, 64, 0.65);
     }
 
     .phone-row {
       display: grid;
-      grid-template-columns: minmax(96px, 112px) 1fr;
+      grid-template-columns: 110px 1fr;
       gap: 12px;
     }
 
@@ -200,17 +284,11 @@
     }
 
     .phone-prefix {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: rgba(244,241,235,0.72);
-      pointer-events: none;
-      white-space: nowrap;
+      display: none;
     }
 
     .phone-input-wrap input {
-      padding-left: 72px;
+      padding-left: 12px;
     }
 
     .subfield {
@@ -222,55 +300,84 @@
     }
 
     .locked-field select {
-      background: rgba(255,255,255,0.025);
-      color: rgba(244,241,235,0.72);
-      border-color: rgba(255,255,255,0.07);
+      background: var(--paper);
+      color: var(--muted);
+      border-color: rgba(140, 112, 64, 0.28);
       cursor: not-allowed;
       pointer-events: none;
-      min-height: 54px;
-      height: 54px;
+      min-height: 44px;
+      height: 44px;
       line-height: 1.2;
       padding-right: 16px;
       background-image: none;
     }
 
     .locked-note {
-      color: rgba(244,241,235,0.42);
+      color: var(--muted-soft);
     }
 
     .field small {
       display: block;
-      color: rgba(244,241,235,0.45);
+      color: var(--muted-soft);
       margin-top: 7px;
       line-height: 1.5;
-      font-size: 0.84rem;
+      font-size: 9.5pt;
+      font-style: italic;
     }
 
     .field.has-error input,
     .field.has-error textarea,
     .field.has-error select,
     .field.has-error .inline-option {
-      border-color: rgba(255,180,180,0.9);
-      box-shadow: 0 0 0 3px rgba(255,180,180,0.12);
+      border-color: rgba(143, 77, 71, 0.85);
+      box-shadow: none;
     }
 
     .field-error-note {
       display: none;
       margin-top: 8px;
       color: var(--danger);
-      font-size: 0.84rem;
+      font-size: 9.5pt;
       line-height: 1.45;
+      font-style: italic;
     }
 
     .field.has-error .field-error-note {
       display: block;
     }
 
+    .optional-mark {
+      color: var(--muted-soft);
+      font-style: italic;
+      letter-spacing: 0;
+      text-transform: none;
+      margin-left: 4px;
+    }
+
+    .submit-shell {
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    .submit-divider {
+      width: 100%;
+      height: 0.5px;
+      background: var(--hairline);
+      margin-bottom: 20px;
+    }
+
+    .submit-note {
+      max-width: 430px;
+      margin: 0 auto 20px auto;
+      font-size: 9.5pt;
+      line-height: 1.65;
+      color: var(--muted);
+      font-style: italic;
+    }
+
     .actions {
       display: flex;
-      gap: 12px;
-      margin-top: 10px;
-      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .btn-primary,
@@ -278,45 +385,53 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 48px;
-      padding: 0 24px;
-      border-radius: 999px;
+      min-height: 44px;
+      padding: 0 32px;
+      border-radius: 0;
       cursor: pointer;
-      transition: 0.25s ease;
+      transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
     }
 
     .btn-primary {
-      border: none;
-      background: linear-gradient(135deg, #cfa96a 0%, #e1c28d 100%);
-      color: #0d0d0d;
-      font-weight: 600;
-      box-shadow: 0 12px 28px rgba(209,174,114,0.22);
+      border: 0.5px solid var(--primary);
+      background: transparent;
+      color: var(--primary);
+      font-size: 8.5pt;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      min-width: 228px;
     }
 
     .btn-secondary {
-      background: rgba(255,255,255,0.03);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.10);
+      display: none;
     }
 
-    .btn-primary:hover,
-    .btn-secondary:hover {
-      transform: translateY(-1px);
+    .btn-primary:hover {
+      background: var(--primary);
+      color: var(--background);
     }
 
     .btn-primary:disabled,
     .btn-secondary:disabled {
-      opacity: 0.7;
+      opacity: 0.65;
       cursor: not-allowed;
-      transform: none;
+    }
+
+    .btn-primary:disabled:hover {
+      background: transparent;
+      color: var(--primary);
     }
 
     .message {
       min-height: 24px;
-      margin-top: 8px;
+      margin-top: 16px;
       color: var(--muted);
       line-height: 1.5;
       word-break: break-word;
+      text-align: center;
+      font-size: 9.5pt;
+      font-style: italic;
     }
 
     .message.success {
@@ -327,10 +442,9 @@
       color: var(--danger);
     }
 
-    @media (max-width: 760px) {
-      .panel {
-        padding: 24px 18px;
-        border-radius: 24px;
+    @media (max-width: 600px) {
+      .page {
+        padding: 42px 20px 40px;
       }
 
       .grid-2 {
@@ -341,13 +455,13 @@
         grid-template-columns: 1fr;
       }
 
-      .actions {
-        flex-direction: column;
-      }
-
       .btn-primary,
       .btn-secondary {
         width: 100%;
+      }
+
+      .btn-primary {
+        min-width: 0;
       }
     }
   </style>
@@ -355,8 +469,9 @@
 <body>
   <div class="page">
     <div class="panel">
-      <div class="eyebrow">Step 2</div>
-      <h1>Complete Your Application</h1>
+      <div class="eyebrow">Step 2 · Application</div>
+      <h1>Complete your application.</h1>
+      <hr class="title-divider" />
       <p class="intro">
         Your email has been verified. Complete the next stage of your Presttige application below.
         All applications are reviewed privately and individually.
@@ -365,104 +480,119 @@
       <form class="form" id="accessForm" novalidate>
         <input type="hidden" id="leadId" />
 
-        <div class="grid-2">
-          <div class="field">
-            <label for="phone">Phone <span class="required-mark">*</span></label>
-          <div class="phone-row">
-              <select id="phoneCountry" required></select>
-              <div class="phone-input-wrap">
-                <span class="phone-prefix" id="phoneDialCode">+1</span>
-                <input id="phone" type="tel" autocomplete="tel-national" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="numeric" required />
+        <div class="form-section">
+          <div class="section-heading">Contact</div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="phone">Phone <span class="required-mark">*</span></label>
+              <div class="phone-row">
+                <select id="phoneCountry" required></select>
+                <div class="phone-input-wrap">
+                  <span class="phone-prefix" id="phoneDialCode">+1</span>
+                  <input id="phone" type="tel" autocomplete="tel-national" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="numeric" required />
+                </div>
+              </div>
+              <small id="phoneCountryHint">Selected country: United States of America</small>
+            </div>
+
+            <div class="field">
+              <label for="age">Age <span class="required-mark">*</span></label>
+              <input id="age" type="text" inputmode="numeric" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-heading">Location</div>
+          <div class="grid-2">
+            <div class="field locked-field" id="countryField">
+              <label for="country">Country <span class="required-mark">*</span></label>
+              <select id="country" required disabled></select>
+              <small class="locked-note" id="countryLockedNote">Selected earlier in your application.</small>
+            </div>
+
+            <div class="field">
+              <label for="citySelect">City <span class="required-mark">*</span></label>
+              <select id="citySelect" required></select>
+              <div class="subfield hidden" id="cityOtherWrap">
+                <input id="cityOther" type="text" autocomplete="address-level2" placeholder="Enter your city" />
               </div>
             </div>
-            <small id="phoneCountryHint">Selected country: United States of America</small>
-          </div>
-
-          <div class="field">
-            <label for="age">Age <span class="required-mark">*</span></label>
-            <input id="age" type="text" inputmode="numeric" required />
           </div>
         </div>
 
-        <div class="grid-2">
-          <div class="field locked-field" id="countryField">
-            <label for="country">Country <span class="required-mark">*</span></label>
-            <select id="country" required disabled></select>
-            <small class="locked-note" id="countryLockedNote">Selected earlier in your application.</small>
-          </div>
-
-          <div class="field">
-            <label for="citySelect">City <span class="required-mark">*</span></label>
-            <select id="citySelect" required></select>
-            <div class="subfield hidden" id="cityOtherWrap">
-              <input id="cityOther" type="text" autocomplete="address-level2" placeholder="Enter your city" />
+        <div class="form-section">
+          <div class="section-heading">Profile</div>
+          <div class="grid-2" id="linkedinRow">
+            <div class="field">
+              <label>Do you have a LinkedIn profile? <span class="required-mark">*</span></label>
+              <div class="inline-options" role="radiogroup" aria-label="Do you have a LinkedIn profile?">
+                <label class="inline-option">
+                  <input type="radio" name="hasLinkedin" value="yes" />
+                  <span>Yes</span>
+                </label>
+                <label class="inline-option">
+                  <input type="radio" name="hasLinkedin" value="no" />
+                  <span>No</span>
+                </label>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div class="grid-2" id="linkedinRow">
-          <div class="field">
-            <label>Do you have a LinkedIn profile? <span class="required-mark">*</span></label>
-            <div class="inline-options" role="radiogroup" aria-label="Do you have a LinkedIn profile?">
-              <label class="inline-option">
-                <input type="radio" name="hasLinkedin" value="yes" />
-                <span>Yes</span>
-              </label>
-              <label class="inline-option">
-                <input type="radio" name="hasLinkedin" value="no" />
-                <span>No</span>
-              </label>
+            <div class="field hidden" id="linkedinField">
+              <label for="linkedin">LinkedIn <span class="required-mark" id="linkedinRequiredMark">*</span></label>
+              <input id="linkedin" type="text" placeholder="https://www.linkedin.com/in/yourname" autocapitalize="off" autocorrect="off" spellcheck="false" />
             </div>
           </div>
 
-          <div class="field hidden" id="linkedinField">
-            <label for="linkedin">LinkedIn <span class="required-mark" id="linkedinRequiredMark">*</span></label>
-            <input id="linkedin" type="text" placeholder="https://www.linkedin.com/in/yourname" autocapitalize="off" autocorrect="off" spellcheck="false" />
-          </div>
-        </div>
+          <div class="grid-2" id="socialFieldsRow">
+            <div class="field">
+              <label for="instagram">Instagram <span class="required-mark">*</span></label>
+              <input id="instagram" type="text" placeholder="@username or full URL" autocapitalize="off" autocorrect="off" spellcheck="false" required />
+            </div>
 
-        <div class="grid-2" id="socialFieldsRow">
-          <div class="field">
-            <label for="instagram">Instagram <span class="required-mark">*</span></label>
-            <input id="instagram" type="text" placeholder="@username or full URL" autocapitalize="off" autocorrect="off" spellcheck="false" required />
-          </div>
-
-          <div class="field">
-            <label for="tiktok">TikTok <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
-            <input id="tiktok" type="text" placeholder="@username or full URL" />
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="occupationFull">Occupation <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
-          <input id="occupationFull" type="text" />
-        </div>
-
-        <div class="grid-2">
-          <div class="field">
-            <label for="company">Company <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
-            <input id="company" type="text" />
+            <div class="field">
+              <label for="tiktok">TikTok <span class="optional-mark">(optional)</span></label>
+              <input id="tiktok" type="text" placeholder="@username or full URL" />
+            </div>
           </div>
 
           <div class="field">
-            <label for="website">Website <span style="color:rgba(244,241,235,0.45)">(optional)</span></label>
-            <input id="website" type="url" placeholder="https://..." />
+            <label for="occupationFull">Occupation <span class="optional-mark">(optional)</span></label>
+            <input id="occupationFull" type="text" />
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="company">Company <span class="optional-mark">(optional)</span></label>
+              <input id="company" type="text" />
+            </div>
+
+            <div class="field">
+              <label for="website">Website <span class="optional-mark">(optional)</span></label>
+              <input id="website" type="url" placeholder="https://..." />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="bio">Short Introduction <span class="required-mark">*</span></label>
+            <textarea id="bio" required></textarea>
+          </div>
+
+          <div class="field">
+            <label for="why">Why do you want access to Presttige? <span class="required-mark">*</span></label>
+            <textarea id="why" required></textarea>
           </div>
         </div>
 
-        <div class="field">
-          <label for="bio">Short Introduction <span class="required-mark">*</span></label>
-          <textarea id="bio" required></textarea>
-        </div>
-
-        <div class="field">
-          <label for="why">Why do you want access to Presttige? <span class="required-mark">*</span></label>
-          <textarea id="why" required></textarea>
-        </div>
-
-        <div class="actions">
-          <button id="submitBtn" class="btn-primary" type="submit">Submit Application</button>
-          <a class="btn-secondary" href="/">Return to Presttige</a>
+        <div class="submit-shell">
+          <div class="submit-divider"></div>
+          <p class="submit-note">
+            Once submitted, the Committee will review your application privately. You will hear from us by email.
+          </p>
+          <div class="actions">
+            <button id="submitBtn" class="btn-primary" type="submit">Submit Application</button>
+            <a class="btn-secondary" href="/">Return to Presttige</a>
+          </div>
         </div>
 
         <div id="formMessage" class="message"></div>
@@ -835,6 +965,11 @@
       const options = getCityOptionsForCountry(countryName);
       citySelect.innerHTML = '';
 
+      const placeholderOption = document.createElement('option');
+      placeholderOption.value = '';
+      placeholderOption.textContent = 'Select your city';
+      citySelect.appendChild(placeholderOption);
+
       options.forEach(function (city) {
         const option = document.createElement('option');
         option.value = city;
@@ -842,7 +977,7 @@
         citySelect.appendChild(option);
       });
 
-      citySelect.value = options[0] || 'Other';
+      citySelect.value = '';
       updateCityFieldVisibility();
     }
 
