@@ -669,7 +669,7 @@
         </div>
         <div class="apply-field">
           <label for="applyCountry" class="apply-label">Where you live</label>
-          <input type="text" id="applyCountry" name="country" class="apply-input" required autocomplete="country-name">
+          <select id="applyCountry" name="country" class="apply-input" required></select>
         </div>
         <div class="apply-submit">
           <button type="submit" class="apply-btn-send">Send</button>
@@ -918,14 +918,19 @@
 
       select.innerHTML = '';
 
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Select country';
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      select.appendChild(placeholder);
+
       priority.concat(remaining).forEach(function (country) {
         const option = document.createElement('option');
         option.value = country;
         option.textContent = country;
         select.appendChild(option);
       });
-
-      select.selectedIndex = -1;
     }
 
     function trackApplyClick(position) {
