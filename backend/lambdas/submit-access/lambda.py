@@ -17,6 +17,7 @@ dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("presttige-db")
 ses = boto3.client("ses", region_name="eu-west-1")
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
