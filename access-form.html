@@ -383,10 +383,7 @@
     }
 
     .consent-copy {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 8px 10px;
+      display: block;
       color: var(--muted);
       font-size: 10pt;
       line-height: 1.65;
@@ -409,33 +406,13 @@
     }
 
     .consent-copy-text {
-      flex: 1 1 320px;
+      display: inline;
       min-width: 0;
     }
 
     .consent-copy-text label {
+      display: inline;
       cursor: pointer;
-    }
-
-    .consent-tag {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 20px;
-      padding: 0 8px;
-      border: 0.5px solid rgba(140, 112, 64, 0.26);
-      background: rgba(251, 249, 244, 0.8);
-      color: var(--accent);
-      font-size: 7pt;
-      font-weight: 500;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-
-    .consent-tag.optional {
-      color: var(--muted);
-      border-color: rgba(140, 112, 64, 0.18);
     }
 
     .consent-error {
@@ -560,9 +537,6 @@
         min-width: 0;
       }
 
-      .consent-copy-text {
-        flex-basis: 100%;
-      }
     }
   </style>
 </head>
@@ -688,22 +662,20 @@
           <div class="consent-row">
             <input class="consent-control" id="termsAccepted" name="terms_accepted" type="checkbox" />
             <div class="consent-copy">
-              <span class="consent-tag">Required</span>
-              <div class="consent-copy-text">
+              <span class="consent-copy-text">
                 <label for="termsAccepted"><strong>I have read and accept the</strong></label>
                 <a href="/terms/" target="_blank" rel="noopener noreferrer">Terms of Service</a>
                 and
-                <a href="/privacy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
-              </div>
+                <a href="/privacy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>. <span class="optional-mark">(required)</span>
+              </span>
             </div>
           </div>
 
           <div class="consent-row">
             <input class="consent-control" id="marketingConsent" name="marketing_consent" type="checkbox" />
             <label class="consent-copy" for="marketingConsent">
-              <span class="consent-tag optional">Optional</span>
               <span class="consent-copy-text">
-                I agree to receive occasional Presttige updates by email. You may withdraw this consent at any time.
+                I agree to receive occasional Presttige updates by email. You may withdraw this consent at any time. <span class="optional-mark">(optional)</span>
               </span>
             </label>
           </div>
