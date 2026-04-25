@@ -7,7 +7,7 @@
     '<header class="topbar"' + (isHome ? ' id="topbar"' : "") + ">" +
       '<div class="topbar-inner">' +
         '<a href="' + (isHome ? "#top" : "/") + '" aria-label="Presttige" class="topbar-logo">' +
-          '<img src="/assets/images/presttige-p-ring-no-fund.svg" alt="Presttige">' +
+          '<img src="/assets/images/presttige-p-ring.svg" alt="Presttige">' +
         "</a>" +
         (isHome
           ? '<nav class="topbar-nav" aria-label="Primary">' +
