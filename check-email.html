@@ -3,77 +3,159 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Presttige — Check Your Email</title>
+  <title>Presttige — Email Confirmation</title>
   <link rel="shortcut icon" href="/favicon.ico?v=20260421d" type="image/x-icon" />
   <link rel="icon" href="/favicon.ico?v=20260421d" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260421d" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260421d" />
   <link rel="apple-touch-icon" href="/assets/images/presttige-favicon.png?v=20260421d" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Source+Serif+Pro:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
 
   <style>
-    body {
+    :root {
+      --primary: #0A0A0A;
+      --background: #F5F2ED;
+      --paper: #FBF9F4;
+      --accent: #8C7040;
+      --muted: #6B6B6B;
+      --hairline: #D9D2C5;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      background: #050505;
-      color: #f4f1eb;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+      padding: 0;
+    }
+
+    html,
+    body {
+      background: var(--background);
+      color: var(--primary);
+      font-family: "Source Serif Pro", Georgia, serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "liga" 1, "kern" 1;
+    }
+
+    .confirm-page {
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
+      align-items: center;
+      padding: 60px 24px;
+      background: var(--background);
+    }
+
+    .confirm-content {
+      max-width: 540px;
+      width: 100%;
       text-align: center;
-      padding: 24px;
     }
 
-    .box {
-      width: min(100%, 560px);
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 28px;
-      padding: 42px 30px;
+    .confirm-eyebrow {
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.36em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
     }
 
-    h1 {
-      font-size: clamp(2rem, 5vw, 3rem);
-      margin-bottom: 16px;
-      letter-spacing: -0.04em;
+    .confirm-title {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 36pt;
+      line-height: 1.15;
+      color: var(--primary);
+      margin-bottom: 32px;
+      letter-spacing: -0.005em;
     }
 
-    p {
-      color: rgba(244,241,235,0.74);
+    .confirm-divider {
+      width: 38px;
+      height: 0.5px;
+      background: var(--accent);
+      margin: 0 auto 32px auto;
+      border: none;
+    }
+
+    .confirm-body {
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-size: 11pt;
       line-height: 1.7;
-      margin-bottom: 16px;
+      color: var(--muted);
+      margin-bottom: 18px;
     }
 
-    .email {
-      color: #d1ae72;
-      font-weight: 600;
+    .confirm-email {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: 17pt;
+      color: var(--primary);
+      display: block;
+      margin: 6px 0 24px 0;
+      letter-spacing: 0.005em;
       word-break: break-word;
     }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 46px;
-      padding: 0 24px;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(135deg, #cfa96a 0%, #e1c28d 100%);
-      color: #0d0d0d;
-      font-weight: 600;
-      margin-top: 12px;
+    .confirm-followup {
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-style: italic;
+      font-size: 10.5pt;
+      line-height: 1.6;
+      color: var(--muted);
+      margin-bottom: 48px;
+      max-width: 440px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .confirm-link {
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-size: 8.5pt;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--muted);
       text-decoration: none;
+      border-bottom: 0.5px solid var(--hairline);
+      padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .confirm-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
     }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>Check Your Email</h1>
-    <p>We’ve sent a confirmation link to:</p>
-    <p id="emailText" class="email">your email address</p>
-    <p>Please confirm your email to continue your Presttige application.</p>
-    <a class="btn" href="/">Return to Presttige</a>
+  <div class="confirm-page">
+    <div class="confirm-content">
+      <div class="confirm-eyebrow">Verification sent</div>
+
+      <h1 class="confirm-title">We've written to you.</h1>
+
+      <hr class="confirm-divider" />
+
+      <p class="confirm-body">
+        A confirmation link has been sent to
+        <span id="emailText" class="confirm-email">your@email.com</span>
+      </p>
+
+      <p class="confirm-followup">
+        Open it at your convenience to confirm.<br />
+        The Committee will review your application once you have.
+      </p>
+
+      <a href="/" class="confirm-link">Wrong email? Try again</a>
+    </div>
   </div>
 
   <script>
