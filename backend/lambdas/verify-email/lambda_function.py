@@ -1,13 +1,29 @@
 import json
+import os
+import sys
 import boto3
+from pathlib import Path
 from datetime import datetime
 from urllib.parse import parse_qs
 from boto3.dynamodb.conditions import Attr
+
+CURRENT_FILE = Path(__file__).resolve()
+for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
+    candidate_str = str(candidate)
+    if (candidate / "shared").exists() and candidate_str not in sys.path:
+        sys.path.append(candidate_str)
+
+from shared.testers import (
+    get_tester_email_for_verification_token,
+    get_tester_lead_id,
+    log_tester_event,
+)
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("presttige-db")
 
 BASE_URL = "https://presttige.net"
+TOKEN_SECRET = os.environ.get("TOKEN_SECRET", "").strip()
 
 
 def lambda_handler(event, context):
@@ -28,6 +44,20 @@ def lambda_handler(event, context):
 
         if not token:
             return redirect(f"{BASE_URL}/check-email.html?error=missing_token")
+
+        tester_email = get_tester_email_for_verification_token(token, TOKEN_SECRET)
+        if tester_email:
+            lead_id = get_tester_lead_id(tester_email)
+            log_tester_event(
+                event_name="verify_email",
+                email=tester_email,
+                extra={
+                    "lead_id": lead_id,
+                    "delay_bypassed": True,
+                    "immediate_processing": True,
+                },
+            )
+            return redirect(f"{BASE_URL}/access-form.html?lead_id={lead_id}")
 
         response = table.scan(
             FilterExpression=Attr("verification_token").eq(token),

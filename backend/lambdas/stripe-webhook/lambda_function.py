@@ -2,6 +2,8 @@ import json
 import os
 import base64
 import boto3
+import sys
+from pathlib import Path
 from decimal import Decimal, ROUND_HALF_UP
 
 try:
@@ -12,6 +14,14 @@ except Exception as e:
     stripe = None
     STRIPE_IMPORT_OK = False
     STRIPE_IMPORT_ERROR = str(e)
+
+CURRENT_FILE = Path(__file__).resolve()
+for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
+    candidate_str = str(candidate)
+    if (candidate / "shared").exists() and candidate_str not in sys.path:
+        sys.path.append(candidate_str)
+
+from shared.testers import is_tester_email, log_tester_event, normalize_email
 
 dynamodb = boto3.resource("dynamodb")
 
@@ -47,8 +57,8 @@ def to_decimal_amount_from_cents(amount_cents):
 
 def normalize_product_type(metadata):
     product_type = (
-        metadata.get("product_type")
-        or metadata.get("product")
+        safe_get(metadata, "product_type")
+        or safe_get(metadata, "product")
         or ""
     ).strip().lower()
 
@@ -56,6 +66,33 @@ def normalize_product_type(metadata):
         return product_type
 
     return "founder"
+
+
+def safe_get(mapping_like, key, default=None):
+    if mapping_like is None:
+        return default
+    if isinstance(mapping_like, dict):
+        return mapping_like.get(key, default)
+    getter = getattr(mapping_like, "get", None)
+    if callable(getter):
+        try:
+            return getter(key, default)
+        except TypeError:
+            pass
+    try:
+        return mapping_like[key]
+    except Exception:
+        return getattr(mapping_like, key, default)
+
+
+def get_session_email(session):
+    metadata = safe_get(session, "metadata", {}) or {}
+    customer_details = safe_get(session, "customer_details", {}) or {}
+    return normalize_email(
+        safe_get(customer_details, "email")
+        or safe_get(session, "customer_email")
+        or safe_get(metadata, "tester_email")
+    )
 
 
 def lambda_handler(event, context):
@@ -110,10 +147,11 @@ def lambda_handler(event, context):
 
         session = webhook_event["data"]["object"]
 
-        lead_id = session.get("client_reference_id")
-        subscription_id = session.get("subscription", "")
-        customer_id = session.get("customer", "")
-        metadata = session.get("metadata", {}) or {}
+        lead_id = safe_get(session, "client_reference_id")
+        subscription_id = safe_get(session, "subscription", "")
+        customer_id = safe_get(session, "customer", "")
+        metadata = safe_get(session, "metadata", {}) or {}
+        session_email = get_session_email(session)
 
         if not lead_id:
             return response(400, {
@@ -121,14 +159,34 @@ def lambda_handler(event, context):
                 "message": "client_reference_id missing"
             })
 
-        product = metadata.get("product", "")
-        plan = metadata.get("plan", "")
-        term = metadata.get("term", "")
+        product = safe_get(metadata, "product", "")
+        plan = safe_get(metadata, "plan", "")
+        term = safe_get(metadata, "term", "")
 
-        currency = (session.get("currency") or DEFAULT_CURRENCY).upper()
+        currency = (safe_get(session, "currency") or DEFAULT_CURRENCY).upper()
         product_type = normalize_product_type(metadata)
-        amount_total_cents = session.get("amount_total", 0)
+        amount_total_cents = safe_get(session, "amount_total", 0)
         amount_paid = to_decimal_amount_from_cents(amount_total_cents)
+
+        if is_tester_email(session_email):
+            log_tester_event(
+                event_name="stripe_webhook_checkout_completed",
+                email=session_email,
+                extra={
+                    "lead_id": lead_id,
+                    "product": product,
+                    "plan": plan,
+                    "term": term,
+                    "product_type": product_type,
+                    "currency": currency,
+                },
+            )
+            return response(200, {
+                "received": True,
+                "tester_skipped": True,
+                "event_type": event_type,
+                "lead_id": lead_id,
+            })
 
         LEADS_TABLE.update_item(
             Key={"lead_id": lead_id},

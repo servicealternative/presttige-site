@@ -10,11 +10,22 @@ from pathlib import Path
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
 
-BACKEND_ROOT = Path(__file__).resolve().parents[2]
-if str(BACKEND_ROOT) not in sys.path:
-    sys.path.append(str(BACKEND_ROOT))
+CURRENT_FILE = Path(__file__).resolve()
+for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
+    candidate_str = str(candidate)
+    if (candidate / "email_utils.py").exists() and candidate_str not in sys.path:
+        sys.path.append(candidate_str)
+    if (candidate / "shared").exists() and candidate_str not in sys.path:
+        sys.path.append(candidate_str)
 
 from email_utils import render_transactional_email_template
+from shared.testers import (
+    extract_tester_tracking_metadata,
+    generate_tester_verification_token,
+    get_tester_lead_id,
+    is_tester_email,
+    log_tester_event,
+)
 
 # AWS
 dynamodb = boto3.resource("dynamodb")
@@ -153,7 +164,9 @@ def lambda_handler(event, context):
         if not name or not email or not country:
             return response(400, {"error": "Missing required fields"})
 
-        if email_already_exists(email):
+        is_tester = is_tester_email(email)
+
+        if not is_tester and email_already_exists(email):
             print(json.dumps({
                 "event": "duplicate_email_attempt",
                 "email": email,
@@ -166,7 +179,7 @@ def lambda_handler(event, context):
             })
 
         phone_full = re.sub(r"[\s\-()]", "", phone)
-        if phone_already_exists(phone_full):
+        if not is_tester and phone_already_exists(phone_full):
             print(json.dumps({
                 "event": "duplicate_phone_attempt",
                 "phone_full": phone_full,
@@ -178,8 +191,12 @@ def lambda_handler(event, context):
                 "message": "This phone number is already registered. If you need access to your existing application, contact founders@presttige.net"
             })
 
-        lead_id = generate_lead_id()
-        verification_token = generate_token(lead_id, email)
+        if is_tester:
+            lead_id = get_tester_lead_id(email)
+            verification_token = generate_tester_verification_token(email, TOKEN_SECRET)
+        else:
+            lead_id = generate_lead_id()
+            verification_token = generate_token(lead_id, email)
         now = datetime.utcnow().isoformat()
 
         item = {
@@ -206,7 +223,20 @@ def lambda_handler(event, context):
         if phone_full:
             item["phone_full"] = phone_full
 
-        table.put_item(Item=item)
+        if not is_tester:
+            table.put_item(Item=item)
+        else:
+            log_tester_event(
+                event_name="create_lead",
+                email=email,
+                metadata=extract_tester_tracking_metadata(body),
+                extra={
+                    "lead_id": lead_id,
+                    "application_type": application_type,
+                    "delay_bypassed": True,
+                    "duplicate_guard_skipped": True,
+                },
+            )
 
         verify_link = f"{VERIFY_BASE_URL}?token={verification_token}"
 

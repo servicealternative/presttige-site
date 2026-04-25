@@ -3,6 +3,8 @@ import os
 import hmac
 import hashlib
 import boto3
+import sys
+from pathlib import Path
 
 try:
     import stripe
@@ -10,6 +12,14 @@ try:
 except Exception as e:
     STRIPE_IMPORT_OK = False
     STRIPE_IMPORT_ERROR = str(e)
+
+CURRENT_FILE = Path(__file__).resolve()
+for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
+    candidate_str = str(candidate)
+    if (candidate / "shared").exists() and candidate_str not in sys.path:
+        sys.path.append(candidate_str)
+
+from shared.testers import get_tester_email_for_lead_id, log_tester_event
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("presttige-db")
@@ -88,12 +98,31 @@ def lambda_handler(event, context):
         if generate_token(lead_id) != token:
             return response(403, {"error": "invalid_token"})
 
-        db = table.get_item(Key={"lead_id": lead_id})
-        if "Item" not in db:
-            return response(404, {"error": "lead_not_found"})
+        tester_email = get_tester_email_for_lead_id(lead_id)
+
+        if not tester_email:
+            db = table.get_item(Key={"lead_id": lead_id})
+            if "Item" not in db:
+                return response(404, {"error": "lead_not_found"})
 
         mode = "payment"
         metadata = {"lead_id": lead_id}
+
+        if tester_email:
+            metadata.update({
+                "tester": "true",
+                "tester_email": tester_email,
+            })
+            log_tester_event(
+                event_name="gateway_checkout",
+                email=tester_email,
+                extra={
+                    "lead_id": lead_id,
+                    "product": product,
+                    "plan": plan,
+                    "term": term,
+                },
+            )
 
         if product == "founder":
             price = FOUNDER_PRICE_ID
@@ -118,14 +147,19 @@ def lambda_handler(event, context):
         if not price:
             return response(500, {"error": "missing_price_id"})
 
-        session = stripe.checkout.Session.create(
-            mode=mode,
-            line_items=[{"price": price, "quantity": 1}],
-            success_url=SUCCESS_URL + "?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url=CANCEL_URL,
-            client_reference_id=lead_id,
-            metadata=metadata
-        )
+        session_kwargs = {
+            "mode": mode,
+            "line_items": [{"price": price, "quantity": 1}],
+            "success_url": SUCCESS_URL + "?session_id={CHECKOUT_SESSION_ID}",
+            "cancel_url": CANCEL_URL,
+            "client_reference_id": lead_id,
+            "metadata": metadata,
+        }
+
+        if tester_email:
+            session_kwargs["customer_email"] = tester_email
+
+        session = stripe.checkout.Session.create(**session_kwargs)
 
         return {
             "statusCode": 302,

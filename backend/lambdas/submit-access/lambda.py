@@ -1,7 +1,16 @@
 import json
 import boto3
+import sys
+from pathlib import Path
 from datetime import datetime, timezone
 
+CURRENT_FILE = Path(__file__).resolve()
+for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
+    candidate_str = str(candidate)
+    if (candidate / "shared").exists() and candidate_str not in sys.path:
+        sys.path.append(candidate_str)
+
+from shared.testers import get_tester_email_for_lead_id, log_tester_event
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("presttige-db")
@@ -102,12 +111,6 @@ def lambda_handler(event, context):
         if not lead_id:
             return response(400, {"error": "missing_lead_id"})
 
-        db_response = table.get_item(Key={"lead_id": lead_id})
-        lead = db_response.get("Item")
-
-        if not lead:
-            return response(404, {"error": "lead_not_found"})
-
         now = utc_now_iso()
         profile_fields = {
             "country": as_text(body.get("country")),
@@ -133,6 +136,29 @@ def lambda_handler(event, context):
 
         if missing_fields:
             return response(400, {"error": "missing_required_fields", "fields": missing_fields})
+
+        tester_email = get_tester_email_for_lead_id(lead_id)
+        if tester_email:
+            log_tester_event(
+                event_name="submit_access",
+                email=tester_email,
+                extra={
+                    "lead_id": lead_id,
+                    "delay_bypassed": True,
+                    "immediate_processing": True,
+                },
+            )
+            return response(200, {
+                "message": "application_submitted",
+                "lead_id": lead_id,
+                "application_received_sent": True,
+            })
+
+        db_response = table.get_item(Key={"lead_id": lead_id})
+        lead = db_response.get("Item")
+
+        if not lead:
+            return response(404, {"error": "lead_not_found"})
 
         update_names = {}
         update_values = {}
