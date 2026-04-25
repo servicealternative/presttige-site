@@ -385,7 +385,7 @@
     .apply-field label {
       display: block;
       font-size: 0.92rem;
-      color: rgba(244,241,235,0.82);
+      color: #6B6B6B;
       margin-bottom: 8px;
     }
 
@@ -395,16 +395,24 @@
       min-height: 52px;
       padding: 0 16px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
+      border: 0.5px solid rgba(140, 112, 64, 0.4);
+      background: transparent;
+      color: #0A0A0A;
+      -webkit-text-fill-color: #0A0A0A;
+      caret-color: #0A0A0A;
       outline: none;
       appearance: none;
       -webkit-appearance: none;
     }
 
+    .apply-field input::placeholder,
+    .apply-field select::placeholder {
+      color: rgba(107, 107, 107, 0.7);
+    }
+
     .apply-field select option {
-      color: #111;
+      color: #0A0A0A;
+      background: #F5F2ED;
     }
 
     .apply-field input:focus,
