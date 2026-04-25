@@ -1,10 +1,14 @@
 from pathlib import Path
 
 
-BACKEND_ROOT = Path(__file__).resolve().parent
-SIGNATURE_PATH = BACKEND_ROOT / "email" / "signature.html"
-TRANSACTIONAL_TEMPLATE_PATH = BACKEND_ROOT / "email" / "presttige_transactional_email.html"
-TRANSACTIONAL_PLAINTEXT_TEMPLATE_PATH = BACKEND_ROOT / "email" / "presttige_transactional_email.txt"
+MODULE_ROOT = Path(__file__).resolve().parent
+CANONICAL_EMAIL_ROOT = MODULE_ROOT / "backend" / "email"
+LEGACY_EMAIL_ROOT = MODULE_ROOT / "email"
+EMAIL_ROOT = CANONICAL_EMAIL_ROOT if CANONICAL_EMAIL_ROOT.exists() else LEGACY_EMAIL_ROOT
+
+SIGNATURE_PATH = EMAIL_ROOT / "signature.html"
+TRANSACTIONAL_TEMPLATE_PATH = EMAIL_ROOT / "presttige_transactional_email.html"
+TRANSACTIONAL_PLAINTEXT_TEMPLATE_PATH = EMAIL_ROOT / "presttige_transactional_email.txt"
 
 
 def render_email_signature():
