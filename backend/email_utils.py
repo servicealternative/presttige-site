@@ -4,6 +4,7 @@ from pathlib import Path
 BACKEND_ROOT = Path(__file__).resolve().parent
 SIGNATURE_PATH = BACKEND_ROOT / "email" / "signature.html"
 TRANSACTIONAL_TEMPLATE_PATH = BACKEND_ROOT / "email" / "presttige_transactional_email.html"
+TRANSACTIONAL_PLAINTEXT_TEMPLATE_PATH = BACKEND_ROOT / "email" / "presttige_transactional_email.txt"
 
 
 def render_email_signature():
@@ -37,6 +38,15 @@ def render_transactional_email_template(context):
         template = template[:start] + template[end:]
 
     template = template.replace("{{{body_html}}}", context.get("body_html", ""))
+
+    for key, value in context.items():
+        template = template.replace(f"{{{{{key}}}}}", value or "")
+
+    return template
+
+
+def render_transactional_email_plaintext_template(context):
+    template = TRANSACTIONAL_PLAINTEXT_TEMPLATE_PATH.read_text(encoding="utf-8")
 
     for key, value in context.items():
         template = template.replace(f"{{{{{key}}}}}", value or "")

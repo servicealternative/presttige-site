@@ -1,0 +1,29 @@
+PRESTTIGE
+Private · Selective · Prestigious
+
+----------------------------------------
+
+{{eyebrow}}
+
+{{headline}}
+———
+
+Dear {{recipient_name}},
+
+Your request has been received. To continue, please confirm your
+email address using the secure link below. This step is required
+before your application can proceed.
+
+{{cta_label}}:
+{{cta_url}}
+
+{{disclaimer}}
+
+----------------------------------------
+
+{{sign_off_name}}
+{{sign_off_title}}
+
+Presttige
+New York · London · Dubai
+www.presttige.net

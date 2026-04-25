@@ -18,7 +18,10 @@ for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
     if (candidate / "shared").exists() and candidate_str not in sys.path:
         sys.path.append(candidate_str)
 
-from email_utils import render_transactional_email_template
+from email_utils import (
+    render_transactional_email_plaintext_template,
+    render_transactional_email_template,
+)
 from shared.testers import (
     extract_tester_tracking_metadata,
     generate_tester_verification_token,
@@ -240,7 +243,23 @@ def lambda_handler(event, context):
 
         verify_link = f"{VERIFY_BASE_URL}?token={verification_token}"
 
-        ses.send_email(
+        email_context = {
+            "subject": "Confirm your email to continue — Presttige",
+            "preheader": "Confirm your email to continue your Presttige application.",
+            "brand_url": "https://presttige.net",
+            "logo_url": "https://presttige.net/assets/images/presttige-p-lettering.png",
+            "recipient_name": name,
+            "eyebrow": "MEMBERSHIP · EMAIL VERIFICATION",
+            "headline": "Confirm your email to continue",
+            "body_html": "<p style=\"margin:0;\">Your request has been received. To continue, please confirm your email address using the secure link below. This step is required before your application can proceed.</p>",
+            "cta_label": "Confirm Email",
+            "cta_url": verify_link,
+            "disclaimer": "If you did not initiate this request, no action is required.",
+            "sign_off_name": "Member Services",
+            "sign_off_title": "PRESTTIGE PRIVATE OFFICE",
+        }
+
+        ses_response = ses.send_email(
             Source=FROM_EMAIL,
             Destination={
                 "ToAddresses": [email],
@@ -251,25 +270,22 @@ def lambda_handler(event, context):
                 },
                 "Body": {
                     "Html": {
-                        "Data": render_transactional_email_template({
-                            "subject": "Confirm your email to continue — Presttige",
-                            "preheader": "",
-                            "brand_url": "https://presttige.net",
-                            "logo_url": "https://presttige.net/assets/images/presttige-p-lettering.png",
-                            "recipient_name": name,
-                            "eyebrow": "MEMBERSHIP · EMAIL VERIFICATION",
-                            "headline": "Confirm your email to continue",
-                            "body_html": "<p style=\"margin:0 0 16px 0;\">Your request has been received. To continue, please confirm your email address using the secure link below. This step is required before your application can proceed.</p>",
-                            "cta_label": "Confirm Email",
-                            "cta_url": verify_link,
-                            "disclaimer": "If you did not initiate this request, no action is required.",
-                            "sign_off_name": "Member Services",
-                            "sign_off_title": "PRESTTIGE PRIVATE OFFICE",
-                        })
+                        "Data": render_transactional_email_template(email_context)
+                    },
+                    "Text": {
+                        "Data": render_transactional_email_plaintext_template(email_context)
                     }
                 }
             }
         )
+
+        print(json.dumps({
+            "event": "verification_email_sent",
+            "lead_id": lead_id,
+            "email": email,
+            "ses_message_id": ses_response.get("MessageId"),
+            "is_tester": is_tester,
+        }))
 
         return response(200, {
             "message": "Step 1 submitted",
