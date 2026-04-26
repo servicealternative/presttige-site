@@ -1,0 +1,158 @@
+/* Presttige Photo Upload Modal — design tokens consistent with brand */
+:root {
+  --pp-primary: #0A0A0A;
+  --pp-background: #F5F2ED;
+  --pp-paper: #FBF9F4;
+  --pp-accent: #8C7040;
+  --pp-muted: #4A4A4A;
+  --pp-hairline: #D9D2C5;
+}
+
+.photo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Source Serif Pro', Georgia, serif;
+}
+
+.photo-modal--open {
+  display: flex;
+}
+
+.photo-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.6);
+}
+
+.photo-modal__container {
+  position: relative;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--pp-paper);
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.photo-modal__title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 28px;
+  color: var(--pp-primary);
+  margin: 0 0 8px;
+}
+
+.photo-modal__subtitle {
+  font-size: 14px;
+  color: var(--pp-muted);
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.photo-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--pp-muted);
+  cursor: pointer;
+}
+
+.photo-modal__dropzone {
+  border: 2px dashed var(--pp-hairline);
+  border-radius: 6px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 24px;
+}
+
+.photo-modal__dropzone:hover,
+.photo-modal__dropzone--dragging {
+  border-color: var(--pp-accent);
+  background: rgba(140, 112, 64, 0.04);
+}
+
+.photo-modal__dropzone-text {
+  color: var(--pp-muted);
+  font-size: 14px;
+}
+
+.photo-modal__previews {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.photo-modal__preview {
+  aspect-ratio: 1;
+  background: var(--pp-background);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-modal__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-modal__preview-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--pp-accent);
+  transition: width 0.2s;
+}
+
+.photo-modal__preview-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.photo-modal__continue {
+  width: 100%;
+  padding: 14px;
+  background: var(--pp-primary);
+  color: var(--pp-paper);
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.photo-modal__continue:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.photo-modal__error {
+  color: #B91C1C;
+  font-size: 13px;
+  margin-bottom: 12px;
+}

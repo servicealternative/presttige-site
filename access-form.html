@@ -18,6 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Source+Serif+Pro:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/css/photo-upload-modal.css" />
   <!-- Google Analytics loads via consent-banner.js after user opt-in -->
   <script src="/assets/js/consent-banner.js" defer></script>
 
@@ -945,6 +946,7 @@
     const MIN_LONG_TEXT_LENGTH = 50;
     let leadIdValid = false;
     let isSubmitting = false;
+    let pendingPhotoUpload = null;
 
     const CITY_SUGGESTIONS = {
       'United States of America': ['New York', 'Los Angeles', 'Miami', 'Chicago', 'San Francisco', 'Other'],
@@ -1605,6 +1607,11 @@
     accessForm.addEventListener('submit', async function (event) {
       event.preventDefault();
 
+      if (pendingPhotoUpload && window.PhotoUploadModal) {
+        window.PhotoUploadModal.open(pendingPhotoUpload);
+        return;
+      }
+
       if (!leadIdValid) {
         setMessage('Invalid or missing application reference.', 'error');
         return;
@@ -1708,6 +1715,7 @@
       }
 
       try {
+        let openedPhotoFlow = false;
         isSubmitting = true;
         syncSubmitAvailability();
         submitBtn.textContent = 'Submitting...';
@@ -1749,11 +1757,34 @@
           page_location: window.location.href
         });
 
-        setMessage('Application submitted successfully.', 'success');
+        const resolvedLeadId =
+          parsed && typeof parsed === 'object' && parsed.lead_id ? parsed.lead_id : payload.lead_id;
 
-        setTimeout(() => {
-          window.location.replace('https://presttige.net/thank-you.html');
-        }, 900);
+        if (window.PhotoUploadModal && resolvedLeadId) {
+          pendingPhotoUpload = {
+            leadId: resolvedLeadId,
+            isTest: /^fdm_tst/.test(resolvedLeadId),
+            onComplete: function (photoIds) {
+              pendingPhotoUpload = null;
+              trackEvent('event', 'photo_upload_completed', {
+                application_type: 'access',
+                page_location: window.location.href,
+                photo_count: photoIds.length
+              });
+              window.location.replace('https://presttige.net/thank-you.html');
+            }
+          };
+
+          openedPhotoFlow = true;
+          setMessage('Application submitted successfully. Please add at least 2 photos to continue.', 'success');
+          submitBtn.textContent = 'Resume Photo Upload';
+          window.PhotoUploadModal.open(pendingPhotoUpload);
+        } else {
+          setMessage('Application submitted successfully.', 'success');
+          setTimeout(() => {
+            window.location.replace('https://presttige.net/thank-you.html');
+          }, 900);
+        }
 
       } catch (error) {
         const message = error && error.message ? error.message : 'Submission failed.';
@@ -1772,9 +1803,12 @@
       } finally {
         isSubmitting = false;
         syncSubmitAvailability();
-        submitBtn.textContent = 'Submit Application';
+        if (!pendingPhotoUpload) {
+          submitBtn.textContent = 'Submit Application';
+        }
       }
     });
   </script>
+  <script src="/assets/js/photo-upload-modal.js"></script>
 </body>
 </html>
