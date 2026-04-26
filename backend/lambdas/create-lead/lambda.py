@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
 
 CURRENT_FILE = Path(__file__).resolve()
 for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
@@ -23,23 +24,29 @@ from email_utils import (
     render_transactional_email_template,
 )
 from shared.testers import (
-    extract_tester_tracking_metadata,
-    generate_tester_verification_token,
-    get_tester_lead_id,
-    is_tester_email,
-    log_tester_event,
+    normalize_email,
 )
 
 # AWS
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("presttige-db")
 ses = boto3.client("ses", region_name="us-east-1")
+s3 = boto3.client("s3", region_name="us-east-1")
+scheduler = boto3.client("scheduler", region_name="us-east-1")
+sesv2 = boto3.client("sesv2", region_name="us-east-1")
 
 # CONFIG
 TOKEN_SECRET = os.environ.get("TOKEN_SECRET", "")
 FROM_EMAIL = "committee@presttige.net"
 REPLY_TO_EMAIL = "committee@presttige.net"
 VERIFY_BASE_URL = "https://presttige.net/verify-email.html"
+ORIGINALS_BUCKET = os.environ.get("PHOTOS_ORIGINALS_BUCKET", "presttige-applicant-photos")
+THUMBNAILS_BUCKET = os.environ.get("PHOTOS_THUMBNAILS_BUCKET", "presttige-applicant-photos-thumbnails")
+SCHEDULER_GROUP_NAME = os.environ.get("TESTER_PURGE_SCHEDULER_GROUP", "default")
+TESTER_WHITELIST = {
+    "antoniompereira@me.com",
+    "alternativeservice@gmail.com",
+}
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -58,6 +65,10 @@ def response(status_code, body):
 
 def generate_lead_id():
     return "fdm_" + uuid.uuid4().hex[:10]
+
+
+def is_tester(email: str) -> bool:
+    return normalize_email(email) in TESTER_WHITELIST
 
 
 def generate_token(lead_id, email):
@@ -147,6 +158,146 @@ def phone_already_exists(phone_full):
     return bool(result.get("Items"))
 
 
+def find_leads_by_email(email):
+    result = table.query(
+        IndexName="email-index",
+        KeyConditionExpression=Key("email").eq(email),
+    )
+    return result.get("Items") or []
+
+
+def delete_schedule_if_present(schedule_name):
+    if not schedule_name:
+        return False
+
+    try:
+        scheduler.delete_schedule(Name=schedule_name, GroupName=SCHEDULER_GROUP_NAME)
+        return True
+    except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code", "")
+        if error_code not in ("ResourceNotFoundException", "ValidationException"):
+            print(f"TESTER_PURGE_WARN schedule_delete_failed name={schedule_name} error={error_code or str(exc)}")
+        return False
+    except Exception as exc:
+        print(f"TESTER_PURGE_WARN schedule_delete_failed name={schedule_name} error={exc}")
+        return False
+
+
+def delete_s3_prefix(bucket_name, prefix):
+    if not bucket_name or not prefix:
+        return 0
+
+    deleted = 0
+    continuation_token = None
+
+    while True:
+        try:
+            params = {
+                "Bucket": bucket_name,
+                "Prefix": prefix,
+                "MaxKeys": 1000,
+            }
+            if continuation_token:
+                params["ContinuationToken"] = continuation_token
+            response = s3.list_objects_v2(**params)
+        except ClientError as exc:
+            print(f"TESTER_PURGE_WARN s3_list_failed bucket={bucket_name} prefix={prefix} error={exc.response.get('Error', {}).get('Code', str(exc))}")
+            break
+        except Exception as exc:
+            print(f"TESTER_PURGE_WARN s3_list_failed bucket={bucket_name} prefix={prefix} error={exc}")
+            break
+
+        contents = response.get("Contents") or []
+        if contents:
+            objects = [{"Key": item["Key"]} for item in contents if item.get("Key")]
+            try:
+                delete_response = s3.delete_objects(
+                    Bucket=bucket_name,
+                    Delete={"Objects": objects, "Quiet": True},
+                )
+                deleted += len(delete_response.get("Deleted") or [])
+            except ClientError as exc:
+                print(f"TESTER_PURGE_WARN s3_delete_failed bucket={bucket_name} prefix={prefix} error={exc.response.get('Error', {}).get('Code', str(exc))}")
+            except Exception as exc:
+                print(f"TESTER_PURGE_WARN s3_delete_failed bucket={bucket_name} prefix={prefix} error={exc}")
+
+        if not response.get("IsTruncated"):
+            break
+        continuation_token = response.get("NextContinuationToken")
+
+    return deleted
+
+
+def remove_ses_suppression_if_present(email):
+    try:
+        sesv2.get_suppressed_destination(EmailAddress=email)
+    except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code", "")
+        if error_code in ("NotFoundException", "BadRequestException"):
+            return False
+        print(f"TESTER_PURGE_WARN ses_get_suppression_failed email={email} error={error_code or str(exc)}")
+        return False
+    except Exception as exc:
+        print(f"TESTER_PURGE_WARN ses_get_suppression_failed email={email} error={exc}")
+        return False
+
+    try:
+        sesv2.delete_suppressed_destination(EmailAddress=email)
+        return True
+    except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code", "")
+        print(f"TESTER_PURGE_WARN ses_delete_suppression_failed email={email} error={error_code or str(exc)}")
+        return False
+    except Exception as exc:
+        print(f"TESTER_PURGE_WARN ses_delete_suppression_failed email={email} error={exc}")
+        return False
+
+
+def purge_tester_records(email):
+    deleted_records = 0
+    deleted_schedules = 0
+    deleted_photos = 0
+    ses_suppression_removed = False
+
+    try:
+        existing_records = find_leads_by_email(email)
+    except Exception as exc:
+        print(f"TESTER_PURGE_WARN lookup_failed email={email} error={exc}")
+        existing_records = []
+
+    for record in existing_records:
+        lead_id = (record.get("lead_id") or "").strip()
+        schedule_name = (record.get("e3_schedule_name") or "").strip()
+
+        if schedule_name and delete_schedule_if_present(schedule_name):
+            deleted_schedules += 1
+
+        if lead_id:
+            deleted_photos += delete_s3_prefix(ORIGINALS_BUCKET, f"{lead_id}/")
+            deleted_photos += delete_s3_prefix(THUMBNAILS_BUCKET, f"{lead_id}/")
+
+            try:
+                table.delete_item(Key={"lead_id": lead_id})
+                deleted_records += 1
+            except Exception as exc:
+                print(f"TESTER_PURGE_WARN delete_record_failed lead_id={lead_id} error={exc}")
+
+    ses_suppression_removed = remove_ses_suppression_if_present(email)
+
+    print(
+        f"TESTER_PURGE email={email} deleted_records={deleted_records} "
+        f"deleted_schedules={deleted_schedules} deleted_photos={deleted_photos} "
+        f"ses_suppression_removed={str(ses_suppression_removed).lower()}"
+    )
+
+    return {
+        "deleted_records": deleted_records,
+        "deleted_schedules": deleted_schedules,
+        "deleted_photos": deleted_photos,
+        "ses_suppression_removed": ses_suppression_removed,
+    }
+
+
 def lambda_handler(event, context):
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
         return response(200, {"message": "OK"})
@@ -168,9 +319,16 @@ def lambda_handler(event, context):
         if not name or not email or not country:
             return response(400, {"error": "Missing required fields"})
 
-        is_tester = is_tester_email(email)
+        email = normalize_email(email)
+        tester_whitelisted = is_tester(email)
 
-        if not is_tester and email_already_exists(email):
+        if tester_whitelisted:
+            try:
+                purge_tester_records(email)
+            except Exception as exc:
+                print(f"TESTER_PURGE_WARN email={email} error={exc}")
+
+        if not tester_whitelisted and email_already_exists(email):
             print(json.dumps({
                 "event": "duplicate_email_attempt",
                 "email": email,
@@ -183,7 +341,7 @@ def lambda_handler(event, context):
             })
 
         phone_full = re.sub(r"[\s\-()]", "", phone)
-        if not is_tester and phone_already_exists(phone_full):
+        if not tester_whitelisted and phone_already_exists(phone_full):
             print(json.dumps({
                 "event": "duplicate_phone_attempt",
                 "phone_full": phone_full,
@@ -195,12 +353,8 @@ def lambda_handler(event, context):
                 "message": "This phone number is already registered. If you need access to your existing application, contact committee@presttige.net"
             })
 
-        if is_tester:
-            lead_id = get_tester_lead_id(email)
-            verification_token = generate_tester_verification_token(email, TOKEN_SECRET)
-        else:
-            lead_id = generate_lead_id()
-            verification_token = generate_token(lead_id, email)
+        lead_id = generate_lead_id()
+        verification_token = generate_token(lead_id, email)
         now = datetime.utcnow().isoformat()
 
         item = {
@@ -222,25 +376,14 @@ def lambda_handler(event, context):
             "created_at": now,
             "updated_at": now
         }
+        if tester_whitelisted:
+            item["is_test"] = True
         if phone:
             item["phone"] = phone
         if phone_full:
             item["phone_full"] = phone_full
 
-        if not is_tester:
-            table.put_item(Item=item)
-        else:
-            log_tester_event(
-                event_name="create_lead",
-                email=email,
-                metadata=extract_tester_tracking_metadata(body),
-                extra={
-                    "lead_id": lead_id,
-                    "application_type": application_type,
-                    "delay_bypassed": True,
-                    "duplicate_guard_skipped": True,
-                },
-            )
+        table.put_item(Item=item)
 
         verify_link = f"{VERIFY_BASE_URL}?token={verification_token}"
 
@@ -295,7 +438,7 @@ def lambda_handler(event, context):
             "lead_id": lead_id,
             "email": email,
             "ses_message_id": ses_response.get("MessageId"),
-            "is_tester": is_tester,
+            "is_tester": tester_whitelisted,
         }))
 
         return response(200, {

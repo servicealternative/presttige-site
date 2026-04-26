@@ -21,7 +21,7 @@ for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
     if (candidate / "shared").exists() and candidate_str not in sys.path:
         sys.path.append(candidate_str)
 
-from shared.testers import is_tester_email, log_tester_event, normalize_email
+from shared.testers import log_tester_event, normalize_email
 
 dynamodb = boto3.resource("dynamodb")
 lambda_client = boto3.client("lambda")
@@ -95,6 +95,13 @@ def get_session_email(session):
         or safe_get(session, "customer_email")
         or safe_get(metadata, "tester_email")
     )
+
+
+def is_legacy_tester_session(session):
+    metadata = safe_get(session, "metadata", {}) or {}
+    tester_flag = str(safe_get(metadata, "tester", "")).strip().lower() == "true"
+    lead_id = str(safe_get(session, "client_reference_id", "") or "").strip()
+    return tester_flag or lead_id.startswith("fdm_tst")
 
 
 def trigger_welcome_email_async(lead_id):
@@ -183,7 +190,7 @@ def lambda_handler(event, context):
         amount_total_cents = safe_get(session, "amount_total", 0)
         amount_paid = to_decimal_amount_from_cents(amount_total_cents)
 
-        if is_tester_email(session_email):
+        if is_legacy_tester_session(session):
             log_tester_event(
                 event_name="stripe_webhook_checkout_completed",
                 email=session_email,
