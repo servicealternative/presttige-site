@@ -519,6 +519,97 @@
       color: var(--danger);
     }
 
+    .form-complete-banner {
+      display: none;
+      margin-bottom: 22px;
+      padding: 18px 20px;
+      border: 0.5px solid rgba(140, 112, 64, 0.28);
+      background: rgba(251, 249, 244, 0.78);
+    }
+
+    .form-complete-banner__eyebrow {
+      margin: 0 0 8px;
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .form-complete-banner__copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 10.5pt;
+      line-height: 1.65;
+      font-style: italic;
+    }
+
+    .form--submitted .form-section,
+    .form--submitted .consent-fieldset,
+    .form--submitted .submit-shell,
+    .form--submitted #formMessage {
+      display: none;
+    }
+
+    .form--submitted .form-complete-banner {
+      display: block;
+    }
+
+    .photo-stage {
+      display: none;
+      margin-top: 34px;
+      padding-top: 26px;
+      border-top: 0.5px solid rgba(140, 112, 64, 0.22);
+    }
+
+    .photo-stage.is-visible {
+      display: block;
+      animation: photoStageReveal 0.34s ease-out;
+    }
+
+    .photo-stage__eyebrow {
+      margin: 0 0 14px;
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .photo-stage__title {
+      margin: 0 0 14px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.04;
+      color: var(--primary);
+    }
+
+    .photo-stage__copy {
+      margin: 0 0 24px;
+      max-width: 560px;
+      color: var(--muted);
+      font-size: 10.5pt;
+      line-height: 1.7;
+      font-style: italic;
+    }
+
+    .photo-stage__mount {
+      min-height: 220px;
+    }
+
+    @keyframes photoStageReveal {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     @media (max-width: 600px) {
       .page {
         padding: 42px 20px 40px;
@@ -557,6 +648,10 @@
 
       <form class="form" id="accessForm" data-form="access-step-2" novalidate>
         <input type="hidden" id="leadId" />
+        <div class="form-complete-banner" id="formCompleteBanner" aria-live="polite">
+          <p class="form-complete-banner__eyebrow">Application submitted</p>
+          <p class="form-complete-banner__copy">Your profile has been received. Continue below with Step 3 and add at least two photos to complete this stage.</p>
+        </div>
 
         <div class="form-section">
           <div class="section-heading">Contact</div>
@@ -702,6 +797,12 @@
 
         <div id="formMessage" class="message"></div>
       </form>
+      <section id="photoUploadStage" class="photo-stage" aria-live="polite">
+        <p class="photo-stage__eyebrow">Step 3 · Photos</p>
+        <h2 class="photo-stage__title">Add your photos.</h2>
+        <p class="photo-stage__copy">Please share two to three photos that represent you clearly and naturally. We recommend one clear portrait and one or two images that show context, style, or daily life.</p>
+        <div class="photo-stage__mount" data-photo-upload-stage></div>
+      </section>
     </div>
   </div>
 
@@ -923,6 +1024,7 @@
     document.getElementById('leadId').value = leadId;
     const accessForm = document.getElementById('accessForm');
     const submitBtn = document.getElementById('submitBtn');
+    const photoUploadStage = document.getElementById('photoUploadStage');
     const countrySelect = document.getElementById('country');
     const countryField = document.getElementById('countryField');
     const countryLockedNote = document.getElementById('countryLockedNote');
@@ -1576,6 +1678,14 @@
       submitBtn.disabled = isSubmitting || !leadIdValid || !termsCheckbox.checked;
     }
 
+    function showPhotoUploadStage() {
+      accessForm.classList.add('form--submitted');
+      photoUploadStage.classList.add('is-visible');
+      requestAnimationFrame(function () {
+        photoUploadStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
     function validLeadId(id) {
       return typeof id === 'string' && /^fdm_[A-Za-z0-9]+$/.test(id);
     }
@@ -1608,6 +1718,7 @@
       event.preventDefault();
 
       if (pendingPhotoUpload && window.PhotoUploadModal) {
+        showPhotoUploadStage();
         window.PhotoUploadModal.open(pendingPhotoUpload);
         return;
       }
@@ -1778,6 +1889,7 @@
           openedPhotoFlow = true;
           setMessage('Application submitted successfully. Please add at least 2 photos to continue.', 'success');
           submitBtn.textContent = 'Resume Photo Upload';
+          showPhotoUploadStage();
           window.PhotoUploadModal.open(pendingPhotoUpload);
         } else {
           setMessage('Application submitted successfully.', 'success');

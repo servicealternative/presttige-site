@@ -8,6 +8,12 @@ const secrets = new SecretsManagerClient({ region: "us-east-1" });
 const ssm = new SSMClient({ region: "us-east-1" });
 
 const TABLE_NAME = "presttige-db";
+const TIER_UPGRADE_MAP = {
+  tier3: "tier2",
+  tier2: "patron",
+  patron: "patron",
+  free: "free",
+};
 
 let cachedStripeKey = null;
 
@@ -56,6 +62,24 @@ async function findLeadByMagicToken(token) {
 
 function welcomeUrl(token) {
   return `https://presttige.net/welcome/${token}`;
+}
+
+function computeEffectiveTier(tier, periodicity) {
+  if (tier === "free") {
+    return { effectiveTier: "free", effectiveTierUntil: null };
+  }
+
+  if (periodicity !== "annual") {
+    return { effectiveTier: tier, effectiveTierUntil: null };
+  }
+
+  const until = new Date();
+  until.setFullYear(until.getFullYear() + 1);
+
+  return {
+    effectiveTier: TIER_UPGRADE_MAP[tier] || tier,
+    effectiveTierUntil: until.toISOString(),
+  };
 }
 
 exports.handler = async (event) => {
@@ -112,6 +136,8 @@ exports.handler = async (event) => {
             "magic_token_status = :magic_status",
             "magic_token_used_at = :used_at",
             "onboarded_at = :onboarded_at",
+            "effective_tier = :effective_tier",
+            "effective_tier_until = :effective_tier_until",
           ].join(", "),
           ExpressionAttributeValues: {
             ":tier": "free",
@@ -121,6 +147,8 @@ exports.handler = async (event) => {
             ":magic_status": "used",
             ":used_at": now,
             ":onboarded_at": now,
+            ":effective_tier": "free",
+            ":effective_tier_until": null,
           },
         })
       );
@@ -138,6 +166,7 @@ exports.handler = async (event) => {
     );
     const priceId = priceParameter.Parameter.Value;
     const stripeKey = await getStripeKey();
+    const { effectiveTier, effectiveTierUntil } = computeEffectiveTier(tier, periodicity);
 
     const params = new URLSearchParams();
     params.append("mode", "subscription");
@@ -181,12 +210,16 @@ exports.handler = async (event) => {
           "selected_periodicity = :periodicity",
           "stripe_session_id = :session_id",
           "payment_status = :payment_status",
+          "effective_tier = :effective_tier",
+          "effective_tier_until = :effective_tier_until",
         ].join(", "),
         ExpressionAttributeValues: {
           ":tier": tier,
           ":periodicity": periodicity,
           ":session_id": session.id,
           ":payment_status": "pending",
+          ":effective_tier": effectiveTier,
+          ":effective_tier_until": effectiveTierUntil,
         },
       })
     );

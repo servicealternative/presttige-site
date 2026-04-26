@@ -15,24 +15,24 @@
       --pp-accent: #8C7040;
       --pp-hairline: #D9D2C5;
       --pp-muted: #4A4A4A;
-      --pp-error: #9f1d1d;
+      --pp-error: #9F1D1D;
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       background: var(--pp-background);
       color: var(--pp-primary);
       font-family: "Source Serif Pro", Georgia, serif;
     }
+
     .review-shell {
-      max-width: 1120px;
+      max-width: 1180px;
       margin: 0 auto;
       padding: 48px 20px 72px;
     }
-    .review-header {
-      margin-bottom: 32px;
-    }
+
     .review-eyebrow {
       margin: 0 0 14px;
       color: var(--pp-accent);
@@ -41,138 +41,180 @@
       letter-spacing: 0.22em;
       text-transform: uppercase;
     }
+
     .review-title {
       margin: 0;
       font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: clamp(42px, 7vw, 66px);
       font-style: italic;
       font-weight: 500;
+      font-size: clamp(42px, 7vw, 66px);
       line-height: 0.95;
     }
+
     .review-state,
     .review-error {
       padding: 24px;
       background: var(--pp-paper);
       border: 1px solid var(--pp-hairline);
-      border-radius: 10px;
     }
+
     .review-error {
       color: var(--pp-error);
     }
+
     .review-grid {
       display: grid;
       gap: 28px;
-      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
-      align-items: start;
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+      margin-top: 32px;
     }
+
     .review-card {
       background: var(--pp-paper);
       border: 1px solid var(--pp-hairline);
-      border-radius: 10px;
       padding: 28px;
     }
+
     .review-card h2,
     .review-card h3 {
       margin: 0 0 16px;
       font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: 32px;
       font-style: italic;
       font-weight: 500;
+      font-size: 34px;
     }
-    .review-meta {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
+
+    .review-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 24px;
+      margin-bottom: 28px;
     }
-    .review-meta td {
-      padding: 8px 0;
-      border-bottom: 1px solid var(--pp-hairline);
-      vertical-align: top;
-      font-size: 15px;
-      line-height: 1.45;
+
+    .review-detail {
+      margin: 0;
+      display: grid;
+      gap: 6px;
     }
-    .review-meta td:first-child {
-      width: 132px;
+
+    .review-detail dt {
       color: var(--pp-accent);
-      font-size: 12px;
-      letter-spacing: 0.16em;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
     }
+
+    .review-detail dd {
+      margin: 0;
+      color: var(--pp-primary);
+      font-size: 15px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .review-copy-block {
+      margin-bottom: 24px;
+    }
+
+    .review-copy-label {
+      margin: 0 0 10px;
+      color: var(--pp-accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
     .review-copy {
-      margin: 0 0 16px;
+      margin: 0;
       color: var(--pp-muted);
       font-size: 16px;
-      line-height: 1.75;
+      line-height: 1.8;
+      white-space: pre-wrap;
     }
+
     .review-photos {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 16px;
     }
+
     .review-photo {
       display: block;
-      background: #ece7dd;
-      border-radius: 8px;
-      overflow: hidden;
       border: 1px solid var(--pp-hairline);
+      background: #ece7dd;
+      overflow: hidden;
     }
+
     .review-photo img {
       display: block;
       width: 100%;
       aspect-ratio: 1;
       object-fit: cover;
     }
+
     .review-actions {
       display: grid;
       gap: 12px;
       margin-bottom: 18px;
     }
+
     .review-actions button,
     .review-confirm {
       width: 100%;
-      padding: 14px 18px;
-      background: transparent;
+      min-height: 44px;
+      padding: 0 18px;
       border: 1px solid var(--pp-accent);
+      background: transparent;
       color: var(--pp-accent);
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 12px;
+      font: inherit;
+      font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.22em;
       text-transform: uppercase;
+      cursor: pointer;
     }
+
     .review-actions button.is-selected {
       background: var(--pp-primary);
       border-color: var(--pp-primary);
       color: var(--pp-paper);
     }
+
     .review-note {
       width: 100%;
       min-height: 140px;
       padding: 14px;
+      margin-bottom: 16px;
       border: 1px solid var(--pp-hairline);
-      border-radius: 8px;
       background: #fffdf9;
       color: var(--pp-primary);
       font: inherit;
       resize: vertical;
-      margin-bottom: 16px;
     }
+
     .review-subtitle {
       margin: 0 0 16px;
       color: var(--pp-muted);
       font-size: 15px;
-      line-height: 1.65;
+      line-height: 1.7;
     }
+
     .review-status {
+      margin: 18px 0 0;
       color: var(--pp-accent);
-      font-size: 12px;
+      font-size: 11px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      margin: 18px 0 0;
     }
+
     @media (max-width: 920px) {
       .review-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .review-details {
         grid-template-columns: 1fr;
       }
     }
@@ -180,10 +222,8 @@
 </head>
 <body>
   <main class="review-shell">
-    <header class="review-header">
-      <p class="review-eyebrow">Presttige Committee Review</p>
-      <h1 class="review-title">Application Review</h1>
-    </header>
+    <p class="review-eyebrow">Presttige Committee Review</p>
+    <h1 class="review-title">Application Review</h1>
     <section id="app" class="review-state">Loading application…</section>
   </main>
 
@@ -196,9 +236,8 @@
       const token = window.location.pathname.split("/").filter(Boolean).pop();
       const presetAction = new URLSearchParams(window.location.search).get("action");
       let selectedAction = presetAction || "";
-      let currentData = null;
 
-      if (!token || token === "review.html" || token === "review") {
+      if (!token || token === "review" || token === "review.html") {
         renderError("Missing review token.");
         return;
       }
@@ -220,7 +259,6 @@
             return;
           }
 
-          currentData = data;
           renderReview(data);
         } catch (error) {
           renderError("Unable to load the application right now. If the issue persists, contact support.");
@@ -230,24 +268,36 @@
       function renderReview(data) {
         const profile = data.profile || {};
         const photos = data.photos || [];
+        const phone = [profile.phone_country, profile.phone].filter(Boolean).join(" ");
+
         app.className = "review-grid";
         app.innerHTML = `
           <section class="review-card">
             <h2>${escapeHtml(profile.name || "Applicant")}</h2>
-            <table class="review-meta">
-              ${metaRow("Age", profile.age)}
-              ${metaRow("Country", profile.country)}
-              ${metaRow("City", profile.city)}
-              ${metaRow("Occupation", profile.occupation)}
-              ${metaRow("Company", profile.company)}
-              ${metaRow("Instagram", profile.instagram)}
-              ${metaRow("LinkedIn", profile.linkedin)}
-              ${metaRow("Website", profile.website)}
-            </table>
-            <p class="review-copy">${escapeHtml(profile.short_introduction || "No introduction provided.")}</p>
-            <p class="review-copy">${escapeHtml(profile.why_presttige || "No Presttige rationale provided.")}</p>
+            <dl class="review-details">
+              ${detailRow("Name", profile.name)}
+              ${detailRow("Age", profile.age)}
+              ${detailRow("Email", profile.email)}
+              ${detailRow("Phone", phone)}
+              ${detailRow("Country", profile.country)}
+              ${detailRow("City", profile.city)}
+              ${detailRow("Occupation", profile.occupation)}
+              ${detailRow("Company", profile.company)}
+              ${detailRow("Instagram", profile.instagram)}
+              ${detailRow("LinkedIn", profile.linkedin)}
+              ${detailRow("TikTok", profile.tiktok)}
+              ${detailRow("Website", profile.website)}
+            </dl>
+            <div class="review-copy-block">
+              <p class="review-copy-label">Short introduction</p>
+              <p class="review-copy">${escapeHtml(profile.short_introduction || "No introduction provided.")}</p>
+            </div>
+            <div class="review-copy-block">
+              <p class="review-copy-label">Why Presttige</p>
+              <p class="review-copy">${escapeHtml(profile.why_presttige || "No Presttige rationale provided.")}</p>
+            </div>
             <div class="review-photos">
-              ${photos.map(photo => `
+              ${photos.map((photo) => `
                 <a class="review-photo" href="${photo.thumb_1200}" target="_blank" rel="noopener">
                   <img src="${photo.thumb_400}" alt="Applicant photo">
                 </a>
@@ -291,7 +341,7 @@
           const response = await fetch(`${API_BASE}/review-action`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token, action: selectedAction, note })
+            body: JSON.stringify({ token, action: selectedAction, note }),
           });
           const data = await response.json();
 
@@ -339,9 +389,9 @@
         if (status) status.textContent = message;
       }
 
-      function metaRow(label, value) {
+      function detailRow(label, value) {
         if (!value) return "";
-        return `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`;
+        return `<div class="review-detail"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`;
       }
 
       function actionButton(action, label) {

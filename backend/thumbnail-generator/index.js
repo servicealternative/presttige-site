@@ -12,6 +12,7 @@ const ORIGINALS_BUCKET = "presttige-applicant-photos";
 const THUMBS_BUCKET = "presttige-applicant-photos-thumbnails";
 const KMS_KEY_ARN = "arn:aws:kms:us-east-1:343218208384:key/723bb788-9911-4c49-bf1d-792b73685e7c";
 const COMMITTEE_EMAIL_FUNCTION = "presttige-send-committee-email";
+const APPLICATION_RECEIVED_FUNCTION = "presttige-send-application-received";
 
 exports.handler = async (event) => {
   for (const record of event.Records || []) {
@@ -74,19 +75,28 @@ exports.handler = async (event) => {
         },
       }));
 
-      const leadResult = await ddb.send(new GetCommand({ TableName: "presttige-db", Key: { lead_id } }));
-      const lead = leadResult.Item || {};
-      const readyCount = Object.values(lead.photo_uploads || {}).filter((photo) => photo?.status === "ready").length;
+      const lead = await getLead(lead_id);
+      const photoUploads = lead.photo_uploads || {};
+      const expectedCount = Object.keys(photoUploads).length;
+      const readyCount = Object.values(photoUploads).filter((photo) => photo?.status === "ready").length;
 
       if (lead.profile_status === "profile_submitted" && !lead.e2_sent_at && readyCount >= 2) {
-        await lambda.send(
-          new InvokeCommand({
-            FunctionName: COMMITTEE_EMAIL_FUNCTION,
-            InvocationType: "Event",
-            Payload: Buffer.from(JSON.stringify({ body: JSON.stringify({ lead_id }) })),
-          })
-        );
+        await invokeLambdaAsync(COMMITTEE_EMAIL_FUNCTION, { lead_id });
         console.log("Triggered committee email send after thumbnails became ready", { lead_id, readyCount });
+      }
+
+      if (
+        lead.profile_status === "profile_submitted" &&
+        readyCount >= 2 &&
+        readyCount === expectedCount &&
+        !lead.application_received_email_sent_at
+      ) {
+        await invokeLambdaAsync(APPLICATION_RECEIVED_FUNCTION, { lead_id });
+        console.log("Triggered application received email after all expected photos became ready", {
+          lead_id,
+          readyCount,
+          expectedCount,
+        });
       }
 
       console.log("Thumbnails created for", photo_id);
@@ -102,4 +112,19 @@ async function streamToChunks(stream) {
   const chunks = [];
   for await (const chunk of stream) chunks.push(chunk);
   return chunks;
+}
+
+async function getLead(lead_id) {
+  const result = await ddb.send(new GetCommand({ TableName: "presttige-db", Key: { lead_id } }));
+  return result.Item || {};
+}
+
+async function invokeLambdaAsync(functionName, payload) {
+  await lambda.send(
+    new InvokeCommand({
+      FunctionName: functionName,
+      InvocationType: "Event",
+      Payload: Buffer.from(JSON.stringify({ body: JSON.stringify(payload) })),
+    })
+  );
 }

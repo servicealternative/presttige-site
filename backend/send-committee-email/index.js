@@ -99,6 +99,10 @@ function buildProfileRows(lead) {
 }
 
 function buildPhotoBlocks(readyPhotos, privateKey) {
+  if (readyPhotos.length === 0) {
+    return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="padding:8px;font-style:italic;color:#4A4A4A;">No photos uploaded for this candidate.</td></tr></table>';
+  }
+
   const cells = readyPhotos.slice(0, 3).map((photo) => {
     const thumbKey = photo[1]?.thumbnails?.["400"];
     if (!thumbKey) return "";
@@ -135,6 +139,7 @@ function buildBodyVariables(lead, token, readyPhotos, privateKey) {
 exports.handler = async (event) => {
   const body = JSON.parse(event?.body || "{}");
   const leadId = body.lead_id;
+  const allowNoPhotos = Boolean(body.allow_no_photos);
 
   if (!leadId) {
     return response(400, { error: "Missing lead_id" });
@@ -154,10 +159,11 @@ exports.handler = async (event) => {
     }
 
     const readyPhotos = Object.entries(lead.photo_uploads || {}).filter(([, photo]) => photo?.status === "ready");
-    if (readyPhotos.length < 2) {
+    if (readyPhotos.length < 2 && !allowNoPhotos) {
       console.log("Committee email skipped until enough photos are ready", {
         lead_id: leadId,
         ready_count: readyPhotos.length,
+        allow_no_photos: allowNoPhotos,
       });
       return response(425, { error: "Photos not ready", ready: readyPhotos.length });
     }

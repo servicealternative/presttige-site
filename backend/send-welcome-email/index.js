@@ -24,10 +24,10 @@ function fill(template, vars) {
 
 function tierLabel(tier) {
   const mapping = {
-    patron: "Presttige Patron",
-    tier2: "Presttige Tier 2",
-    tier3: "Presttige Tier 3",
-    free: "Presttige Free Membership",
+    patron: "Patron",
+    tier2: "Associate",
+    tier3: "Affiliate",
+    free: "Complimentary",
   };
   return mapping[tier] || "Presttige Membership";
 }
@@ -60,13 +60,19 @@ exports.handler = async (event) => {
     }
 
     const welcomeLink = `https://presttige.net/welcome/${lead.magic_token}`;
-    const label = tierLabel(lead.selected_tier);
+    const selectedTier = lead.selected_tier || "free";
+    const effectiveTier = lead.effective_tier || selectedTier;
+    const effectiveTierLabel = tierLabel(effectiveTier);
+    const upgradeSentence =
+      effectiveTier !== selectedTier
+        ? ` As an annual subscriber, you have full ${effectiveTierLabel} access for the next twelve months.`
+        : "";
     const html = fill(loadTemplate(), {
       subject: "Welcome to Presttige",
       preheader: "Your membership is active. Enter Presttige.",
       eyebrow: "MEMBERSHIP ACTIVATED",
       headline: `Welcome to Presttige, ${lead.name || "Member"}`,
-      body_copy: `Your ${label} membership is active. Click below to access your account.`,
+      body_copy: `Your ${effectiveTierLabel} membership is active. Click below to access your account.${upgradeSentence}`,
       welcome_url: welcomeLink,
       disclaimer:
         "This link is private. If you did not expect this email, please reply to info@presttige.net immediately.",

@@ -15,7 +15,6 @@ from shared.testers import get_tester_email_for_lead_id, log_tester_event
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("presttige-db")
-ses = boto3.client("ses", region_name="eu-west-1")
 lambda_client = boto3.client("lambda", region_name="us-east-1")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -81,56 +80,6 @@ def validate_recent_timestamp(value, max_age_minutes=10):
         raise ValueError("stale_timestamp")
 
     return parsed
-
-
-def build_recipient_name(lead):
-    full_name = as_text(lead.get("full_name") or lead.get("name"))
-    if full_name:
-        parts = full_name.split()
-        if len(parts) >= 2:
-            return " ".join(parts[:2])
-        return parts[0]
-
-    first_middle = f"{as_text(lead.get('first_name'))} {as_text(lead.get('middle_name'))}".strip()
-    if first_middle:
-        return first_middle
-
-    first_name = as_text(lead.get("first_name"))
-    if first_name:
-        return first_name
-
-    last_name = as_text(lead.get("last_name"))
-    if last_name:
-        return f"Mr/Ms {last_name}"
-
-    return "Member"
-
-
-def send_application_received_email(recipient_email, recipient_name):
-    if not recipient_name or not recipient_name.strip():
-        recipient_name = "Member"
-
-    return ses.send_templated_email(
-        Source="Presttige <no-reply@presttige.net>",
-        Destination={"ToAddresses": [recipient_email]},
-        Template="presttige_transactional_v1",
-        TemplateData=json.dumps({
-            "subject": "Your application is with us — Presttige",
-            "preheader": "Thank you for submitting your application. We will be in touch.",
-            "brand_url": "https://www.presttige.net",
-            "logo_url": "https://presttige.net/assets/images/presttige-p-lettering-no-fund.svg",
-            "footer_logo_url": "https://presttige.net/assets/images/presttige-p-ring-no-fund.svg",
-            "recipient_name": recipient_name,
-            "eyebrow": "MEMBERSHIP · APPLICATION RECEIVED",
-            "headline": "Your application is with us.",
-            "body_html": "<p style=\"margin:0 0 16px 0;\">Thank you for submitting your application to Presttige. Our members committee will review your profile with the attention it deserves, and you will hear from us within seven to fourteen days. No further action is required from you at this stage.</p>",
-            "cta_url": "",
-            "cta_label": "",
-            "disclaimer": "We appreciate your interest in joining our private community.",
-            "sign_off_name": "Member Services",
-            "sign_off_title": "PRESTTIGE PRIVATE OFFICE",
-        }),
-    )
 
 
 def lambda_handler(event, context):
@@ -224,7 +173,7 @@ def lambda_handler(event, context):
             return response(200, {
                 "message": "application_submitted",
                 "lead_id": lead_id,
-                "application_received_sent": True,
+                "application_received_sent": False,
             })
 
         db_response = table.get_item(Key={"lead_id": lead_id})
@@ -257,32 +206,6 @@ def lambda_handler(event, context):
         lead.update(profile_fields)
         lead.update(consent_fields)
 
-        if not lead.get("application_received_sent", False):
-            recipient_email = as_text(lead.get("email")).lower()
-
-            if not recipient_email:
-                return response(400, {"error": "missing_email"})
-
-            send_application_received_email(
-                recipient_email=recipient_email,
-                recipient_name=build_recipient_name(lead),
-            )
-
-            application_received_sent_at = utc_now_iso()
-            table.update_item(
-                Key={"lead_id": lead_id},
-                UpdateExpression="""
-                    SET application_received_sent = :sent,
-                        application_received_sent_at = :sent_at,
-                        updated_at = :updated_at
-                """,
-                ExpressionAttributeValues={
-                    ":sent": True,
-                    ":sent_at": application_received_sent_at,
-                    ":updated_at": application_received_sent_at,
-                },
-            )
-
         lambda_client.invoke(
             FunctionName="presttige-send-committee-email",
             InvocationType="Event",
@@ -292,7 +215,7 @@ def lambda_handler(event, context):
         return response(200, {
             "message": "application_submitted",
             "lead_id": lead_id,
-            "application_received_sent": True,
+            "application_received_sent": False,
         })
 
     except Exception as e:

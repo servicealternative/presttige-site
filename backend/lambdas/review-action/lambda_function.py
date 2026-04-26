@@ -1,23 +1,23 @@
 import base64
 import boto3
 import json
-import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key
 from boto3.dynamodb.types import TypeSerializer
 
 dynamodb = boto3.resource("dynamodb")
 ddb_client = boto3.client("dynamodb")
-lambda_client = boto3.client("lambda")
+ssm_client = boto3.client("ssm", region_name="us-east-1")
+scheduler_client = boto3.client("scheduler", region_name="us-east-1")
 table = dynamodb.Table("presttige-db")
 
-DELAY_HOURS = 12
-VALIDITY_HOURS = 72
 REVIEWER_ID = "committee"
 VALID_ACTIONS = {"approve", "reject", "standby"}
-ACCOUNT_CREATE_FUNCTION = "presttige-account-create"
+ACCOUNT_CREATE_FUNCTION_ARN = "arn:aws:lambda:us-east-1:343218208384:function:presttige-account-create"
+SCHEDULER_ROLE_ARN = "arn:aws:iam::343218208384:role/presttige-scheduler-invoke-role"
+DELAY_PARAMETER_NAME = "/presttige/review/approve-to-e3-delay-minutes"
 serializer = TypeSerializer()
 
 
@@ -68,7 +68,7 @@ def lambda_handler(event, context):
         transact_review(audit_item, lead["lead_id"], update_spec)
 
         if decision == "approved":
-            trigger_account_create_async(lead["lead_id"])
+            schedule_e3_delivery(lead["lead_id"], reviewed_at)
 
         return respond(wants_html, 200, {"decision": decision, "recorded_at": reviewed_at})
     except ddb_client.exceptions.TransactionCanceledException:
@@ -205,17 +205,10 @@ def build_lead_update(lead, decision, note, reviewed_at):
     }
 
     if decision == "approved":
-        now_epoch = int(time.time())
-        invite_send_at = now_epoch + (DELAY_HOURS * 60 * 60)
-        invite_expires_at = invite_send_at + (VALIDITY_HOURS * 60 * 60)
-        reminder_due_at = invite_send_at + (48 * 60 * 60)
         expressions.extend(
             [
                 "token_status = :token_status",
                 "invite_status = :invite_status",
-                "invite_send_at = :invite_send_at",
-                "invite_expires_at = :invite_expires_at",
-                "reminder_due_at = :reminder_due_at",
                 "reinvite_eligible = :reinvite_eligible",
                 "reinvite_count = if_not_exists(reinvite_count, :zero)",
             ]
@@ -224,9 +217,6 @@ def build_lead_update(lead, decision, note, reviewed_at):
             {
                 ":token_status": "active",
                 ":invite_status": "scheduled",
-                ":invite_send_at": Decimal(invite_send_at),
-                ":invite_expires_at": Decimal(invite_expires_at),
-                ":reminder_due_at": Decimal(reminder_due_at),
                 ":reinvite_eligible": True,
                 ":zero": Decimal(0),
             }
@@ -290,15 +280,48 @@ def transact_review(audit_item, lead_id, update_spec):
     )
 
 
-def trigger_account_create_async(lead_id):
+def schedule_e3_delivery(lead_id, reviewed_at):
+    delay_minutes = read_delay_minutes()
+    fire_at = datetime.now(timezone.utc) + timedelta(minutes=delay_minutes)
+    schedule_name = f"presttige-e3-{lead_id}-{int(fire_at.timestamp())}"
+
+    scheduler_client.create_schedule(
+        Name=schedule_name,
+        ScheduleExpression=f"at({fire_at.strftime('%Y-%m-%dT%H:%M:%S')})",
+        ScheduleExpressionTimezone="UTC",
+        FlexibleTimeWindow={"Mode": "OFF"},
+        Target={
+            "Arn": ACCOUNT_CREATE_FUNCTION_ARN,
+            "RoleArn": SCHEDULER_ROLE_ARN,
+            "Input": json.dumps({"body": json.dumps({"lead_id": lead_id})}),
+        },
+        ActionAfterCompletion="DELETE",
+    )
+
+    table.update_item(
+        Key={"lead_id": lead_id},
+        UpdateExpression="""
+            SET e3_scheduled_at = :scheduled_at,
+                e3_schedule_name = :schedule_name,
+                invite_send_at = :invite_send_at,
+                updated_at = :updated_at
+        """,
+        ExpressionAttributeValues={
+            ":scheduled_at": fire_at.isoformat(),
+            ":schedule_name": schedule_name,
+            ":invite_send_at": Decimal(int(fire_at.timestamp())),
+            ":updated_at": reviewed_at,
+        },
+    )
+
+
+def read_delay_minutes():
     try:
-        lambda_client.invoke(
-            FunctionName=ACCOUNT_CREATE_FUNCTION,
-            InvocationType="Event",
-            Payload=json.dumps({"body": json.dumps({"lead_id": lead_id})}).encode("utf-8"),
-        )
+        response = ssm_client.get_parameter(Name=DELAY_PARAMETER_NAME)
+        return max(1, int(response["Parameter"]["Value"]))
     except Exception as exc:
-        print(f"account-create async invoke failed for {lead_id}: {exc}")
+        print(f"delay parameter read failed, defaulting to 15 minutes: {exc}")
+        return 15
 
 
 def serialize_item(item):

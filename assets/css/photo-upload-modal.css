@@ -1,4 +1,4 @@
-/* Presttige Photo Upload Modal — design tokens consistent with brand */
+/* Presttige Photo Upload — inline continuation after form submission */
 :root {
   --pp-primary: #0A0A0A;
   --pp-background: #F5F2ED;
@@ -6,153 +6,171 @@
   --pp-accent: #8C7040;
   --pp-muted: #4A4A4A;
   --pp-hairline: #D9D2C5;
+  --pp-danger: #8F4D47;
 }
 
-.photo-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
+.photo-upload-inline {
+  background: var(--pp-paper);
+  border: 0.5px solid var(--pp-hairline);
+  padding: 28px 24px 26px;
+  font-family: "Source Serif Pro", Georgia, serif;
+}
+
+.photo-upload-inline__error {
   display: none;
+  margin-bottom: 16px;
+  color: var(--pp-danger);
+  font-size: 10pt;
+  line-height: 1.55;
+  font-style: italic;
+}
+
+.photo-upload-inline__dropzone {
+  min-height: 200px;
+  border: 1px dashed var(--pp-hairline);
+  background: rgba(245, 242, 237, 0.5);
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Source Serif Pro', Georgia, serif;
-}
-
-.photo-modal--open {
-  display: flex;
-}
-
-.photo-modal__overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(10, 10, 10, 0.6);
-}
-
-.photo-modal__container {
-  position: relative;
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  background: var(--pp-paper);
-  border-radius: 8px;
-  padding: 32px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.photo-modal__title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-style: italic;
-  font-size: 28px;
-  color: var(--pp-primary);
-  margin: 0 0 8px;
-}
-
-.photo-modal__subtitle {
-  font-size: 14px;
-  color: var(--pp-muted);
-  margin: 0 0 24px;
-  line-height: 1.5;
-}
-
-.photo-modal__close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--pp-muted);
-  cursor: pointer;
-}
-
-.photo-modal__dropzone {
-  border: 2px dashed var(--pp-hairline);
-  border-radius: 6px;
-  padding: 40px 20px;
+  padding: 28px 22px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
-  margin-bottom: 24px;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.photo-modal__dropzone:hover,
-.photo-modal__dropzone--dragging {
+.photo-upload-inline__dropzone:hover,
+.photo-upload-inline__dropzone--dragging {
   border-color: var(--pp-accent);
-  background: rgba(140, 112, 64, 0.04);
+  background: rgba(140, 112, 64, 0.05);
 }
 
-.photo-modal__dropzone-text {
+.photo-upload-inline__dropzone-copy {
+  margin: 0;
   color: var(--pp-muted);
-  font-size: 14px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  line-height: 1.2;
 }
 
-.photo-modal__previews {
+.photo-upload-inline__helper {
+  margin: 12px 0 0;
+  color: var(--pp-muted);
+  font-size: 10pt;
+  line-height: 1.65;
+  font-style: italic;
+  text-align: center;
+}
+
+.photo-upload-inline__previews {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 120px));
+  gap: 14px;
+  margin: 22px 0 24px;
 }
 
-.photo-modal__preview {
-  aspect-ratio: 1;
+.photo-upload-inline__preview {
+  width: 120px;
+  height: 120px;
   background: var(--pp-background);
-  border-radius: 4px;
+  border: 0.5px solid var(--pp-hairline);
   position: relative;
   overflow: hidden;
 }
 
-.photo-modal__preview img {
+.photo-upload-inline__preview img {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
 }
 
-.photo-modal__preview-progress {
+.photo-upload-inline__preview-remove {
   position: absolute;
-  bottom: 0;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: rgba(10, 10, 10, 0.72);
+  color: #FBF9F4;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.photo-upload-inline__preview-progress {
+  position: absolute;
   left: 0;
+  right: 0;
+  bottom: 0;
   height: 3px;
   background: var(--pp-accent);
-  transition: width 0.2s;
 }
 
-.photo-modal__preview-remove {
+.photo-upload-inline__preview-status {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 24px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 5px 7px;
+  background: rgba(10, 10, 10, 0.64);
+  color: #FBF9F4;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.photo-modal__continue {
-  width: 100%;
-  padding: 14px;
-  background: var(--pp-primary);
-  color: var(--pp-paper);
-  border: none;
+.photo-upload-inline__actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.photo-upload-inline__continue {
+  min-height: 44px;
+  padding: 0 30px;
+  border: 0.5px solid var(--pp-primary);
+  background: transparent;
+  color: var(--pp-primary);
   font-family: inherit;
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: 8.5pt;
+  font-weight: 500;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background 0.25s ease, color 0.25s ease, opacity 0.25s ease;
 }
 
-.photo-modal__continue:disabled {
-  opacity: 0.4;
+.photo-upload-inline__continue:hover:not(:disabled) {
+  background: var(--pp-primary);
+  color: var(--pp-paper);
+}
+
+.photo-upload-inline__continue:disabled {
+  opacity: 0.48;
   cursor: not-allowed;
 }
 
-.photo-modal__error {
-  color: #B91C1C;
-  font-size: 13px;
-  margin-bottom: 12px;
+@media (max-width: 600px) {
+  .photo-upload-inline {
+    padding: 24px 20px 24px;
+  }
+
+  .photo-upload-inline__previews {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .photo-upload-inline__preview {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .photo-upload-inline__actions {
+    justify-content: stretch;
+  }
+
+  .photo-upload-inline__continue {
+    width: 100%;
+  }
 }
