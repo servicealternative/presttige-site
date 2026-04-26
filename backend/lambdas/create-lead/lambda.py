@@ -285,7 +285,7 @@ def purge_tester_records(email):
     ses_suppression_removed = remove_ses_suppression_if_present(email)
 
     print(
-        f"TESTER_PURGE email={email} deleted_records={deleted_records} "
+        f"TESTER_PURGE_ON_SUBMIT email={email} deleted_records={deleted_records} "
         f"deleted_schedules={deleted_schedules} deleted_photos={deleted_photos} "
         f"ses_suppression_removed={str(ses_suppression_removed).lower()}"
     )

@@ -1,16 +1,30 @@
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { S3Client, ListObjectsV2Command, DeleteObjectsCommand } = require("@aws-sdk/client-s3");
+const { SchedulerClient, DeleteScheduleCommand } = require("@aws-sdk/client-scheduler");
+const { SESv2Client, GetSuppressedDestinationCommand, DeleteSuppressedDestinationCommand } = require("@aws-sdk/client-sesv2");
+const { ConditionalCheckFailedException } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, GetCommand, UpdateCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
 const fs = require("fs");
 const path = require("path");
 
 const ses = new SESClient({ region: "us-east-1" });
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
+const s3 = new S3Client({ region: "us-east-1" });
+const scheduler = new SchedulerClient({ region: "us-east-1" });
+const sesv2 = new SESv2Client({ region: "us-east-1" });
 
 const TABLE_NAME = "presttige-db";
 const FROM = "private@presttige.net";
 const REPLY_TO = "info@presttige.net";
 const BCC = "committee@presttige.net";
+const ORIGINALS_BUCKET = process.env.PHOTOS_ORIGINALS_BUCKET || "presttige-applicant-photos";
+const THUMBNAILS_BUCKET = process.env.PHOTOS_THUMBNAILS_BUCKET || "presttige-applicant-photos-thumbnails";
+const SCHEDULER_GROUP_NAME = process.env.TESTER_PURGE_SCHEDULER_GROUP || "default";
+const TESTER_WHITELIST = new Set([
+  "antoniompereira@me.com",
+  "alternativeservice@gmail.com",
+]);
 
 function loadTemplate() {
   return fs.readFileSync(path.join(__dirname, "welcome-email.html"), "utf8");
@@ -32,6 +46,166 @@ function tierLabel(tier) {
   return mapping[tier] || "Presttige Membership";
 }
 
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+function isTesterEmail(email) {
+  return TESTER_WHITELIST.has(normalizeEmail(email));
+}
+
+async function deleteScheduleIfPresent(scheduleName) {
+  if (!scheduleName) {
+    return false;
+  }
+
+  try {
+    await scheduler.send(
+      new DeleteScheduleCommand({
+        Name: scheduleName,
+        GroupName: SCHEDULER_GROUP_NAME,
+      })
+    );
+    return true;
+  } catch (error) {
+    const code = error?.name || error?.Code || error?.code || "";
+    if (!["ResourceNotFoundException", "ValidationException"].includes(code)) {
+      console.log(`TESTER_PURGE_WARN schedule_delete_failed name=${scheduleName} error=${code || error.message}`);
+    }
+    return false;
+  }
+}
+
+async function deleteS3Prefix(bucket, prefix) {
+  if (!bucket || !prefix) {
+    return 0;
+  }
+
+  let deleted = 0;
+  let continuationToken;
+
+  while (true) {
+    let listResponse;
+    try {
+      listResponse = await s3.send(
+        new ListObjectsV2Command({
+          Bucket: bucket,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+          MaxKeys: 1000,
+        })
+      );
+    } catch (error) {
+      console.log(`TESTER_PURGE_WARN s3_list_failed bucket=${bucket} prefix=${prefix} error=${error.name || error.message}`);
+      break;
+    }
+
+    const objects = (listResponse.Contents || [])
+      .map((item) => item.Key)
+      .filter(Boolean)
+      .map((Key) => ({ Key }));
+
+    if (objects.length) {
+      try {
+        const deleteResponse = await s3.send(
+          new DeleteObjectsCommand({
+            Bucket: bucket,
+            Delete: {
+              Objects: objects,
+              Quiet: true,
+            },
+          })
+        );
+        deleted += (deleteResponse.Deleted || []).length;
+      } catch (error) {
+        console.log(`TESTER_PURGE_WARN s3_delete_failed bucket=${bucket} prefix=${prefix} error=${error.name || error.message}`);
+      }
+    }
+
+    if (!listResponse.IsTruncated) {
+      break;
+    }
+    continuationToken = listResponse.NextContinuationToken;
+  }
+
+  return deleted;
+}
+
+async function removeSesSuppressionIfPresent(email) {
+  if (!email) {
+    return false;
+  }
+
+  try {
+    await sesv2.send(
+      new GetSuppressedDestinationCommand({
+        EmailAddress: email,
+      })
+    );
+  } catch (error) {
+    const code = error?.name || error?.Code || error?.code || "";
+    if (["NotFoundException", "BadRequestException"].includes(code)) {
+      return false;
+    }
+    console.log(`TESTER_PURGE_WARN ses_get_suppression_failed email=${email} error=${code || error.message}`);
+    return false;
+  }
+
+  try {
+    await sesv2.send(
+      new DeleteSuppressedDestinationCommand({
+        EmailAddress: email,
+      })
+    );
+    return true;
+  } catch (error) {
+    const code = error?.name || error?.Code || error?.code || "";
+    console.log(`TESTER_PURGE_WARN ses_delete_suppression_failed email=${email} error=${code || error.message}`);
+    return false;
+  }
+}
+
+async function purgeTesterLead(lead, trigger) {
+  const leadId = String(lead?.lead_id || "").trim();
+  const email = normalizeEmail(lead?.email);
+  const scheduleName = String(lead?.e3_schedule_name || "").trim();
+
+  const deletedSchedules = (await deleteScheduleIfPresent(scheduleName)) ? 1 : 0;
+  let deletedPhotos = 0;
+  let deletedRecord = false;
+
+  if (leadId) {
+    deletedPhotos += await deleteS3Prefix(ORIGINALS_BUCKET, `${leadId}/`);
+    deletedPhotos += await deleteS3Prefix(THUMBNAILS_BUCKET, `${leadId}/`);
+    try {
+      await ddb.send(
+        new DeleteCommand({
+          TableName: TABLE_NAME,
+          Key: { lead_id: leadId },
+        })
+      );
+      deletedRecord = true;
+    } catch (error) {
+      console.log(`TESTER_PURGE_WARN delete_record_failed lead_id=${leadId} error=${error.message}`);
+    }
+  }
+
+  const sesSuppressionRemoved = await removeSesSuppressionIfPresent(email);
+
+  console.log(
+    `TESTER_PURGE_ON_FUNNEL_COMPLETE trigger=${trigger} email=${email} lead_id=${leadId} ` +
+      `deleted_record=${String(deletedRecord)} deleted_schedules=${deletedSchedules} ` +
+      `deleted_photos=${deletedPhotos} ses_suppression_removed=${String(sesSuppressionRemoved)}`
+  );
+
+  return {
+    deletedRecord,
+    deletedSchedules,
+    deletedPhotos,
+    sesSuppressionRemoved,
+  };
+}
+
 exports.handler = async (event) => {
   const { lead_id } = JSON.parse(event.body || "{}");
   if (!lead_id) {
@@ -48,14 +222,20 @@ exports.handler = async (event) => {
     const lead = leadResult.Item;
 
     if (!lead) {
-      return response(404, { error: "Lead not found" });
+      return response(200, { already_gone: true, lead_id });
     }
 
     if (!lead.email || !lead.magic_token) {
       return response(400, { error: "Lead missing email or magic token" });
     }
 
+    const testerLead = Boolean(lead.is_test) || isTesterEmail(lead.email);
+
     if (lead.welcome_sent_at) {
+      if (testerLead) {
+        const purgeResult = await purgeTesterLead(lead, "e5_sent");
+        return response(200, { already_sent: true, tester_purged: true, purge_result: purgeResult });
+      }
       return response(200, { already_sent: true });
     }
 
@@ -114,6 +294,7 @@ exports.handler = async (event) => {
         TableName: TABLE_NAME,
         Key: { lead_id },
         UpdateExpression: "SET welcome_sent_at = :sent_at, welcome_variant = :variant",
+        ConditionExpression: "attribute_exists(lead_id)",
         ExpressionAttributeValues: {
           ":sent_at": new Date().toISOString(),
           ":variant": "membership_active",
@@ -121,8 +302,16 @@ exports.handler = async (event) => {
       })
     );
 
+    if (testerLead) {
+      const purgeResult = await purgeTesterLead(lead, "e5_sent");
+      return response(200, { sent: true, tester_purged: true, purge_result: purgeResult });
+    }
+
     return response(200, { sent: true });
   } catch (error) {
+    if (error instanceof ConditionalCheckFailedException || error?.name === "ConditionalCheckFailedException") {
+      return response(200, { already_gone: true, lead_id });
+    }
     console.error("send-welcome-email error", error);
     return response(500, { error: "Internal", detail: error.message });
   }
