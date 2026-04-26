@@ -1,8 +1,10 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'presttige_consent_v1';
-  var CONSENT_VERSION = '1';
+  var STORAGE_KEY = 'presttige_cookie_consent';
+  var LEGACY_STORAGE_KEY = 'presttige_consent_v1';
+  var COOKIE_NAME = 'presttige_cookie_consent';
+  var CONSENT_VERSION = '2';
   var GA_ID = 'G-H7BFLVL4F5';
   var analyticsLoaded = false;
   var modalKeydownHandler = null;
@@ -20,39 +22,138 @@
     }
   }
 
-  function getStoredConsent() {
-    try {
-      var stored = localStorage.getItem(STORAGE_KEY);
-      var parsed = stored ? safeParse(stored) : null;
+  function deriveDecision(analytics, marketing) {
+    if (analytics === true && marketing === true) {
+      return 'accepted';
+    }
 
-      if (!parsed || parsed.version !== CONSENT_VERSION) {
-        return null;
-      }
+    if (analytics === false && marketing === false) {
+      return 'rejected';
+    }
 
-      if (typeof parsed.analytics !== 'boolean' || typeof parsed.marketing !== 'boolean') {
-        return null;
-      }
+    return 'customized';
+  }
 
-      return parsed;
-    } catch (error) {
+  function normalizeConsent(parsed) {
+    if (!parsed) {
       return null;
     }
+
+    if (parsed === 'accepted' || parsed === 'rejected') {
+      return {
+        version: CONSENT_VERSION,
+        decision: parsed,
+        timestamp: null,
+        analytics: parsed === 'accepted',
+        marketing: parsed === 'accepted'
+      };
+    }
+
+    if (typeof parsed !== 'object') {
+      return null;
+    }
+
+    if (typeof parsed.analytics !== 'boolean' || typeof parsed.marketing !== 'boolean') {
+      return null;
+    }
+
+    return {
+      version: CONSENT_VERSION,
+      decision: parsed.decision || deriveDecision(parsed.analytics, parsed.marketing),
+      timestamp: parsed.timestamp || null,
+      analytics: parsed.analytics,
+      marketing: parsed.marketing
+    };
+  }
+
+  function readCookie(name) {
+    var cookies = document.cookie ? document.cookie.split('; ') : [];
+
+    for (var i = 0; i < cookies.length; i += 1) {
+      var parts = cookies[i].split('=');
+      var key = parts.shift();
+      if (key === name) {
+        return parts.join('=');
+      }
+    }
+
+    return '';
+  }
+
+  function getCookieDomainSegment() {
+    var host = window.location.hostname || '';
+    if (host === 'presttige.net' || /(^|\.)presttige\.net$/.test(host)) {
+      return '; domain=presttige.net';
+    }
+
+    return '';
+  }
+
+  function persistConsentRecord(consent) {
+    var serialized = JSON.stringify(consent);
+
+    try {
+      localStorage.setItem(STORAGE_KEY, serialized);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    } catch (error) {
+      // Storage is optional for render suppression; cookie fallback still applies.
+    }
+
+    document.cookie = [
+      COOKIE_NAME + '=' + encodeURIComponent(serialized),
+      'path=/',
+      'max-age=31536000',
+      'SameSite=Lax',
+      'Secure' + getCookieDomainSegment()
+    ].join('; ');
+  }
+
+  function getStoredConsent() {
+    var parsed = null;
+
+    try {
+      var stored = localStorage.getItem(STORAGE_KEY);
+      parsed = stored ? normalizeConsent(safeParse(stored)) : null;
+      if (parsed) {
+        return parsed;
+      }
+    } catch (error) {
+      parsed = null;
+    }
+
+    var cookieValue = readCookie(COOKIE_NAME);
+    if (cookieValue) {
+      parsed = normalizeConsent(safeParse(decodeURIComponent(cookieValue)));
+      if (parsed) {
+        persistConsentRecord(parsed);
+        return parsed;
+      }
+    }
+
+    try {
+      var legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY);
+      parsed = legacyStored ? normalizeConsent(safeParse(legacyStored)) : null;
+      if (parsed) {
+        persistConsentRecord(parsed);
+        return parsed;
+      }
+    } catch (error) {
+      parsed = null;
+    }
+
+    return null;
   }
 
   function saveConsent(preferences) {
     var consent = {
       version: CONSENT_VERSION,
+      decision: deriveDecision(Boolean(preferences.analytics), Boolean(preferences.marketing)),
       timestamp: new Date().toISOString(),
       analytics: Boolean(preferences.analytics),
       marketing: Boolean(preferences.marketing)
     };
 
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(consent));
-    } catch (error) {
-      // If storage is unavailable, still apply preferences for this page view.
-    }
-
+    persistConsentRecord(consent);
     applyConsent(consent);
   }
 
