@@ -665,7 +665,7 @@
                   <input id="phone" type="tel" autocomplete="tel-national" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="numeric" required />
                 </div>
               </div>
-              <small id="phoneCountryHint">Selected country: United States of America</small>
+              <small id="phoneCountryHint">Selected country: United States</small>
             </div>
 
             <div class="field">
@@ -1102,6 +1102,18 @@
       });
     }
 
+    function getCountryDisplayName(countryName) {
+      if (countryName === 'United States of America') {
+        return 'United States';
+      }
+
+      return countryName;
+    }
+
+    function formatCountryWithDial(country) {
+      return getCountryDisplayName(country.name) + ' (' + country.dial + ')';
+    }
+
     function getLinkedinChoice() {
       const selected = document.querySelector('input[name="hasLinkedin"]:checked');
       return selected ? selected.value : '';
@@ -1124,7 +1136,7 @@
     function updatePhoneDialCode() {
       const selectedCountry = getCountryByName(phoneCountrySelect.value);
       phoneDialCode.textContent = selectedCountry && selectedCountry.dial ? selectedCountry.dial : '+';
-      phoneCountryHint.textContent = selectedCountry ? 'Selected country: ' + selectedCountry.name : 'Select your country code, then enter only the phone number.';
+      phoneCountryHint.textContent = selectedCountry ? 'Selected country: ' + getCountryDisplayName(selectedCountry.name) : 'Select your country code, then enter only the phone number.';
     }
 
     function persistCountryContext(countryName) {
@@ -1558,7 +1570,7 @@
     });
 
     populateCountrySelect(phoneCountrySelect, function (country) {
-      return country.dial || country.name;
+      return formatCountryWithDial(country);
     });
 
     applyStoredCountryContext();
