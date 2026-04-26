@@ -12,6 +12,7 @@ audit_table = dynamodb.Table("presttige-review-audit")
 DELAY_HOURS = 12
 VALIDITY_HOURS = 72
 REVIEWER_ID = "Antonio"
+# Audit attribution stays explicit so review actions remain traceable across automated deploys.
 
 
 def lambda_handler(event, context):
