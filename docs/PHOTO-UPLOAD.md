@@ -14,6 +14,8 @@
 10. `presttige-photo-upload-status` returns readiness plus a CloudFront thumbnail URL to the browser.
 11. The modal enables continuation once at least 2 photos are ready, then forwards the applicant to `thank-you.html`.
 
+Thumbnail delivery depends on the KMS key policy granting the CloudFront service principal `kms:Decrypt` for distribution `EPU4BRNGY6CN4`, because CloudFront fetches KMS-encrypted thumbnail objects from S3 through the OAC path.
+
 ## API Endpoints
 
 ### `POST /photo-upload-init`

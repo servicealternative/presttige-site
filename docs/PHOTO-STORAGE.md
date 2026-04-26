@@ -19,6 +19,11 @@ Photos uploaded by applicants flow through this layered architecture:
 - Rotation: enabled (annual, 365 days)
 - Customer-managed CMK
 
+### Key Policy Grants
+- Account root (default)
+- Codex IAM user and Lambda execution roles via IAM permissions enabled by the root key policy statement
+- CloudFront service principal (new): `kms:Decrypt` scoped via `aws:SourceArn` to distribution `EPU4BRNGY6CN4`
+
 ### S3 Buckets (us-east-1, private, KMS-encrypted)
 - `presttige-applicant-photos` — original uploads, browser direct access via pre-signed POST URLs
 - `presttige-applicant-photos-thumbnails` — auto-generated thumbnails for committee preview
