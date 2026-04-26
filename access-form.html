@@ -79,6 +79,10 @@
       box-shadow: none;
     }
 
+    .application-step {
+      transition: opacity 0.24s ease, transform 0.24s ease;
+    }
+
     .eyebrow {
       font-size: 7.5pt;
       font-weight: 500;
@@ -544,45 +548,38 @@
       font-style: italic;
     }
 
-    .form--submitted .form-section,
-    .form--submitted .consent-fieldset,
-    .form--submitted .submit-shell,
-    .form--submitted #formMessage {
-      display: none;
-    }
-
-    .form--submitted .form-complete-banner {
-      display: block;
-    }
-
     .photo-stage {
-      display: none;
-      margin-top: 34px;
-      padding-top: 26px;
-      border-top: 0.5px solid rgba(140, 112, 64, 0.22);
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      border-top: none;
+      opacity: 0;
+      transform: translateY(16px);
+      pointer-events: none;
+      transition: opacity 0.32s ease, transform 0.32s ease;
     }
 
-    .photo-stage.is-visible {
-      display: block;
-      animation: photoStageReveal 0.34s ease-out;
+    .photo-stage[hidden] {
+      display: none;
     }
 
     .photo-stage__eyebrow {
-      margin: 0 0 14px;
+      margin: 0 0 20px;
       font-size: 7.5pt;
       font-weight: 500;
-      letter-spacing: 0.28em;
+      letter-spacing: 0.36em;
       text-transform: uppercase;
       color: var(--accent);
     }
 
     .photo-stage__title {
-      margin: 0 0 14px;
+      margin: 0 0 22px;
       font-family: "Cormorant Garamond", Georgia, serif;
       font-style: italic;
       font-weight: 400;
-      font-size: clamp(2rem, 5vw, 3rem);
-      line-height: 1.04;
+      font-size: clamp(2.6rem, 6vw, 4.25rem);
+      line-height: 1.08;
+      letter-spacing: -0.012em;
       color: var(--primary);
     }
 
@@ -597,6 +594,36 @@
 
     .photo-stage__mount {
       min-height: 220px;
+      width: min(100%, 640px);
+      margin: 0 auto;
+    }
+
+    .photo-stage .photo-upload-inline {
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .photo-stage .photo-upload-inline__dropzone {
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .panel.is-transitioning-step3 .application-step {
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+    }
+
+    .panel.is-step3 .application-step {
+      display: none;
+    }
+
+    .panel.is-transitioning-step3 .photo-stage,
+    .panel.is-step3 .photo-stage,
+    .photo-stage.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
     }
 
     @keyframes photoStageReveal {
@@ -607,6 +634,13 @@
       to {
         opacity: 1;
         transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .application-step,
+      .photo-stage {
+        transition: none;
       }
     }
 
@@ -637,7 +671,8 @@
 </head>
 <body>
   <div class="page">
-    <div class="panel">
+    <div class="panel" id="applicationPanel">
+      <section class="application-step" id="applicationStep">
       <div class="eyebrow">Step 2 · Application</div>
       <h1>Complete your application.</h1>
       <hr class="title-divider" />
@@ -797,7 +832,8 @@
 
         <div id="formMessage" class="message"></div>
       </form>
-      <section id="photoUploadStage" class="photo-stage" aria-live="polite">
+      </section>
+      <section id="photoUploadStage" class="photo-stage" aria-live="polite" hidden>
         <p class="photo-stage__eyebrow">Step 3 · Photos</p>
         <h2 class="photo-stage__title">Add your photos.</h2>
         <p class="photo-stage__copy">Please share two to three photos that represent you clearly and naturally. We recommend one clear portrait and one or two images that show context, style, or daily life.</p>
@@ -1022,6 +1058,8 @@
     const leadId = params.get('lead_id') || params.get('leadId') || '';
     const countryFromQuery = params.get('country') || '';
     document.getElementById('leadId').value = leadId;
+    const applicationPanel = document.getElementById('applicationPanel');
+    const applicationStep = document.getElementById('applicationStep');
     const accessForm = document.getElementById('accessForm');
     const submitBtn = document.getElementById('submitBtn');
     const photoUploadStage = document.getElementById('photoUploadStage');
@@ -1049,6 +1087,7 @@
     let leadIdValid = false;
     let isSubmitting = false;
     let pendingPhotoUpload = null;
+    let photoStageActive = false;
 
     const CITY_SUGGESTIONS = {
       'United States of America': ['New York', 'Los Angeles', 'Miami', 'Chicago', 'San Francisco', 'Other'],
@@ -1800,11 +1839,37 @@
     }
 
     function showPhotoUploadStage() {
-      accessForm.classList.add('form--submitted');
-      photoUploadStage.classList.add('is-visible');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (photoStageActive) {
+        photoUploadStage.hidden = false;
+        applicationPanel.classList.add('is-step3');
+        photoUploadStage.classList.add('is-visible');
+        requestAnimationFrame(function () {
+          photoUploadStage.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+        });
+        return;
+      }
+
+      photoStageActive = true;
+      photoUploadStage.hidden = false;
+      applicationPanel.classList.add('is-transitioning-step3');
       requestAnimationFrame(function () {
-        photoUploadStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        photoUploadStage.classList.add('is-visible');
       });
+
+      const finalizeStageSwap = function () {
+        applicationStep.hidden = true;
+        applicationPanel.classList.remove('is-transitioning-step3');
+        applicationPanel.classList.add('is-step3');
+        photoUploadStage.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+      };
+
+      if (reducedMotion) {
+        finalizeStageSwap();
+        return;
+      }
+
+      window.setTimeout(finalizeStageSwap, 320);
     }
 
     function validLeadId(id) {
@@ -2008,7 +2073,6 @@
           };
 
           openedPhotoFlow = true;
-          setMessage('Application submitted successfully. Please add at least 2 photos to continue.', 'success');
           submitBtn.textContent = 'Resume Photo Upload';
           showPhotoUploadStage();
           window.PhotoUploadModal.open(pendingPhotoUpload);
