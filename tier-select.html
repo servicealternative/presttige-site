@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Tier Selection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-primary: #0A0A0A;
+      --pp-paper: #FBF9F4;
+      --pp-background: #F5F2ED;
+      --pp-accent: #8C7040;
+      --pp-hairline: #D9D2C5;
+      --pp-muted: #4A4A4A;
+      --pp-error: #9f1d1d;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--pp-background);
+      color: var(--pp-primary);
+      font-family: "Source Serif Pro", Georgia, serif;
+    }
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 48px 20px 72px;
+    }
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    .title {
+      margin: 0 0 16px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(42px, 7vw, 66px);
+      font-style: italic;
+      font-weight: 500;
+      line-height: 0.95;
+    }
+    .subtitle {
+      max-width: 760px;
+      margin: 0 0 32px;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.75;
+    }
+    .state, .error {
+      padding: 24px;
+      background: var(--pp-paper);
+      border: 1px solid var(--pp-hairline);
+      border-radius: 10px;
+    }
+    .error { color: var(--pp-error); }
+    .toggle {
+      display: inline-flex;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 28px;
+      background: var(--pp-paper);
+    }
+    .toggle button {
+      border: 0;
+      background: transparent;
+      color: var(--pp-muted);
+      padding: 12px 18px;
+      font: inherit;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .toggle button.is-active {
+      background: var(--pp-primary);
+      color: var(--pp-paper);
+    }
+    .grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    .card {
+      background: var(--pp-paper);
+      border: 1px solid var(--pp-hairline);
+      border-radius: 12px;
+      padding: 28px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+    .card__eyebrow {
+      margin: 0;
+      color: var(--pp-accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    .card__title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: 34px;
+    }
+    .card__price {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1;
+    }
+    .card__price small {
+      font-size: 15px;
+      color: var(--pp-muted);
+    }
+    .card__note {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .card__button {
+      width: 100%;
+      padding: 14px 18px;
+      border: 1px solid var(--pp-accent);
+      background: transparent;
+      color: var(--pp-accent);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .card__button[disabled] {
+      opacity: 0.5;
+      cursor: progress;
+    }
+    .pricing-note {
+      margin: 24px 0 0;
+      color: var(--pp-muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <p class="eyebrow">Presttige Membership</p>
+    <h1 class="title">Choose Your Tier</h1>
+    <p class="subtitle">Select the membership path that best reflects how you would like to participate in Presttige. Annual billing includes a 15% discount versus twelve monthly payments.</p>
+    <section id="app" class="state">Loading your membership options…</section>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const app = document.getElementById("app");
+      const token = window.location.pathname.split("/").filter(Boolean).pop();
+      let periodicity = "monthly";
+      let payload = null;
+      let activeTier = "";
+
+      if (!token || token === "tier-select" || token === "tier-select.html") {
+        renderError("Missing tier selection token.");
+        return;
+      }
+
+      load();
+
+      async function load() {
+        try {
+          const response = await fetch(`${API_BASE}/tier-select-fetch?token=${encodeURIComponent(token)}`);
+          const data = await response.json();
+
+          if (!response.ok) {
+            renderError(data.error || "Unable to load your membership options.");
+            return;
+          }
+
+          payload = data;
+          render();
+        } catch (error) {
+          renderError("Unable to load your membership options right now.");
+        }
+      }
+
+      function render() {
+        const name = payload.profile?.name || "Presttige Member";
+        const tiers = payload.tiers || {};
+        app.className = "";
+        app.innerHTML = `
+          <div class="toggle">
+            <button data-period="monthly" class="${periodicity === "monthly" ? "is-active" : ""}">Monthly</button>
+            <button data-period="annual" class="${periodicity === "annual" ? "is-active" : ""}">Annual</button>
+          </div>
+          <div class="grid">
+            ${Object.entries(tiers).map(([tierKey, tier]) => renderCard(name, tierKey, tier)).join("")}
+          </div>
+          <p class="pricing-note">Pricing status: ${payload.pricing_status || "TBD-PLACEHOLDER"}.</p>
+        `;
+
+        app.querySelectorAll("[data-period]").forEach((button) => {
+          button.addEventListener("click", () => {
+            periodicity = button.dataset.period;
+            render();
+          });
+        });
+
+        app.querySelectorAll("[data-tier]").forEach((button) => {
+          button.addEventListener("click", () => startCheckout(button.dataset.tier));
+        });
+      }
+
+      function renderCard(name, tierKey, tier) {
+        const price = tierKey === "free" ? 0 : tier[periodicity];
+        const priceLabel = price === 0
+          ? "Free"
+          : `$${Number(price).toLocaleString("en-US")}`;
+        const suffix = tierKey === "free" ? "" : periodicity === "monthly" ? " / month" : " / year";
+        const helper = tierKey === "free"
+          ? "Activate the complimentary membership path immediately."
+          : `Prepared for ${name}. Redirects to hosted Stripe Checkout.`;
+
+        return `
+          <article class="card">
+            <p class="card__eyebrow">${tierKey === "free" ? "Complimentary Path" : "Membership Tier"}</p>
+            <h2 class="card__title">${escapeHtml(tier.label)}</h2>
+            <p class="card__price">${priceLabel}<small>${suffix}</small></p>
+            <p class="card__note">${escapeHtml(helper)}</p>
+            <button class="card__button" data-tier="${tierKey}" ${activeTier === tierKey ? "disabled" : ""}>
+              ${activeTier === tierKey ? "Redirecting…" : tierKey === "free" ? "Activate Free Path" : "Continue to Checkout"}
+            </button>
+          </article>
+        `;
+      }
+
+      async function startCheckout(tier) {
+        activeTier = tier;
+        render();
+
+        try {
+          const response = await fetch(`${API_BASE}/create-checkout-session`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token,
+              tier,
+              periodicity: tier === "free" ? "monthly" : periodicity
+            })
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+            renderError(data.error || "Unable to create checkout session.");
+            return;
+          }
+
+          if (data.redirect_url) {
+            window.location.assign(data.redirect_url);
+            return;
+          }
+
+          renderError("Missing redirect URL from checkout session.");
+        } catch (error) {
+          renderError("Unable to create checkout session right now.");
+        } finally {
+          activeTier = "";
+        }
+      }
+
+      function renderError(message) {
+        app.className = "error";
+        app.textContent = message;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+    })();
+  </script>
+</body>
+</html>

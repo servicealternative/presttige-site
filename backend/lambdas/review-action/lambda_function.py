@@ -10,12 +10,14 @@ from boto3.dynamodb.types import TypeSerializer
 
 dynamodb = boto3.resource("dynamodb")
 ddb_client = boto3.client("dynamodb")
+lambda_client = boto3.client("lambda")
 table = dynamodb.Table("presttige-db")
 
 DELAY_HOURS = 12
 VALIDITY_HOURS = 72
 REVIEWER_ID = "committee"
 VALID_ACTIONS = {"approve", "reject", "standby"}
+ACCOUNT_CREATE_FUNCTION = "presttige-account-create"
 serializer = TypeSerializer()
 
 
@@ -64,6 +66,10 @@ def lambda_handler(event, context):
         update_spec = build_lead_update(lead, decision, note, reviewed_at)
 
         transact_review(audit_item, lead["lead_id"], update_spec)
+
+        if decision == "approved":
+            trigger_account_create_async(lead["lead_id"])
+
         return respond(wants_html, 200, {"decision": decision, "recorded_at": reviewed_at})
     except ddb_client.exceptions.TransactionCanceledException:
         return respond(False, 410, {"error": "Token already consumed (race)"})
@@ -282,6 +288,17 @@ def transact_review(audit_item, lead_id, update_spec):
             },
         ]
     )
+
+
+def trigger_account_create_async(lead_id):
+    try:
+        lambda_client.invoke(
+            FunctionName=ACCOUNT_CREATE_FUNCTION,
+            InvocationType="Event",
+            Payload=json.dumps({"body": json.dumps({"lead_id": lead_id})}).encode("utf-8"),
+        )
+    except Exception as exc:
+        print(f"account-create async invoke failed for {lead_id}: {exc}")
 
 
 def serialize_item(item):

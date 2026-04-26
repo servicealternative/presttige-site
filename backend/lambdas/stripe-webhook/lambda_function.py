@@ -24,8 +24,10 @@ for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
 from shared.testers import is_tester_email, log_tester_event, normalize_email
 
 dynamodb = boto3.resource("dynamodb")
+lambda_client = boto3.client("lambda")
 
 LEADS_TABLE = dynamodb.Table("presttige-db")
+SEND_WELCOME_EMAIL_FUNCTION = "presttige-send-welcome-email"
 
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
@@ -95,6 +97,17 @@ def get_session_email(session):
     )
 
 
+def trigger_welcome_email_async(lead_id):
+    try:
+        lambda_client.invoke(
+            FunctionName=SEND_WELCOME_EMAIL_FUNCTION,
+            InvocationType="Event",
+            Payload=json.dumps({"body": json.dumps({"lead_id": lead_id})}).encode("utf-8"),
+        )
+    except Exception as exc:
+        print(f"send-welcome-email async invoke failed for {lead_id}: {exc}")
+
+
 def lambda_handler(event, context):
     try:
         if not STRIPE_IMPORT_OK:
@@ -162,6 +175,8 @@ def lambda_handler(event, context):
         product = safe_get(metadata, "product", "")
         plan = safe_get(metadata, "plan", "")
         term = safe_get(metadata, "term", "")
+        selected_tier = safe_get(metadata, "tier") or plan or ""
+        selected_periodicity = safe_get(metadata, "periodicity") or term or ""
 
         currency = (safe_get(session, "currency") or DEFAULT_CURRENCY).upper()
         product_type = normalize_product_type(metadata)
@@ -194,11 +209,14 @@ def lambda_handler(event, context):
                 SET payment_status = :paid,
                     access_status = :active,
                     stripe_checkout_completed = :true,
+                    stripe_session_id = :stripe_session_id,
                     stripe_subscription_id = :subscription_id,
                     stripe_customer_id = :customer_id,
                     #product = :product,
                     #plan = :plan,
                     #term = :term,
+                    selected_tier = :selected_tier,
+                    selected_periodicity = :selected_periodicity,
                     product_type = :product_type,
                     amount_paid = :amount_paid,
                     currency = :currency,
@@ -213,17 +231,22 @@ def lambda_handler(event, context):
                 ":paid": "paid",
                 ":active": "active",
                 ":true": True,
+                ":stripe_session_id": safe_get(session, "id", ""),
                 ":subscription_id": subscription_id,
                 ":customer_id": customer_id,
                 ":product": product,
                 ":plan": plan,
                 ":term": term,
+                ":selected_tier": selected_tier,
+                ":selected_periodicity": selected_periodicity,
                 ":product_type": product_type,
                 ":amount_paid": amount_paid,
                 ":currency": currency,
                 ":stripe_event_type": event_type
             }
         )
+
+        trigger_welcome_email_async(lead_id)
 
         return response(200, {
             "received": True,
