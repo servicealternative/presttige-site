@@ -1103,11 +1103,11 @@
         if (response.status === 409 && parsed && typeof parsed === 'object') {
           let userMessage;
           if (parsed.error === 'email_exists') {
-            userMessage = 'This email is already registered. If you need access to your existing application, contact founders@presttige.net.';
+            userMessage = 'This email is already registered. If you need access to your existing application, contact committee@presttige.net.';
           } else if (parsed.error === 'phone_exists') {
-            userMessage = 'This phone number is already registered. If you need access to your existing application, contact founders@presttige.net.';
+            userMessage = 'This phone number is already registered. If you need access to your existing application, contact committee@presttige.net.';
           } else {
-            userMessage = 'This application cannot be processed. Please contact founders@presttige.net.';
+            userMessage = 'This application cannot be processed. Please contact committee@presttige.net.';
           }
           setApplyMessage(userMessage, 'error');
           return;

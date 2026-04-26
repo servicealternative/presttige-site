@@ -179,7 +179,7 @@ def lambda_handler(event, context):
             }))
             return response(409, {
                 "error": "email_exists",
-                "message": "This email is already registered. If you need access to your existing application, contact founders@presttige.net"
+                "message": "This email is already registered. If you need access to your existing application, contact committee@presttige.net"
             })
 
         phone_full = re.sub(r"[\s\-()]", "", phone)
@@ -192,7 +192,7 @@ def lambda_handler(event, context):
             }))
             return response(409, {
                 "error": "phone_exists",
-                "message": "This phone number is already registered. If you need access to your existing application, contact founders@presttige.net"
+                "message": "This phone number is already registered. If you need access to your existing application, contact committee@presttige.net"
             })
 
         if is_tester:
