@@ -1,228 +1,141 @@
+import base64
 import boto3
+import json
 import time
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
-from boto3.dynamodb.conditions import Attr, Key
+from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.types import TypeSerializer
 
 dynamodb = boto3.resource("dynamodb")
+ddb_client = boto3.client("dynamodb")
 table = dynamodb.Table("presttige-db")
-audit_table = dynamodb.Table("presttige-review-audit")
 
 DELAY_HOURS = 12
 VALIDITY_HOURS = 72
-REVIEWER_ID = "Antonio"
-# Audit attribution stays explicit so review actions remain traceable across automated deploys.
+REVIEWER_ID = "committee"
+VALID_ACTIONS = {"approve", "reject", "standby"}
+serializer = TypeSerializer()
 
 
 def lambda_handler(event, context):
     try:
-        params = event.get("queryStringParameters") or {}
+        payload = parse_payload(event)
+        action = (payload.get("action") or "").strip().lower()
+        token = (payload.get("token") or payload.get("review_token") or "").strip()
+        lead_id = (payload.get("lead_id") or "").strip()
+        note = normalize_note(payload.get("note"))
+        wants_html = request_method(event) == "GET"
 
-        action = (params.get("action") or "").strip().lower()
-        lead_id = (params.get("lead_id") or "").strip()
-        review_token = (params.get("review_token") or "").strip()
+        if action not in VALID_ACTIONS:
+            return respond(wants_html, 400, {"error": "Invalid action", "valid": sorted(VALID_ACTIONS)})
 
-        if not action or not lead_id or not review_token:
-            return html_response("Missing parameters")
+        lead = find_lead(token=token, lead_id=lead_id)
+        if not lead:
+            return respond(wants_html, 404, {"error": "Token not found"})
 
-        res = table.get_item(Key={"lead_id": lead_id})
-        item = res.get("Item")
-
-        if not item:
-            return html_response("Lead not found")
-
-        if item.get("review_token") != review_token:
-            return html_response("Invalid review token")
-
-        if action not in ("approve", "reject", "standby", "requeue"):
-            return html_response("Invalid action", status_code=400)
-
-        if item.get("review_status") != "pending":
-            return html_response(
-                "Review action already processed",
-                "This application is no longer pending review.",
-                status_code=409,
-            )
-
-        existing_audit = audit_table.query(
-            IndexName="lead-id-index",
-            KeyConditionExpression=Key("lead_id").eq(lead_id),
-            FilterExpression=Attr("token_used").eq(review_token),
-        )
-
-        if existing_audit.get("Items"):
-            return html_response(
-                "Review action already processed",
-                "This review token has already been used.",
-                status_code=409,
-            )
-
-        now = int(time.time())
-        audit_timestamp = datetime.now(timezone.utc).isoformat()
-        previous_cycle = item.get("approval_cycle", Decimal(0))
-        is_test = bool(item.get("is_test", False))
-
-        metadata = build_metadata(event, context)
-        audit_action = "requeue" if action == "standby" else action
-
-        if action == "approve":
-            invite_send_at = now + (DELAY_HOURS * 60 * 60)
-            invite_expires_at = invite_send_at + (VALIDITY_HOURS * 60 * 60)
-            reminder_due_at = invite_send_at + (48 * 60 * 60)
-            new_cycle = previous_cycle
-
-            write_audit_entry(
-                lead_id=lead_id,
-                action=audit_action,
-                token_used=review_token,
-                timestamp=audit_timestamp,
-                previous_state={
-                    "review_status": item.get("review_status", ""),
-                    "approval_cycle": previous_cycle,
-                    "review_cycle": previous_cycle,
+        if lead.get("review_token_status") == "used":
+            return respond(
+                wants_html,
+                410,
+                {
+                    "error": "Token already used",
+                    "decision": lead.get("review_status"),
+                    "reviewed_at": lead.get("reviewed_at"),
                 },
-                new_state={
-                    "review_status": "approved",
-                    "approval_cycle": new_cycle,
-                    "review_cycle": new_cycle,
+            )
+
+        if lead.get("review_status") not in (None, "", "pending"):
+            return respond(
+                wants_html,
+                410,
+                {
+                    "error": "Application already reviewed",
+                    "decision": lead.get("review_status"),
+                    "reviewed_at": lead.get("reviewed_at"),
                 },
-                metadata=metadata,
-                is_test=is_test,
-            )
-            reviewed_at = datetime.now(timezone.utc).isoformat()
-
-            table.update_item(
-                Key={"lead_id": lead_id},
-                UpdateExpression="""
-                    SET review_status = :review_status,
-                        token_status = :token_status,
-                        reviewed_at = :reviewed_at,
-                        updated_at = :updated_at,
-                        invite_status = :invite_status,
-                        invite_send_at = :invite_send_at,
-                        invite_expires_at = :invite_expires_at,
-                        reminder_due_at = :reminder_due_at,
-                        reinvite_eligible = :reinvite_eligible,
-                        reinvite_count = if_not_exists(reinvite_count, :zero),
-                        review_token_status = :review_token_status,
-                        review_token_used_at = :review_token_used_at
-                """,
-                ExpressionAttributeValues={
-                    ":review_status": "approved",
-                    ":token_status": "active",
-                    ":reviewed_at": reviewed_at,
-                    ":updated_at": reviewed_at,
-                    ":invite_status": "scheduled",
-                    ":invite_send_at": Decimal(invite_send_at),
-                    ":invite_expires_at": Decimal(invite_expires_at),
-                    ":reminder_due_at": Decimal(reminder_due_at),
-                    ":reinvite_eligible": True,
-                    ":review_token_status": "used",
-                    ":review_token_used_at": reviewed_at,
-                    ":zero": Decimal(0),
-                }
             )
 
-            return html_response("APPROVED")
+        source_ip, user_agent = build_request_metadata(event, context)
+        reviewed_at = datetime.now(timezone.utc).isoformat()
+        decision = map_decision(action)
+        audit_item = build_audit_item(lead, token, decision, note, reviewed_at, source_ip, user_agent)
+        update_spec = build_lead_update(lead, decision, note, reviewed_at)
 
-        elif action == "reject":
-            write_audit_entry(
-                lead_id=lead_id,
-                action=audit_action,
-                token_used=review_token,
-                timestamp=audit_timestamp,
-                previous_state={
-                    "review_status": item.get("review_status", ""),
-                    "approval_cycle": previous_cycle,
-                    "review_cycle": previous_cycle,
-                },
-                new_state={
-                    "review_status": "rejected",
-                    "approval_cycle": previous_cycle,
-                    "review_cycle": previous_cycle,
-                },
-                metadata=metadata,
-                is_test=is_test,
-            )
-            reviewed_at = datetime.now(timezone.utc).isoformat()
-
-            table.update_item(
-                Key={"lead_id": lead_id},
-                UpdateExpression="""
-                    SET review_status = :review_status,
-                        token_status = :token_status,
-                        reviewed_at = :reviewed_at,
-                        updated_at = :updated_at,
-                        invite_status = :invite_status,
-                        reinvite_eligible = :reinvite_eligible,
-                        review_token_status = :review_token_status,
-                        review_token_used_at = :review_token_used_at
-                """,
-                ExpressionAttributeValues={
-                    ":review_status": "rejected",
-                    ":token_status": "inactive",
-                    ":reviewed_at": reviewed_at,
-                    ":updated_at": reviewed_at,
-                    ":invite_status": "closed",
-                    ":reinvite_eligible": False,
-                    ":review_token_status": "used",
-                    ":review_token_used_at": reviewed_at,
-                }
-            )
-
-            return html_response("REJECTED")
-
-        elif action in ("standby", "requeue"):
-            write_audit_entry(
-                lead_id=lead_id,
-                action="requeue",
-                token_used=review_token,
-                timestamp=audit_timestamp,
-                previous_state={
-                    "review_status": item.get("review_status", ""),
-                    "approval_cycle": previous_cycle,
-                    "review_cycle": previous_cycle,
-                },
-                new_state={
-                    "review_status": "standby",
-                    "approval_cycle": previous_cycle,
-                    "review_cycle": previous_cycle,
-                },
-                metadata=metadata,
-                is_test=is_test,
-            )
-            reviewed_at = datetime.now(timezone.utc).isoformat()
-
-            table.update_item(
-                Key={"lead_id": lead_id},
-                UpdateExpression="""
-                    SET review_status = :review_status,
-                        token_status = :token_status,
-                        reviewed_at = :reviewed_at,
-                        updated_at = :updated_at,
-                        invite_status = :invite_status,
-                        review_token_status = :review_token_status,
-                        review_token_used_at = :review_token_used_at
-                """,
-                ExpressionAttributeValues={
-                    ":review_status": "standby",
-                    ":token_status": "inactive",
-                    ":reviewed_at": reviewed_at,
-                    ":updated_at": reviewed_at,
-                    ":invite_status": "standby",
-                    ":review_token_status": "used",
-                    ":review_token_used_at": reviewed_at,
-                }
-            )
-
-            return html_response("STANDBY")
-
-    except Exception as e:
-        return html_response(f"Error: {str(e)}", status_code=500)
+        transact_review(audit_item, lead["lead_id"], update_spec)
+        return respond(wants_html, 200, {"decision": decision, "recorded_at": reviewed_at})
+    except ddb_client.exceptions.TransactionCanceledException:
+        return respond(False, 410, {"error": "Token already consumed (race)"})
+    except Exception as exc:
+        return respond(False, 500, {"error": "Internal error", "detail": str(exc)})
 
 
-def build_metadata(event, context):
+def parse_payload(event):
+    payload = {}
+
+    body = event.get("body")
+    if body:
+        if event.get("isBase64Encoded"):
+            body = base64.b64decode(body).decode("utf-8")
+        try:
+            payload.update(json.loads(body or "{}"))
+        except json.JSONDecodeError:
+            pass
+
+    payload.update(event.get("queryStringParameters") or {})
+    return payload
+
+
+def request_method(event):
+    return (
+        event.get("requestContext", {}).get("http", {}).get("method")
+        or event.get("httpMethod")
+        or "POST"
+    ).upper()
+
+
+def normalize_note(value):
+    if value is None:
+        return None
+    cleaned = str(value).strip()
+    return cleaned[:2000] if cleaned else None
+
+
+def find_lead(token, lead_id=""):
+    if lead_id:
+        item = table.get_item(Key={"lead_id": lead_id}).get("Item")
+        if item and item.get("review_token") == token:
+            return item
+        return None
+
+    scan_kwargs = {
+        "FilterExpression": "review_token = :token",
+        "ExpressionAttributeValues": {":token": token},
+    }
+
+    while True:
+        result = table.scan(**scan_kwargs)
+        items = result.get("Items") or []
+        if items:
+            return items[0]
+
+        last_evaluated_key = result.get("LastEvaluatedKey")
+        if not last_evaluated_key:
+            return None
+
+        scan_kwargs["ExclusiveStartKey"] = last_evaluated_key
+
+
+def map_decision(action):
+    if action == "approve":
+        return "approved"
+    if action == "reject":
+        return "rejected"
+    return "standby"
+
+
+def build_request_metadata(event, context):
     headers = event.get("headers") or {}
     request_context = event.get("requestContext") or {}
     http_context = request_context.get("http") or {}
@@ -231,32 +144,151 @@ def build_metadata(event, context):
         or request_context.get("identity", {}).get("sourceIp")
         or headers.get("x-forwarded-for", "").split(",")[0].strip()
     )
+    user_agent = headers.get("user-agent") or headers.get("User-Agent") or ""
+    return source_ip or "unknown", user_agent or "unknown"
+
+
+def build_audit_item(lead, token, decision, note, reviewed_at, source_ip, user_agent):
+    previous_cycle = lead.get("approval_cycle", Decimal(0))
     return {
-        "ip": source_ip or "",
-        "user_agent": headers.get("user-agent") or headers.get("User-Agent") or "",
-        "request_id": request_context.get("requestId") or getattr(context, "aws_request_id", ""),
+        "audit_id": str(uuid.uuid4()),
+        "timestamp": reviewed_at,
+        "lead_id": lead["lead_id"],
+        "action": decision,
+        "decision": decision,
+        "note": note,
+        "reviewer_id": REVIEWER_ID,
+        "token_used": token,
+        "review_attempt_id": lead.get("review_attempt_id"),
+        "source_ip": source_ip,
+        "user_agent": user_agent,
+        "metadata": {
+            "ip": source_ip,
+            "user_agent": user_agent,
+        },
+        "previous_state": {
+            "review_status": lead.get("review_status", ""),
+            "approval_cycle": previous_cycle,
+            "review_cycle": previous_cycle,
+        },
+        "new_state": {
+            "review_status": decision,
+            "approval_cycle": previous_cycle,
+            "review_cycle": previous_cycle,
+        },
+        "is_test": bool(lead.get("is_test", False)),
     }
 
 
-def write_audit_entry(lead_id, action, token_used, timestamp, previous_state, new_state, metadata, is_test=False):
-    audit_table.put_item(
-        Item={
-            "audit_id": str(uuid.uuid4()),
-            "timestamp": timestamp,
-            "lead_id": lead_id,
-            "action": action,
-            "reviewer_id": REVIEWER_ID,
-            "token_used": token_used,
-            "previous_state": previous_state,
-            "new_state": new_state,
-            "metadata": metadata,
-            "is_test": is_test,
-        },
-        ConditionExpression="attribute_not_exists(audit_id)",
+def build_lead_update(lead, decision, note, reviewed_at):
+    expressions = [
+        "review_token_status = :used",
+        "review_token_used_at = :reviewed_at",
+        "review_status = :review_status",
+        "reviewed_at = :reviewed_at",
+        "updated_at = :updated_at",
+        "review_note = :review_note",
+    ]
+    values = {
+        ":used": "used",
+        ":active": "active",
+        ":review_status": decision,
+        ":reviewed_at": reviewed_at,
+        ":updated_at": reviewed_at,
+        ":review_note": note,
+    }
+
+    if decision == "approved":
+        now_epoch = int(time.time())
+        invite_send_at = now_epoch + (DELAY_HOURS * 60 * 60)
+        invite_expires_at = invite_send_at + (VALIDITY_HOURS * 60 * 60)
+        reminder_due_at = invite_send_at + (48 * 60 * 60)
+        expressions.extend(
+            [
+                "token_status = :token_status",
+                "invite_status = :invite_status",
+                "invite_send_at = :invite_send_at",
+                "invite_expires_at = :invite_expires_at",
+                "reminder_due_at = :reminder_due_at",
+                "reinvite_eligible = :reinvite_eligible",
+                "reinvite_count = if_not_exists(reinvite_count, :zero)",
+            ]
+        )
+        values.update(
+            {
+                ":token_status": "active",
+                ":invite_status": "scheduled",
+                ":invite_send_at": Decimal(invite_send_at),
+                ":invite_expires_at": Decimal(invite_expires_at),
+                ":reminder_due_at": Decimal(reminder_due_at),
+                ":reinvite_eligible": True,
+                ":zero": Decimal(0),
+            }
+        )
+    elif decision == "rejected":
+        expressions.extend(
+            [
+                "token_status = :token_status",
+                "invite_status = :invite_status",
+                "reinvite_eligible = :reinvite_eligible",
+            ]
+        )
+        values.update(
+            {
+                ":token_status": "inactive",
+                ":invite_status": "closed",
+                ":reinvite_eligible": False,
+            }
+        )
+    else:
+        expressions.extend(
+            [
+                "token_status = :token_status",
+                "invite_status = :invite_status",
+            ]
+        )
+        values.update(
+            {
+                ":token_status": "inactive",
+                ":invite_status": "standby",
+            }
+        )
+
+    return {
+        "UpdateExpression": "SET " + ", ".join(expressions),
+        "ConditionExpression": "review_token_status = :active",
+        "ExpressionAttributeValues": values,
+    }
+
+
+def transact_review(audit_item, lead_id, update_spec):
+    ddb_client.transact_write_items(
+        TransactItems=[
+            {
+                "Put": {
+                    "TableName": "presttige-review-audit",
+                    "Item": serialize_item(audit_item),
+                    "ConditionExpression": "attribute_not_exists(audit_id)",
+                }
+            },
+            {
+                "Update": {
+                    "TableName": "presttige-db",
+                    "Key": serialize_item({"lead_id": lead_id}),
+                    "UpdateExpression": update_spec["UpdateExpression"],
+                    "ConditionExpression": update_spec["ConditionExpression"],
+                    "ExpressionAttributeValues": serialize_item(update_spec["ExpressionAttributeValues"]),
+                }
+            },
+        ]
     )
 
 
-def html_response(message: str, detail: str = "Presttige review action processed.", status_code: int = 200):
+def serialize_item(item):
+    return {key: serializer.serialize(value) for key, value in item.items()}
+
+
+def html_response(message, detail="Presttige review action processed.", status_code=200):
     return {
         "statusCode": status_code,
         "headers": {
@@ -309,3 +341,23 @@ def html_response(message: str, detail: str = "Presttige review action processed
         </html>
         """
     }
+
+
+def json_response(status_code, body):
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "https://presttige.net",
+        },
+        "body": json.dumps(body),
+    }
+
+
+def respond(wants_html, status_code, body):
+    if wants_html:
+        if status_code == 200:
+            return html_response(body.get("decision", "Recorded").upper(), "Presttige review action processed.", status_code)
+        detail = body.get("error") or body.get("detail") or "Presttige review action could not be processed."
+        return html_response("Review action unavailable", detail, status_code)
+    return json_response(status_code, body)

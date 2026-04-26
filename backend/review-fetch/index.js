@@ -1,0 +1,115 @@
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { SecretsManagerClient, GetSecretValueCommand } = require("@aws-sdk/client-secrets-manager");
+const { getSignedUrl } = require("@aws-sdk/cloudfront-signer");
+
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
+const sm = new SecretsManagerClient({ region: "us-east-1" });
+
+const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
+const CLOUDFRONT_KEY_PAIR_ID = process.env.CLOUDFRONT_KEY_PAIR_ID;
+
+let cachedKey = null;
+
+async function loadSigningKey() {
+  if (cachedKey) return cachedKey;
+  const res = await sm.send(new GetSecretValueCommand({ SecretId: "presttige-cloudfront-signing-key" }));
+  cachedKey = res.SecretString;
+  return cachedKey;
+}
+
+function signUrl(key, privateKey) {
+  return getSignedUrl({
+    url: `https://${CLOUDFRONT_DOMAIN}/${key}`,
+    keyPairId: CLOUDFRONT_KEY_PAIR_ID,
+    dateLessThan: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    privateKey,
+  });
+}
+
+exports.handler = async (event) => {
+  const token = event?.queryStringParameters?.token;
+  if (!token) {
+    return response(400, { error: "Missing token" });
+  }
+
+  try {
+    const lead = await findLeadByToken(token);
+    if (!lead) {
+      return response(404, { error: "Token not found or invalid" });
+    }
+
+    if (lead.review_token_status === "used") {
+      return response(410, {
+        error: "Token already used",
+        used_at: lead.reviewed_at,
+        decision: lead.review_status,
+      });
+    }
+
+    const privateKey = await loadSigningKey();
+    const photos = Object.entries(lead.photo_uploads || {})
+      .filter(([, photo]) => photo?.status === "ready" && photo?.thumbnails?.["400"] && photo?.thumbnails?.["1200"])
+      .map(([photoId, photo]) => ({
+        photo_id: photoId,
+        thumb_400: signUrl(photo.thumbnails["400"], privateKey),
+        thumb_1200: signUrl(photo.thumbnails["1200"], privateKey),
+      }));
+
+    return response(200, {
+      lead_id: lead.lead_id,
+      profile: {
+        name: lead.name || null,
+        age: lead.age || null,
+        country: lead.country || null,
+        city: lead.city || null,
+        occupation: lead.occupation || null,
+        company: lead.company || null,
+        short_introduction: lead.short_introduction || lead.bio || null,
+        why_presttige: lead.why_presttige || lead.why || null,
+        instagram: lead.instagram || null,
+        linkedin: lead.linkedin || null,
+        website: lead.website || null,
+      },
+      photos,
+      submitted_at: lead.created_at,
+    });
+  } catch (err) {
+    console.error("review-fetch error", err);
+    return response(500, { error: "Internal error", detail: err.message });
+  }
+};
+
+async function findLeadByToken(token) {
+  let ExclusiveStartKey;
+
+  do {
+    const result = await ddb.send(
+      new ScanCommand({
+        TableName: "presttige-db",
+        FilterExpression: "review_token = :token",
+        ExpressionAttributeValues: { ":token": token },
+        ExclusiveStartKey,
+      })
+    );
+
+    if (result.Items?.length) {
+      return result.Items[0];
+    }
+
+    ExclusiveStartKey = result.LastEvaluatedKey;
+  } while (ExclusiveStartKey);
+
+  return null;
+}
+
+function response(statusCode, body) {
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "https://presttige.net",
+    },
+    body: JSON.stringify(body),
+  };
+}

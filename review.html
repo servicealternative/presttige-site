@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-primary: #0A0A0A;
+      --pp-paper: #FBF9F4;
+      --pp-background: #F5F2ED;
+      --pp-accent: #8C7040;
+      --pp-hairline: #D9D2C5;
+      --pp-muted: #4A4A4A;
+      --pp-error: #9f1d1d;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--pp-background);
+      color: var(--pp-primary);
+      font-family: "Source Serif Pro", Georgia, serif;
+    }
+    .review-shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 48px 20px 72px;
+    }
+    .review-header {
+      margin-bottom: 32px;
+    }
+    .review-eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    .review-title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(42px, 7vw, 66px);
+      font-style: italic;
+      font-weight: 500;
+      line-height: 0.95;
+    }
+    .review-state,
+    .review-error {
+      padding: 24px;
+      background: var(--pp-paper);
+      border: 1px solid var(--pp-hairline);
+      border-radius: 10px;
+    }
+    .review-error {
+      color: var(--pp-error);
+    }
+    .review-grid {
+      display: grid;
+      gap: 28px;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      align-items: start;
+    }
+    .review-card {
+      background: var(--pp-paper);
+      border: 1px solid var(--pp-hairline);
+      border-radius: 10px;
+      padding: 28px;
+    }
+    .review-card h2,
+    .review-card h3 {
+      margin: 0 0 16px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 32px;
+      font-style: italic;
+      font-weight: 500;
+    }
+    .review-meta {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .review-meta td {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--pp-hairline);
+      vertical-align: top;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .review-meta td:first-child {
+      width: 132px;
+      color: var(--pp-accent);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .review-copy {
+      margin: 0 0 16px;
+      color: var(--pp-muted);
+      font-size: 16px;
+      line-height: 1.75;
+    }
+    .review-photos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .review-photo {
+      display: block;
+      background: #ece7dd;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--pp-hairline);
+    }
+    .review-photo img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+    }
+    .review-actions {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .review-actions button,
+    .review-confirm {
+      width: 100%;
+      padding: 14px 18px;
+      background: transparent;
+      border: 1px solid var(--pp-accent);
+      color: var(--pp-accent);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    .review-actions button.is-selected {
+      background: var(--pp-primary);
+      border-color: var(--pp-primary);
+      color: var(--pp-paper);
+    }
+    .review-note {
+      width: 100%;
+      min-height: 140px;
+      padding: 14px;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 8px;
+      background: #fffdf9;
+      color: var(--pp-primary);
+      font: inherit;
+      resize: vertical;
+      margin-bottom: 16px;
+    }
+    .review-subtitle {
+      margin: 0 0 16px;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+    .review-status {
+      color: var(--pp-accent);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin: 18px 0 0;
+    }
+    @media (max-width: 920px) {
+      .review-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="review-shell">
+    <header class="review-header">
+      <p class="review-eyebrow">Presttige Committee Review</p>
+      <h1 class="review-title">Application Review</h1>
+    </header>
+    <section id="app" class="review-state">Loading application…</section>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const app = document.getElementById("app");
+      const token = window.location.pathname.split("/").filter(Boolean).pop();
+      const presetAction = new URLSearchParams(window.location.search).get("action");
+      let selectedAction = presetAction || "";
+      let currentData = null;
+
+      if (!token || token === "review.html" || token === "review") {
+        renderError("Missing review token.");
+        return;
+      }
+
+      load();
+
+      async function load() {
+        try {
+          const response = await fetch(`${API_BASE}/review-fetch?token=${encodeURIComponent(token)}`);
+          const data = await response.json();
+
+          if (response.status === 410) {
+            renderUsed(data);
+            return;
+          }
+
+          if (!response.ok) {
+            renderError(data.error || "Unable to load this application.");
+            return;
+          }
+
+          currentData = data;
+          renderReview(data);
+        } catch (error) {
+          renderError("Unable to load the application right now. If the issue persists, contact support.");
+        }
+      }
+
+      function renderReview(data) {
+        const profile = data.profile || {};
+        const photos = data.photos || [];
+        app.className = "review-grid";
+        app.innerHTML = `
+          <section class="review-card">
+            <h2>${escapeHtml(profile.name || "Applicant")}</h2>
+            <table class="review-meta">
+              ${metaRow("Age", profile.age)}
+              ${metaRow("Country", profile.country)}
+              ${metaRow("City", profile.city)}
+              ${metaRow("Occupation", profile.occupation)}
+              ${metaRow("Company", profile.company)}
+              ${metaRow("Instagram", profile.instagram)}
+              ${metaRow("LinkedIn", profile.linkedin)}
+              ${metaRow("Website", profile.website)}
+            </table>
+            <p class="review-copy">${escapeHtml(profile.short_introduction || "No introduction provided.")}</p>
+            <p class="review-copy">${escapeHtml(profile.why_presttige || "No Presttige rationale provided.")}</p>
+            <div class="review-photos">
+              ${photos.map(photo => `
+                <a class="review-photo" href="${photo.thumb_1200}" target="_blank" rel="noopener">
+                  <img src="${photo.thumb_400}" alt="Applicant photo">
+                </a>
+              `).join("")}
+            </div>
+          </section>
+          <aside class="review-card">
+            <h3>Decision</h3>
+            <p class="review-subtitle">Choose one outcome, add an optional note, and record the decision once.</p>
+            <div class="review-actions">
+              ${actionButton("approve", "Approve")}
+              ${actionButton("reject", "Reject")}
+              ${actionButton("standby", "Standby")}
+            </div>
+            <textarea id="review-note" class="review-note" placeholder="Optional note for the audit trail."></textarea>
+            <button id="review-confirm" class="review-confirm">Confirm decision</button>
+            <p id="review-status" class="review-status"></p>
+          </aside>
+        `;
+
+        app.querySelectorAll("[data-action]").forEach((button) => {
+          button.addEventListener("click", () => {
+            selectedAction = button.dataset.action;
+            renderReview(data);
+          });
+        });
+
+        app.querySelector("#review-confirm").addEventListener("click", submitDecision);
+      }
+
+      async function submitDecision() {
+        if (!selectedAction) {
+          setStatus("Choose a decision first.");
+          return;
+        }
+
+        const note = document.getElementById("review-note").value;
+        setStatus("Recording decision…");
+
+        try {
+          const response = await fetch(`${API_BASE}/review-action`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token, action: selectedAction, note })
+          });
+          const data = await response.json();
+
+          if (response.status === 410) {
+            renderUsed(data);
+            return;
+          }
+
+          if (!response.ok) {
+            setStatus(data.error || "Unable to record the decision.");
+            return;
+          }
+
+          app.className = "review-state";
+          app.innerHTML = `
+            <div class="review-card">
+              <h2>Decision recorded</h2>
+              <p class="review-copy">${escapeHtml(data.decision || selectedAction)} recorded successfully.</p>
+              <p class="review-copy">This review token is now closed.</p>
+            </div>
+          `;
+        } catch (error) {
+          setStatus("Unable to record the decision right now. If needed, contact support.");
+        }
+      }
+
+      function renderUsed(data) {
+        app.className = "review-state";
+        app.innerHTML = `
+          <div class="review-card">
+            <h2>Already reviewed</h2>
+            <p class="review-copy">This application has already been reviewed${data.decision ? `: ${escapeHtml(data.decision)}` : "."}</p>
+            ${data.used_at ? `<p class="review-copy">Recorded at ${escapeHtml(data.used_at)}.</p>` : ""}
+          </div>
+        `;
+      }
+
+      function renderError(message) {
+        app.className = "review-error";
+        app.textContent = message;
+      }
+
+      function setStatus(message) {
+        const status = document.getElementById("review-status");
+        if (status) status.textContent = message;
+      }
+
+      function metaRow(label, value) {
+        if (!value) return "";
+        return `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`;
+      }
+
+      function actionButton(action, label) {
+        const selected = action === selectedAction ? " is-selected" : "";
+        return `<button type="button" class="${selected.trim()}" data-action="${action}">${label}</button>`;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+    })();
+  </script>
+</body>
+</html>

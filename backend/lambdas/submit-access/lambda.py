@@ -16,6 +16,7 @@ from shared.testers import get_tester_email_for_lead_id, log_tester_event
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("presttige-db")
 ses = boto3.client("ses", region_name="eu-west-1")
+lambda_client = boto3.client("lambda", region_name="us-east-1")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -281,6 +282,12 @@ def lambda_handler(event, context):
                     ":updated_at": application_received_sent_at,
                 },
             )
+
+        lambda_client.invoke(
+            FunctionName="presttige-send-committee-email",
+            InvocationType="Event",
+            Payload=json.dumps({"body": json.dumps({"lead_id": lead_id})}).encode("utf-8"),
+        )
 
         return response(200, {
             "message": "application_submitted",
