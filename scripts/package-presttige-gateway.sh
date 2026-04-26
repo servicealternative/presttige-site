@@ -2,18 +2,17 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-LAMBDA_NAME="presttige-create-lead"
+LAMBDA_NAME="presttige-gateway"
+LAMBDA_DIR="$ROOT/backend/lambdas/gateway"
 BUILD_DIR="/tmp/${LAMBDA_NAME}-package"
 ZIP_PATH="/tmp/${LAMBDA_NAME}-package.zip"
 
 rm -rf "$BUILD_DIR" "$ZIP_PATH"
-mkdir -p "$BUILD_DIR/backend/email" "$BUILD_DIR/shared"
+mkdir -p "$BUILD_DIR/shared"
 
-cp "$ROOT/backend/lambdas/create-lead/lambda.py" "$BUILD_DIR/lambda.py"
-cp "$ROOT/backend/email_utils.py" "$BUILD_DIR/email_utils.py"
-cp "$ROOT/backend/email/signature.html" "$BUILD_DIR/backend/email/signature.html"
-cp "$ROOT/backend/email/presttige_transactional_email.html" "$BUILD_DIR/backend/email/presttige_transactional_email.html"
-cp "$ROOT/backend/email/presttige_transactional_email.txt" "$BUILD_DIR/backend/email/presttige_transactional_email.txt"
+python3 -m pip install -r "$LAMBDA_DIR/requirements.txt" -t "$BUILD_DIR" --no-cache-dir --quiet
+
+cp "$LAMBDA_DIR/lambda_function.py" "$BUILD_DIR/lambda_function.py"
 cp "$ROOT/shared/__init__.py" "$BUILD_DIR/shared/__init__.py"
 cp "$ROOT/shared/testers.py" "$BUILD_DIR/shared/testers.py"
 
