@@ -8,8 +8,8 @@ const ses = new SESClient({ region: "us-east-1" });
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
 
 const TABLE_NAME = "presttige-db";
-const FROM = "private@presttige.net";
-const REPLY_TO = "support@presttige.net";
+const FROM = "committee@presttige.net";
+const REPLY_TO = "committee@presttige.net";
 const BCC = "committee@presttige.net";
 
 function loadTemplate() {
@@ -64,6 +64,14 @@ exports.handler = async (event) => {
       tier_select_url: tierSelectUrl,
       disclaimer:
         "This invitation is private and time-limited. The link above expires in 7 days. If you have questions, reply to this email.",
+    });
+
+    console.log("SES sender config", {
+      from: FROM,
+      reply_to: REPLY_TO,
+      bcc: BCC,
+      lead_id,
+      recipient_email: lead.email,
     });
 
     await ses.send(

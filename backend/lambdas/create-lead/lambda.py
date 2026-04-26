@@ -37,7 +37,8 @@ ses = boto3.client("ses", region_name="us-east-1")
 
 # CONFIG
 TOKEN_SECRET = os.environ.get("TOKEN_SECRET", "")
-FROM_EMAIL = "info@presttige.net"
+FROM_EMAIL = "committee@presttige.net"
+REPLY_TO_EMAIL = "committee@presttige.net"
 VERIFY_BASE_URL = "https://presttige.net/verify-email.html"
 
 CORS_HEADERS = {
@@ -260,8 +261,17 @@ def lambda_handler(event, context):
             "sign_off_title": "PRESTTIGE PRIVATE OFFICE",
         }
 
+        print(json.dumps({
+            "event": "verification_email_sender",
+            "lead_id": lead_id,
+            "email": email,
+            "source": FROM_EMAIL,
+            "reply_to": REPLY_TO_EMAIL,
+        }))
+
         ses_response = ses.send_email(
             Source=FROM_EMAIL,
+            ReplyToAddresses=[REPLY_TO_EMAIL],
             Destination={
                 "ToAddresses": [email],
             },

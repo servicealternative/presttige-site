@@ -14,8 +14,8 @@ const sm = new SecretsManagerClient({ region: "us-east-1" });
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
 const CLOUDFRONT_KEY_PAIR_ID = process.env.CLOUDFRONT_KEY_PAIR_ID;
 const REVIEW_BASE_URL = process.env.REVIEW_BASE_URL || "https://presttige.net/review";
-const FROM_ADDRESS = "private@presttige.net";
-const REPLY_TO = "committee@presttige.net";
+const FROM_ADDRESS = "office@presttige.net";
+const REPLY_TO = "info@presttige.net";
 const TO_ADDRESS = "committee@presttige.net";
 
 let cachedSecrets = null;
@@ -166,6 +166,13 @@ exports.handler = async (event) => {
     const attemptId = crypto.randomBytes(8).toString("hex");
     const token = generateReviewToken(leadId, attemptId, secrets.tokenSecret);
     const html = fillTemplate(loadTemplate(), buildBodyVariables(lead, token, readyPhotos, secrets.cfPrivateKey));
+
+    console.log("SES sender config", {
+      from: FROM_ADDRESS,
+      reply_to: REPLY_TO,
+      to: TO_ADDRESS,
+      lead_id: leadId,
+    });
 
     await ses.send(
       new SendEmailCommand({

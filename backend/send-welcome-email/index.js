@@ -9,7 +9,7 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1"
 
 const TABLE_NAME = "presttige-db";
 const FROM = "private@presttige.net";
-const REPLY_TO = "support@presttige.net";
+const REPLY_TO = "info@presttige.net";
 const BCC = "committee@presttige.net";
 
 function loadTemplate() {
@@ -69,7 +69,15 @@ exports.handler = async (event) => {
       body_copy: `Your ${label} membership is active. Click below to access your account.`,
       welcome_url: welcomeLink,
       disclaimer:
-        "This link is private. If you did not expect this email, please reply to support@presttige.net immediately.",
+        "This link is private. If you did not expect this email, please reply to info@presttige.net immediately.",
+    });
+
+    console.log("SES sender config", {
+      from: FROM,
+      reply_to: REPLY_TO,
+      bcc: BCC,
+      lead_id,
+      recipient_email: lead.email,
     });
 
     await ses.send(
