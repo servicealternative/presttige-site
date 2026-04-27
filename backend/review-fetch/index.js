@@ -39,14 +39,6 @@ exports.handler = async (event) => {
       return response(404, { error: "Token not found or invalid" });
     }
 
-    if (lead.review_token_status === "used") {
-      return response(410, {
-        error: "Token already used",
-        used_at: lead.reviewed_at,
-        decision: lead.review_status,
-      });
-    }
-
     const privateKey = await loadSigningKey();
     const photos = Object.entries(lead.photo_uploads || {})
       .filter(([, photo]) => photo?.status === "ready" && photo?.thumbnails?.["400"] && photo?.thumbnails?.["1200"])
@@ -77,6 +69,7 @@ exports.handler = async (event) => {
       },
       photos,
       submitted_at: lead.created_at,
+      review: buildReviewState(lead),
     });
   } catch (err) {
     console.error("review-fetch error", err);
@@ -105,6 +98,26 @@ async function findLeadByToken(token) {
   } while (ExclusiveStartKey);
 
   return null;
+}
+
+function buildReviewState(lead) {
+  const decision = normalizeDecision(lead.review_status);
+  const isRecorded = Boolean(decision);
+
+  return {
+    token_status: lead.review_token_status || "active",
+    decision,
+    reviewed_at: lead.reviewed_at || lead.review_token_used_at || null,
+    reviewed_by: lead.reviewed_by || null,
+    note: lead.review_note || null,
+    locked: isRecorded,
+    state: isRecorded ? "recorded" : "pending",
+  };
+}
+
+function normalizeDecision(reviewStatus) {
+  const value = String(reviewStatus || "").trim().toLowerCase();
+  return ["approved", "rejected", "standby"].includes(value) ? value : null;
 }
 
 function response(statusCode, body) {

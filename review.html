@@ -210,6 +210,54 @@
       text-transform: uppercase;
     }
 
+    .review-banner {
+      margin: 0 0 24px;
+      padding: 18px 20px;
+      border: 1px solid var(--pp-accent);
+      background: rgba(140, 112, 64, 0.08);
+    }
+
+    .review-banner-label {
+      margin: 0 0 8px;
+      color: var(--pp-accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .review-banner-title {
+      margin: 0 0 10px;
+      color: var(--pp-primary);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(30px, 4vw, 42px);
+      font-style: italic;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .review-meta {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .review-readonly {
+      padding: 18px;
+      border: 1px solid var(--pp-hairline);
+      background: rgba(217, 210, 197, 0.18);
+    }
+
+    .review-readonly-title {
+      margin: 0 0 10px;
+      color: var(--pp-primary);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
     @media (max-width: 920px) {
       .review-grid {
         grid-template-columns: 1fr;
@@ -237,6 +285,7 @@
       const token = window.location.pathname.split("/").filter(Boolean).pop();
       const presetAction = new URLSearchParams(window.location.search).get("action");
       let selectedAction = presetAction || "";
+      let lastLoadedData = null;
 
       if (!token || token === "review" || token === "review.html") {
         renderError("Missing review token.");
@@ -257,6 +306,13 @@
 
           if (!response.ok) {
             renderError(data.error || "Unable to load this application.");
+            return;
+          }
+
+          lastLoadedData = data;
+
+          if (isRecordedDecision(data.review)) {
+            renderRecorded(data);
             return;
           }
 
@@ -329,6 +385,76 @@
         app.querySelector("#review-confirm").addEventListener("click", submitDecision);
       }
 
+      function renderRecorded(data) {
+        const profile = data.profile || {};
+        const photos = data.photos || [];
+        const phone = [profile.phone_country, profile.phone].filter(Boolean).join(" ");
+        const review = data.review || {};
+        const decision = normalizeDecision(review.decision);
+        const decisionLabel = decision ? decision.toUpperCase() : "RECORDED";
+        const reviewedAt = formatReviewedAt(review.reviewed_at);
+        const reviewedBy = review.reviewed_by ? escapeHtml(review.reviewed_by) : "";
+        const metaParts = [];
+
+        if (reviewedAt) {
+          metaParts.push(`Recorded ${escapeHtml(reviewedAt)}.`);
+        }
+
+        if (reviewedBy) {
+          metaParts.push(`Reviewed by ${reviewedBy}.`);
+        }
+
+        app.className = "review-grid";
+        app.innerHTML = `
+          <section class="review-card">
+            <div class="review-banner">
+              <p class="review-banner-label">Decision recorded</p>
+              <h2 class="review-banner-title">DECISION RECORDED: ${escapeHtml(decisionLabel)}</h2>
+              ${metaParts.length ? `<p class="review-meta">${metaParts.join(" ")}</p>` : ""}
+            </div>
+            <h2>${escapeHtml(profile.name || "Applicant")}</h2>
+            <dl class="review-details">
+              ${detailRow("Name", profile.name)}
+              ${detailRow("Age", profile.age)}
+              ${detailRow("Email", profile.email)}
+              ${detailRow("Phone", phone)}
+              ${detailRow("Country", profile.country)}
+              ${detailRow("City", profile.city)}
+              ${detailRow("Occupation", profile.occupation)}
+              ${detailRow("Company", profile.company)}
+              ${detailRow("Instagram", profile.instagram)}
+              ${detailRow("LinkedIn", profile.linkedin)}
+              ${detailRow("TikTok", profile.tiktok)}
+              ${detailRow("Website", profile.website)}
+            </dl>
+            <div class="review-copy-block">
+              <p class="review-copy-label">Short introduction</p>
+              <p class="review-copy">${escapeHtml(profile.short_introduction || "No introduction provided.")}</p>
+            </div>
+            <div class="review-copy-block">
+              <p class="review-copy-label">Why Presttige</p>
+              <p class="review-copy">${escapeHtml(profile.why_presttige || "No Presttige rationale provided.")}</p>
+            </div>
+            <div class="review-photos">
+              ${photos.map((photo) => `
+                <a class="review-photo" href="${photo.thumb_1200}" target="_blank" rel="noopener">
+                  <img src="${photo.thumb_400}" alt="Applicant photo">
+                </a>
+              `).join("")}
+            </div>
+          </section>
+          <aside class="review-card">
+            <h3>Decision</h3>
+            <p class="review-subtitle">The original review link stays readable for audit and clarity, but it cannot record a second decision.</p>
+            <div class="review-readonly">
+              <p class="review-readonly-title">Decision recorded</p>
+              <p class="review-copy">This decision has been recorded and cannot be changed via this link.</p>
+              ${review.note ? `<p class="review-copy" style="margin-top:16px;">${escapeHtml(review.note)}</p>` : ""}
+            </div>
+          </aside>
+        `;
+      }
+
       async function submitDecision() {
         if (!selectedAction) {
           setStatus("Choose a decision first.");
@@ -347,7 +473,7 @@
           const data = await response.json();
 
           if (response.status === 410) {
-            renderUsed(data);
+            await load();
             return;
           }
 
@@ -356,28 +482,38 @@
             return;
           }
 
-          app.className = "review-state";
-          app.innerHTML = `
-            <div class="review-card">
-              <h2>Decision recorded</h2>
-              <p class="review-copy">${escapeHtml(data.decision || selectedAction)} recorded successfully.</p>
-              <p class="review-copy">This review token is now closed.</p>
-            </div>
-          `;
+          const reviewData = {
+            ...(lastLoadedData || {}),
+            review: {
+              ...((lastLoadedData && lastLoadedData.review) || {}),
+              decision: normalizeDecision(data.decision || selectedAction),
+              reviewed_at: data.recorded_at || null,
+              reviewed_by: data.reviewed_by || null,
+              locked: true,
+              state: "recorded",
+            },
+          };
+          lastLoadedData = reviewData;
+          renderRecorded(reviewData);
         } catch (error) {
           setStatus("Unable to record the decision right now. If needed, contact support.");
         }
       }
 
       function renderUsed(data) {
-        app.className = "review-state";
-        app.innerHTML = `
-          <div class="review-card">
-            <h2>Already reviewed</h2>
-            <p class="review-copy">This application has already been reviewed${data.decision ? `: ${escapeHtml(data.decision)}` : "."}</p>
-            ${data.used_at ? `<p class="review-copy">Recorded at ${escapeHtml(data.used_at)}.</p>` : ""}
-          </div>
-        `;
+        const decision = normalizeDecision(data.decision);
+        renderRecorded({
+          ...(lastLoadedData || {}),
+          review: {
+            ...((lastLoadedData && lastLoadedData.review) || {}),
+            decision,
+            reviewed_at: data.used_at || data.reviewed_at || null,
+            reviewed_by: data.reviewed_by || null,
+            note: data.review_note || null,
+            locked: true,
+            state: "recorded",
+          },
+        });
       }
 
       function renderError(message) {
@@ -398,6 +534,48 @@
       function actionButton(action, label) {
         const selected = action === selectedAction ? " is-selected" : "";
         return `<button type="button" class="${selected.trim()}" data-action="${action}">${label}</button>`;
+      }
+
+      function isRecordedDecision(review) {
+        return Boolean(normalizeDecision(review && review.decision));
+      }
+
+      function normalizeDecision(value) {
+        const normalized = String(value || "").trim().toLowerCase();
+        return ["approved", "rejected", "standby"].includes(normalized) ? normalized : "";
+      }
+
+      function formatReviewedAt(value) {
+        const date = parseReviewDate(value);
+        if (!date) return "";
+
+        const formatter = new Intl.DateTimeFormat("en-GB", {
+          timeZone: "UTC",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+        const parts = Object.fromEntries(formatter.formatToParts(date).map((part) => [part.type, part.value]));
+        return `${parts.day} ${parts.month} ${parts.year}, ${parts.hour}:${parts.minute} UTC`;
+      }
+
+      function parseReviewDate(value) {
+        if (!value) return null;
+
+        const raw = String(value).trim();
+        if (!raw) return null;
+
+        if (/^\d{10,13}$/.test(raw)) {
+          const millis = raw.length === 13 ? Number(raw) : Number(raw) * 1000;
+          const date = new Date(millis);
+          return Number.isNaN(date.getTime()) ? null : date;
+        }
+
+        const date = new Date(raw);
+        return Number.isNaN(date.getTime()) ? null : date;
       }
 
       function escapeHtml(value) {
