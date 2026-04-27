@@ -33,7 +33,7 @@ const TIER_DEFINITIONS = {
     billing: "lifetime",
     renewal: null,
     checkout_description:
-      "HIGHEST TIER · BY EXCEPTION — The inner circle. A single payment of $999 — once, forever. Among the first 999 worldwide. The full Presttige network, direct access to founders, and the only tier with our curated add-on services.",
+      "HIGHEST TIER · BY EXCEPTION — The inner circle. A single payment of $999 — once, forever. The full Presttige network, direct access to founders, and the only tier with our curated add-on services.",
   },
   premier: {
     slug: "premier",
@@ -44,7 +44,7 @@ const TIER_DEFINITIONS = {
     billing: "y1_prepay",
     renewal: "Renews at $33/month or $222/year after the first twelve months.",
     checkout_description:
-      "MEMBERSHIP TIER — Among the first 2,222 Premier members. Full access to the Presttige network, with the right to suggest new members. A founding rate locked for your first year.",
+      "MEMBERSHIP TIER — Full access to the Presttige network, with the right to suggest new members. A founding rate locked for your first year.",
   },
   club: {
     slug: "club",
