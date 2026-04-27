@@ -3,7 +3,9 @@
 
   var STORAGE_KEY = 'presttige_cookie_consent';
   var LEGACY_STORAGE_KEY = 'presttige_consent_v1';
+  var SESSION_STORAGE_KEY = 'presttige_cookie_consent_session';
   var COOKIE_NAME = 'presttige_cookie_consent';
+  var COOKIE_DIAG_PATH = '/api/cookie-diag';
   var CONSENT_VERSION = '2';
   var GA_ID = 'G-H7BFLVL4F5';
   var analyticsLoaded = false;
@@ -80,46 +82,85 @@
     return '';
   }
 
-  function getCookieDomainSegment() {
+  function getCookieDomainAttribute() {
     var host = window.location.hostname || '';
     if (host === 'presttige.net' || /(^|\.)presttige\.net$/.test(host)) {
-      return '; domain=presttige.net';
+      return 'Domain=.presttige.net';
     }
 
-    return '';
+    return null;
+  }
+
+  function buildCookieAttributes() {
+    var attributes = [
+      'path=/',
+      'max-age=31536000',
+      'expires=' + new Date(Date.now() + 31536000 * 1000).toUTCString(),
+      'SameSite=Lax',
+      'Secure'
+    ];
+    var domainAttribute = getCookieDomainAttribute();
+    if (domainAttribute) {
+      attributes.push(domainAttribute);
+    }
+    return attributes;
+  }
+
+  function readLocalStorage(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function writeLocalStorage(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function removeLocalStorage(key) {
+    try {
+      localStorage.removeItem(key);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function readSessionStorage(key) {
+    try {
+      return sessionStorage.getItem(key);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function writeSessionStorage(key, value) {
+    try {
+      sessionStorage.setItem(key, value);
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   function persistConsentRecord(consent) {
     var serialized = JSON.stringify(consent);
 
-    try {
-      localStorage.setItem(STORAGE_KEY, serialized);
-      localStorage.removeItem(LEGACY_STORAGE_KEY);
-    } catch (error) {
-      // Storage is optional for render suppression; cookie fallback still applies.
-    }
+    writeLocalStorage(STORAGE_KEY, serialized);
+    removeLocalStorage(LEGACY_STORAGE_KEY);
+    writeSessionStorage(SESSION_STORAGE_KEY, serialized);
 
-    document.cookie = [
-      COOKIE_NAME + '=' + encodeURIComponent(serialized),
-      'path=/',
-      'max-age=31536000',
-      'SameSite=Lax',
-      'Secure' + getCookieDomainSegment()
-    ].join('; ');
+    document.cookie = [COOKIE_NAME + '=' + encodeURIComponent(serialized)].concat(buildCookieAttributes()).join('; ');
   }
 
   function getStoredConsent() {
     var parsed = null;
-
-    try {
-      var stored = localStorage.getItem(STORAGE_KEY);
-      parsed = stored ? normalizeConsent(safeParse(stored)) : null;
-      if (parsed) {
-        return parsed;
-      }
-    } catch (error) {
-      parsed = null;
-    }
 
     var cookieValue = readCookie(COOKIE_NAME);
     if (cookieValue) {
@@ -130,15 +171,25 @@
       }
     }
 
-    try {
-      var legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY);
-      parsed = legacyStored ? normalizeConsent(safeParse(legacyStored)) : null;
-      if (parsed) {
-        persistConsentRecord(parsed);
-        return parsed;
-      }
-    } catch (error) {
-      parsed = null;
+    var stored = readLocalStorage(STORAGE_KEY);
+    parsed = stored ? normalizeConsent(safeParse(stored)) : null;
+    if (parsed) {
+      persistConsentRecord(parsed);
+      return parsed;
+    }
+
+    var sessionStored = readSessionStorage(SESSION_STORAGE_KEY);
+    parsed = sessionStored ? normalizeConsent(safeParse(sessionStored)) : null;
+    if (parsed) {
+      persistConsentRecord(parsed);
+      return parsed;
+    }
+
+    var legacyStored = readLocalStorage(LEGACY_STORAGE_KEY);
+    parsed = legacyStored ? normalizeConsent(safeParse(legacyStored)) : null;
+    if (parsed) {
+      persistConsentRecord(parsed);
+      return parsed;
     }
 
     return null;
@@ -359,6 +410,30 @@
     }
   }
 
+  function getConsentDebugSnapshot() {
+    return {
+      hostname: window.location.hostname || '',
+      href: window.location.href,
+      referrer: document.referrer || '',
+      cookieHeader: document.cookie || '',
+      consentCookieValue: readCookie(COOKIE_NAME) || '',
+      localStorageValue: readLocalStorage(STORAGE_KEY),
+      legacyStorageValue: readLocalStorage(LEGACY_STORAGE_KEY),
+      sessionStorageValue: readSessionStorage(SESSION_STORAGE_KEY),
+      diagEndpoint: COOKIE_DIAG_PATH
+    };
+  }
+
+  function syncStoredConsentState() {
+    var consent = getStoredConsent();
+    if (consent) {
+      applyConsent(consent);
+      removeBanner();
+      return consent;
+    }
+    return null;
+  }
+
   function showBanner() {
     ensureStyles();
 
@@ -542,9 +617,8 @@
   }
 
   function init() {
-    var consent = getStoredConsent();
+    var consent = syncStoredConsentState();
     if (consent) {
-      applyConsent(consent);
       return;
     }
 
@@ -553,8 +627,16 @@
 
   window.PresttigeCookies = {
     openPreferences: openPreferences,
-    getConsent: getStoredConsent
+    getConsent: getStoredConsent,
+    debugSnapshot: getConsentDebugSnapshot
   };
+
+  window.addEventListener('pageshow', syncStoredConsentState);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') {
+      syncStoredConsentState();
+    }
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
