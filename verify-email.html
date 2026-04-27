@@ -148,13 +148,27 @@
         return;
       }
 
-      const apiUrl =
-        'https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/verify-email?token=' +
-        encodeURIComponent(token);
+      const apiUrl = '/api/verify-email?token=' + encodeURIComponent(token);
 
-      setTimeout(function () {
+      function continueVerification() {
+        try {
+          if (window.PresttigeCookies && typeof window.PresttigeCookies.getConsent === 'function') {
+            window.PresttigeCookies.getConsent();
+          }
+        } catch (error) {
+          // Ignore consent sync issues and continue verification.
+        }
+
         window.location.replace(apiUrl);
-      }, 60);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+          window.setTimeout(continueVerification, 80);
+        });
+      } else {
+        window.setTimeout(continueVerification, 80);
+      }
     })();
   </script>
 </body>
