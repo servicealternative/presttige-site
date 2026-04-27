@@ -13,6 +13,17 @@ const PRICE_PARAMETER_NAMES = {
   patron: "/presttige/stripe/patron-lifetime-price-id",
 };
 const TIER_DEFINITIONS = {
+  subscriber: {
+    slug: "subscriber",
+    eyebrow: "ENTRY PATH",
+    label: "Subscriber",
+    price: "No payment required",
+    price_short: "No payment required",
+    billing: null,
+    renewal: null,
+    checkout_description:
+      "ENTRY PATH — For approved candidates who choose to stay close to Presttige without committing to a tier today. Receive Presttige communications, follow Patron seat availability, and upgrade to Club, Premier, or Patron whenever you're ready.",
+  },
   patron: {
     slug: "patron",
     eyebrow: "HIGHEST TIER · BY EXCEPTION",
@@ -125,6 +136,10 @@ exports.handler = async (event) => {
       },
       upgrade_eligible_until: UPGRADE_ELIGIBLE_UNTIL,
       tiers: {
+        subscriber: {
+          ...TIER_DEFINITIONS.subscriber,
+          price_id: null,
+        },
         patron: {
           ...TIER_DEFINITIONS.patron,
           price_id: priceIds.patron,

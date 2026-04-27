@@ -18,7 +18,6 @@
       --pp-hairline: #D9D2C5;
       --pp-error: #9F1D1D;
       --pp-accent-tint: rgba(140, 112, 64, 0.08);
-      --pp-accent-strong: rgba(140, 112, 64, 0.18);
     }
 
     * { box-sizing: border-box; }
@@ -33,7 +32,7 @@
     .shell {
       width: min(100%, 1360px);
       margin: 0 auto;
-      padding: 48px 24px 80px;
+      padding: 26px 24px 54px;
     }
 
     .state-box,
@@ -52,13 +51,19 @@
 
     .landing {
       display: grid;
-      gap: 22px;
+      gap: 18px 22px;
+      grid-template-columns: minmax(0, 1.4fr) minmax(340px, 0.82fr);
+      align-items: start;
     }
 
     .landing-secondary {
       display: grid;
-      gap: 22px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      align-content: start;
+    }
+
+    .landing-subscriber {
+      grid-column: 1 / -1;
     }
 
     .card,
@@ -73,27 +78,32 @@
       display: flex;
       flex-direction: column;
       min-height: 100%;
-      padding: 36px 32px 32px;
+      padding: 22px 24px 22px;
     }
 
     .card--patron {
-      min-height: 620px;
-      padding: 56px 52px 32px;
+      padding: 30px 32px 24px;
       border-color: var(--pp-accent);
       background:
-        radial-gradient(circle at top right, rgba(140, 112, 64, 0.22), rgba(140, 112, 64, 0) 34%),
-        linear-gradient(180deg, rgba(140, 112, 64, 0.08) 0%, rgba(251, 249, 244, 0.96) 34%, rgba(251, 249, 244, 1) 100%);
+        radial-gradient(circle at top right, rgba(140, 112, 64, 0.18), rgba(140, 112, 64, 0) 34%),
+        linear-gradient(180deg, rgba(140, 112, 64, 0.08) 0%, rgba(251, 249, 244, 0.97) 34%, rgba(251, 249, 244, 1) 100%);
+    }
+
+    .card--subscriber {
+      padding: 20px 22px 18px;
+      background: var(--pp-paper);
+      border-color: var(--pp-hairline);
     }
 
     .stamp {
       position: absolute;
-      top: 22px;
-      right: 24px;
+      top: 18px;
+      right: 20px;
       transform: rotate(12deg);
       border: 1px solid var(--pp-accent);
       color: var(--pp-accent);
-      padding: 9px 14px;
-      font-size: 11px;
+      padding: 8px 12px;
+      font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.22em;
       text-transform: uppercase;
@@ -101,63 +111,75 @@
     }
 
     .eyebrow {
-      margin: 0 0 14px;
+      margin: 0 0 10px;
       color: var(--pp-accent);
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.22em;
       text-transform: uppercase;
     }
 
+    .eyebrow--subscriber {
+      color: var(--pp-muted);
+    }
+
     .title {
-      margin: 0 0 14px;
+      margin: 0 0 10px;
       font-family: "Cormorant Garamond", Georgia, serif;
       font-style: italic;
       font-weight: 500;
-      font-size: clamp(40px, 7vw, 78px);
+      font-size: clamp(34px, 5vw, 64px);
       line-height: 0.94;
     }
 
-    .title--secondary {
-      font-size: clamp(34px, 5vw, 50px);
+    .title--compact {
+      font-size: clamp(28px, 3vw, 42px);
     }
 
     .price {
-      margin: 0 0 18px;
+      margin: 0 0 12px;
       color: var(--pp-primary);
-      font-size: 22px;
+      font-size: 18px;
       line-height: 1.5;
     }
 
     .renewal {
-      margin: -8px 0 18px;
+      margin: -4px 0 12px;
       color: var(--pp-muted);
-      font-size: 15px;
-      line-height: 1.7;
+      font-size: 13px;
+      line-height: 1.55;
     }
 
     .lead {
-      margin: 0 0 24px;
-      max-width: 840px;
+      margin: 0 0 16px;
       color: var(--pp-muted);
-      font-size: 17px;
-      line-height: 1.82;
+      font-size: 15px;
+      line-height: 1.62;
+    }
+
+    .lead--patron {
+      max-width: none;
     }
 
     .section-group {
       display: grid;
-      gap: 18px;
+      gap: 10px;
+    }
+
+    .section-group--patron {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 18px;
     }
 
     .section-block {
-      padding-top: 18px;
+      padding-top: 10px;
       border-top: 1px solid rgba(140, 112, 64, 0.14);
     }
 
     .section-title {
-      margin: 0 0 10px;
+      margin: 0 0 8px;
       color: var(--pp-primary);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.18em;
       text-transform: uppercase;
@@ -165,19 +187,19 @@
 
     .benefits {
       margin: 0;
-      padding-left: 20px;
+      padding-left: 18px;
       color: var(--pp-muted);
-      font-size: 16px;
-      line-height: 1.82;
+      font-size: 14px;
+      line-height: 1.58;
     }
 
     .benefits li + li {
-      margin-top: 6px;
+      margin-top: 4px;
     }
 
     .actions {
       margin-top: auto;
-      padding-top: 24px;
+      padding-top: 16px;
     }
 
     .button,
@@ -185,8 +207,8 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 48px;
-      padding: 0 24px;
+      min-height: 46px;
+      padding: 0 22px;
       border: 1px solid var(--pp-primary);
       background: var(--pp-primary);
       color: var(--pp-paper);
@@ -205,6 +227,12 @@
       background: transparent;
       color: var(--pp-primary);
       border-color: var(--pp-hairline);
+    }
+
+    .button--subscriber {
+      background: transparent;
+      color: var(--pp-muted);
+      border-color: var(--pp-muted);
     }
 
     .button:hover:not(:disabled),
@@ -326,51 +354,65 @@
       padding-top: 12px;
     }
 
+    @media (max-width: 1200px) {
+      .landing {
+        grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.9fr);
+      }
+    }
+
     @media (max-width: 1100px) {
       .feature-layout {
         grid-template-columns: 1fr;
       }
 
-      .card--patron {
+      .feature-card {
         min-height: auto;
       }
     }
 
+    @media (max-width: 980px) {
+      .landing {
+        grid-template-columns: 1fr;
+      }
+
+      .landing-subscriber {
+        grid-column: auto;
+      }
+
+      .section-group--patron {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 900px) {
-      .landing-secondary,
       .switches {
         grid-template-columns: 1fr;
       }
 
-      .card,
       .feature-card,
       .feature-summary {
         padding-left: 24px;
         padding-right: 24px;
       }
-
-      .card--patron {
-        padding-top: 48px;
-      }
     }
 
     @media (max-width: 640px) {
       .shell {
-        padding: 32px 16px 54px;
+        padding: 24px 16px 44px;
       }
 
       .card,
       .feature-card,
       .feature-summary,
       .switch-card {
-        padding: 24px 20px 22px;
+        padding: 24px 20px 20px;
       }
 
       .stamp {
         position: static;
         transform: none;
         display: inline-flex;
-        margin-bottom: 18px;
+        margin-bottom: 16px;
       }
 
       .button,
@@ -399,12 +441,12 @@
           eyebrow: "HIGHEST TIER · BY EXCEPTION",
           title: "Patron",
           price: "$999 · one-time · lifetime",
-          shortPrice: "$999",
           renewal: "",
           stamp: "PATRON · FOUNDING · LIFETIME",
           lead: "The inner circle. A single payment of $999 — once, forever. Among the first 999 worldwide. The full Presttige network, direct access to founders, and the only tier with our curated add-on services.",
           ctaLanding: "CONTINUE TO PATRON",
           ctaCheckout: "CONTINUE TO CHECKOUT",
+          landingClass: "card card--patron",
           sections: [
             {
               title: "STATUS & ACCESS",
@@ -452,12 +494,12 @@
           eyebrow: "MEMBERSHIP TIER",
           title: "Premier",
           price: "$222 · founding rate · first year",
-          shortPrice: "$222 / year",
           renewal: "Renews at $33/month or $222/year after the first twelve months.",
           stamp: "",
           lead: "Among the first 2,222 Premier members. Full access to the Presttige network, with the right to suggest new members. A founding rate locked for your first year.",
           ctaLanding: "CONTINUE TO PREMIER",
           ctaCheckout: "CONTINUE TO CHECKOUT",
+          landingClass: "card",
           sections: [
             {
               title: "STATUS & ACCESS",
@@ -502,12 +544,12 @@
           eyebrow: "MEMBERSHIP TIER",
           title: "Club",
           price: "$99 · founding rate · first year",
-          shortPrice: "$99 / year",
           renewal: "Renews at $9.99/month or $99/year after the first twelve months.",
           stamp: "",
           lead: "The entry to the Presttige network. Founding-rate access for your first year, and the option to upgrade to Patron at any time before 31 December 2026.",
           ctaLanding: "CONTINUE TO CLUB",
           ctaCheckout: "CONTINUE TO CHECKOUT",
+          landingClass: "card",
           sections: [
             {
               title: "STATUS & ACCESS",
@@ -537,6 +579,45 @@
               title: "UPGRADE OPTION (TIME-LIMITED)",
               items: [
                 "Until 31 December 2026 (or while Patron seats remain), upgrade to Patron by paying $900 difference and become Patron for life"
+              ]
+            }
+          ]
+        },
+        subscriber: {
+          slug: "subscriber",
+          eyebrow: "ENTRY PATH",
+          title: "Subscriber",
+          price: "No payment required",
+          renewal: "",
+          stamp: "",
+          lead: "For approved candidates who choose to stay close to Presttige without committing to a tier today. Receive Presttige communications, follow Patron seat availability, and upgrade to Club, Premier, or Patron whenever you're ready.",
+          ctaLanding: "JOIN AS SUBSCRIBER",
+          ctaCheckout: "",
+          landingClass: "card card--subscriber",
+          sections: [
+            {
+              title: "STATUS",
+              items: [
+                "Approved by the committee, no payment",
+                "On the Presttige communications list",
+                "Not displayed in the member directory"
+              ]
+            },
+            {
+              title: "STAY INFORMED",
+              items: [
+                "Updates on Patron seat availability",
+                "New add-on services as they launch",
+                "Major Presttige announcements",
+                "Reminders before the upgrade window closes (31 Dec 2026)"
+              ]
+            },
+            {
+              title: "UPGRADE PATH",
+              items: [
+                "Upgrade to Club: $99 / year (founding rate)",
+                "Upgrade to Premier: $222 / year (founding rate)",
+                "Upgrade to Patron: $999 lifetime (until 31 Dec 2026 or while seats remain)"
               ]
             }
           ]
@@ -591,34 +672,49 @@
 
       function renderLandingPage() {
         return `
-          <div class="landing">
-            ${renderLandingCard("patron", true)}
+          <section class="landing">
+            ${renderLandingCard("patron", { dominant: true })}
             <div class="landing-secondary">
-              ${renderLandingCard("premier", false)}
-              ${renderLandingCard("club", false)}
+              ${renderLandingCard("premier", { compact: true })}
+              ${renderLandingCard("club", { compact: true })}
             </div>
-          </div>
+            <div class="landing-subscriber">
+              ${renderLandingCard("subscriber", { subscriber: true })}
+            </div>
+          </section>
         `;
       }
 
-      function renderLandingCard(tier, dominant) {
+      function renderLandingCard(tier, options) {
         const content = TIER_CONTENT[tier];
-        const titleClass = dominant ? "title" : "title title--secondary";
-        const cardClass = dominant ? "card card--patron" : "card";
-        const headingTag = dominant ? "h1" : "h2";
+        const headingTag = options.dominant ? "h1" : "h2";
+        const titleClass = options.dominant ? "title" : "title title--compact";
+        const eyebrowClass = tier === "subscriber" ? "eyebrow eyebrow--subscriber" : "eyebrow";
+        const leadClass = options.dominant ? "lead lead--patron" : "lead";
+        const sectionGroupClass = options.dominant ? "section-group section-group--patron" : "section-group";
+        const buttonClass = tier === "subscriber"
+          ? "button button--subscriber"
+          : options.dominant
+            ? "button"
+            : "button button--secondary";
+
         return `
-          <article class="${cardClass}" data-tier-card="${tier}">
+          <article class="${content.landingClass}" data-tier-card="${tier}">
             ${content.stamp ? `<div class="stamp">${escapeHtml(content.stamp)}</div>` : ""}
-            <p class="eyebrow">${escapeHtml(content.eyebrow)}</p>
+            <p class="${eyebrowClass}">${escapeHtml(content.eyebrow)}</p>
             <${headingTag} class="${titleClass}">${escapeHtml(content.title)}</${headingTag}>
             <p class="price">${escapeHtml(content.price)}</p>
             ${content.renewal ? `<p class="renewal">${escapeHtml(content.renewal)}</p>` : ""}
-            <p class="lead">${escapeHtml(content.lead)}</p>
-            <div class="section-group">
+            <p class="${leadClass}">${escapeHtml(content.lead)}</p>
+            <div class="${sectionGroupClass}">
               ${content.sections.map(renderSectionBlock).join("")}
             </div>
             <div class="actions">
-              <button type="button" class="button ${dominant ? "" : "button--secondary"}" data-go-tier="${tier}" data-cta-role="landing" ${activeAction === tier ? "disabled" : ""}>${activeAction === tier ? "LOADING…" : content.ctaLanding}</button>
+              ${
+                tier === "subscriber"
+                  ? `<button type="button" class="${buttonClass}" data-activate-subscriber="true" ${activeAction === "subscriber" ? "disabled" : ""}>${activeAction === "subscriber" ? "ACTIVATING…" : content.ctaLanding}</button>`
+                  : `<button type="button" class="${buttonClass}" data-go-tier="${tier}" ${activeAction === tier ? "disabled" : ""}>${activeAction === tier ? "LOADING…" : content.ctaLanding}</button>`
+              }
             </div>
           </article>
         `;
@@ -690,6 +786,10 @@
         app.querySelectorAll("[data-checkout-tier]").forEach((button) => {
           button.addEventListener("click", () => beginCheckout(button.getAttribute("data-checkout-tier")));
         });
+
+        app.querySelectorAll("[data-activate-subscriber]").forEach((button) => {
+          button.addEventListener("click", () => activateSubscriber());
+        });
       }
 
       function navigateToTier(tier) {
@@ -730,6 +830,38 @@
           window.location.assign(data.redirect_url);
         } catch (error) {
           renderError("Unable to continue right now.");
+        } finally {
+          activeAction = "";
+        }
+      }
+
+      async function activateSubscriber() {
+        activeAction = "subscriber";
+        render();
+
+        try {
+          const response = await fetch(`${API_BASE}/activate-subscriber`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token: route.token,
+            }),
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+            renderError(data.error || "Unable to activate Subscriber right now.");
+            return;
+          }
+
+          if (!data.redirect_url) {
+            renderError("Missing redirect URL from subscriber activation.");
+            return;
+          }
+
+          window.location.assign(data.redirect_url);
+        } catch (error) {
+          renderError("Unable to activate Subscriber right now.");
         } finally {
           activeAction = "";
         }

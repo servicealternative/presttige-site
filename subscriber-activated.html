@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Subscriber</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-primary: #0A0A0A;
+      --pp-paper: #FBF9F4;
+      --pp-background: #F5F2ED;
+      --pp-accent: #8C7040;
+      --pp-hairline: #D9D2C5;
+      --pp-muted: #6B6B6B;
+      --pp-error: #9F1D1D;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: var(--pp-background);
+      color: var(--pp-primary);
+      font-family: "Source Serif Pro", Georgia, serif;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(100%, 760px);
+      background: var(--pp-paper);
+      border: 1px solid var(--pp-hairline);
+      padding: 40px 32px;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0 0 18px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(42px, 7vw, 64px);
+      font-style: italic;
+      font-weight: 500;
+      line-height: 0.95;
+    }
+
+    .copy {
+      margin: 0 0 20px;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.8;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 24px;
+      border: 1px solid var(--pp-primary);
+      background: var(--pp-primary);
+      color: var(--pp-paper);
+      font: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .error {
+      color: var(--pp-error);
+    }
+  </style>
+</head>
+<body>
+  <section id="app" class="card">
+    <p class="eyebrow">Presttige Subscriber</p>
+    <h1 class="title">You're on the list.</h1>
+    <p class="copy">Validating your access…</p>
+  </section>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const app = document.getElementById("app");
+      const token = window.location.pathname.split("/").filter(Boolean).pop();
+
+      if (!token || token === "subscriber-activated" || token === "subscriber-activated.html") {
+        renderError("Missing access token.");
+        return;
+      }
+
+      validate();
+
+      async function validate() {
+        try {
+          const response = await fetch(`${API_BASE}/tier-select-fetch?token=${encodeURIComponent(token)}`);
+          const data = await response.json();
+
+          if (!response.ok) {
+            renderError(data.error || "This link is no longer available.");
+            return;
+          }
+
+          renderSuccess(data.profile?.name || "Member");
+        } catch (error) {
+          renderError("Unable to validate your access right now.");
+        }
+      }
+
+      function renderSuccess(name) {
+        app.innerHTML = `
+          <p class="eyebrow">Presttige Subscriber</p>
+          <h1 class="title">You're on the list.</h1>
+          <p class="copy">Thank you, ${escapeHtml(name)}. Your Subscriber status is now active — you'll hear from us with Presttige updates, Patron seat availability, and curated invitations to upgrade.</p>
+          <p class="copy">When you're ready to take a tier, you can return to this link at any time:</p>
+          <a class="button" href="/tier-select/${encodeURIComponent(token)}">Return to tier selection</a>
+        `;
+      }
+
+      function renderError(message) {
+        app.innerHTML = `
+          <p class="eyebrow">Presttige Subscriber</p>
+          <h1 class="title">Link unavailable.</h1>
+          <p class="copy error">${escapeHtml(message)}</p>
+        `;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+    })();
+  </script>
+</body>
+</html>
