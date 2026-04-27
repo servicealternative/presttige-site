@@ -18,6 +18,11 @@ VALID_ACTIONS = {"approve", "reject", "standby"}
 ACCOUNT_CREATE_FUNCTION_ARN = "arn:aws:lambda:us-east-1:343218208384:function:presttige-account-create"
 SCHEDULER_ROLE_ARN = "arn:aws:iam::343218208384:role/presttige-scheduler-invoke-role"
 DELAY_PARAMETER_NAME = "/presttige/review/approve-to-e3-delay-minutes"
+TESTER_WHITELIST = {
+    "antoniompereira@me.com",
+    "alternativeservice@gmail.com",
+}
+TESTER_DELAY_MINUTES = 15
 serializer = TypeSerializer()
 
 
@@ -68,7 +73,7 @@ def lambda_handler(event, context):
         transact_review(audit_item, lead["lead_id"], update_spec)
 
         if decision == "approved":
-            schedule_e3_delivery(lead["lead_id"], reviewed_at)
+            schedule_e3_delivery(lead["lead_id"], lead.get("email", ""), reviewed_at)
 
         return respond(wants_html, 200, {"decision": decision, "recorded_at": reviewed_at})
     except ddb_client.exceptions.TransactionCanceledException:
@@ -280,8 +285,8 @@ def transact_review(audit_item, lead_id, update_spec):
     )
 
 
-def schedule_e3_delivery(lead_id, reviewed_at):
-    delay_minutes = read_delay_minutes()
+def schedule_e3_delivery(lead_id, candidate_email, reviewed_at):
+    delay_minutes = resolve_e3_delay_minutes(candidate_email)
     fire_at = datetime.now(timezone.utc) + timedelta(minutes=delay_minutes)
     schedule_name = f"presttige-e3-{lead_id}-{int(fire_at.timestamp())}"
 
@@ -315,6 +320,10 @@ def schedule_e3_delivery(lead_id, reviewed_at):
     )
 
 
+def normalize_email(email):
+    return str(email or "").strip().lower()
+
+
 def read_delay_minutes():
     try:
         response = ssm_client.get_parameter(Name=DELAY_PARAMETER_NAME)
@@ -322,6 +331,17 @@ def read_delay_minutes():
     except Exception as exc:
         print(f"delay parameter read failed, defaulting to 15 minutes: {exc}")
         return 15
+
+
+def resolve_e3_delay_minutes(candidate_email):
+    normalized_email = normalize_email(candidate_email)
+    if normalized_email in TESTER_WHITELIST:
+        print("[delay-resolution] email=*** redacted *** path=whitelist value=15")
+        return TESTER_DELAY_MINUTES
+
+    delay_minutes = read_delay_minutes()
+    print(f"[delay-resolution] email=*** redacted *** path=ssm value={delay_minutes}")
+    return delay_minutes
 
 
 def serialize_item(item):
