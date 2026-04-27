@@ -8,11 +8,20 @@ const secrets = new SecretsManagerClient({ region: "us-east-1" });
 const ssm = new SSMClient({ region: "us-east-1" });
 
 const TABLE_NAME = "presttige-db";
-const TIER_UPGRADE_MAP = {
-  tier3: "tier2",
-  tier2: "patron",
-  patron: "patron",
-  free: "free",
+const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
+const TIER_CONFIG = {
+  club: {
+    billing: "y1_prepay",
+    priceParameter: "/presttige/stripe/club-y1-price-id",
+  },
+  premier: {
+    billing: "y1_prepay",
+    priceParameter: "/presttige/stripe/premier-y1-price-id",
+  },
+  patron: {
+    billing: "lifetime",
+    priceParameter: "/presttige/stripe/patron-lifetime-price-id",
+  },
 };
 
 let cachedStripeKey = null;
@@ -64,38 +73,30 @@ function welcomeUrl(token) {
   return `https://presttige.net/welcome/${token}`;
 }
 
-function computeEffectiveTier(tier, periodicity) {
-  if (tier === "free") {
-    return { effectiveTier: "free", effectiveTierUntil: null };
+function cancelUrl(token, tier) {
+  return `https://presttige.net/tier-select/${token}/${tier}?cancelled=1`;
+}
+
+function computeFoundingRateExpiresAt(tier) {
+  if (tier === "patron") {
+    return null;
   }
 
-  if (periodicity !== "annual") {
-    return { effectiveTier: tier, effectiveTierUntil: null };
-  }
-
-  const until = new Date();
-  until.setFullYear(until.getFullYear() + 1);
-
-  return {
-    effectiveTier: TIER_UPGRADE_MAP[tier] || tier,
-    effectiveTierUntil: until.toISOString(),
-  };
+  const expiresAt = new Date();
+  expiresAt.setUTCDate(expiresAt.getUTCDate() + 365);
+  return expiresAt.toISOString();
 }
 
 exports.handler = async (event) => {
   const body = JSON.parse(event.body || "{}");
-  const { token, tier, periodicity } = body;
+  const { token, tier } = body;
 
-  if (!token || !tier || !periodicity) {
-    return response(400, { error: "Missing token, tier, or periodicity" });
+  if (!token || !tier) {
+    return response(400, { error: "Missing token or tier" });
   }
 
-  if (!["patron", "tier2", "tier3", "free"].includes(tier)) {
+  if (!Object.prototype.hasOwnProperty.call(TIER_CONFIG, tier)) {
     return response(400, { error: "Invalid tier" });
-  }
-
-  if (tier !== "free" && !["monthly", "annual"].includes(periodicity)) {
-    return response(400, { error: "Invalid periodicity" });
   }
 
   try {
@@ -115,73 +116,43 @@ exports.handler = async (event) => {
       });
     }
 
-    if (["paid", "free"].includes(lead.payment_status)) {
+    if (lead.payment_status === "paid") {
       return response(200, {
         redirect_url: welcomeUrl(token),
         already_paid: true,
       });
     }
 
-    if (tier === "free") {
-      const now = new Date().toISOString();
-      await ddb.send(
-        new UpdateCommand({
-          TableName: TABLE_NAME,
-          Key: { lead_id: lead.lead_id },
-          UpdateExpression: [
-            "SET selected_tier = :tier",
-            "selected_periodicity = :periodicity",
-            "payment_status = :payment_status",
-            "account_active = :account_active",
-            "magic_token_status = :magic_status",
-            "magic_token_used_at = :used_at",
-            "onboarded_at = :onboarded_at",
-            "effective_tier = :effective_tier",
-            "effective_tier_until = :effective_tier_until",
-          ].join(", "),
-          ExpressionAttributeValues: {
-            ":tier": "free",
-            ":periodicity": null,
-            ":payment_status": "free",
-            ":account_active": true,
-            ":magic_status": "used",
-            ":used_at": now,
-            ":onboarded_at": now,
-            ":effective_tier": "free",
-            ":effective_tier_until": null,
-          },
-        })
-      );
-
-      return response(200, {
-        redirect_url: welcomeUrl(token),
-        free: true,
-      });
-    }
-
+    const stripeKey = await getStripeKey();
+    const config = TIER_CONFIG[tier];
+    const foundingRateExpiresAt = computeFoundingRateExpiresAt(tier);
+    const upgradeEligibleUntil = tier === "patron" ? null : UPGRADE_ELIGIBLE_UNTIL;
     const priceParameter = await ssm.send(
       new GetParameterCommand({
-        Name: `/presttige/stripe/${tier}/${periodicity}_price_id`,
+        Name: config.priceParameter,
       })
     );
     const priceId = priceParameter.Parameter.Value;
-    const stripeKey = await getStripeKey();
-    const { effectiveTier, effectiveTierUntil } = computeEffectiveTier(tier, periodicity);
 
     const params = new URLSearchParams();
-    params.append("mode", "subscription");
+    params.append("mode", "payment");
     params.append("line_items[0][price]", priceId);
     params.append("line_items[0][quantity]", "1");
     params.append("customer_email", lead.email || "");
     params.append("success_url", `${welcomeUrl(token)}?session_id={CHECKOUT_SESSION_ID}`);
-    params.append("cancel_url", `https://presttige.net/tier-select/${token}?cancelled=1`);
+    params.append("cancel_url", cancelUrl(token, tier));
     params.append("client_reference_id", lead.lead_id);
     params.append("metadata[lead_id]", lead.lead_id);
     params.append("metadata[product]", "membership");
-    params.append("metadata[plan]", tier);
-    params.append("metadata[term]", periodicity);
     params.append("metadata[tier]", tier);
-    params.append("metadata[periodicity]", periodicity);
+    params.append("metadata[billing]", config.billing);
+    params.append("metadata[founding_rate_locked]", "true");
+    if (foundingRateExpiresAt) {
+      params.append("metadata[founding_rate_expires_at]", foundingRateExpiresAt);
+    }
+    if (upgradeEligibleUntil) {
+      params.append("metadata[upgrade_eligible_until]", upgradeEligibleUntil);
+    }
 
     const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -205,21 +176,36 @@ exports.handler = async (event) => {
       new UpdateCommand({
         TableName: TABLE_NAME,
         Key: { lead_id: lead.lead_id },
-        UpdateExpression: [
-          "SET selected_tier = :tier",
-          "selected_periodicity = :periodicity",
-          "stripe_session_id = :session_id",
-          "payment_status = :payment_status",
-          "effective_tier = :effective_tier",
-          "effective_tier_until = :effective_tier_until",
-        ].join(", "),
+        UpdateExpression: `
+          SET selected_tier = :tier,
+              selected_tier_billing = :billing,
+              stripe_session_id = :session_id,
+              payment_status = :payment_status,
+              founding_rate_locked = :founding_rate_locked,
+              founding_rate_expires_at = :founding_rate_expires_at,
+              upgrade_eligible_until = :upgrade_eligible_until,
+              stripe_checkout_mode = :stripe_checkout_mode,
+              selected_tier_selected_at = :selected_at,
+              stripe_checkout_started_at = :started_at,
+              selected_price_id = :price_id,
+              currency = :currency,
+              product_type = :product_type
+          REMOVE selected_periodicity, effective_tier, effective_tier_until
+        `,
         ExpressionAttributeValues: {
           ":tier": tier,
-          ":periodicity": periodicity,
+          ":billing": config.billing,
           ":session_id": session.id,
           ":payment_status": "pending",
-          ":effective_tier": effectiveTier,
-          ":effective_tier_until": effectiveTierUntil,
+          ":founding_rate_locked": true,
+          ":founding_rate_expires_at": foundingRateExpiresAt,
+          ":upgrade_eligible_until": upgradeEligibleUntil,
+          ":stripe_checkout_mode": "payment",
+          ":selected_at": new Date().toISOString(),
+          ":started_at": new Date().toISOString(),
+          ":price_id": priceId,
+          ":currency": "USD",
+          ":product_type": "membership",
         },
       })
     );
@@ -227,6 +213,8 @@ exports.handler = async (event) => {
     return response(200, {
       redirect_url: session.url,
       session_id: session.id,
+      selected_tier: tier,
+      selected_tier_billing: config.billing,
     });
   } catch (error) {
     console.error("create-checkout-session error", error);

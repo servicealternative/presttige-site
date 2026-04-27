@@ -11,12 +11,14 @@
   <style>
     :root {
       --pp-primary: #0A0A0A;
-      --pp-paper: #FBF9F4;
       --pp-background: #F5F2ED;
+      --pp-paper: #FBF9F4;
       --pp-accent: #8C7040;
-      --pp-muted: #4A4A4A;
+      --pp-muted: #6B6B6B;
       --pp-hairline: #D9D2C5;
       --pp-error: #9F1D1D;
+      --pp-accent-tint: rgba(140, 112, 64, 0.08);
+      --pp-accent-strong: rgba(140, 112, 64, 0.18);
     }
 
     * { box-sizing: border-box; }
@@ -28,211 +30,359 @@
       font-family: "Source Serif Pro", Georgia, serif;
     }
 
-    .tier-shell {
-      max-width: 1320px;
+    .shell {
+      width: min(100%, 1360px);
       margin: 0 auto;
-      padding: 54px 24px 72px;
+      padding: 48px 24px 80px;
     }
 
-    .tier-eyebrow {
-      margin: 0 0 16px;
-      color: var(--pp-accent);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-    }
-
-    .tier-title {
-      margin: 0 0 18px;
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-style: italic;
-      font-weight: 500;
-      font-size: clamp(44px, 7vw, 72px);
-      line-height: 0.96;
-    }
-
-    .tier-intro {
-      max-width: 780px;
-      margin: 0 0 34px;
-      color: var(--pp-muted);
-      font-size: 17px;
-      line-height: 1.76;
-    }
-
-    .tier-state,
-    .tier-error {
+    .state-box,
+    .error-box {
       padding: 24px;
       background: var(--pp-paper);
       border: 1px solid var(--pp-hairline);
+      color: var(--pp-primary);
+      font-size: 16px;
+      line-height: 1.7;
     }
 
-    .tier-error {
+    .error-box {
       color: var(--pp-error);
     }
 
-    .tier-toggle {
-      display: inline-flex;
-      gap: 0;
-      margin-bottom: 34px;
-      border: 1px solid var(--pp-hairline);
-      background: var(--pp-paper);
+    .landing {
+      display: grid;
+      gap: 22px;
     }
 
-    .tier-toggle button {
-      min-height: 44px;
-      padding: 0 20px;
-      border: none;
-      background: transparent;
+    .landing-secondary {
+      display: grid;
+      gap: 22px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card,
+    .feature-card,
+    .switch-card {
+      background: var(--pp-paper);
+      border: 1px solid var(--pp-hairline);
+    }
+
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      padding: 36px 32px 32px;
+    }
+
+    .card--patron {
+      min-height: 620px;
+      padding: 56px 52px 42px;
+      border-color: var(--pp-accent);
+      background:
+        radial-gradient(circle at top right, rgba(140, 112, 64, 0.22), rgba(140, 112, 64, 0) 34%),
+        linear-gradient(180deg, rgba(140, 112, 64, 0.08) 0%, rgba(251, 249, 244, 0.96) 34%, rgba(251, 249, 244, 1) 100%);
+    }
+
+    .stamp {
+      position: absolute;
+      top: 22px;
+      right: 24px;
+      transform: rotate(12deg);
+      border: 1px solid var(--pp-accent);
+      color: var(--pp-accent);
+      padding: 9px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      background: rgba(245, 242, 237, 0.92);
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0 0 14px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: clamp(40px, 7vw, 78px);
+      line-height: 0.94;
+    }
+
+    .title--secondary {
+      font-size: clamp(34px, 5vw, 50px);
+    }
+
+    .price {
+      margin: 0 0 18px;
+      color: var(--pp-primary);
+      font-size: 22px;
+      line-height: 1.5;
+    }
+
+    .renewal {
+      margin: -8px 0 18px;
       color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .lead {
+      margin: 0 0 24px;
+      max-width: 840px;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.82;
+    }
+
+    .section-group {
+      display: grid;
+      gap: 18px;
+    }
+
+    .section-block {
+      padding-top: 18px;
+      border-top: 1px solid rgba(140, 112, 64, 0.14);
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      color: var(--pp-primary);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .benefits {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--pp-muted);
+      font-size: 16px;
+      line-height: 1.82;
+    }
+
+    .benefits li + li {
+      margin-top: 6px;
+    }
+
+    .actions {
+      margin-top: auto;
+      padding-top: 24px;
+    }
+
+    .button,
+    .switch-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 24px;
+      border: 1px solid var(--pp-primary);
+      background: var(--pp-primary);
+      color: var(--pp-paper);
       font: inherit;
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
 
-    .tier-toggle button.is-active {
-      background: var(--pp-primary);
-      color: var(--pp-paper);
+    .button--secondary,
+    .switch-button {
+      background: transparent;
+      color: var(--pp-primary);
+      border-color: var(--pp-hairline);
     }
 
-    .tier-grid {
+    .button:hover:not(:disabled),
+    .switch-button:hover:not(:disabled) {
+      opacity: 0.92;
+    }
+
+    .button:disabled,
+    .switch-button:disabled {
+      cursor: progress;
+      opacity: 0.62;
+    }
+
+    .button--full {
+      width: 100%;
+    }
+
+    .feature-layout {
       display: grid;
-      gap: 18px;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 28px;
+      grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.8fr);
+      align-items: stretch;
     }
 
-    .tier-card {
-      display: grid;
-      align-content: start;
-      gap: 18px;
+    .feature-card {
+      min-height: min(60vh, 760px);
+      padding: 42px 38px;
+    }
+
+    .feature-card--patron {
+      border-color: var(--pp-accent);
+      background:
+        radial-gradient(circle at top right, rgba(140, 112, 64, 0.18), rgba(140, 112, 64, 0) 28%),
+        linear-gradient(180deg, rgba(140, 112, 64, 0.08) 0%, rgba(251, 249, 244, 1) 100%);
+    }
+
+    .feature-summary {
+      display: flex;
+      flex-direction: column;
       min-height: 100%;
-      padding: 48px 32px;
+      padding: 42px 34px;
       background: var(--pp-paper);
       border: 1px solid var(--pp-hairline);
-      border-radius: 4px;
     }
 
-    .tier-card--patron {
-      background: linear-gradient(180deg, rgba(140, 112, 64, 0.08) 0%, rgba(251, 249, 244, 0.94) 100%);
-      border-color: rgba(140, 112, 64, 0.52);
-    }
-
-    .tier-card__eyebrow {
-      margin: 0;
-      color: var(--pp-accent);
+    .summary-label {
+      margin: 0 0 10px;
+      color: var(--pp-muted);
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.2em;
       text-transform: uppercase;
     }
 
-    .tier-card__title {
-      margin: 0;
+    .summary-title {
+      margin: 0 0 14px;
       font-family: "Cormorant Garamond", Georgia, serif;
       font-style: italic;
       font-weight: 500;
-      font-size: 38px;
-      line-height: 0.98;
+      font-size: clamp(34px, 5vw, 50px);
+      line-height: 0.96;
     }
 
-    .tier-card__subtitle {
-      margin: -8px 0 0;
-      color: var(--pp-muted);
-      font-size: 15px;
+    .summary-price {
+      margin: 0 0 16px;
+      font-size: 22px;
       line-height: 1.5;
     }
 
-    .tier-card__copy {
-      margin: 0;
+    .summary-renewal {
+      margin: 0 0 18px;
       color: var(--pp-muted);
-      font-size: 16px;
-      line-height: 1.76;
-    }
-
-    .tier-card__bonus {
-      display: none;
-      margin: 0;
-      padding-top: 16px;
-      border-top: 1px solid rgba(140, 112, 64, 0.18);
-      color: var(--pp-primary);
       font-size: 15px;
       line-height: 1.7;
     }
 
-    .tier-grid.is-annual .tier-card__bonus[data-has-bonus="true"] {
-      display: block;
-    }
-
-    .tier-card__button {
-      margin-top: auto;
-      min-height: 44px;
-      padding: 0 20px;
+    .callout {
+      margin: 0 0 22px;
+      padding: 18px 20px;
       border: 1px solid var(--pp-accent);
-      background: transparent;
-      color: var(--pp-accent);
-      font: inherit;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+      background: var(--pp-accent-tint);
+      color: var(--pp-primary);
+      font-size: 15px;
+      line-height: 1.72;
     }
 
-    .tier-card__button:hover:not(:disabled) {
-      background: var(--pp-primary);
-      border-color: var(--pp-primary);
-      color: var(--pp-paper);
+    .switches {
+      margin-top: 28px;
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .tier-card--patron .tier-card__button {
-      background: var(--pp-primary);
-      border-color: var(--pp-primary);
-      color: var(--pp-paper);
+    .switch-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      padding: 28px 24px 24px;
     }
 
-    .tier-card__button:disabled {
-      opacity: 0.55;
-      cursor: progress;
+    .switch-title {
+      margin: 0 0 10px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: 32px;
+      line-height: 0.98;
     }
 
-    .tier-footer {
-      margin: 28px 0 0;
+    .switch-copy {
+      margin: 0 0 20px;
       color: var(--pp-muted);
-      font-size: 13px;
-      line-height: 1.7;
+      font-size: 15px;
+      line-height: 1.72;
     }
 
-    @media (max-width: 1080px) {
-      .tier-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+    .switch-actions {
+      margin-top: auto;
+      padding-top: 12px;
     }
 
-    @media (max-width: 680px) {
-      .tier-shell {
-        padding: 44px 20px 60px;
-      }
-
-      .tier-grid {
+    @media (max-width: 1100px) {
+      .feature-layout {
         grid-template-columns: 1fr;
       }
 
-      .tier-card {
-        padding: 32px 24px;
+      .card--patron {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .landing-secondary,
+      .switches {
+        grid-template-columns: 1fr;
+      }
+
+      .card,
+      .feature-card,
+      .feature-summary {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .card--patron {
+        padding-top: 48px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        padding: 32px 16px 54px;
+      }
+
+      .card,
+      .feature-card,
+      .feature-summary,
+      .switch-card {
+        padding: 24px 20px 22px;
+      }
+
+      .stamp {
+        position: static;
+        transform: none;
+        display: inline-flex;
+        margin-bottom: 18px;
+      }
+
+      .button,
+      .switch-button {
+        width: 100%;
       }
     }
   </style>
 </head>
 <body>
-  <main class="tier-shell">
-    <p class="tier-eyebrow">Presttige Membership</p>
-    <h1 class="tier-title">Choose your path</h1>
-    <p class="tier-intro">Four ways to participate. Three private tiers and one complimentary path. Your selection determines the depth of your access — and how others will encounter you within the network.</p>
-    <section id="app" class="tier-state">Loading your membership options…</section>
+  <main class="shell">
+    <section id="app" class="state-box">Loading your membership options…</section>
   </main>
 
   <script>
@@ -240,62 +390,179 @@
       "use strict";
 
       const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
-      const token = window.location.pathname.split("/").filter(Boolean).pop();
       const app = document.getElementById("app");
-      const CARD_ORDER = ["free", "tier3", "tier2", "patron"];
-      const CARD_COPY = {
-        free: {
-          eyebrow: "COMPLIMENTARY PATH",
-          title: "Complimentary",
-          subtitle: "Entry path",
-          body: "A starting point for those whose stories will unfold privately, in conversation. Limited access by design. Curated invitations rather than open participation.",
-          bonus: "",
-          cta: "Activate complimentary path",
-          variant: "",
-        },
-        tier3: {
-          eyebrow: "MEMBERSHIP TIER",
-          title: "Affiliate",
-          subtitle: "Entry level",
-          body: "For those entering the network with intent. Access to the private directory, curated introductions, and select committee-hosted gatherings.",
-          bonus: "★ Annual subscription includes Associate access for twelve months. Experience the next tier in full.",
-          cta: "Continue to Affiliate",
-          variant: "",
-        },
-        tier2: {
-          eyebrow: "MEMBERSHIP TIER",
-          title: "Associate",
-          subtitle: "Established",
-          body: "For members whose presence carries weight. Direct committee access, private events in Dubai, London, and New York, and the ability to propose new members.",
-          bonus: "★ Annual subscription includes Patron access for twelve months. The full network, at the highest tier.",
-          cta: "Continue to Associate",
-          variant: "",
-        },
+      const TIER_ORDER = ["patron", "premier", "club"];
+      const UPGRADE_COPY = "Upgrade to Patron at any time before 31 December 2026 by paying only the difference — and become Patron for life.";
+      const TIER_CONTENT = {
         patron: {
-          eyebrow: "HIGHEST TIER",
+          slug: "patron",
+          eyebrow: "HIGHEST TIER · BY EXCEPTION",
           title: "Patron",
-          subtitle: "By exception",
-          body: "The inner circle. Direct access to founders, private salons, philanthropic alignment, and the discretion appropriate to the level.",
-          bonus: "★ Annual subscription. Full network access across all gatherings, geographies, and introductions.",
-          cta: "Continue to Patron",
-          variant: "tier-card--patron",
+          price: "$999 · one-time · lifetime",
+          shortPrice: "$999",
+          renewal: "",
+          stamp: "PATRON · FOUNDING · LIFETIME",
+          lead: "The inner circle. A single payment of $999 — once, forever. Among the first 999 worldwide. The full Presttige network, direct access to founders, and the only tier with our curated add-on services.",
+          ctaLanding: "CONTINUE TO PATRON",
+          ctaCheckout: "CONTINUE TO CHECKOUT",
+          sections: [
+            {
+              title: "STATUS & ACCESS",
+              items: [
+                "Lifetime access — single payment of $999, never another bill, never a renewal",
+                "Founding member — among the first 999 worldwide; permanent FOUNDING badge",
+                "Full Presttige network across all members and tiers"
+              ]
+            },
+            {
+              title: "DIRECT ACCESS",
+              items: [
+                "Direct line to founders for add-ons, services, and personal requests (Patron-exclusive)",
+                "Right to propose new members — endorsement carries greatest weight in committee review"
+              ]
+            },
+            {
+              title: "ADD-ONS & SERVICES",
+              items: [
+                "Formula 1 Grand Prix paddock & hospitality",
+                "Major sports tickets — Champions League, Wimbledon, NBA Finals, Super Bowl, World Cup",
+                "VIP nightlife — Dubai, London, NY, Ibiza, Mykonos",
+                "Private aviation concierge",
+                "Yacht charter — Mediterranean, Caribbean",
+                "Fashion week front row — Paris, Milan, NY, London",
+                "Art Basel & auction house previews",
+                "Michelin-starred reservations",
+                "Hotel suite upgrades — Bulgari, Aman, Rosewood",
+                "Wellness retreats — Lanserhof, SHA, Kamalaya"
+              ]
+            },
+            {
+              title: "RECOGNITION",
+              items: [
+                "FOUNDING stamp on profile",
+                "Lifetime tier display",
+                "Voice consulted on major Presttige direction decisions",
+                "Presttige Patron Card (Apple Wallet + QR) — coming soon"
+              ]
+            }
+          ]
         },
+        premier: {
+          slug: "premier",
+          eyebrow: "MEMBERSHIP TIER",
+          title: "Premier",
+          price: "$222 · founding rate · first year",
+          shortPrice: "$222 / year",
+          renewal: "Renews at $33/month or $222/year after the first twelve months.",
+          stamp: "",
+          lead: "Among the first 2,222 Premier members. Full access to the Presttige network, with the right to suggest new members. A founding rate locked for your first year.",
+          ctaLanding: "CONTINUE TO PREMIER",
+          ctaCheckout: "CONTINUE TO CHECKOUT",
+          sections: [
+            {
+              title: "STATUS & ACCESS",
+              items: [
+                "1-year membership at the founding rate of $222",
+                "Among the first 2,222 Premier members",
+                "Full access to the Presttige network — all members across all geographies"
+              ]
+            },
+            {
+              title: "MEMBER RIGHTS",
+              items: [
+                "Right to suggest new members — proposals reviewed by the committee (Patron endorsements carry greater weight)"
+              ]
+            },
+            {
+              title: "STAY INFORMED",
+              items: [
+                "Updates on Patron seat availability",
+                "New add-on services as they launch",
+                "Major Presttige announcements",
+                "Reminders before the upgrade window closes"
+              ]
+            },
+            {
+              title: "RECOGNITION",
+              items: [
+                "Premier badge on profile",
+                "Tier visible on directory"
+              ]
+            },
+            {
+              title: "UPGRADE OPTION (TIME-LIMITED)",
+              items: [
+                "Until 31 December 2026 (or while Patron seats remain), upgrade to Patron by paying $777 difference and become Patron for life"
+              ]
+            }
+          ]
+        },
+        club: {
+          slug: "club",
+          eyebrow: "MEMBERSHIP TIER",
+          title: "Club",
+          price: "$99 · founding rate · first year",
+          shortPrice: "$99 / year",
+          renewal: "Renews at $9.99/month or $99/year after the first twelve months.",
+          stamp: "",
+          lead: "The entry to the Presttige network. Founding-rate access for your first year, and the option to upgrade to Patron at any time before 31 December 2026.",
+          ctaLanding: "CONTINUE TO CLUB",
+          ctaCheckout: "CONTINUE TO CHECKOUT",
+          sections: [
+            {
+              title: "STATUS & ACCESS",
+              items: [
+                "1-year membership at the founding rate of $99",
+                "Among the first 9,999 Club members",
+                "Access to the Presttige network — directory and basic communication"
+              ]
+            },
+            {
+              title: "STAY INFORMED",
+              items: [
+                "Updates on Patron seat availability",
+                "New add-on services as they launch",
+                "Major Presttige announcements",
+                "Reminders before the upgrade window closes"
+              ]
+            },
+            {
+              title: "RECOGNITION",
+              items: [
+                "Club badge on profile",
+                "Tier visible on directory"
+              ]
+            },
+            {
+              title: "UPGRADE OPTION (TIME-LIMITED)",
+              items: [
+                "Until 31 December 2026 (or while Patron seats remain), upgrade to Patron by paying $900 difference and become Patron for life"
+              ]
+            }
+          ]
+        }
       };
 
-      let periodicity = "annual";
       let payload = null;
-      let activeTier = "";
+      let route = readRoute();
+      let activeAction = "";
 
-      if (!token || token === "tier-select" || token === "tier-select.html") {
+      if (!route.token) {
         renderError("Missing tier selection token.");
-        return;
+      } else {
+        load();
       }
 
-      load();
+      window.addEventListener("popstate", () => {
+        route = readRoute();
+        if (payload) {
+          render();
+        }
+      });
 
       async function load() {
         try {
-          const response = await fetch(`${API_BASE}/tier-select-fetch?token=${encodeURIComponent(token)}`);
+          const response = await fetch(`${API_BASE}/tier-select-fetch?token=${encodeURIComponent(route.token)}`);
           const data = await response.json();
 
           if (response.status === 410) {
@@ -316,48 +583,127 @@
       }
 
       function render() {
+        const currentTier = route.view === "landing" ? null : route.view;
         app.className = "";
-        app.innerHTML = `
-          <div class="tier-toggle">
-            <button type="button" data-period="monthly" class="${periodicity === "monthly" ? "is-active" : ""}">Monthly</button>
-            <button type="button" data-period="annual" class="${periodicity === "annual" ? "is-active" : ""}">Annual — Includes Tier Upgrade</button>
-          </div>
-          <div class="tier-grid ${periodicity === "annual" ? "is-annual" : ""}">
-            ${CARD_ORDER.map((tierKey) => renderCard(tierKey)).join("")}
-          </div>
-          <p class="tier-footer">Pricing details are presented at the next step. Subscriptions can be paused or cancelled at any time, in accordance with our Terms.</p>
-        `;
-
-        app.querySelectorAll("[data-period]").forEach((button) => {
-          button.addEventListener("click", () => {
-            periodicity = button.dataset.period;
-            render();
-          });
-        });
-
-        app.querySelectorAll("[data-tier]").forEach((button) => {
-          button.addEventListener("click", () => beginCheckout(button.dataset.tier));
-        });
+        app.innerHTML = currentTier ? renderDetailPage(currentTier) : renderLandingPage();
+        bindActions();
       }
 
-      function renderCard(tierKey) {
-        const copy = CARD_COPY[tierKey];
-        const disabled = activeTier === tierKey ? "disabled" : "";
-        const buttonLabel = activeTier === tierKey ? "Redirecting…" : copy.cta;
+      function renderLandingPage() {
         return `
-          <article class="tier-card ${copy.variant}">
-            <p class="tier-card__eyebrow">${copy.eyebrow}</p>
-            <h2 class="tier-card__title">${copy.title}</h2>
-            <p class="tier-card__subtitle">${copy.subtitle}</p>
-            <p class="tier-card__copy">${copy.body}</p>
-            <p class="tier-card__bonus" data-has-bonus="${copy.bonus ? "true" : "false"}">${copy.bonus}</p>
-            <button type="button" class="tier-card__button" data-tier="${tierKey}" ${disabled}>${buttonLabel}</button>
+          <div class="landing">
+            ${renderLandingCard("patron", true)}
+            <div class="landing-secondary">
+              ${renderLandingCard("premier", false)}
+              ${renderLandingCard("club", false)}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderLandingCard(tier, dominant) {
+        const content = TIER_CONTENT[tier];
+        const titleClass = dominant ? "title" : "title title--secondary";
+        const cardClass = dominant ? "card card--patron" : "card";
+        const headingTag = dominant ? "h1" : "h2";
+        return `
+          <article class="${cardClass}" data-tier-card="${tier}">
+            ${content.stamp ? `<div class="stamp">${escapeHtml(content.stamp)}</div>` : ""}
+            <p class="eyebrow">${escapeHtml(content.eyebrow)}</p>
+            <${headingTag} class="${titleClass}">${escapeHtml(content.title)}</${headingTag}>
+            <p class="price">${escapeHtml(content.price)}</p>
+            ${content.renewal ? `<p class="renewal">${escapeHtml(content.renewal)}</p>` : ""}
+            <p class="lead">${escapeHtml(content.lead)}</p>
+            <div class="section-group">
+              ${content.sections.map(renderSectionBlock).join("")}
+            </div>
+            <div class="actions">
+              <button type="button" class="button ${dominant ? "" : "button--secondary"}" data-go-tier="${tier}" data-cta-role="landing" ${activeAction === tier ? "disabled" : ""}>${activeAction === tier ? "LOADING…" : content.ctaLanding}</button>
+            </div>
           </article>
         `;
       }
 
+      function renderDetailPage(tier) {
+        const content = TIER_CONTENT[tier];
+        const otherTiers = TIER_ORDER.filter((slug) => slug !== tier);
+        return `
+          <section class="feature-layout">
+            <article class="feature-card ${tier === "patron" ? "feature-card--patron" : ""}" data-tier-card="${tier}">
+              ${content.stamp ? `<div class="stamp">${escapeHtml(content.stamp)}</div>` : ""}
+              <p class="eyebrow">${escapeHtml(content.eyebrow)}</p>
+              <h1 class="title">${escapeHtml(content.title)}</h1>
+              <p class="price">${escapeHtml(content.price)}</p>
+              ${content.renewal ? `<p class="renewal">${escapeHtml(content.renewal)}</p>` : ""}
+              <p class="lead">${escapeHtml(content.lead)}</p>
+              <div class="section-group">
+                ${content.sections.map(renderSectionBlock).join("")}
+              </div>
+            </article>
+            <aside class="feature-summary">
+              <p class="summary-label">Selected Tier</p>
+              <h2 class="summary-title">${escapeHtml(content.title)}</h2>
+              <p class="summary-price">${escapeHtml(content.price)}</p>
+              ${content.renewal ? `<p class="summary-renewal">${escapeHtml(content.renewal)}</p>` : ""}
+              ${tier === "club" || tier === "premier" ? `<div class="callout">${escapeHtml(UPGRADE_COPY)}</div>` : ""}
+              <div class="actions">
+                <button type="button" class="button button--full" data-checkout-tier="${tier}" ${activeAction === tier ? "disabled" : ""}>${activeAction === tier ? "REDIRECTING…" : content.ctaCheckout}</button>
+              </div>
+            </aside>
+          </section>
+          <section class="switches">
+            ${otherTiers.map(renderSwitchCard).join("")}
+          </section>
+        `;
+      }
+
+      function renderSwitchCard(tier) {
+        const content = TIER_CONTENT[tier];
+        return `
+          <article class="switch-card" data-tier-switch="${tier}">
+            <p class="eyebrow">${escapeHtml(content.eyebrow)}</p>
+            <h3 class="switch-title">${escapeHtml(content.title)}</h3>
+            <p class="switch-copy">${escapeHtml(content.price)}${content.renewal ? ` ${escapeHtml(content.renewal)}` : ""}</p>
+            <div class="switch-actions">
+              <button type="button" class="switch-button" data-go-tier="${tier}" ${activeAction === tier ? "disabled" : ""}>${activeAction === tier ? "LOADING…" : `SWITCH TO ${content.title.toUpperCase()}`}</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderSectionBlock(section) {
+        return `
+          <section class="section-block">
+            <h2 class="section-title">${escapeHtml(section.title)}</h2>
+            <ul class="benefits">
+              ${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+            </ul>
+          </section>
+        `;
+      }
+
+      function bindActions() {
+        app.querySelectorAll("[data-go-tier]").forEach((button) => {
+          button.addEventListener("click", () => navigateToTier(button.getAttribute("data-go-tier")));
+        });
+
+        app.querySelectorAll("[data-checkout-tier]").forEach((button) => {
+          button.addEventListener("click", () => beginCheckout(button.getAttribute("data-checkout-tier")));
+        });
+      }
+
+      function navigateToTier(tier) {
+        activeAction = tier;
+        render();
+        const nextPath = buildTierPath(tier);
+        window.history.pushState({}, "", nextPath);
+        route = readRoute();
+        activeAction = "";
+        render();
+      }
+
       async function beginCheckout(tier) {
-        activeTier = tier;
+        activeAction = tier;
         render();
 
         try {
@@ -365,9 +711,8 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              token,
+              token: route.token,
               tier,
-              periodicity: tier === "free" ? "monthly" : periodicity,
             }),
           });
           const data = await response.json();
@@ -377,22 +722,48 @@
             return;
           }
 
-          if (data.redirect_url) {
-            window.location.assign(data.redirect_url);
+          if (!data.redirect_url) {
+            renderError("Missing redirect URL from checkout session.");
             return;
           }
 
-          renderError("Missing redirect URL from checkout session.");
+          window.location.assign(data.redirect_url);
         } catch (error) {
           renderError("Unable to continue right now.");
         } finally {
-          activeTier = "";
+          activeAction = "";
         }
       }
 
+      function buildTierPath(tier) {
+        return `/tier-select/${route.token}/${tier}`;
+      }
+
+      function readRoute() {
+        const segments = window.location.pathname.split("/").filter(Boolean);
+        const query = new URLSearchParams(window.location.search);
+        const tokenFromPath = segments[0] === "tier-select" ? segments[1] : "";
+        const token = tokenFromPath || query.get("token") || "";
+        const tierFromPath = segments[0] === "tier-select" ? (segments[2] || "") : (query.get("tier") || "");
+        const tier = String(tierFromPath || "").trim().toLowerCase();
+        return {
+          token,
+          view: TIER_ORDER.includes(tier) ? tier : "landing",
+        };
+      }
+
       function renderError(message) {
-        app.className = "tier-error";
+        app.className = "error-box";
         app.textContent = message;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
       }
     })();
   </script>

@@ -1,43 +1,73 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb");
-const { SSMClient, GetParametersByPathCommand } = require("@aws-sdk/client-ssm");
+const { SSMClient, GetParametersCommand } = require("@aws-sdk/client-ssm");
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
 const ssm = new SSMClient({ region: "us-east-1" });
 
 const TABLE_NAME = "presttige-db";
+const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
+const PRICE_PARAMETER_NAMES = {
+  club: "/presttige/stripe/club-y1-price-id",
+  premier: "/presttige/stripe/premier-y1-price-id",
+  patron: "/presttige/stripe/patron-lifetime-price-id",
+};
+const TIER_DEFINITIONS = {
+  patron: {
+    slug: "patron",
+    eyebrow: "HIGHEST TIER · BY EXCEPTION",
+    label: "Patron",
+    price: "$999 · one-time · lifetime",
+    price_short: "$999",
+    billing: "lifetime",
+    renewal: null,
+    checkout_description:
+      "HIGHEST TIER · BY EXCEPTION — The inner circle. A single payment of $999 — once, forever. Among the first 999 worldwide. The full Presttige network, direct access to founders, and the only tier with our curated add-on services.",
+  },
+  premier: {
+    slug: "premier",
+    eyebrow: "MEMBERSHIP TIER",
+    label: "Premier",
+    price: "$222 · founding rate · first year",
+    price_short: "$222 / year",
+    billing: "y1_prepay",
+    renewal: "Renews at $33/month or $222/year after the first twelve months.",
+    checkout_description:
+      "MEMBERSHIP TIER — Among the first 2,222 Premier members. Full access to the Presttige network, with the right to suggest new members. A founding rate locked for your first year.",
+  },
+  club: {
+    slug: "club",
+    eyebrow: "MEMBERSHIP TIER",
+    label: "Club",
+    price: "$99 · founding rate · first year",
+    price_short: "$99 / year",
+    billing: "y1_prepay",
+    renewal: "Renews at $9.99/month or $99/year after the first twelve months.",
+    checkout_description:
+      "MEMBERSHIP TIER — The entry to the Presttige network. Founding-rate access for your first year, and the option to upgrade to Patron at any time before 31 December 2026.",
+  },
+};
 
-let cachedTiers = null;
+let cachedPriceIds = null;
 
-async function loadTiers() {
-  if (cachedTiers) {
-    return cachedTiers;
+async function loadPriceIds() {
+  if (cachedPriceIds) {
+    return cachedPriceIds;
   }
 
   const response = await ssm.send(
-    new GetParametersByPathCommand({
-      Path: "/presttige/stripe/",
-      Recursive: true,
+    new GetParametersCommand({
+      Names: Object.values(PRICE_PARAMETER_NAMES),
     })
   );
 
-  const tiers = {
-    patron: {},
-    tier2: {},
-    tier3: {},
+  const byName = new Map((response.Parameters || []).map((parameter) => [parameter.Name, parameter.Value]));
+  cachedPriceIds = {
+    club: byName.get(PRICE_PARAMETER_NAMES.club) || null,
+    premier: byName.get(PRICE_PARAMETER_NAMES.premier) || null,
+    patron: byName.get(PRICE_PARAMETER_NAMES.patron) || null,
   };
-
-  for (const parameter of response.Parameters || []) {
-    const parts = parameter.Name.split("/");
-    const tier = parts[3];
-    const key = parts[4];
-    if (tiers[tier]) {
-      tiers[tier][key] = parameter.Value;
-    }
-  }
-
-  cachedTiers = tiers;
-  return cachedTiers;
+  return cachedPriceIds;
 }
 
 async function findLeadByMagicToken(token) {
@@ -75,7 +105,7 @@ exports.handler = async (event) => {
       return response(404, { error: "Token not found" });
     }
 
-    if (lead.magic_token_status === "used" || lead.account_active || ["paid", "free"].includes(lead.payment_status)) {
+    if (lead.magic_token_status === "used" || lead.account_active || lead.payment_status === "paid") {
       return response(410, {
         error: "Membership already activated",
         payment_status: lead.payment_status || null,
@@ -86,41 +116,26 @@ exports.handler = async (event) => {
       return response(410, { error: "Token expired" });
     }
 
-    const tiers = await loadTiers();
+    const priceIds = await loadPriceIds();
 
     return response(200, {
       profile: {
         name: lead.name || null,
         email: lead.email || null,
       },
+      upgrade_eligible_until: UPGRADE_ELIGIBLE_UNTIL,
       tiers: {
         patron: {
-          label: "Patron",
-          subtitle: "By exception",
-          monthly: 5000,
-          annual: 51000,
-          price_ids: tiers.patron,
+          ...TIER_DEFINITIONS.patron,
+          price_id: priceIds.patron,
         },
-        tier2: {
-          label: "Associate",
-          subtitle: "Established",
-          monthly: 1500,
-          annual: 15300,
-          price_ids: tiers.tier2,
+        premier: {
+          ...TIER_DEFINITIONS.premier,
+          price_id: priceIds.premier,
         },
-        tier3: {
-          label: "Affiliate",
-          subtitle: "Entry level",
-          monthly: 500,
-          annual: 5100,
-          price_ids: tiers.tier3,
-        },
-        free: {
-          label: "Complimentary",
-          subtitle: "Entry path",
-          monthly: 0,
-          annual: 0,
-          price_ids: null,
+        club: {
+          ...TIER_DEFINITIONS.club,
+          price_id: priceIds.club,
         },
       },
     });

@@ -322,11 +322,12 @@ def lambda_handler(event, context):
                 "message": "client_reference_id missing"
             })
 
-        product = safe_get(metadata, "product", "")
-        plan = safe_get(metadata, "plan", "")
-        term = safe_get(metadata, "term", "")
-        selected_tier = safe_get(metadata, "tier") or plan or ""
-        selected_periodicity = safe_get(metadata, "periodicity") or term or ""
+        product = safe_get(metadata, "product", "") or "membership"
+        selected_tier = (safe_get(metadata, "tier") or "").strip().lower()
+        selected_tier_billing = (safe_get(metadata, "billing") or "").strip().lower()
+        founding_rate_locked = str(safe_get(metadata, "founding_rate_locked", "")).strip().lower() == "true"
+        founding_rate_expires_at = (safe_get(metadata, "founding_rate_expires_at") or "").strip() or None
+        upgrade_eligible_until = (safe_get(metadata, "upgrade_eligible_until") or "").strip() or None
 
         currency = (safe_get(session, "currency") or DEFAULT_CURRENCY).upper()
         product_type = normalize_product_type(metadata)
@@ -345,8 +346,8 @@ def lambda_handler(event, context):
                 extra={
                     "lead_id": lead_id,
                     "product": product,
-                    "plan": plan,
-                    "term": term,
+                    "tier": selected_tier,
+                    "billing": selected_tier_billing,
                     "product_type": product_type,
                     "currency": currency,
                 },
@@ -383,17 +384,21 @@ def lambda_handler(event, context):
                     access_status = :active,
                     stripe_checkout_completed = :true,
                     stripe_session_id = :stripe_session_id,
-                    stripe_subscription_id = :subscription_id,
                     stripe_customer_id = :customer_id,
                     #product = :product,
                     #plan = :plan,
                     #term = :term,
                     selected_tier = :selected_tier,
-                    selected_periodicity = :selected_periodicity,
+                    selected_tier_billing = :selected_tier_billing,
+                    founding_rate_locked = :founding_rate_locked,
+                    founding_rate_expires_at = :founding_rate_expires_at,
+                    upgrade_eligible_until = :upgrade_eligible_until,
+                    stripe_checkout_mode = :stripe_checkout_mode,
                     product_type = :product_type,
                     amount_paid = :amount_paid,
                     currency = :currency,
                     stripe_event_type = :stripe_event_type
+                REMOVE stripe_subscription_id, selected_periodicity, effective_tier, effective_tier_until
             """,
             ExpressionAttributeNames={
                 "#product": "product",
@@ -405,13 +410,16 @@ def lambda_handler(event, context):
                 ":active": "active",
                 ":true": True,
                 ":stripe_session_id": safe_get(session, "id", ""),
-                ":subscription_id": subscription_id,
                 ":customer_id": customer_id,
                 ":product": product,
-                ":plan": plan,
-                ":term": term,
+                ":plan": selected_tier,
+                ":term": selected_tier_billing,
                 ":selected_tier": selected_tier,
-                ":selected_periodicity": selected_periodicity,
+                ":selected_tier_billing": selected_tier_billing,
+                ":founding_rate_locked": founding_rate_locked,
+                ":founding_rate_expires_at": founding_rate_expires_at,
+                ":upgrade_eligible_until": upgrade_eligible_until,
+                ":stripe_checkout_mode": "payment",
                 ":product_type": product_type,
                 ":amount_paid": amount_paid,
                 ":currency": currency,

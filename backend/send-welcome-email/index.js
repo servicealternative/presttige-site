@@ -46,11 +46,32 @@ function fill(template, vars) {
 function tierLabel(tier) {
   const mapping = {
     patron: "Patron",
-    tier2: "Associate",
-    tier3: "Affiliate",
-    free: "Complimentary",
+    premier: "Premier",
+    club: "Club",
   };
   return mapping[tier] || "Presttige Membership";
+}
+
+function buildWelcomeBodyCopy(tierLabelValue, selectedTier) {
+  if (selectedTier === "patron") {
+    return `Your ${tierLabelValue} membership is active. Click below to access your account.`;
+  }
+
+  if (selectedTier === "premier") {
+    return (
+      `Your ${tierLabelValue} membership is active. Click below to access your account. ` +
+      `Upgrade to Patron at any time before 31 December 2026 by paying only the difference — and become Patron for life.`
+    );
+  }
+
+  if (selectedTier === "club") {
+    return (
+      `Your ${tierLabelValue} membership is active. Click below to access your account. ` +
+      `Upgrade to Patron at any time before 31 December 2026 by paying only the difference — and become Patron for life.`
+    );
+  }
+
+  return `Your ${tierLabelValue} membership is active. Click below to access your account.`;
 }
 
 function normalizeEmail(email) {
@@ -323,19 +344,14 @@ exports.handler = async (event) => {
     }
 
     const welcomeLink = `https://presttige.net/welcome/${lead.magic_token}`;
-    const selectedTier = lead.selected_tier || "free";
-    const effectiveTier = lead.effective_tier || selectedTier;
-    const effectiveTierLabel = tierLabel(effectiveTier);
-    const upgradeSentence =
-      effectiveTier !== selectedTier
-        ? ` As an annual subscriber, you have full ${effectiveTierLabel} access for the next twelve months.`
-        : "";
+    const selectedTier = lead.selected_tier || "club";
+    const selectedTierLabel = tierLabel(selectedTier);
     const html = fill(loadTemplate(), {
       subject: "Welcome to Presttige",
       preheader: "Your membership is active. Enter Presttige.",
       eyebrow: "MEMBERSHIP ACTIVATED",
       headline: `Welcome to Presttige, ${lead.name || "Member"}`,
-      body_copy: `Your ${effectiveTierLabel} membership is active. Click below to access your account.${upgradeSentence}`,
+      body_copy: buildWelcomeBodyCopy(selectedTierLabel, selectedTier),
       welcome_url: welcomeLink,
       disclaimer:
         "This link is private. If you did not expect this email, please reply to info@presttige.net immediately.",
