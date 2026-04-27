@@ -267,10 +267,14 @@ def purge_tester_records(email):
 
     for record in existing_records:
         lead_id = (record.get("lead_id") or "").strip()
-        schedule_name = (record.get("e3_schedule_name") or "").strip()
+        schedule_names = [
+            (record.get("e3_schedule_name") or "").strip(),
+            (record.get("tester_cleanup_schedule_name") or "").strip(),
+        ]
 
-        if schedule_name and delete_schedule_if_present(schedule_name):
-            deleted_schedules += 1
+        for schedule_name in schedule_names:
+            if schedule_name and delete_schedule_if_present(schedule_name):
+                deleted_schedules += 1
 
         if lead_id:
             deleted_photos += delete_s3_prefix(ORIGINALS_BUCKET, f"{lead_id}/")

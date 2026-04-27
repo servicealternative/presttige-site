@@ -1,7 +1,7 @@
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { S3Client, ListObjectsV2Command, DeleteObjectsCommand } = require("@aws-sdk/client-s3");
-const { SchedulerClient, DeleteScheduleCommand } = require("@aws-sdk/client-scheduler");
+const { SchedulerClient, CreateScheduleCommand, DeleteScheduleCommand } = require("@aws-sdk/client-scheduler");
 const { SESv2Client, GetSuppressedDestinationCommand, DeleteSuppressedDestinationCommand } = require("@aws-sdk/client-sesv2");
 const { ConditionalCheckFailedException } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
@@ -21,6 +21,13 @@ const BCC = "committee@presttige.net";
 const ORIGINALS_BUCKET = process.env.PHOTOS_ORIGINALS_BUCKET || "presttige-applicant-photos";
 const THUMBNAILS_BUCKET = process.env.PHOTOS_THUMBNAILS_BUCKET || "presttige-applicant-photos-thumbnails";
 const SCHEDULER_GROUP_NAME = process.env.TESTER_PURGE_SCHEDULER_GROUP || "default";
+const TESTER_PURGE_DELAY_MINUTES = Math.max(1, Number(process.env.TESTER_PURGE_DELAY_MINUTES || "5"));
+const TESTER_CLEANUP_FUNCTION_ARN =
+  process.env.TESTER_CLEANUP_FUNCTION_ARN ||
+  "arn:aws:lambda:us-east-1:343218208384:function:presttige-tester-cleanup";
+const TESTER_CLEANUP_SCHEDULER_ROLE_ARN =
+  process.env.TESTER_CLEANUP_SCHEDULER_ROLE_ARN ||
+  "arn:aws:iam::343218208384:role/presttige-scheduler-invoke-tester-cleanup-role";
 const TESTER_WHITELIST = new Set([
   "antoniompereira@me.com",
   "alternativeservice@gmail.com",
@@ -52,6 +59,82 @@ function normalizeEmail(email) {
 
 function isTesterEmail(email) {
   return TESTER_WHITELIST.has(normalizeEmail(email));
+}
+
+function buildTesterCleanupScheduleName(leadId) {
+  return `presttige-tester-cleanup-${String(leadId || "").trim()}`.slice(0, 64);
+}
+
+function buildAtExpression(date) {
+  return `at(${date.toISOString().replace(/\.\d{3}Z$/, "")})`;
+}
+
+async function scheduleTesterCleanup(lead, trigger) {
+  const leadId = String(lead?.lead_id || "").trim();
+  const email = normalizeEmail(lead?.email);
+  if (!leadId) {
+    return { scheduled: false, reason: "missing_lead_id" };
+  }
+
+  const scheduleName =
+    String(lead?.tester_cleanup_schedule_name || "").trim() || buildTesterCleanupScheduleName(leadId);
+  const scheduledAt = new Date(Date.now() + TESTER_PURGE_DELAY_MINUTES * 60 * 1000);
+  let alreadyScheduled = false;
+
+  try {
+    await scheduler.send(
+      new CreateScheduleCommand({
+        Name: scheduleName,
+        GroupName: SCHEDULER_GROUP_NAME,
+        ScheduleExpression: buildAtExpression(scheduledAt),
+        FlexibleTimeWindow: { Mode: "OFF" },
+        Target: {
+          Arn: TESTER_CLEANUP_FUNCTION_ARN,
+          RoleArn: TESTER_CLEANUP_SCHEDULER_ROLE_ARN,
+          Input: JSON.stringify({
+            body: JSON.stringify({
+              lead_id: leadId,
+              trigger,
+            }),
+          }),
+        },
+        ActionAfterCompletion: "DELETE",
+      })
+    );
+  } catch (error) {
+    const code = error?.name || error?.Code || error?.code || "";
+    if (code !== "ConflictException") {
+      throw error;
+    }
+    alreadyScheduled = true;
+  }
+
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { lead_id: leadId },
+      ConditionExpression: "attribute_exists(lead_id)",
+      UpdateExpression: "SET tester_cleanup_schedule_name = :name, tester_cleanup_scheduled_at = :at",
+      ExpressionAttributeValues: {
+        ":name": scheduleName,
+        ":at": scheduledAt.toISOString(),
+      },
+    })
+  );
+
+  console.log(
+    `TESTER_CLEANUP_SCHEDULED trigger=${trigger} email=${email} lead_id=${leadId} ` +
+      `schedule_name=${scheduleName} fire_at=${scheduledAt.toISOString()} ` +
+      `delay_minutes=${TESTER_PURGE_DELAY_MINUTES} already_scheduled=${String(alreadyScheduled)}`
+  );
+
+  return {
+    scheduled: true,
+    alreadyScheduled,
+    scheduleName,
+    scheduledAt: scheduledAt.toISOString(),
+    delayMinutes: TESTER_PURGE_DELAY_MINUTES,
+  };
 }
 
 async function deleteScheduleIfPresent(scheduleName) {
@@ -233,8 +316,8 @@ exports.handler = async (event) => {
 
     if (lead.welcome_sent_at) {
       if (testerLead) {
-        const purgeResult = await purgeTesterLead(lead, "e5_sent");
-        return response(200, { already_sent: true, tester_purged: true, purge_result: purgeResult });
+        const cleanupSchedule = await scheduleTesterCleanup(lead, "e5_sent");
+        return response(200, { already_sent: true, tester_cleanup_scheduled: true, cleanup_schedule: cleanupSchedule });
       }
       return response(200, { already_sent: true });
     }
@@ -303,8 +386,12 @@ exports.handler = async (event) => {
     );
 
     if (testerLead) {
-      const purgeResult = await purgeTesterLead(lead, "e5_sent");
-      return response(200, { sent: true, tester_purged: true, purge_result: purgeResult });
+      const refreshedLead = {
+        ...lead,
+        welcome_sent_at: new Date().toISOString(),
+      };
+      const cleanupSchedule = await scheduleTesterCleanup(refreshedLead, "e5_sent");
+      return response(200, { sent: true, tester_cleanup_scheduled: true, cleanup_schedule: cleanupSchedule });
     }
 
     return response(200, { sent: true });

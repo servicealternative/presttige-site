@@ -420,12 +420,11 @@ def lambda_handler(event, context):
         )
 
         if tester_completion:
-            invoke_welcome_email(lead_id, invocation_type="RequestResponse")
-            purge_tester_record(
-                lead_id=lead_id,
-                email=lead_email,
-                schedule_name=(lead.get("e3_schedule_name") or ""),
-                trigger="stripe_success",
+            welcome_result = invoke_welcome_email(lead_id, invocation_type="RequestResponse")
+            parsed_payload = (welcome_result or {}).get("parsed_payload") or {}
+            print(
+                f"TESTER_CLEANUP_DEFERRED trigger=stripe_success email={lead_email or session_email} "
+                f"lead_id={lead_id} welcome_status={parsed_payload.get('statusCode') if isinstance(parsed_payload, dict) else 'unknown'}"
             )
         else:
             invoke_welcome_email(lead_id, invocation_type="Event")
