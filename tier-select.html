@@ -51,19 +51,28 @@
 
     .landing {
       display: grid;
-      gap: 18px 22px;
-      grid-template-columns: minmax(0, 1.4fr) minmax(340px, 0.82fr);
+      gap: 22px;
       align-items: start;
     }
 
-    .landing-secondary {
-      display: grid;
-      gap: 18px;
-      align-content: start;
+    .landing-hero {
+      min-width: 0;
     }
 
-    .landing-subscriber {
-      grid-column: 1 / -1;
+    .landing-secondary-row {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: stretch;
+    }
+
+    .landing-secondary-slot {
+      display: flex;
+      min-width: 0;
+    }
+
+    .landing-secondary-slot > .card {
+      flex: 1 1 auto;
     }
 
     .card,
@@ -82,7 +91,7 @@
     }
 
     .card--patron {
-      padding: 30px 32px 24px;
+      padding: 42px 40px 28px;
       border-color: var(--pp-accent);
       background:
         radial-gradient(circle at top right, rgba(140, 112, 64, 0.18), rgba(140, 112, 64, 0) 34%),
@@ -108,6 +117,28 @@
       letter-spacing: 0.22em;
       text-transform: uppercase;
       background: rgba(245, 242, 237, 0.92);
+    }
+
+    .stamp--hero {
+      top: -18px;
+      right: -10px;
+      padding: 12px 20px 10px;
+      border: 2px solid var(--pp-accent);
+      outline: 1px solid rgba(140, 112, 64, 0.48);
+      outline-offset: -6px;
+      box-shadow: 0 0 0 1px rgba(140, 112, 64, 0.18);
+      background: transparent;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(28px, 2.3vw, 32px);
+      font-weight: 500;
+      line-height: 0.88;
+      letter-spacing: 0.15em;
+      text-align: center;
+      transform: rotate(13deg);
+      transform-origin: top right;
+      max-width: 320px;
+      z-index: 2;
+      pointer-events: none;
     }
 
     .eyebrow {
@@ -355,8 +386,14 @@
     }
 
     @media (max-width: 1200px) {
-      .landing {
-        grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.9fr);
+      .card--patron {
+        padding-left: 34px;
+        padding-right: 34px;
+      }
+
+      .stamp--hero {
+        right: -4px;
+        max-width: 288px;
       }
     }
 
@@ -370,14 +407,23 @@
       }
     }
 
-    @media (max-width: 980px) {
-      .landing {
-        grid-template-columns: 1fr;
+    @media (max-width: 1023px) {
+      .landing-secondary-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .landing-subscriber {
-        grid-column: auto;
+      .landing-secondary-slot--subscriber {
+        grid-column: 1 / -1;
       }
+
+      .stamp--hero {
+        top: -14px;
+        right: -4px;
+        max-width: 272px;
+      }
+    }
+
+    @media (max-width: 980px) {
 
       .section-group--patron {
         grid-template-columns: 1fr;
@@ -408,11 +454,29 @@
         padding: 24px 20px 20px;
       }
 
-      .stamp {
+      .stamp:not(.stamp--hero) {
         position: static;
         transform: none;
         display: inline-flex;
         margin-bottom: 16px;
+      }
+
+      .stamp--hero {
+        top: 14px;
+        right: 12px;
+        max-width: 220px;
+        padding: 10px 14px 8px;
+        font-size: 19px;
+        letter-spacing: 0.12em;
+        transform: rotate(11deg);
+      }
+
+      .landing-secondary-row {
+        grid-template-columns: 1fr;
+      }
+
+      .landing-secondary-slot--subscriber {
+        grid-column: auto;
       }
 
       .button,
@@ -673,13 +737,24 @@
       function renderLandingPage() {
         return `
           <section class="landing">
-            ${renderLandingCard("patron", { dominant: true })}
-            <div class="landing-secondary">
-              ${renderLandingCard("premier", { compact: true })}
-              ${renderLandingCard("club", { compact: true })}
+            <div class="landing-hero">
+              ${renderLandingCard("patron", {
+                dominant: true,
+                stampText: "BECOME A FOUNDER, FOR LIFE",
+                stampClass: "stamp stamp--hero",
+                stampAriaLabel: "Become a founder, for life — Patron tier"
+              })}
             </div>
-            <div class="landing-subscriber">
-              ${renderLandingCard("subscriber", { subscriber: true })}
+            <div class="landing-secondary-row">
+              <div class="landing-secondary-slot">
+                ${renderLandingCard("premier", { compact: true })}
+              </div>
+              <div class="landing-secondary-slot">
+                ${renderLandingCard("club", { compact: true })}
+              </div>
+              <div class="landing-secondary-slot landing-secondary-slot--subscriber">
+                ${renderLandingCard("subscriber", { subscriber: true })}
+              </div>
             </div>
           </section>
         `;
@@ -700,7 +775,13 @@
 
         return `
           <article class="${content.landingClass}" data-tier-card="${tier}">
-            ${content.stamp ? `<div class="stamp">${escapeHtml(content.stamp)}</div>` : ""}
+            ${
+              options.stampText
+                ? `<div class="${escapeHtml(options.stampClass || "stamp")}" aria-label="${escapeHtml(options.stampAriaLabel || "")}">${escapeHtml(options.stampText)}</div>`
+                : content.stamp
+                  ? `<div class="stamp">${escapeHtml(content.stamp)}</div>`
+                  : ""
+            }
             <p class="${eyebrowClass}">${escapeHtml(content.eyebrow)}</p>
             <${headingTag} class="${titleClass}">${escapeHtml(content.title)}</${headingTag}>
             <p class="price">${escapeHtml(content.price)}</p>
