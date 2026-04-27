@@ -1,0 +1,245 @@
+{
+  "generated_at": "2026-04-27T06:18:59.217881+00:00",
+  "mode": "dry_run_abort",
+  "criteria": {
+    "email_status": "verified",
+    "profile_status": "complete",
+    "application_received_email_sent_at": "null",
+    "e2_sent_at": "null",
+    "exclude_is_test": true,
+    "exclude_tester_whitelist": [
+      "alternativeservice@gmail.com",
+      "antoniompereira@me.com"
+    ],
+    "exclude_personal": [
+      "apereira@movaglobal.net"
+    ]
+  },
+  "total_scanned": 36,
+  "eligible_count": 0,
+  "sent_e25_count": 0,
+  "sent_e2_count": 0,
+  "failures": [],
+  "breakdown": {
+    "email_not_verified": 8,
+    "profile_not_complete": 24,
+    "antonio_personal": 1,
+    "already_sent_e25": 14,
+    "already_sent_e2": 14,
+    "test_domain": 2
+  },
+  "eligible": [],
+  "manual_review_step1_verified_unsent_count": 11,
+  "manual_review_step1_verified_unsent": [
+    {
+      "lead_id": "fdm_cd1f9a695a",
+      "email": "sales@kavesuexim.com",
+      "name": "Francis",
+      "country": "Singapore",
+      "created_at": "2026-04-17T11:54:27.541309",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    },
+    {
+      "lead_id": "fdm_8b608e90a2",
+      "email": "ifti.333@gmail.com",
+      "name": "IFTHIHAN ISHAK",
+      "country": "United Arab Emirates",
+      "created_at": "2026-04-17T12:19:16.742746",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    },
+    {
+      "lead_id": "fdm_d485b9679c",
+      "email": "nstar@staracheiver.com",
+      "name": "Nina H Stevens",
+      "country": "Monaco",
+      "created_at": "2026-04-17T21:54:56.074962",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    },
+    {
+      "lead_id": "fdm_4378fcf917",
+      "email": "marfatiya.26march@gmail.com",
+      "name": "Ira",
+      "country": "United Arab Emirates",
+      "created_at": "2026-04-18T08:47:05.645224",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    },
+    {
+      "lead_id": "fdm_cd70ed5a8d",
+      "email": "ranig@eim.ae",
+      "name": "Rani G",
+      "country": "United Arab Emirates",
+      "created_at": "2026-04-19T08:41:17.078908",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    },
+    {
+      "lead_id": "fdm_3df00710df",
+      "email": "peacepaulinewabudi@gmail.com",
+      "name": "PEACE PAULINE TAKKA",
+      "country": "United States of America",
+      "created_at": "2026-04-19T10:59:25.821312",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    },
+    {
+      "lead_id": "fdm_cfbde28ccf",
+      "email": "alroxyfze@gmail.com",
+      "name": "Roxana R",
+      "country": "Russia",
+      "created_at": "2026-04-19T12:43:29.707196",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    },
+    {
+      "lead_id": "fdm_cce9003e5f",
+      "email": "semsagroup10@gmail.com",
+      "name": "Abraham Lara Hern\u00e1ndez",
+      "country": "Mexico",
+      "created_at": "2026-04-19T22:20:31.179326",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    },
+    {
+      "lead_id": "fdm_07f5d1b28c",
+      "email": "shithin2020@gmail.com",
+      "name": "Shithin",
+      "country": "United Arab Emirates",
+      "created_at": "2026-04-21T03:11:37.770514",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    },
+    {
+      "lead_id": "fdm_6960f8489a",
+      "email": "yannickguede01@gmail.com",
+      "name": "Yannick GUEDE",
+      "country": "Democratic Republic of the Congo",
+      "created_at": "2026-04-22T13:43:14.913027",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    },
+    {
+      "lead_id": "fdm_897822f4b7",
+      "email": "nektaret@yahoo.com",
+      "name": "Martha Essaent",
+      "country": "Sweden",
+      "created_at": "2026-04-26T17:18:32.354096",
+      "profile_status": "step_1",
+      "email_status": "verified",
+      "review_status": "pending",
+      "payment_status": null,
+      "application_received_email_sent_at": null,
+      "e2_sent_at": null,
+      "is_test": false,
+      "substantive_profile_field_count": 0,
+      "substantive_profile_fields": [],
+      "reasons": [
+        "profile_not_complete"
+      ]
+    }
+  ],
+  "note": "Run aborted because eligible_count < 10. Verified unsent records remaining are not profile_status=complete and lack substantive application data in DynamoDB."
+}
