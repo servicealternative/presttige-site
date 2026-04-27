@@ -1,8 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/../backend/thumbnail-generator"
+rm -rf lib
+mkdir -p lib
+cp ../lib/backfill-filters.js lib/backfill-filters.js
+trap 'rm -rf lib' EXIT
 rm -f dist.zip
-zip dist.zip index.js package.json
+zip -r dist.zip index.js package.json lib
 echo "Package created at $(pwd)/dist.zip"
 ls -lh dist.zip
 echo "SHA256 (hex): $(shasum -a 256 dist.zip | awk '{print $1}')"

@@ -17,6 +17,7 @@ const REVIEW_BASE_URL = process.env.REVIEW_BASE_URL || "https://presttige.net/re
 const FROM_ADDRESS = "office@presttige.net";
 const REPLY_TO = "info@presttige.net";
 const TO_ADDRESS = "committee@presttige.net";
+const { getBackfillResendIneligibilityReason } = loadBackfillFilters();
 
 let cachedSecrets = null;
 let cachedTemplate = null;
@@ -63,6 +64,14 @@ function fillTemplate(template, variables) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
     Object.prototype.hasOwnProperty.call(variables, key) ? String(variables[key]) : ""
   );
+}
+
+function loadBackfillFilters() {
+  try {
+    return require("../lib/backfill-filters");
+  } catch (error) {
+    return require("./lib/backfill-filters");
+  }
 }
 
 function esc(value) {
@@ -151,6 +160,20 @@ exports.handler = async (event) => {
 
     if (!lead) {
       return response(404, { error: "Lead not found" });
+    }
+
+    const backfillGuardReason = getBackfillResendIneligibilityReason(lead);
+    if (backfillGuardReason) {
+      console.log("Backfill resend blocked for committee email", {
+        lead_id: leadId,
+        review_status: lead.review_status || null,
+        reason: backfillGuardReason,
+      });
+      return response(200, {
+        skipped: true,
+        reason: backfillGuardReason,
+        review_status: lead.review_status || null,
+      });
     }
 
     if (lead.e2_sent_at) {

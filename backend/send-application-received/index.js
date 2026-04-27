@@ -6,6 +6,7 @@ const path = require("path");
 
 const ses = new SESClient({ region: "us-east-1" });
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
+const { getBackfillResendIneligibilityReason } = loadBackfillFilters();
 
 const FROM = "committee@presttige.net";
 const REPLY_TO = "committee@presttige.net";
@@ -18,6 +19,14 @@ function fill(template, vars) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
     vars[key] !== undefined ? String(vars[key]) : ""
   );
+}
+
+function loadBackfillFilters() {
+  try {
+    return require("../lib/backfill-filters");
+  } catch (error) {
+    return require("./lib/backfill-filters");
+  }
 }
 
 exports.handler = async (event) => {
@@ -38,6 +47,20 @@ exports.handler = async (event) => {
 
     if (!lead.email) {
       return resp(400, { error: "Lead has no email" });
+    }
+
+    const backfillGuardReason = getBackfillResendIneligibilityReason(lead);
+    if (backfillGuardReason) {
+      console.log("Backfill resend blocked for application received email", {
+        lead_id,
+        review_status: lead.review_status || null,
+        reason: backfillGuardReason,
+      });
+      return resp(200, {
+        skipped: true,
+        reason: backfillGuardReason,
+        review_status: lead.review_status || null,
+      });
     }
 
     if (lead.application_received_email_sent_at && !force_resend) {

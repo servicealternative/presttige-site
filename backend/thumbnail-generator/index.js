@@ -13,6 +13,7 @@ const THUMBS_BUCKET = "presttige-applicant-photos-thumbnails";
 const KMS_KEY_ARN = "arn:aws:kms:us-east-1:343218208384:key/723bb788-9911-4c49-bf1d-792b73685e7c";
 const COMMITTEE_EMAIL_FUNCTION = "presttige-send-committee-email";
 const APPLICATION_RECEIVED_FUNCTION = "presttige-send-application-received";
+const { isEligibleForBackfillResend, getBackfillResendIneligibilityReason } = loadBackfillFilters();
 
 exports.handler = async (event) => {
   for (const record of event.Records || []) {
@@ -79,23 +80,49 @@ exports.handler = async (event) => {
       const photoUploads = lead.photo_uploads || {};
       const expectedCount = Object.keys(photoUploads).length;
       const readyCount = Object.values(photoUploads).filter((photo) => photo?.status === "ready").length;
+      const backfillEligible = isEligibleForBackfillResend(lead);
+      const backfillGuardReason = backfillEligible ? null : getBackfillResendIneligibilityReason(lead);
 
-      if (lead.profile_status === "profile_submitted" && !lead.e2_sent_at && readyCount >= 2) {
+      if (
+        lead.profile_status === "profile_submitted" &&
+        !lead.e2_sent_at &&
+        readyCount >= 2 &&
+        backfillEligible
+      ) {
         await invokeLambdaAsync(COMMITTEE_EMAIL_FUNCTION, { lead_id });
         console.log("Triggered committee email send after thumbnails became ready", { lead_id, readyCount });
+      } else if (lead.profile_status === "profile_submitted" && !lead.e2_sent_at && readyCount >= 2 && backfillGuardReason) {
+        console.log("Backfill resend blocked for committee fallback after thumbnails became ready", {
+          lead_id,
+          review_status: lead.review_status || null,
+          reason: backfillGuardReason,
+        });
       }
 
       if (
         lead.profile_status === "profile_submitted" &&
         readyCount >= 2 &&
         readyCount === expectedCount &&
-        !lead.application_received_email_sent_at
+        !lead.application_received_email_sent_at &&
+        backfillEligible
       ) {
         await invokeLambdaAsync(APPLICATION_RECEIVED_FUNCTION, { lead_id });
         console.log("Triggered application received email after all expected photos became ready", {
           lead_id,
           readyCount,
           expectedCount,
+        });
+      } else if (
+        lead.profile_status === "profile_submitted" &&
+        readyCount >= 2 &&
+        readyCount === expectedCount &&
+        !lead.application_received_email_sent_at &&
+        backfillGuardReason
+      ) {
+        console.log("Backfill resend blocked for application received fallback after thumbnails became ready", {
+          lead_id,
+          review_status: lead.review_status || null,
+          reason: backfillGuardReason,
         });
       }
 
@@ -127,4 +154,12 @@ async function invokeLambdaAsync(functionName, payload) {
       Payload: Buffer.from(JSON.stringify({ body: JSON.stringify(payload) })),
     })
   );
+}
+
+function loadBackfillFilters() {
+  try {
+    return require("../lib/backfill-filters");
+  } catch (error) {
+    return require("./lib/backfill-filters");
+  }
 }
