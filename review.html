@@ -213,8 +213,23 @@
     .review-banner {
       margin: 0 0 24px;
       padding: 18px 20px;
-      border: 1px solid var(--pp-accent);
+      border: 1px solid var(--pp-hairline);
+      background: rgba(217, 210, 197, 0.18);
+    }
+
+    .review-banner.is-approved {
+      border-color: var(--pp-accent);
       background: rgba(140, 112, 64, 0.08);
+    }
+
+    .review-banner.is-rejected {
+      border-color: var(--pp-muted);
+      background: rgba(74, 74, 74, 0.06);
+    }
+
+    .review-banner.is-standby {
+      border-color: var(--pp-hairline);
+      background: rgba(217, 210, 197, 0.28);
     }
 
     .review-banner-label {
@@ -311,7 +326,7 @@
 
           lastLoadedData = data;
 
-          if (isRecordedDecision(data.review)) {
+          if (data.is_read_only || isRecordedDecision(data.review)) {
             renderRecorded(data);
             return;
           }
@@ -323,8 +338,8 @@
       }
 
       function renderReview(data) {
-        const profile = data.profile || {};
-        const photos = data.photos || [];
+        const profile = data.candidate || data.profile || {};
+        const photos = profile.photos || data.photos || [];
         const phone = [profile.phone_country, profile.phone].filter(Boolean).join(" ");
 
         app.className = "review-grid";
@@ -386,15 +401,17 @@
       }
 
       function renderRecorded(data) {
-        const profile = data.profile || {};
-        const photos = data.photos || [];
+        const profile = data.candidate || data.profile || {};
+        const photos = profile.photos || data.photos || [];
         const phone = [profile.phone_country, profile.phone].filter(Boolean).join(" ");
         const review = data.review || {};
-        const decision = normalizeDecision(review.decision);
+        const decision = normalizeDecision(data.decision || review.decision);
         const decisionLabel = decision ? decision.toUpperCase() : "RECORDED";
-        const reviewedAt = formatReviewedAt(review.reviewed_at);
-        const reviewedBy = review.reviewed_by ? escapeHtml(review.reviewed_by) : "";
+        const reviewedAt = formatReviewedAt(data.decided_at || review.reviewed_at);
+        const decidedBy = data.decided_by || review.reviewed_by || "";
+        const reviewedBy = decidedBy ? escapeHtml(decidedBy) : "";
         const metaParts = [];
+        const bannerClass = decision ? `review-banner is-${decision}` : "review-banner";
 
         if (reviewedAt) {
           metaParts.push(`Recorded ${escapeHtml(reviewedAt)}.`);
@@ -407,7 +424,7 @@
         app.className = "review-grid";
         app.innerHTML = `
           <section class="review-card">
-            <div class="review-banner">
+            <div class="${bannerClass}">
               <p class="review-banner-label">Decision recorded</p>
               <h2 class="review-banner-title">DECISION RECORDED: ${escapeHtml(decisionLabel)}</h2>
               ${metaParts.length ? `<p class="review-meta">${metaParts.join(" ")}</p>` : ""}
@@ -448,7 +465,7 @@
             <p class="review-subtitle">The original review link stays readable for audit and clarity, but it cannot record a second decision.</p>
             <div class="review-readonly">
               <p class="review-readonly-title">Decision recorded</p>
-              <p class="review-copy">This decision has been recorded and cannot be changed via this link.</p>
+              <p class="review-copy">This decision has been recorded. To change it, contact the system administrator.</p>
               ${review.note ? `<p class="review-copy" style="margin-top:16px;">${escapeHtml(review.note)}</p>` : ""}
             </div>
           </aside>
@@ -484,6 +501,10 @@
 
           const reviewData = {
             ...(lastLoadedData || {}),
+            decision: normalizeDecision(data.decision || selectedAction),
+            decided_at: data.recorded_at || null,
+            decided_by: data.reviewed_by || null,
+            is_read_only: true,
             review: {
               ...((lastLoadedData && lastLoadedData.review) || {}),
               decision: normalizeDecision(data.decision || selectedAction),
@@ -504,6 +525,10 @@
         const decision = normalizeDecision(data.decision);
         renderRecorded({
           ...(lastLoadedData || {}),
+          decision,
+          decided_at: data.used_at || data.reviewed_at || null,
+          decided_by: data.reviewed_by || null,
+          is_read_only: true,
           review: {
             ...((lastLoadedData && lastLoadedData.review) || {}),
             decision,

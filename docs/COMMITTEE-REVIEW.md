@@ -54,6 +54,12 @@ Round B3 closes the application loop for committee review:
 - First successful review action flips `review_token_status` to `used`.
 - Reuse returns `410 Gone`.
 
+## Token Expiry Policy
+
+- NONE.
+- Review tokens are permanent until first successful use.
+- No code path may introduce time-based expiry for review tokens without explicit Antonio approval.
+
 ## Single-use enforcement
 
 `presttige-review-action` now uses a DynamoDB transaction:

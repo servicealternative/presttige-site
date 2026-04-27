@@ -47,9 +47,10 @@ def lambda_handler(event, context):
                 wants_html,
                 410,
                 {
-                    "error": "Token already used",
+                    "error": "This decision has already been recorded and cannot be changed.",
                     "decision": lead.get("review_status"),
                     "reviewed_at": lead.get("reviewed_at"),
+                    "reviewed_by": lead.get("reviewed_by"),
                 },
             )
 
@@ -58,9 +59,10 @@ def lambda_handler(event, context):
                 wants_html,
                 410,
                 {
-                    "error": "Application already reviewed",
+                    "error": "This decision has already been recorded and cannot be changed.",
                     "decision": lead.get("review_status"),
                     "reviewed_at": lead.get("reviewed_at"),
+                    "reviewed_by": lead.get("reviewed_by"),
                 },
             )
 
@@ -77,7 +79,11 @@ def lambda_handler(event, context):
 
         return respond(wants_html, 200, {"decision": decision, "recorded_at": reviewed_at})
     except ddb_client.exceptions.TransactionCanceledException:
-        return respond(False, 410, {"error": "Token already consumed (race)"})
+        return respond(
+            False,
+            410,
+            {"error": "This decision has already been recorded and cannot be changed."},
+        )
     except Exception as exc:
         return respond(False, 500, {"error": "Internal error", "detail": str(exc)})
 

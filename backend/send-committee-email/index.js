@@ -145,6 +145,12 @@ function buildBodyVariables(lead, token, readyPhotos, privateKey) {
   };
 }
 
+function assertNoReviewTokenExpiryWrite(updateExpression) {
+  if (String(updateExpression || "").includes("review_token_expires_at")) {
+    throw new Error("review tokens must not write review_token_expires_at");
+  }
+}
+
 exports.handler = async (event) => {
   const body = JSON.parse(event?.body || "{}");
   const leadId = body.lead_id;
@@ -217,12 +223,15 @@ exports.handler = async (event) => {
       })
     );
 
+    const updateExpression =
+      "SET e2_sent_at = :ts, review_token = :tok, review_token_status = :status, review_attempt_id = :attempt, updated_at = :updated_at";
+    assertNoReviewTokenExpiryWrite(updateExpression);
+
     await ddb.send(
       new UpdateCommand({
         TableName: "presttige-db",
         Key: { lead_id: leadId },
-        UpdateExpression:
-          "SET e2_sent_at = :ts, review_token = :tok, review_token_status = :status, review_attempt_id = :attempt, updated_at = :updated_at",
+        UpdateExpression: updateExpression,
         ExpressionAttributeValues: {
           ":ts": new Date().toISOString(),
           ":tok": token,

@@ -48,28 +48,20 @@ exports.handler = async (event) => {
         thumb_1200: signUrl(photo.thumbnails["1200"], privateKey),
       }));
 
+    const candidate = buildCandidate(lead, photos);
+    const review = buildReviewState(lead);
+
     return response(200, {
       lead_id: lead.lead_id,
-      profile: {
-        name: lead.name || null,
-        age: lead.age || null,
-        country: lead.country || null,
-        city: lead.city || null,
-        email: lead.email || null,
-        phone_country: lead.phone_country || null,
-        phone: lead.phone || null,
-        occupation: lead.occupation || null,
-        company: lead.company || null,
-        short_introduction: lead.short_introduction || lead.bio || null,
-        why_presttige: lead.why_presttige || lead.why || null,
-        instagram: lead.instagram || null,
-        linkedin: lead.linkedin || null,
-        tiktok: lead.tiktok || null,
-        website: lead.website || null,
-      },
+      candidate,
+      decision: review.decision,
+      decided_at: review.reviewed_at,
+      decided_by: review.reviewed_by,
+      is_read_only: review.locked,
+      profile: candidate,
       photos,
       submitted_at: lead.created_at,
-      review: buildReviewState(lead),
+      review,
     });
   } catch (err) {
     console.error("review-fetch error", err);
@@ -112,6 +104,27 @@ function buildReviewState(lead) {
     note: lead.review_note || null,
     locked: isRecorded,
     state: isRecorded ? "recorded" : "pending",
+  };
+}
+
+function buildCandidate(lead, photos) {
+  return {
+    name: lead.name || null,
+    age: lead.age || null,
+    country: lead.country || null,
+    city: lead.city || null,
+    email: lead.email || null,
+    phone_country: lead.phone_country || null,
+    phone: lead.phone || null,
+    occupation: lead.occupation || null,
+    company: lead.company || null,
+    short_introduction: lead.short_introduction || lead.bio || null,
+    why_presttige: lead.why_presttige || lead.why || null,
+    instagram: lead.instagram || null,
+    linkedin: lead.linkedin || null,
+    tiktok: lead.tiktok || null,
+    website: lead.website || null,
+    photos,
   };
 }
 
