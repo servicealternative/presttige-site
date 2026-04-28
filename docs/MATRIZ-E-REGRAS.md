@@ -1,6 +1,6 @@
 # PRESTTIGE — MATRIZ & REGRAS
 
-**Source of Truth Document — v0.1**
+**Source of Truth Document — v0.2**
 **Date:** 28 April 2026
 **Owner:** Antonio Pereira
 **Status:** Draft for review
@@ -24,6 +24,7 @@ If something is not yet decided, it appears in **Chapter 14 — Open Decisions**
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| v0.2 | 28 Apr 2026 | Codex (under Antonio direction) | Add Email & DNS Infrastructure chapter |
 | v0.1 | 28 Apr 2026 | Claude (under Antonio direction) | Initial draft from parking lot + Chats 001-007 |
 
 ---
@@ -749,7 +750,126 @@ Terms used across Presttige codebase, communications, and operations.
 
 ---
 
-# End of Matriz & Regras v0.1
+# Chapter 16 — Email & DNS Infrastructure
+
+**Status as of 28 April 2026, 09:42 AM Dubai. LOCKED.**
+
+## Domain & DNS hosting
+
+- **Apex domain:** `presttige.net` — Public hosted zone in AWS Route 53
+- **AWS Account:** Mova Global (343218208384), region `us-east-1`
+- **Total Route 53 records on `presttige.net`:** 31 (after this work)
+- **DNSSEC:** Not currently enabled (parking lot item)
+
+## Active email senders for `presttige.net`
+
+| Sender | Purpose | MAIL FROM (envelope) | DKIM d= | Status |
+|---|---|---|---|---|
+| Amazon SES (us-east-1) | Transactional outbound (committee@, office@, private@, dmarc@) | mail.presttige.net | presttige.net | Active |
+| Stripe Custom Email Domain | Customer billing emails (receipts@, invoice@, billing@, etc.) | bounce.presttige.net | presttige.net | Verifying (28 Apr) |
+| Amazon WorkMail | Inbound mail receiver for the domain | n/a (receiver) | n/a | Active |
+
+## Sender-address rules (LOCKED)
+
+- SES outbound senders: committee@, office@, private@, dmarc@ (alias on apereira@). Reply-To set per email-template. No noreply@ pattern.
+- Stripe outbound senders: Stripe-controlled local parts only. Antonio cannot pick custom local parts. Stripe sends from: receipts@, billing@, invoice@, failed-payments@, card-expiring@, trial-ending@, support@, support+express@, upcoming-invoice@, invoice+statements@. Display name pulled from Stripe Public business name = PRESTTIGE. Reply-To = Stripe Support email = office@presttige.net.
+- No SendGrid in use. DNS records (s1._domainkey, s2._domainkey, em3243) are orphans from past chat sessions, scheduled for cleanup (parking lot L5).
+
+## DNS records — complete inventory (LOCKED)
+
+### Domain ownership / verification
+
+- _amazonses.presttige.net TXT — SES domain verification token (existing, unchanged)
+- presttige.net (apex) TXT — multi-value:
+  - "v=spf1 include:amazonses.com ~all" (apex SPF, defensive)
+  - "stripe-verification=fd897f92fcb52e3c8ad5d1b68a27df88539882f82f2e243f0284035d3f22c7f7" (Stripe ownership token)
+
+### DKIM — Amazon SES (3 selectors)
+
+- tk3a4hf23eddtzsfylfrzyveg4qcqhot._domainkey.presttige.net CNAME -> tk3a4hf23eddtzsfylfrzyveg4qcqhot.dkim.amazonses.com
+- u6kusl3nvdwxtbgc6znmbqnlvxjfqa4b._domainkey.presttige.net CNAME -> u6kusl3nvdwxtbgc6znmbqnlvxjfqa4b.dkim.amazonses.com
+- 336k523sqqf7kmsna7vzwaxjpo6jcivp._domainkey.presttige.net CNAME -> 336k523sqqf7kmsna7vzwaxjpo6jcivp.dkim.amazonses.com
+
+### DKIM — Stripe Custom Email Domain (6 selectors)
+
+- m5vaq3g5lkczmszq7byc5fixda7tex4c._domainkey.presttige.net CNAME -> m5vaq3g5lkczmszq7byc5fixda7tex4c.dkim.custom-email-domain.stripe.com
+- crbik2txk5exmyj5vvmj5ro2kphidttd._domainkey.presttige.net CNAME -> crbik2txk5exmyj5vvmj5ro2kphidttd.dkim.custom-email-domain.stripe.com
+- 75oqxzstskxtznlykxnqfsbdsupzajln._domainkey.presttige.net CNAME -> 75oqxzstskxtznlykxnqfsbdsupzajln.dkim.custom-email-domain.stripe.com
+- kvc4gzykb7y6bgu45cbwubaseiymgb6n._domainkey.presttige.net CNAME -> kvc4gzykb7y6bgu45cbwubaseiymgb6n.dkim.custom-email-domain.stripe.com
+- oofgkrthtlibfvnpa6yuq2gaprfhi6lm._domainkey.presttige.net CNAME -> oofgkrthtlibfvnpa6yuq2gaprfhi6lm.dkim.custom-email-domain.stripe.com
+- wuufplvt5lwtx7kucgnzsmp5qsppccxl._domainkey.presttige.net CNAME -> wuufplvt5lwtx7kucgnzsmp5qsppccxl.dkim.custom-email-domain.stripe.com
+
+### MAIL FROM / Bounce (Return-Path) subdomains
+
+- mail.presttige.net MX 10 feedback-smtp.us-east-1.amazonses.com (SES)
+- mail.presttige.net TXT "v=spf1 include:amazonses.com -all" (SES)
+- bounce.presttige.net CNAME -> custom-email-domain.stripe.com (Stripe)
+
+### DMARC (single record, harmonized for both senders)
+
+- _dmarc.presttige.net TXT:
+  v=DMARC1; p=none; rua=mailto:dmarc@presttige.net; ruf=mailto:dmarc@presttige.net; fo=1; adkim=r; aspf=r
+- Phase 1 (current): p=none monitoring mode, reports flow to dmarc@presttige.net (alias on apereira@).
+- Phase 2 (planned ~4 weeks after clean reports): p=quarantine; pct=25 ramping to pct=100 over 6-12 weeks.
+- Phase 3 (planned ~2-3 months from launch): p=reject.
+- aspf=r (relaxed) is REQUIRED — Stripe forbids strict. Do not change to aspf=s.
+
+## SPF lookup-budget audit (LOCKED)
+
+| Path evaluated | Mechanism count | Result |
+|---|---|---|
+| mail.presttige.net SPF (SES envelope) | include:amazonses.com ~ 2 lookups | OK |
+| bounce.presttige.net SPF (Stripe envelope, via CNAME to custom-email-domain.stripe.com) | flat ip4 only, 0 nested lookups | OK |
+| presttige.net apex SPF (defensive) | include:amazonses.com ~ 2 lookups | OK |
+
+Critical rule: NEVER add include:_spf.stripe.com to any SPF record. That include alone is ~10 lookups and would produce SPF permerror.
+
+## DMARC alignment matrix (LOCKED)
+
+| Sender | From: header | MAIL FROM | DKIM d= | Strict SPF align | Relaxed SPF align | DMARC pass with aspf=r; adkim=r? |
+|---|---|---|---|---|---|---|
+| SES | *@presttige.net | *@mail.presttige.net | presttige.net | No | Yes | Yes |
+| Stripe | *@presttige.net | *@bounce.presttige.net | presttige.net | No | Yes | Yes |
+
+## Stripe Custom Email Domain — verification timeline
+
+- 28 Apr 2026 ~08:13 AM: Custom domain initiated, status "Verifying"
+- 28 Apr 2026 ~09:34 AM: All 9 DNS records published in Route 53
+- 28 Apr 2026 ~09:42 AM: DNS propagation confirmed via dig (@1.1.1.1)
+- 28 Apr 2026 ~09:48 AM: Stripe DNS check passed ("You have set up your DNS records")
+- 28 Apr 2026 ~09:58 AM: Status = "Verifying your domain. This may take up to 72 hours."
+- Pending: Status transition to "Active" (Stripe internal deliverability tests)
+
+## DMARC reporting inbox
+
+- dmarc@presttige.net is a WorkMail alias on apereira@presttige.net
+- Also verified as SES identity (deliverability optimization — reports land in inbox, not spam)
+- Reports expected to start arriving within 24-48h after the new DMARC record went live
+
+## Apex TXT record — Multi-value handling rule
+
+The apex presttige.net TXT record set contains multiple TXT values (currently 2: SPF + Stripe verification). Future changes to apex TXT MUST preserve all existing values — never replace, only edit specific values or append. Use aws route53 list-resource-record-sets to enumerate before any change-batch.
+
+## Codex CLI guardrails for DNS work
+
+- Codex MUST NOT modify Route 53 records on presttige.net without explicit Antonio approval per change.
+- Any new sender added to presttige.net (third platform like Mailchimp, Postmark, etc.) requires:
+  1. SPF lookup-budget pre-check
+  2. New MAIL FROM subdomain (not apex) following the mail. and bounce. pattern
+  3. New DKIM selectors (will not collide with existing 9 selectors due to unique selector names)
+  4. No DMARC record changes unless explicitly approved
+- DMARC policy escalation is a manual decision, never automated.
+
+## Parking lot DNS items
+
+- L5 — Cleanup orphan SendGrid DNS records: s1._domainkey, s2._domainkey, em3243.presttige.net (and possibly bp42ldyfk..., d6qyp65j..., nt26dtoa... after value inspection). No SendGrid account exists.
+- Future — DMARC Phase 2 escalation (4-week calendar reminder)
+- Future — DMARC Phase 3 escalation (2-3 month calendar reminder)
+- Future — DNSSEC enablement on presttige.net Route 53 zone
+
+---
+
+# End of Matriz & Regras v0.2
 
 **Next steps:**
 1. Antonio reviews this draft
