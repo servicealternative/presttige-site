@@ -4,12 +4,17 @@ This file defines how all code, design, and communication artifacts must be gene
 
 ## Source of truth
 
-The file:
-**"Presttige — Matriz & Regras"**
+The canonical source-of-truth file is:
+**`/docs/MATRIZ-E-REGRAS.md`**
 
-is the single source of truth.
+It is the single source of truth.
 
-All work must comply with it exactly.
+All work must comply with its `LOCKED` items exactly.
+
+The current in-repo version is `v0.1 DRAFT`.
+- Items explicitly marked `LOCKED` are enforcement-level rules and must be followed exactly.
+- Items not marked `LOCKED` are draft defaults that may guide implementation, but they are not immutable enforcement rules yet.
+- When the document reaches `v1.0`, unmarked items default to `LOCKED` unless Antonio states otherwise.
 
 ---
 
@@ -29,8 +34,10 @@ If something is not explicitly defined in the document:
 → ask or flag
 
 If any instruction conflicts with the document:
-→ follow the document  
-→ report the conflict
+→ if the conflicting item is `LOCKED`, halt and ask Antonio  
+→ if the conflicting item is unmarked, proceed with the best interpretation, report the conflict, and propose a Matriz amendment for the next revision
+
+Reports may reference Matriz sections directly, for example `Matriz §R4` or `Matriz Chapter 4.3`.
 
 ---
 
