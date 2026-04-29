@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Checkout</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-black: #0A0A0A;
+      --pp-gold: #8C7040;
+      --pp-paper: #FBF9F4;
+      --pp-background: #F5F2ED;
+      --pp-stone: #E8E4DA;
+      --pp-muted: #5F5B54;
+      --pp-hairline: #D8D1C3;
+      --pp-error: #8B1E1E;
+      --pp-error-tint: rgba(139, 30, 30, 0.08);
+      --pp-shadow: 0 24px 60px rgba(10, 10, 10, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(140, 112, 64, 0.06), transparent 28%),
+        linear-gradient(180deg, #F8F5EF 0%, var(--pp-background) 100%);
+      color: var(--pp-black);
+      font-family: "Source Serif 4", Georgia, serif;
+    }
+
+    .shell {
+      width: min(100%, 1360px);
+      margin: 0 auto;
+      padding: 28px 20px 64px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.9fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      box-shadow: var(--pp-shadow);
+    }
+
+    .summary {
+      position: relative;
+      padding: 28px 30px 30px;
+      overflow: hidden;
+    }
+
+    .summary--founder {
+      border-color: rgba(140, 112, 64, 0.45);
+      background:
+        radial-gradient(circle at top right, rgba(140, 112, 64, 0.14), transparent 34%),
+        linear-gradient(180deg, rgba(140, 112, 64, 0.08), rgba(251, 249, 244, 1) 28%);
+    }
+
+    .summary__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .summary__back {
+      color: var(--pp-gold);
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .summary__back:hover,
+    .summary__back:focus-visible {
+      text-decoration: underline;
+    }
+
+    .summary__tier {
+      margin-left: auto;
+      color: var(--pp-muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .stamp {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60px;
+      padding: 12px 24px 10px;
+      border: 2px solid var(--pp-gold);
+      box-shadow: inset 0 0 0 1px rgba(140, 112, 64, 0.22);
+      background: linear-gradient(180deg, rgba(140, 112, 64, 0.06), rgba(140, 112, 64, 0.02));
+      color: var(--pp-gold);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(18px, 2vw, 24px);
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transform: rotate(8deg);
+      max-width: calc(100% - 48px);
+    }
+
+    .stamp::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(140, 112, 64, 0.7);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0 0 12px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(40px, 5vw, 70px);
+      font-style: italic;
+      font-weight: 500;
+      line-height: 0.94;
+    }
+
+    .price {
+      margin: 0 0 12px;
+      font-size: 20px;
+      line-height: 1.45;
+    }
+
+    .copy {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.78;
+    }
+
+    .sections {
+      display: grid;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .section {
+      padding-top: 14px;
+      border-top: 1px solid rgba(140, 112, 64, 0.14);
+    }
+
+    .section h2 {
+      margin: 0 0 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .section ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.62;
+    }
+
+    .section li + li {
+      margin-top: 6px;
+    }
+
+    .payment {
+      padding: 28px 26px 26px;
+    }
+
+    .payment__stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--pp-muted);
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      min-height: 50px;
+      padding: 12px 14px;
+      border: 1px solid var(--pp-hairline);
+      background: #fff;
+      color: var(--pp-black);
+      font: inherit;
+      font-size: 15px;
+    }
+
+    .field input[readonly] {
+      color: var(--pp-muted);
+      background: rgba(232, 228, 218, 0.25);
+    }
+
+    .element-shell {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--pp-hairline);
+      background: #fff;
+    }
+
+    .element-shell[data-wallets]::before {
+      content: attr(data-wallets);
+      display: none;
+    }
+
+    .error-box,
+    .note-box {
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .error-box {
+      border: 1px solid rgba(139, 30, 30, 0.2);
+      background: var(--pp-error-tint);
+      color: var(--pp-error);
+    }
+
+    .note-box {
+      border: 1px solid rgba(140, 112, 64, 0.18);
+      background: rgba(140, 112, 64, 0.05);
+      color: var(--pp-black);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 14px 20px;
+      border: 1px solid var(--pp-gold);
+      background: var(--pp-gold);
+      color: var(--pp-paper);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .button[disabled] {
+      cursor: wait;
+      opacity: 0.66;
+    }
+
+    .subtle-link {
+      color: var(--pp-gold);
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .subtle-link:hover,
+    .subtle-link:focus-visible {
+      text-decoration: underline;
+    }
+
+    .security {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--pp-muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .security span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border: 1px solid rgba(140, 112, 64, 0.16);
+      background: rgba(140, 112, 64, 0.04);
+    }
+
+    .loading,
+    .fatal {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 28px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      box-shadow: var(--pp-shadow);
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        padding-inline: 16px;
+      }
+
+      .summary,
+      .payment {
+        padding: 24px 20px 22px;
+      }
+
+      .stamp {
+        top: 18px;
+        right: 18px;
+        min-height: 48px;
+        padding: 9px 16px 8px;
+        font-size: 15px;
+        transform: rotate(4deg);
+      }
+
+      .summary__top {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div id="app" class="loading">Preparing your checkout…</div>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const REQUEST_NEW_LINK = "mailto:office@presttige.net?subject=Request%20a%20new%20Presttige%20link";
+      const route = readRoute();
+      const app = document.getElementById("app");
+      const state = {
+        context: null,
+        bootstrap: null,
+        stripe: null,
+        elements: null,
+        paymentElement: null,
+        busy: false,
+      };
+
+      const TIER_COPY = {
+        club: {
+          eyebrow: "MEMBERSHIP TIER",
+          lead:
+            "The entry to the Presttige network. Directory access, full communications, and a graceful downgrade back to Subscriber if the membership is cancelled or ultimately fails renewal.",
+          sections: [
+            {
+              title: "Included",
+              items: [
+                "Member directory inclusion",
+                "Full network communications and curated updates",
+                "Founding rate preserved while the membership remains active",
+              ],
+            },
+            {
+              title: "Renewal",
+              items: [
+                "Auto-renewing monthly or yearly billing",
+                "cancel_at_period_end supported",
+                "Graceful downgrade to Subscriber if the membership ends",
+              ],
+            },
+          ],
+        },
+        premier: {
+          eyebrow: "MEMBERSHIP TIER",
+          lead:
+            "Full network access with proposal rights and a higher signal to the committee. Monthly and yearly billing stay available under the locked founding rate.",
+          sections: [
+            {
+              title: "Included",
+              items: [
+                "Member directory inclusion",
+                "Proposal rights with committee priority value",
+                "Full network communications and curated updates",
+              ],
+            },
+            {
+              title: "Renewal",
+              items: [
+                "Auto-renewing monthly or yearly billing",
+                "cancel_at_period_end supported",
+                "Graceful downgrade to Subscriber if the membership ends",
+              ],
+            },
+          ],
+        },
+        patron: {
+          eyebrow: "HIGHEST TIER · BY EXCEPTION",
+          lead:
+            "Patron sits at the closest range to Presttige: full network access, founder line access, add-on services, and the strongest proposal weight in the paid tiers.",
+          sections: [
+            {
+              title: "Included",
+              items: [
+                "Founder line and curated add-on services access",
+                "Full network access and member directory inclusion",
+                "Strongest proposal weight across paid tiers",
+              ],
+            },
+            {
+              title: "Renewal",
+              items: [
+                "Auto-renewing yearly membership",
+                "cancel_at_period_end supported",
+                "Graceful downgrade to Subscriber if the membership ends",
+              ],
+            },
+          ],
+        },
+        founder: {
+          eyebrow: "FOUNDER INVITATION · REFERRAL REQUIRED",
+          lead:
+            "Founder is the permanent historical class. The invitation remains open only until the full system is shipped, then closes permanently for new candidates.",
+          sections: [
+            {
+              title: "Position",
+              items: [
+                "One-time lifetime purchase, no renewal",
+                "Invitation-only path confirmed through referral and review",
+                "Founder status remains after the window closes",
+              ],
+            },
+            {
+              title: "Access",
+              items: [
+                "All events, workshops, and programming permanently",
+                "Founder communications and welcome materials",
+                "No standard four-tier choice is available on this route",
+              ],
+            },
+          ],
+        },
+      };
+
+      const COUNTRIES = [
+        ["AE", "United Arab Emirates"],
+        ["SA", "Saudi Arabia"],
+        ["GB", "United Kingdom"],
+        ["US", "United States"],
+        ["FR", "France"],
+        ["DE", "Germany"],
+        ["IT", "Italy"],
+        ["ES", "Spain"],
+        ["CH", "Switzerland"],
+        ["NL", "Netherlands"],
+        ["BE", "Belgium"],
+        ["SE", "Sweden"],
+        ["NO", "Norway"],
+        ["DK", "Denmark"],
+        ["PT", "Portugal"],
+        ["IE", "Ireland"],
+        ["CA", "Canada"],
+        ["AU", "Australia"],
+        ["NZ", "New Zealand"],
+        ["SG", "Singapore"],
+        ["HK", "Hong Kong"],
+        ["JP", "Japan"],
+      ];
+
+      if (!route.token || !route.contractKey) {
+        renderFatal("Missing checkout token or contract selection.");
+        return;
+      }
+
+      load();
+
+      async function load() {
+        try {
+          state.context = await fetchJson(`${API_BASE}/checkout-context?token=${encodeURIComponent(route.token)}`);
+          if (!isContractAllowed(route.contractKey)) {
+            renderFatal("This checkout selection is not available on the current link.");
+            return;
+          }
+
+          state.bootstrap = await fetchJson(`${API_BASE}/create-checkout-session`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              checkout_token: route.token,
+              contract_key: route.contractKey,
+            }),
+          });
+
+          renderCheckout();
+          await mountStripe();
+        } catch (error) {
+          const message = error?.message || "Unable to prepare your checkout right now.";
+          renderFatal(message);
+        }
+      }
+
+      function renderCheckout() {
+        const contract = getSelectedOption();
+        const tier = contract?.tier || route.tier;
+        const copy = TIER_COPY[tier] || TIER_COPY.patron;
+        const founder = tier === "founder";
+        const displayPrice = describeCheckoutPrice();
+        const backToken = route.sourceToken || state.context.token?.magicToken || route.token;
+        const country = normalizeCountry(state.context.profile?.country);
+
+        app.className = "";
+        app.innerHTML = `
+          <section class="layout" data-contract-key="${escapeHtml(route.contractKey)}" data-checkout-mode="${escapeHtml(state.bootstrap.checkoutMode || "")}">
+            <article class="panel summary ${founder ? "summary--founder" : ""}">
+              ${founder ? '<div class="stamp" aria-label="Become a founder — Founder tier">BECOME A FOUNDER</div>' : ""}
+              <div class="summary__top">
+                <a class="summary__back" href="/tier-select/${encodeURIComponent(backToken)}">Back to tier selection</a>
+                <div class="summary__tier">${escapeHtml(titleCase(tier))}</div>
+              </div>
+              <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
+              <h1 class="title">${escapeHtml(titleCase(tier))}</h1>
+              <p class="price">${escapeHtml(displayPrice)}</p>
+              <p class="copy">${escapeHtml(copy.lead)}</p>
+              <div class="sections">
+                ${copy.sections.map(renderSection).join("")}
+              </div>
+            </article>
+            <aside class="panel payment">
+              <div class="payment__stack">
+                <div class="field">
+                  <label for="checkout-email">Email</label>
+                  <input id="checkout-email" type="email" value="${escapeHtml(state.bootstrap.customerEmail || state.context.profile?.email || "")}" readonly>
+                </div>
+                <div class="field">
+                  <label for="cardholder-name">Cardholder name</label>
+                  <input id="cardholder-name" type="text" value="${escapeHtml(state.context.profile?.name || "")}" autocomplete="cc-name">
+                </div>
+                <div class="field">
+                  <label for="billing-country">Country</label>
+                  <select id="billing-country">${renderCountryOptions(country)}</select>
+                </div>
+                <div class="element-shell" id="payment-shell" data-wallets="apple_pay,google_pay">
+                  <div id="payment-element"></div>
+                </div>
+                <div id="error-box" class="error-box" hidden></div>
+                <div class="note-box">
+                  This checkout stays on presttige.net. Declines retry inline here without sending you back to tier selection.
+                </div>
+                <button id="submit-button" class="button" type="button">Pay ${escapeHtml(displayPrice)}</button>
+                <div class="security">
+                  <span>Stripe-hosted card fields</span>
+                  <span>Apple Pay configured</span>
+                  <span>Google Pay configured</span>
+                </div>
+                <a class="subtle-link" href="/tier-select/${encodeURIComponent(backToken)}">Cancel and return to tier selection</a>
+                <p class="subtle-link" style="margin:0;"><a class="subtle-link" href="${REQUEST_NEW_LINK}">Request a new link</a></p>
+              </div>
+            </aside>
+          </section>
+        `;
+
+        document.getElementById("submit-button").addEventListener("click", confirmPayment);
+      }
+
+      async function mountStripe() {
+        const walletOrder = ["apple_pay", "google_pay"];
+        window.__PRESTTIGE_CHECKOUT__ = {
+          wallets: walletOrder.slice(),
+          contractKey: route.contractKey,
+          checkoutMode: state.bootstrap.checkoutMode,
+        };
+
+        state.stripe = window.Stripe(state.bootstrap.publishableKey);
+        state.elements = state.stripe.elements({
+          clientSecret: state.bootstrap.clientSecret,
+          appearance: {
+            theme: "flat",
+            variables: {
+              colorPrimary: "#8C7040",
+              colorBackground: "#FBF9F4",
+              colorText: "#0A0A0A",
+              colorDanger: "#8B1E1E",
+              fontFamily: "\"Source Serif 4\", Georgia, serif",
+              borderRadius: "0px",
+            },
+          },
+        });
+
+        state.paymentElement = state.elements.create("payment", {
+          layout: {
+            type: "accordion",
+            defaultCollapsed: false,
+            radios: "always",
+            spacedAccordionItems: false,
+          },
+          paymentMethodOrder: walletOrder.concat(["link", "card"]),
+          fields: {
+            billingDetails: {
+              name: "never",
+              email: "never",
+              address: "never",
+            },
+          },
+        });
+
+        state.paymentElement.mount("#payment-element");
+      }
+
+      async function confirmPayment() {
+        if (state.busy) {
+          return;
+        }
+
+        const name = document.getElementById("cardholder-name").value.trim();
+        const country = document.getElementById("billing-country").value.trim();
+        const button = document.getElementById("submit-button");
+        const errorBox = document.getElementById("error-box");
+
+        hideError();
+
+        if (!name) {
+          showError("Cardholder name is required.");
+          return;
+        }
+
+        state.busy = true;
+        button.disabled = true;
+        button.textContent = "Confirming…";
+
+        try {
+          const returnParams = new URLSearchParams();
+          if (route.sourceToken) {
+            returnParams.set("source_token", route.sourceToken);
+          }
+          const returnUrl = `/welcome/${encodeURIComponent(route.token)}${returnParams.toString() ? `?${returnParams.toString()}` : ""}`;
+
+          const result = await state.stripe.confirmPayment({
+            elements: state.elements,
+            confirmParams: {
+              return_url: `${window.location.origin}${returnUrl}`,
+            },
+            payment_method: {
+              billing_details: {
+                name,
+                email: state.bootstrap.customerEmail || state.context.profile?.email || undefined,
+                address: {
+                  country,
+                },
+              },
+            },
+            redirect: "if_required",
+          });
+
+          if (result.error) {
+            showError(result.error.message || "Payment confirmation could not be completed.");
+            return;
+          }
+
+          window.location.assign(returnUrl);
+        } catch (error) {
+          showError(error.message || "Payment confirmation could not be completed.");
+        } finally {
+          state.busy = false;
+          button.disabled = false;
+          button.textContent = `Pay ${describeCheckoutPrice()}`;
+          if (!errorBox.hidden) {
+            button.textContent = `Retry ${describeCheckoutPrice()}`;
+          }
+        }
+      }
+
+      function showError(message) {
+        const errorBox = document.getElementById("error-box");
+        errorBox.hidden = false;
+        errorBox.textContent = message;
+      }
+
+      function hideError() {
+        const errorBox = document.getElementById("error-box");
+        if (errorBox) {
+          errorBox.hidden = true;
+          errorBox.textContent = "";
+        }
+      }
+
+      function describeCheckoutPrice() {
+        const metadata = state.bootstrap.contractMetadata || {};
+        const cents = Number(state.bootstrap.amount || 0);
+        const amount = formatUsd(cents);
+
+        if (state.bootstrap.checkoutMode === "payment") {
+          return `$${amount} one-time`;
+        }
+
+        if (metadata.upgrade_strategy && typeof metadata.initial_charge_usd_cents === "number") {
+          return `$${formatUsd(metadata.initial_charge_usd_cents)} today, then $${formatUsd(metadata.renewal_amount_usd_cents)} / year`;
+        }
+
+        const contract = getSelectedOption();
+        if (contract?.billing === "monthly") {
+          return `$${amount} / month`;
+        }
+
+        return `$${amount} / year`;
+      }
+
+      function getSelectedOption() {
+        const options = Object.values(state.context.options || {});
+        for (const option of options) {
+          if (!option) {
+            continue;
+          }
+          if (option.contractKey === route.contractKey) {
+            return option;
+          }
+          if (Array.isArray(option.billingChoices)) {
+            const found = option.billingChoices.find((choice) => choice.contractKey === route.contractKey);
+            if (found) {
+              return {
+                ...option,
+                contractKey: found.contractKey,
+                billing: found.billing,
+              };
+            }
+          }
+        }
+        return null;
+      }
+
+      function isContractAllowed(contractKey) {
+        return Boolean(getSelectedOptionFromContext(contractKey));
+      }
+
+      function getSelectedOptionFromContext(contractKey) {
+        const options = Object.values(state.context?.options || {});
+        for (const option of options) {
+          if (!option) {
+            continue;
+          }
+          if (option.contractKey === contractKey) {
+            return option;
+          }
+          if (Array.isArray(option.billingChoices) && option.billingChoices.some((choice) => choice.contractKey === contractKey)) {
+            return option;
+          }
+        }
+        return null;
+      }
+
+      function renderSection(section) {
+        return `
+          <section class="section">
+            <h2>${escapeHtml(section.title)}</h2>
+            <ul>
+              ${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+            </ul>
+          </section>
+        `;
+      }
+
+      function renderCountryOptions(selectedValue) {
+        const options = COUNTRIES.slice();
+        if (selectedValue && !options.some(([code]) => code === selectedValue)) {
+          options.unshift([selectedValue, selectedValue]);
+        }
+
+        return options
+          .map(([code, label]) => {
+            const selected = code === selectedValue ? "selected" : "";
+            return `<option value="${escapeHtml(code)}" ${selected}>${escapeHtml(label)}</option>`;
+          })
+          .join("");
+      }
+
+      function normalizeCountry(value) {
+        const raw = String(value || "").trim().toUpperCase();
+        return raw && raw.length <= 3 ? raw : "AE";
+      }
+
+      function readRoute() {
+        const segments = window.location.pathname.split("/").filter(Boolean);
+        const query = new URLSearchParams(window.location.search);
+        return {
+          token: query.get("token") || "",
+          sourceToken: query.get("source_token") || "",
+          tier: segments[0] === "checkout" ? String(segments[1] || "").trim().toLowerCase() : "",
+          contractKey: segments[0] === "checkout" ? String(segments[2] || "").trim() : "",
+        };
+      }
+
+      async function fetchJson(url, options) {
+        const response = await fetch(url, options);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data?.error?.message || data.error || "Request failed");
+          error.statusCode = response.status;
+          error.body = data;
+          throw error;
+        }
+        return data;
+      }
+
+      function renderFatal(message) {
+        app.className = "fatal";
+        app.innerHTML = `
+          <p class="eyebrow">Presttige Checkout</p>
+          <h1 class="title">Checkout unavailable.</h1>
+          <p class="copy">${escapeHtml(message)}</p>
+          <p class="copy" style="margin-top:18px;"><a class="subtle-link" href="${REQUEST_NEW_LINK}">Request a new link</a></p>
+        `;
+      }
+
+      function formatUsd(cents) {
+        const number = Number(cents || 0) / 100;
+        return new Intl.NumberFormat("en-US", {
+          minimumFractionDigits: number % 1 === 0 ? 0 : 2,
+          maximumFractionDigits: 2,
+        }).format(number);
+      }
+
+      function titleCase(value) {
+        return String(value || "")
+          .split(/[_\s-]+/)
+          .filter(Boolean)
+          .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(" ");
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+    })();
+  </script>
+</body>
+</html>

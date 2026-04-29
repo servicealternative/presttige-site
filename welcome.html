@@ -7,42 +7,49 @@
   <script src="/assets/js/consent-banner.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --pp-primary: #0A0A0A;
+      --pp-black: #0A0A0A;
+      --pp-gold: #8C7040;
       --pp-paper: #FBF9F4;
       --pp-background: #F5F2ED;
-      --pp-accent: #8C7040;
-      --pp-hairline: #D9D2C5;
-      --pp-muted: #6B6B6B;
-      --pp-error: #9F1D1D;
-      --pp-accent-tint: rgba(140, 112, 64, 0.08);
+      --pp-hairline: #D8D1C3;
+      --pp-muted: #5F5B54;
+      --pp-error: #8B1E1E;
+      --pp-success-tint: rgba(140, 112, 64, 0.08);
+      --pp-error-tint: rgba(139, 30, 30, 0.08);
+      --pp-shadow: 0 24px 60px rgba(10, 10, 10, 0.06);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
       display: grid;
       place-items: center;
-      background: var(--pp-background);
-      color: var(--pp-primary);
-      font-family: "Source Serif Pro", Georgia, serif;
       padding: 24px;
+      background:
+        radial-gradient(circle at top left, rgba(140, 112, 64, 0.06), transparent 28%),
+        linear-gradient(180deg, #F8F5EF 0%, var(--pp-background) 100%);
+      color: var(--pp-black);
+      font-family: "Source Serif 4", Georgia, serif;
     }
 
     .card {
-      width: min(100%, 760px);
-      background: var(--pp-paper);
+      width: min(100%, 780px);
+      padding: 34px 30px;
       border: 1px solid var(--pp-hairline);
-      padding: 40px 32px;
+      background: var(--pp-paper);
+      box-shadow: var(--pp-shadow);
     }
 
     .eyebrow {
       margin: 0 0 14px;
-      color: var(--pp-accent);
+      color: var(--pp-gold);
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.22em;
@@ -52,7 +59,7 @@
     .title {
       margin: 0 0 18px;
       font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: clamp(42px, 7vw, 64px);
+      font-size: clamp(44px, 7vw, 68px);
       font-style: italic;
       font-weight: 500;
       line-height: 0.95;
@@ -65,26 +72,61 @@
       line-height: 1.8;
     }
 
-    .callout {
-      margin-top: 26px;
-      padding: 18px 20px;
-      border: 1px solid var(--pp-accent);
-      background: var(--pp-accent-tint);
-      color: var(--pp-primary);
-      font-size: 15px;
-      line-height: 1.7;
+    .callout,
+    .failure {
+      margin-top: 22px;
+      padding: 16px 18px;
+      font-size: 14px;
+      line-height: 1.65;
     }
 
-    .error {
+    .callout {
+      border: 1px solid rgba(140, 112, 64, 0.18);
+      background: var(--pp-success-tint);
+      color: var(--pp-black);
+    }
+
+    .failure {
+      border: 1px solid rgba(139, 30, 30, 0.2);
+      background: var(--pp-error-tint);
       color: var(--pp-error);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 13px 18px;
+      border: 1px solid var(--pp-gold);
+      background: var(--pp-gold);
+      color: var(--pp-paper);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .button--secondary {
+      background: transparent;
+      color: var(--pp-gold);
     }
   </style>
 </head>
 <body>
   <section id="app" class="card">
     <p class="eyebrow">Presttige Membership</p>
-    <h1 class="title">Welcome</h1>
-    <p class="copy">Verifying your access…</p>
+    <h1 class="title">Checking payment status.</h1>
+    <p class="copy">Hold this page for a moment while we confirm the membership state.</p>
   </section>
 
   <script>
@@ -92,78 +134,160 @@
       "use strict";
 
       const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const REQUEST_NEW_LINK = "mailto:office@presttige.net?subject=Request%20a%20new%20Presttige%20link";
       const app = document.getElementById("app");
-      const token = window.location.pathname.split("/").filter(Boolean).pop();
-      const UPGRADE_COPY = "Upgrade to Patron at any time before 31 December 2026 by paying only the difference — and become Patron for life.";
+      const route = readRoute();
 
-      if (!token || token === "welcome" || token === "welcome.html") {
+      if (!route.token || route.token === "welcome" || route.token === "welcome.html") {
         renderError("Missing access token.");
         return;
       }
 
-      verify();
+      load();
 
-      async function verify() {
+      async function load() {
         try {
-          const response = await fetch(`${API_BASE}/magic-link-verify?token=${encodeURIComponent(token)}`);
-          const data = await response.json();
-
-          if (!response.ok) {
-            renderError(data.error || "This link has been used or expired.");
+          const status = await fetchStatus();
+          renderState(status);
+        } catch (error) {
+          const legacy = await fetchLegacyFallback();
+          if (legacy) {
+            renderLegacySuccess(legacy);
             return;
           }
-
-          renderSuccess(data);
-        } catch (error) {
-          renderError("Unable to verify your access right now.");
+          renderError(error.message || "Unable to verify your payment status.");
         }
       }
 
-      function renderSuccess(data) {
-        const tier = String(data.tier || "").trim().toLowerCase();
-        const membership = membershipCopy(tier);
+      async function fetchStatus() {
+        return fetchJson(`${API_BASE}/checkout-status?token=${encodeURIComponent(route.token)}`);
+      }
+
+      async function fetchLegacyFallback() {
+        try {
+          return await fetchJson(`${API_BASE}/magic-link-verify?token=${encodeURIComponent(route.token)}`);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function renderState(status) {
+        const state = status.displayState || "processing";
+
+        if (state === "paid") {
+          renderPaid(status);
+          return;
+        }
+
+        if (state === "failed") {
+          renderFailed(status);
+          return;
+        }
+
+        renderProcessing(status);
+        window.setTimeout(load, status.pollAfterMs || 4000);
+      }
+
+      function renderPaid(status) {
         app.innerHTML = `
-          <p class="eyebrow">Membership Activated</p>
-          <h1 class="title">Welcome, ${escapeHtml(data.name || "Member")}.</h1>
-          <p class="copy">${escapeHtml(membership.body)}</p>
-          ${membership.callout ? `<div class="callout">${escapeHtml(membership.callout)}</div>` : ""}
+          <p class="eyebrow">Membership Confirmed</p>
+          <h1 class="title">Welcome to Presttige</h1>
+          <p class="copy">${escapeHtml(successBody(status))}</p>
+          ${status.recordedAt ? `<div class="callout">Recorded ${escapeHtml(status.recordedAt)}.</div>` : ""}
+          <div class="actions">
+            ${status.retryUrl ? `<a class="button button--secondary" href="${escapeHtml(status.retryUrl)}">Return to checkout</a>` : ""}
+          </div>
         `;
       }
 
-      function membershipCopy(tier) {
-        if (tier === "patron") {
-          return {
-            body: "Your Patron membership is active. A single payment of $999 has secured your place in the full Presttige network.",
-            callout: "",
-          };
-        }
+      function renderProcessing(status) {
+        app.innerHTML = `
+          <p class="eyebrow">Payment Processing</p>
+          <h1 class="title">We are confirming your payment.</h1>
+          <p class="copy">This page refreshes automatically while Stripe finalizes the membership state for ${escapeHtml(titleCase(status.tier || "member"))}.</p>
+          <div class="callout">Current state: ${escapeHtml(status.paymentStatus || "processing")}.</div>
+        `;
+      }
 
-        if (tier === "premier") {
-          return {
-            body: "Your Premier membership is active. Your founding rate is locked for your first year. Renews at $33/month or $222/year after the first twelve months.",
-            callout: UPGRADE_COPY,
-          };
-        }
+      function renderFailed(status) {
+        const retryUrl = status.retryUrl || "";
+        app.innerHTML = `
+          <p class="eyebrow">Payment Not Confirmed</p>
+          <h1 class="title">This payment still needs attention.</h1>
+          <p class="copy">The checkout did not finish cleanly. You can retry the payment from the same embedded checkout page, or request a fresh link if this route is no longer valid.</p>
+          <div class="failure">Current state: ${escapeHtml(status.paymentStatus || "failed")}.</div>
+          <div class="actions">
+            ${retryUrl ? `<a class="button" href="${escapeHtml(retryUrl)}">Retry payment</a>` : ""}
+            <a class="button button--secondary" href="${REQUEST_NEW_LINK}">Request a new link</a>
+          </div>
+        `;
+      }
 
-        if (tier === "club") {
-          return {
-            body: "Your Club membership is active. Your founding rate is locked for your first year. Renews at $9.99/month or $99/year after the first twelve months.",
-            callout: UPGRADE_COPY,
-          };
-        }
+      function renderLegacySuccess(data) {
+        const tier = String(data.tier || "").trim().toLowerCase();
+        const body = tier === "founder"
+          ? "Founder status is active."
+          : "Your membership is active.";
 
-        return {
-          body: "Your Presttige membership is active.",
-          callout: "",
-        };
+        app.innerHTML = `
+          <p class="eyebrow">Membership Confirmed</p>
+          <h1 class="title">Welcome to Presttige</h1>
+          <p class="copy">${escapeHtml(body)}</p>
+        `;
       }
 
       function renderError(message) {
         app.innerHTML = `
           <p class="eyebrow">Presttige Membership</p>
           <h1 class="title">Link unavailable.</h1>
-          <p class="copy error">${escapeHtml(message)}</p>
+          <p class="copy">${escapeHtml(message)}</p>
+          <div class="actions">
+            <a class="button button--secondary" href="${REQUEST_NEW_LINK}">Request a new link</a>
+          </div>
         `;
+      }
+
+      function successBody(status) {
+        const tier = String(status.tier || "").trim().toLowerCase();
+        if (tier === "founder") {
+          return "Founder access is confirmed. This lifetime class remains on your record permanently.";
+        }
+        if (tier === "patron") {
+          return "Patron access is active. Your yearly membership remains at the approved rate while it stays in good standing.";
+        }
+        if (tier === "premier") {
+          return "Premier access is active. Monthly or yearly renewal remains anchored to the approved founding rate while the membership stays active.";
+        }
+        if (tier === "club") {
+          return "Club access is active. Monthly or yearly renewal remains anchored to the approved founding rate while the membership stays active.";
+        }
+        return "Your Presttige membership is active.";
+      }
+
+      function readRoute() {
+        const segments = window.location.pathname.split("/").filter(Boolean);
+        return {
+          token: segments[0] === "welcome" ? segments[1] || "" : "",
+        };
+      }
+
+      async function fetchJson(url) {
+        const response = await fetch(url);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data?.error?.message || data.error || "Request failed");
+          error.statusCode = response.status;
+          throw error;
+        }
+        return data;
+      }
+
+      function titleCase(value) {
+        return String(value || "")
+          .split(/[_\s-]+/)
+          .filter(Boolean)
+          .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(" ");
       }
 
       function escapeHtml(value) {
@@ -171,7 +295,7 @@
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;")
-          .replace(/\"/g, "&quot;")
+          .replace(/"/g, "&quot;")
           .replace(/'/g, "&#39;");
       }
     })();
