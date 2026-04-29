@@ -1,11 +1,13 @@
 "use strict";
 
 const path = require("node:path");
+const crypto = require("node:crypto");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {
   DynamoDBDocumentClient,
+  GetCommand,
   QueryCommand,
-  ScanCommand,
+  UpdateCommand,
 } = require("@aws-sdk/lib-dynamodb");
 
 function loadTierContractModule() {
@@ -53,7 +55,7 @@ function corsHeaders() {
   return {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": APP_ORIGIN,
-    "Access-Control-Allow-Methods": "GET,OPTIONS",
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
 }
@@ -134,29 +136,22 @@ async function findLeadByCheckoutToken(token) {
   return result.Items[0];
 }
 
-async function findLeadByMagicToken(token) {
-  let ExclusiveStartKey;
+async function findLeadByLeadId(leadId) {
+  const normalizedLeadId = normalizeString(leadId);
+  if (!normalizedLeadId) {
+    return null;
+  }
 
-  do {
-    const result = await ddb.send(
-      new ScanCommand({
-        TableName: TABLE_NAME,
-        FilterExpression: "magic_token = :magic_token",
-        ExpressionAttributeValues: {
-          ":magic_token": token,
-        },
-        ExclusiveStartKey,
-      })
-    );
+  const result = await ddb.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        lead_id: normalizedLeadId,
+      },
+    })
+  );
 
-    if (result.Items?.length) {
-      return result.Items[0];
-    }
-
-    ExclusiveStartKey = result.LastEvaluatedKey;
-  } while (ExclusiveStartKey);
-
-  return null;
+  return result.Item || null;
 }
 
 async function findLeadByAnyToken(token) {
@@ -168,15 +163,33 @@ async function findLeadByAnyToken(token) {
     };
   }
 
-  const byMagicToken = await findLeadByMagicToken(token);
-  if (byMagicToken) {
-    return {
-      lead: byMagicToken,
-      tokenType: "magic",
-    };
+  return null;
+}
+
+async function findLeadByRouteToken(token, leadId = "") {
+  const byLeadId = await findLeadByLeadId(leadId);
+  if (byLeadId) {
+    const checkoutToken = normalizeString(byLeadId[LEAD_PAYMENT_FIELDS.checkoutToken]);
+    const magicToken = normalizeString(byLeadId.magic_token);
+
+    if (token && token === checkoutToken) {
+      return {
+        lead: byLeadId,
+        tokenType: "checkout",
+      };
+    }
+
+    if (token && token === magicToken) {
+      return {
+        lead: byLeadId,
+        tokenType: "magic",
+      };
+    }
+
+    return null;
   }
 
-  return null;
+  return findLeadByAnyToken(token);
 }
 
 function getCurrentTier(lead) {
@@ -347,8 +360,207 @@ function formatUsd(cents) {
   }).format(number);
 }
 
+function listAllowedContractKeys(lead) {
+  const options = isFounderOnlyLead(lead)
+    ? buildFounderOptions()
+    : buildStandardOptions(lead);
+  const allowed = new Set();
+
+  for (const option of Object.values(options)) {
+    if (!option) {
+      continue;
+    }
+
+    if (normalizeString(option.contractKey)) {
+      allowed.add(option.contractKey);
+    }
+
+    if (Array.isArray(option.billingChoices)) {
+      for (const choice of option.billingChoices) {
+        if (normalizeString(choice?.contractKey)) {
+          allowed.add(choice.contractKey);
+        }
+      }
+    }
+  }
+
+  return allowed;
+}
+
+function validateApprovedLead(lead) {
+  const reviewStatus = normalizeString(lead.review_status).toLowerCase();
+  if (reviewStatus !== "approved") {
+    return errorResponse(
+      403,
+      "lead_not_approved",
+      "Lead is not approved for checkout.",
+      {
+        reviewStatus: reviewStatus || null,
+      }
+    );
+  }
+
+  return null;
+}
+
+function validateMagicTokenState(lead, providedToken) {
+  const leadMagicToken = normalizeString(lead.magic_token);
+  if (!leadMagicToken || leadMagicToken !== normalizeString(providedToken)) {
+    return errorResponse(404, "token_not_found", "Token not found.");
+  }
+
+  const magicStatus = normalizeString(lead.magic_token_status).toLowerCase();
+  if (magicStatus && magicStatus !== "active") {
+    return errorResponse(
+      410,
+      "magic_token_inactive",
+      "Tier-selection link is not active."
+    );
+  }
+
+  const magicExpiresAt = parseIsoDate(lead.magic_token_expires_at);
+  if (magicExpiresAt && magicExpiresAt.getTime() < Date.now()) {
+    return errorResponse(
+      410,
+      "magic_token_expired",
+      "Tier-selection link has expired."
+    );
+  }
+
+  return null;
+}
+
+function issueCheckoutTokenPayload(lead) {
+  const now = new Date();
+  const version = Number(lead[LEAD_PAYMENT_FIELDS.checkoutTokenVersion] || 0) + 1;
+  const issuedAt = now.toISOString();
+  const expiresAt = new Date(
+    now.getTime() + 30 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  return {
+    checkoutToken: crypto.randomBytes(32).toString("hex"),
+    checkoutTokenStatus: "active",
+    checkoutTokenVersion: version,
+    checkoutTokenIssuedAt: issuedAt,
+    checkoutTokenExpiresAt: expiresAt,
+    updatedAt: issuedAt,
+  };
+}
+
+async function mintCheckoutToken(lead) {
+  const payload = issueCheckoutTokenPayload(lead);
+
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        lead_id: lead.lead_id,
+      },
+      ConditionExpression:
+        "magic_token = :magic_token AND review_status = :approved",
+      UpdateExpression: [
+        `SET ${LEAD_PAYMENT_FIELDS.checkoutToken} = :checkout_token`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenStatus} = :checkout_token_status`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenVersion} = :checkout_token_version`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenIssuedAt} = :checkout_token_issued_at`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenExpiresAt} = :checkout_token_expires_at`,
+        "updated_at = :updated_at",
+      ].join(", "),
+      ExpressionAttributeValues: {
+        ":magic_token": normalizeString(lead.magic_token),
+        ":approved": "approved",
+        ":checkout_token": payload.checkoutToken,
+        ":checkout_token_status": payload.checkoutTokenStatus,
+        ":checkout_token_version": payload.checkoutTokenVersion,
+        ":checkout_token_issued_at": payload.checkoutTokenIssuedAt,
+        ":checkout_token_expires_at": payload.checkoutTokenExpiresAt,
+        ":updated_at": payload.updatedAt,
+      },
+    })
+  );
+
+  return payload;
+}
+
+function parseRequestBody(event) {
+  if (!event?.body) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(event.body);
+  } catch (error) {
+    throw new Error("Request body must be valid JSON");
+  }
+}
+
+async function handleMintRequest(event) {
+  const body = parseRequestBody(event);
+  const leadId =
+    normalizeString(body.leadId) ||
+    normalizeString(body.lead_id) ||
+    normalizeString(event.queryStringParameters?.lead_id);
+  const magicToken =
+    normalizeString(body.magicToken) ||
+    normalizeString(body.magic_token) ||
+    normalizeString(body.token);
+  const contractKey =
+    normalizeString(body.contractKey) ||
+    normalizeString(body.contract_key);
+
+  if (!leadId) {
+    return errorResponse(400, "missing_lead_id", "Missing lead_id.");
+  }
+
+  if (!magicToken) {
+    return errorResponse(400, "missing_token", "Missing token.");
+  }
+
+  if (!contractKey) {
+    return errorResponse(400, "missing_contract_key", "Missing contract key.");
+  }
+
+  const lead = await findLeadByLeadId(leadId);
+  if (!lead) {
+    return errorResponse(404, "lead_not_found", "Lead not found.");
+  }
+
+  const reviewError = validateApprovedLead(lead);
+  if (reviewError) {
+    return reviewError;
+  }
+
+  const tokenError = validateMagicTokenState(lead, magicToken);
+  if (tokenError) {
+    return tokenError;
+  }
+
+  const allowedContracts = listAllowedContractKeys(lead);
+  if (!allowedContracts.has(contractKey)) {
+    return errorResponse(
+      403,
+      "contract_not_allowed",
+      "This contract is not available on the current route.",
+      {
+        contractKey,
+      }
+    );
+  }
+
+  const payload = await mintCheckoutToken(lead);
+  return response(200, {
+    checkoutToken: payload.checkoutToken,
+    checkoutTokenStatus: payload.checkoutTokenStatus,
+    checkoutTokenVersion: payload.checkoutTokenVersion,
+    checkoutTokenIssuedAt: payload.checkoutTokenIssuedAt,
+    checkoutTokenExpiresAt: payload.checkoutTokenExpiresAt,
+  });
+}
+
 exports.handler = async (event) => {
-  if (event.requestContext?.http?.method === "OPTIONS") {
+  const method = event.requestContext?.http?.method || "GET";
+  if (method === "OPTIONS") {
     return {
       statusCode: 204,
       headers: corsHeaders(),
@@ -356,38 +568,32 @@ exports.handler = async (event) => {
     };
   }
 
-  const token = normalizeString(event.queryStringParameters?.token);
-  if (!token) {
-    return errorResponse(400, "missing_token", "Missing token.");
-  }
-
   try {
-    const lookup = await findLeadByAnyToken(token);
+    if (method === "POST") {
+      return await handleMintRequest(event);
+    }
+
+    const token = normalizeString(event.queryStringParameters?.token);
+    const leadId = normalizeString(event.queryStringParameters?.lead_id);
+    if (!token) {
+      return errorResponse(400, "missing_token", "Missing token.");
+    }
+
+    const lookup = await findLeadByRouteToken(token, leadId);
     if (!lookup) {
       return errorResponse(404, "token_not_found", "Token not found.");
     }
 
     const lead = lookup.lead;
-    const reviewStatus = normalizeString(lead.review_status).toLowerCase();
-    if (reviewStatus !== "approved") {
-      return errorResponse(
-        403,
-        "lead_not_approved",
-        "Lead is not approved for checkout.",
-        {
-          reviewStatus: reviewStatus || null,
-        }
-      );
+    const reviewError = validateApprovedLead(lead);
+    if (reviewError) {
+      return reviewError;
     }
 
     if (lookup.tokenType === "magic") {
-      const magicExpiresAt = parseIsoDate(lead.magic_token_expires_at);
-      if (magicExpiresAt && magicExpiresAt.getTime() < Date.now()) {
-        return errorResponse(
-          410,
-          "magic_token_expired",
-          "Tier-selection link has expired."
-        );
+      const tokenError = validateMagicTokenState(lead, token);
+      if (tokenError) {
+        return tokenError;
       }
     }
 

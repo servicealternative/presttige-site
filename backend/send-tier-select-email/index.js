@@ -53,7 +53,7 @@ exports.handler = async (event) => {
       return response(200, { already_sent: true });
     }
 
-    const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}`;
+    const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}?lead_id=${encodeURIComponent(lead.lead_id)}`;
     const html = fill(loadTemplate(), {
       subject: "Welcome to Presttige — Choose your membership",
       preheader: "Your application has been approved. Choose your preferred tier to continue.",

@@ -480,8 +480,8 @@
         token: route.token,
         tokenSource: route.token,
         sourceToken: route.token,
+        leadId: route.leadId,
         context: null,
-        legacy: null,
         loadingAction: "",
         selectedBilling: {
           club: "yearly",
@@ -632,32 +632,19 @@
 
       async function load() {
         try {
-          const [contextResult, legacyResult] = await Promise.allSettled([
-            fetchJson(`${API_BASE}/checkout-context?token=${encodeURIComponent(state.token)}`),
-            fetchJson(`${API_BASE}/tier-select-fetch?token=${encodeURIComponent(state.token)}`),
-          ]);
-
-          if (contextResult.status !== "fulfilled") {
-            const details = contextResult.reason || {};
-            renderFatal(details.message || "Unable to load your checkout context.");
-            return;
-          }
-
-          state.context = contextResult.value;
+          state.context = await fetchJson(buildContextUrl());
+          state.leadId = state.context.profile?.leadId || state.leadId;
           state.sourceToken = state.context.token?.magicToken || state.token;
-          state.legacy = legacyResult.status === "fulfilled" ? legacyResult.value : null;
           render();
         } catch (error) {
-          renderFatal("Unable to load your membership options right now.");
+          const details = error?.body?.error || {};
+          renderFatal(details.message || error.message || "Unable to load your membership options right now.");
         }
       }
 
       function render() {
         const founderOnly = state.context.tierVisibility === "founder_only";
-        const profileName =
-          state.legacy?.profile?.name ||
-          state.context.profile?.name ||
-          "Presttige candidate";
+        const profileName = state.context.profile?.name || "Presttige candidate";
         const currentTier = state.context.lead?.currentTier || "";
         const hasUpgrade =
           state.context.options?.patron?.displayMode === "upgrade";
@@ -785,11 +772,7 @@
               <button type="button" class="button ${tier === "patron" ? "" : "button--secondary"}" data-begin-checkout="${escapeHtml(currentContractKey)}" ${isBusy(currentContractKey) ? "disabled" : ""}>
                 ${isBusy(currentContractKey) ? "Loading…" : escapeHtml(buttonLabel(tier, option))}
               </button>
-              <p class="helper">${
-                state.context.token?.checkoutToken
-                  ? "The next page keeps you on presttige.net for payment confirmation."
-                  : "This link needs a refreshed checkout token before a paid tier can continue."
-              }</p>
+              <p class="helper">The next page keeps you on presttige.net for payment confirmation.</p>
             </div>
           </article>
         `;
@@ -866,25 +849,53 @@
       }
 
       async function beginCheckout(contractKey) {
-        if (!state.context.token?.checkoutToken) {
-          renderFatal("This route does not yet have an active checkout token. Please request a new link.");
-          return;
-        }
-
         state.loadingAction = contractKey;
         render();
 
-        const contract = findContract(contractKey);
-        const tierSegment = contract?.tier || "checkout";
-        const query = new URLSearchParams({
-          token: state.context.token.checkoutToken,
-        });
+        try {
+          const contract = findContract(contractKey);
+          if (!contract) {
+            renderFatal("This route does not allow that membership choice.");
+            return;
+          }
 
-        if (state.sourceToken && state.sourceToken !== state.context.token.checkoutToken) {
-          query.set("source_token", state.sourceToken);
+          if (!state.leadId || !state.context.token?.magicToken) {
+            renderFatal("This route cannot mint a checkout token yet. Please request a new link.");
+            return;
+          }
+
+          const minted = await fetchJson(`${API_BASE}/checkout-context`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              lead_id: state.leadId,
+              token: state.context.token.magicToken,
+              contract_key: contractKey,
+            }),
+          });
+
+          state.context.token.checkoutToken = minted.checkoutToken;
+          state.context.token.checkoutTokenStatus = minted.checkoutTokenStatus;
+          state.context.token.checkoutTokenExpiresAt = minted.checkoutTokenExpiresAt;
+
+          const tierSegment = contract?.tier || "checkout";
+          const query = new URLSearchParams({
+            token: minted.checkoutToken,
+          });
+
+          if (state.sourceToken && state.sourceToken !== minted.checkoutToken) {
+            query.set("source_token", state.sourceToken);
+          }
+
+          window.location.assign(`/checkout/${encodeURIComponent(tierSegment)}/${encodeURIComponent(contractKey)}?${query.toString()}`);
+        } catch (error) {
+          const details = error?.body?.error || {};
+          renderFatal(details.message || error.message || "Unable to prepare checkout right now.");
+        } finally {
+          state.loadingAction = "";
         }
-
-        window.location.assign(`/checkout/${encodeURIComponent(tierSegment)}/${encodeURIComponent(contractKey)}?${query.toString()}`);
       }
 
       async function activateSubscriber() {
@@ -1009,8 +1020,20 @@
         `;
       }
 
-      async function fetchJson(url) {
-        const response = await fetch(url);
+      function buildContextUrl() {
+        const query = new URLSearchParams({
+          token: state.token,
+        });
+
+        if (state.leadId) {
+          query.set("lead_id", state.leadId);
+        }
+
+        return `${API_BASE}/checkout-context?${query.toString()}`;
+      }
+
+      async function fetchJson(url, init) {
+        const response = await fetch(url, init);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
           const error = new Error(data?.error?.message || data.error || "Request failed");
@@ -1043,6 +1066,7 @@
         const pathToken = segments[0] === "tier-select" ? segments[1] : "";
         return {
           token: pathToken || query.get("token") || "",
+          leadId: query.get("lead_id") || "",
         };
       }
 
