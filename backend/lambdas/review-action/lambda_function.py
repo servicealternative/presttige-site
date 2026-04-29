@@ -22,7 +22,8 @@ TESTER_WHITELIST = {
     "antoniompereira@me.com",
     "alternativeservice@gmail.com",
 }
-TESTER_DELAY_MINUTES = 15
+TESTER_DELAY_MINUTES = 5
+PRODUCTION_DELAY_FALLBACK_MINUTES = 2880
 serializer = TypeSerializer()
 
 
@@ -335,14 +336,17 @@ def read_delay_minutes():
         response = ssm_client.get_parameter(Name=DELAY_PARAMETER_NAME)
         return max(1, int(response["Parameter"]["Value"]))
     except Exception as exc:
-        print(f"delay parameter read failed, defaulting to 15 minutes: {exc}")
-        return 15
+        print(
+            f"delay parameter read failed, defaulting to "
+            f"{PRODUCTION_DELAY_FALLBACK_MINUTES} minutes: {exc}"
+        )
+        return PRODUCTION_DELAY_FALLBACK_MINUTES
 
 
 def resolve_e3_delay_minutes(candidate_email):
     normalized_email = normalize_email(candidate_email)
     if normalized_email in TESTER_WHITELIST:
-        print("[delay-resolution] email=*** redacted *** path=whitelist value=15")
+        print("[delay-resolution] email=*** redacted *** path=whitelist value=5")
         return TESTER_DELAY_MINUTES
 
     delay_minutes = read_delay_minutes()
