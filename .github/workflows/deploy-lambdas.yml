@@ -28,6 +28,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Keep CI deploy coverage aligned with the package-presttige script inventory.
           mapfile -t ALL_LAMBDAS < <(
             find scripts -maxdepth 1 -type f -name 'package-presttige-*.sh' \
               -exec basename {} \; \
