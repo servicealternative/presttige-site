@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Keep CI deploy coverage aligned with the package-presttige script inventory.
+          # Keep CI deploy coverage aligned with the package-presttige script inventory and amend-push safety.
           mapfile -t ALL_LAMBDAS < <(
             find scripts -maxdepth 1 -type f -name 'package-presttige-*.sh' \
               -exec basename {} \; \
@@ -94,7 +94,36 @@ jobs:
           aws-region: us-east-1
 
       - name: Package Lambda
-        run: bash scripts/package-${{ matrix.lambda }}.sh
+        id: package
+        run: |
+          set -euo pipefail
+
+          rm -rf "/tmp/${{ matrix.lambda }}-package" "/tmp/${{ matrix.lambda }}-package.zip"
+          LOG_FILE="$(mktemp)"
+          bash scripts/package-${{ matrix.lambda }}.sh | tee "$LOG_FILE"
+
+          PACKAGE_ZIP=""
+          if [ -f "/tmp/${{ matrix.lambda }}-package.zip" ]; then
+            PACKAGE_ZIP="/tmp/${{ matrix.lambda }}-package.zip"
+          else
+            PACKAGE_ZIP="$(sed -n 's/^Package path: //p' "$LOG_FILE" | tail -n1)"
+
+            if [ -z "$PACKAGE_ZIP" ]; then
+              PACKAGE_ZIP="$(sed -n 's/^Package created at //p' "$LOG_FILE" | tail -n1)"
+            fi
+
+            if [ -z "$PACKAGE_ZIP" ]; then
+              PACKAGE_ZIP="$(find backend -type f -name dist.zip | head -n1)"
+            fi
+          fi
+
+          if [ -z "$PACKAGE_ZIP" ] || [ ! -f "$PACKAGE_ZIP" ]; then
+            echo "::error::Unable to locate package zip for ${{ matrix.lambda }}"
+            exit 1
+          fi
+
+          echo "Package zip: $PACKAGE_ZIP"
+          echo "zip_path=$PACKAGE_ZIP" >> "$GITHUB_OUTPUT"
 
       - name: Capture pre-deploy CodeSha256
         id: pre
@@ -110,7 +139,7 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name ${{ matrix.lambda }} \
-            --zip-file fileb:///tmp/${{ matrix.lambda }}-package.zip \
+            --zip-file fileb://${{ steps.package.outputs.zip_path }} \
             --region us-east-1 \
             --no-cli-pager
 
