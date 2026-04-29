@@ -1,7 +1,7 @@
 # PRESTTIGE — MATRIZ & REGRAS
 
-**Source of Truth Document — v0.2**
-**Date:** 28 April 2026
+**Source of Truth Document — v0.3**
+**Date:** 29 April 2026
 **Owner:** Antonio Pereira
 **Status:** Draft for review
 
@@ -24,6 +24,7 @@ If something is not yet decided, it appears in **Chapter 14 — Open Decisions**
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| v0.3 | 29 Apr 2026 | Codex (under Antonio direction) | Update tier model to v2 recurring Patron + Founder, dual-path auth, and apps-ready checkout rules |
 | v0.2 | 28 Apr 2026 | Codex (under Antonio direction) | Add Email & DNS Infrastructure chapter |
 | v0.1 | 28 Apr 2026 | Claude (under Antonio direction) | Initial draft from parking lot + Chats 001-007 |
 
@@ -77,7 +78,7 @@ These rules are immutable. Code must enforce them; copy must respect them; desig
 
 ## R2 — Tier names are frozen
 
-**LOCKED.** The four tier names are: `Subscriber`, `Club`, `Premier`, `Patron`. These are not under discussion. Claude does not propose alternatives. Codex does not generate new names.
+**LOCKED.** The five tier names are: `Subscriber`, `Club`, `Premier`, `Patron`, `Founder`. These are not under discussion. Claude does not propose alternatives. Codex does not generate new names.
 
 ## R3 — Locked decisions stay locked
 
@@ -103,7 +104,7 @@ A grep audit must return zero matches for these strings on any customer-facing s
 
 # Chapter 3 — Membership Tiers
 
-The four tiers are listed in ascending order of privilege. All prices are USD globally; charges are settled by Stripe to AED for payouts.
+The five tiers are listed in ascending order of privilege. All prices are USD globally; charges are settled by Stripe to AED for payouts.
 
 ## 3.1 Subscriber — Free, post-approval
 
@@ -121,17 +122,17 @@ The four tiers are listed in ascending order of privilege. All prices are USD gl
 | Add-on services | No |
 | Communications | "Stay informed" — periodic curated updates |
 
-Subscriber is the post-approval default state for any candidate who does not (yet) commit to paid membership. Subscribers can upgrade to Club, Premier, or Patron at any time at the **full founding rate** during the upgrade window (Chapter 4).
+Subscriber is the post-approval default state for any candidate who does not (yet) commit to paid membership. Subscribers can upgrade to Club, Premier, or Patron at the applicable founding rate during the upgrade window (Chapter 4). Founder is not a self-serve Subscriber upgrade; it is an invitation-only path tied to qualifying referral and review flow.
 
 ## 3.2 Club — $99/year
 
 | Attribute | Value |
 |---|---|
-| Price | $99 USD/year |
+| Price | $99 USD/year or $9.99 USD/month |
 | Slots | 9,999 (R5) |
-| Renewal Y2+ | $9.99/month or $99/year (founding rate locked) |
+| Renewal | Auto-renewing subscription; yearly and monthly variants available |
 | Application required | Yes (R1) |
-| Stripe product | Club Year-1 ($99 lifetime billing) + Club monthly + Club yearly |
+| Stripe product | Club monthly + Club yearly |
 | Member directory inclusion | Yes |
 | Member proposal rights | No |
 | Founder line | No |
@@ -139,15 +140,17 @@ Subscriber is the post-approval default state for any candidate who does not (ye
 | Add-on services | No |
 | Communications | Full network communications + curated updates |
 
+Club supports `cancel_at_period_end`. If the member cancels or renewal ultimately fails, access downgrades gracefully to Subscriber while the account and profile remain intact.
+
 ## 3.3 Premier — $222/year
 
 | Attribute | Value |
 |---|---|
-| Price | $222 USD/year |
+| Price | $222 USD/year or $33 USD/month |
 | Slots | 2,222 (R5) |
-| Renewal Y2+ | $33/month or $222/year (founding rate locked) |
+| Renewal | Auto-renewing subscription; yearly and monthly variants available |
 | Application required | Yes (R1) |
-| Stripe product | Premier Year-1 ($222) + Premier monthly + Premier yearly |
+| Stripe product | Premier monthly + Premier yearly |
 | Member directory inclusion | Yes |
 | Member proposal rights | Yes (lower weight than Patron) |
 | Founder line | No |
@@ -155,25 +158,46 @@ Subscriber is the post-approval default state for any candidate who does not (ye
 | Add-on services | No |
 | Communications | Full network + curated updates |
 
-## 3.4 Patron — $999 lifetime
+Premier supports `cancel_at_period_end`. If the member cancels or renewal ultimately fails, access downgrades gracefully to Subscriber while the account and profile remain intact.
+
+## 3.4 Patron — $999/year
 
 | Attribute | Value |
 |---|---|
-| Price | $999 USD, single payment, **true lifetime** |
+| Price | $999 USD/year |
 | Slots | 999 worldwide, ever (R5) |
-| Renewal | None — never renews, never expires |
+| Renewal | Auto-renewing yearly subscription |
 | Application required | Yes (R1) |
-| Stripe product | Patron Lifetime ($999 one-time) |
-| Member directory inclusion | Yes — with FOUNDER badge |
+| Stripe product | Patron yearly |
+| Member directory inclusion | Yes |
 | Member proposal rights | Yes (greatest weight) |
 | Founder line | Yes — direct line to founders |
-| Tier badge | Yes — `Patron` + `FOUNDER` stamp |
-| Add-on services | Yes — exclusive (full list in 3.5) |
+| Tier badge | Yes — `Patron` |
+| Add-on services | Yes — exclusive (full list in 3.6) |
 | Voice on direction | Yes — Patrons are consulted on platform direction |
 | Patron Card | Coming soon — Apple Wallet + QR, member verification at partners |
 | Communications | Full network + add-on offers + founder updates |
 
-## 3.5 Patron exclusive add-on services
+Patron supports `cancel_at_period_end`. If the member cancels or renewal ultimately fails, access downgrades gracefully to Subscriber while the account and profile remain intact.
+
+Patron Y1 holders are invited to selected events when capacity exists beyond Founder allocation. Patron is no longer a lifetime class.
+
+## 3.5 Founder — $9,999 lifetime
+
+| Attribute | Value |
+|---|---|
+| Price | $9,999 USD, one-time lifetime |
+| Eligibility | Invitation-only via Ambassador / Business Partner / Agency referral |
+| Application required | Yes (R1) |
+| Stripe product | Founder Lifetime ($9,999 one-time) |
+| Window | Open until the full system (web platform + apps) is live; then closes permanently |
+| Tier visibility | Only shown to Founder-eligible, S2.5-confirmed, committee-approved Founder candidates |
+| Events & programming | Invited to all events, workshops, and programming permanently |
+| Communications | Full network + permanent Founder communications |
+
+Founder is a historical class, not an always-open public tier. When the full system is live, Founder disappears from new `/tier-select` flows permanently; existing Founders keep status forever.
+
+## 3.6 Patron exclusive add-on services
 
 Available only to Patron members. Operated through curated partnerships, billed separately by Presttige or partners depending on offer:
 
@@ -190,7 +214,7 @@ Available only to Patron members. Operated through curated partnerships, billed 
 
 The exact partner roster is operational and changes; the Patron benefit is the **standing access and curation**, not any specific brand listed above.
 
-## 3.6 Member proposal rights — explained
+## 3.7 Member proposal rights — explained
 
 Members can propose other candidates for committee review. Each proposal carries weight:
 
@@ -211,50 +235,59 @@ Proposed candidates still complete the standard application; weight affects comm
 
 ## 4.2 Founding rates
 
-Year-1 pricing for the founding cohort is the price listed in Chapter 3:
+Founding pricing for the active v2 cohort is the price listed in Chapter 3:
 
-- Club $99/year
-- Premier $222/year  
-- Patron $999 lifetime
+- Club $99/year or $9.99/month
+- Premier $222/year or $33/month
+- Patron $999/year
+- Founder $9,999 lifetime (invitation-only, not a standard self-serve tier)
 
-These are **founding rates**, locked for any member who joins during the upgrade window. Future cohorts may face higher pricing; founding members keep their entry rate (renewal logic in 4.4).
+These are **founding rates**, locked for any member who joins during the active window and keeps the membership in good standing. Future cohorts may face higher pricing; founding members keep their approved rate while the membership remains active (renewal logic in 4.4).
 
 ## 4.3 Upgrade window
 
 **LOCKED.**
 
-| Window opens | Now |
+| Patron upgrade window opens | Now |
 |---|---|
-| Window closes | Earlier of: 31 Dec 2026, OR Patron 999 slots filled |
+| Patron upgrade window closes | 31 Dec 2026 |
+| Founder invitation window closes | When the full system (web platform + apps) is live |
 
 During this window:
-- Subscriber → Club: $99 (full founding rate)
-- Subscriber → Premier: $222 (full founding rate)
-- Subscriber → Patron: $999 (full founding rate)
-- Club → Patron: $900 difference, lifetime from upgrade date
-- Premier → Patron: $777 difference, lifetime from upgrade date
+- Subscriber → Club: $99/year or $9.99/month
+- Subscriber → Premier: $222/year or $33/month
+- Subscriber → Patron: $999/year
+- Club → Patron: $900 first charge, then Patron renews at $999/year
+- Premier → Patron: $777 first charge, then Patron renews at $999/year
 - Club → Premier: TODO (decide before launch)
-- Subscriber → Club/Premier: at founding rate
+- Founder: invitation-only, no public self-serve upgrade path
 
-After the window closes (31 Dec 2026 or 999 Patron slots filled):
-- **No more upgrade-to-Patron, ever.** This is structural — Patron is closed forever once the slot count is reached.
+After the Patron upgrade window closes:
+- **No more upgrade-to-Patron, ever.**
 - Club ↔ Premier upgrades may continue subject to slot availability
 - New Subscribers continue post-approval; their upgrade-to-Patron path is closed
 
+Founder is governed by its own invitation window and closes only when the full system is live.
+
 ## 4.4 Renewal logic Y2+
 
-For Club and Premier (Patron is lifetime, no renewal):
+For Club, Premier, and Patron:
 
-- Year 1 is prepaid at founding rate ($99 / $222)
-- Year 2 onward, the member chooses: monthly billing ($9.99 / $33) or annual billing ($99 / $222)
-- The **founding rate is locked for the lifetime of the membership** — even if Presttige raises future cohort prices, the founding member never pays more than the founding rate as long as they remain a member
+- Club supports monthly ($9.99) or annual ($99) auto-renewing billing
+- Premier supports monthly ($33) or annual ($222) auto-renewing billing
+- Patron supports annual ($999) auto-renewing billing
+- `cancel_at_period_end` is supported
+- If the member cancels or renewal finally fails after the configured retry policy, the member downgrades to Subscriber and keeps account/profile continuity
+- The **founding rate is locked while the membership remains active** — if Presttige raises future cohort prices, the member keeps the approved rate as long as they do not lapse
 
-If a member lapses (cancels, payment fails 3x), they lose the founding rate. Re-joining requires re-application and re-pricing at the then-current rate.
+If a member lapses, they lose the founding rate. Re-joining requires re-application and re-pricing at the then-current rate.
+
+Founder has no renewal. Founder status remains after the Founder window closes.
 
 ## 4.5 Currency display rules
 
 - All prices on the site display as `$999` or `$999.00` — never `USD 999`, never `$999 USD` (redundant)
-- Stripe Checkout shows `$999.00` with the currency code embedded in the page chrome
+- Stripe payment surfaces show `$999.00` with the currency code embedded in the payment UI
 - Receipts display `USD $999.00` (Stripe default — acceptable)
 
 ## 4.6 Refunds
@@ -406,9 +439,9 @@ Audit rows are NOT deleted by any normal operation. Only Antonio with explicit D
 
 | Phase | Dates | Status |
 |---|---|---|
-| Pre-launch | Now → 24 Dec 2026 | Active. All 4 tiers open. Patron upgrade available. |
-| Launch | 25 Dec 2026 → 30 Nov 2027 | Future. Patron upgrade window CLOSES 31 Dec 2026. |
-| Apps live | 1 Dec 2027 → indefinite | Future. Mobile apps go live. Patron remains permanently closed if 999 slots reached. |
+| Pre-launch | Now → 24 Dec 2026 | Active. Standard 4-tier choice open (Subscriber / Club / Premier / Patron). Founder invitation window active. |
+| Launch | 25 Dec 2026 → 30 Nov 2027 | Future. Patron upgrade window closes 31 Dec 2026. Founder invitation window remains open. |
+| Apps live | 1 Dec 2027 → indefinite | Future. Mobile apps go live. Founder window closes once the full system is live. |
 
 ## 8.2 Wednesday 29 April 2026 — soft launch goals (REVISED)
 
@@ -454,23 +487,23 @@ The PRESTTIGE logo (P-mark + wordmark) is the primary brand identifier:
 
 The P-mark alone (icon) may be used where space is constrained: favicons, app icons, social avatars, payment processor avatars, Patron stamp cores.
 
-## 9.4 Patron stamp specification
+## 9.4 Founder callout stamp specification
 
-The Patron stamp is a high-leverage brand element appearing on:
-- `/tier-select` Patron card
-- E5 welcome email (Patron variant)
-- Patron Card (future Apple Wallet asset)
-- Patron-only printed materials
+The Founder callout stamp is a high-leverage brand element appearing on:
+- Founder eligibility surfaces on `/tier-select`
+- Founder invitation / checkout surfaces
+- Founder welcome materials
+- Founder-only printed materials
 
 **Locked specification (B2.6):**
 
 - Copy: `BECOME A FOUNDER` (3 words, no comma, no second line, no "FOR LIFE")
-- aria-label: `Become a founder — Patron tier`
+- aria-label: `Become a founder — Founder tier`
 - Treatment: letterpress / notary stamp aesthetic
 - Color: gold (#8C7040), double-line border
-- Containment: fully inside the Patron card boundary at all breakpoints (geometric proof verified)
+- Containment: fully inside the containing card boundary at all breakpoints
 - Rotation: subtle (≤8°)
-- Position on `/tier-select` Patron card: top-right inset 24px
+- Position on `/tier-select` Founder surface: top-right inset 24px
 
 ## 9.5 Voice & tone
 
@@ -514,14 +547,14 @@ This chapter is a high-level reference. Detailed engineering documentation lives
 | `presttige-send-committee-email` | Sends E2 to committee@, generates review tokens |
 | `presttige-review-action` | Handles /review POST (Approve/Reject/Standby) |
 | `presttige-review-fetch` | Handles /review GET (renders form or read-only state) |
-| `presttige-create-checkout-session` | Creates Stripe Checkout session OR Payment Intent (B5) |
+| `presttige-create-checkout-session` | Creates Stripe Elements bootstrap state for subscription or payment checkout (B5) |
 | `presttige-stripe-webhook` | Handles Stripe webhook events, triggers E5 |
 | `presttige-send-welcome-email` | Sends E5 to paid member |
 | `presttige-send-subscriber-welcome-email` | Sends E5-SUB to free Subscriber |
 
 ## 10.3 SSM parameter conventions
 
-All Stripe-related parameters under `/presttige/stripe/`:
+Active v2 Stripe contract parameters under `/presttige/stripe/`:
 
 - `/presttige/stripe/club-y1-price-id`
 - `/presttige/stripe/club-monthly-price-id`
@@ -529,7 +562,10 @@ All Stripe-related parameters under `/presttige/stripe/`:
 - `/presttige/stripe/premier-y1-price-id`
 - `/presttige/stripe/premier-monthly-price-id`
 - `/presttige/stripe/premier-yearly-price-id`
-- `/presttige/stripe/patron-lifetime-price-id`
+- `/presttige/stripe/patron-yearly-price-id`
+- `/presttige/stripe/founder-lifetime-price-id`
+- `/presttige/stripe/club-to-patron-upgrade-price-id`
+- `/presttige/stripe/premier-to-patron-upgrade-price-id`
 - `/presttige/stripe/webhook-secret-live`
 - `/presttige/review/approve-to-e3-delay-minutes` (currently `2880` for production = 48h)
 
@@ -565,7 +601,11 @@ Any future change to checkout architecture must preserve SAQ-A. Building custom 
 
 - Committee review tokens: signed HMAC-SHA256 with secret from Secrets Manager
 - Tier select tokens: signed HMAC-SHA256 with secret from Secrets Manager
-- No passwords on the platform until apps phase (Dec 2027) — token-only
+- Member authentication in V1 supports both:
+  - email + password
+  - mobile number + SMS verification code
+- Both authentication paths must resolve to the same member identity and authenticated session when linked
+- Backend-issued auth/session tokens must remain reusable by future native apps; no browser-only session assumption is allowed
 - AWS access via IAM roles, no shared credentials
 - Antonio is sole root user; future delegation tracked separately
 
@@ -655,7 +695,7 @@ Items beyond the locked Chapters 3–11 are organized by priority. This list is 
 | H2 | `/review` page redesign (bigger decision display, brand polish) | Parked |
 | H3 | Standby priority tags (Reserve / Consider / Pursue) | Parked |
 | H4 | Recovery emails E0.5 + E1.5 + backfill 11 stuck candidates | Parked |
-| H5 | Tier renaming → Subscriber/Club/Premier/Patron | ✅ DONE |
+| H5 | Tier naming → Subscriber / Club / Premier / Patron / Founder | ✅ DONE |
 | H6 | `/welcome` session_id fallback for real users (resilience) | Parked, optional |
 | H7 | Patron Card (Apple Wallet + QR for partner verification) | Parked, post-launch |
 | H8 | Patron add-on services partner pipeline | Parked, ongoing |
@@ -668,10 +708,10 @@ Items beyond the locked Chapters 3–11 are organized by priority. This list is 
 | M1 | REJECT email decision (silent or send respectful confirmation?) | TODO — Antonio decides |
 | M2 | Standby-7 / Standby-14 copy | TODO — Antonio drafts |
 | M3 | Branded RECEIPT email (replace Stripe default) | Parked |
-| M4 | RENEWAL email branching (lifetime vs renewable) | Parked |
+| M4 | RENEWAL email branching (renewable vs one-time Founder) | Parked |
 | M5 | Diego Miranda Ambassador proposal v2 (5 fixes pending) | Parked |
 | M6 | Manual Safari sign-off Bug 1.5 | ✅ DONE |
-| M7 | This document — `Presttige — Matriz & Regras` | Now writing v0.1 |
+| M7 | This document — `Presttige — Matriz & Regras` | Active draft, v0.3 |
 
 ## 13.3 Low priority (L1–L4)
 
@@ -697,14 +737,15 @@ Items still pending Antonio's resolution. Locked items move OUT of this chapter 
 - [ ] **Standby priority tag names** — confirm "Reserve / Consider / Pursue" (H3)
 - [ ] **Pixel IDs** — Meta Pixel ID, GA4 measurement ID, Google Ads conversion ID. Required for B4.
 - [ ] **Club ↔ Premier upgrade pricing** during the upgrade window — locked at differential? (Chapter 4.3)
-- [ ] **Apple Pay domain verification** — required for B5 if Apple Pay is in V1 scope; can ship card-only first
+- [x] **Apple Pay in V1 scope** — locked in. Domain verification required in TEST first, then LIVE.
 
 ## 14.2 Pending technical decisions
 
-- [ ] **B5 architecture** — embedded Stripe Elements on presttige.net (LOCKED 28 Apr) — but specific implementation patterns (Payment Intent vs Setup Intent for lifetime, success page handling, error recovery UX) TBD by Codex investigation
-- [ ] **Webhook endpoint URL** for Live mode — confirm location (probably `https://api.presttige.net/stripe-webhook` — Codex audits)
+- [x] **B5 architecture** — embedded Stripe Elements on presttige.net, single `/welcome/{token}` success page, inline retry, Apple Pay in V1
+- [x] **Webhook endpoint URL** for Live mode — Lambda Function URL remains the locked path
+- [x] **Dual-path member authentication** — V1 web ships with both email+password and mobile+SMS login against the same member identity
+- [x] **Apps-ready backend rule** — web launches first, but auth/session/payment APIs must stay reusable by native iOS/Android later
 - [ ] **`/welcome` session_id resilience** — H6, optional
-- [ ] **Apps phase architecture** — native iOS/Android vs PWA vs Capacitor — defer to Q3 2027 planning
 - [ ] **Member directory access control** — UI for browsing other members; permissions; visibility opt-out — TBD
 - [ ] **Payment retry policy** — failed Y2+ renewal: how many retries before tier downgrade? Stripe default is 3; we may want different.
 
@@ -737,12 +778,12 @@ Terms used across Presttige codebase, communications, and operations.
 | **PITR** | Point-In-Time Recovery (DynamoDB feature, 35-day rollback) |
 | **Codex CLI** | The executor agent with full repo + AWS access |
 | **Tester whitelist** | Two test email addresses (6.3) that trigger 15-min E3 + 5-min cleanup |
-| **Founding rate** | Year-1 price locked for the founding cohort lifetime (4.4) |
-| **Founder line** | Direct communication channel from Patron members to Antonio (3.4) |
-| **Founder badge** | Visual marker for Patron members in member directory |
+| **Founding rate** | Approved recurring price locked while the membership remains active (4.4) |
+| **Founder line** | Direct communication channel from Patron / Founder members to Antonio |
+| **Founder badge** | Visual marker for Founder members in member directory |
 | **Patron Card** | Future Apple Wallet asset for partner verification (H7) |
-| **Add-on services** | Patron-exclusive curated services (3.5) |
-| **Member proposal rights** | Ability to nominate other candidates for committee review (3.6) |
+| **Add-on services** | Patron-exclusive curated services (3.6) |
+| **Member proposal rights** | Ability to nominate other candidates for committee review (3.7) |
 | **Standby** | Review state meaning "interesting candidate, revisit" (7.2) |
 | **Sandbox** | Stripe test environment within the METTALIX merchant account |
 | **Live mode** | Stripe production environment, real payments |
@@ -869,12 +910,12 @@ The apex presttige.net TXT record set contains multiple TXT values (currently 2:
 
 ---
 
-# End of Matriz & Regras v0.2
+# End of Matriz & Regras v0.3
 
 **Next steps:**
 1. Antonio reviews this draft
 2. Antonio flags errors / additions / omissions
-3. Claude iterates to v0.2
+3. Claude iterates to v0.3
 4. v1.0 commits to repo at `/docs/MATRIZ-E-REGRAS.md`
 5. `AGENTS.md` updates the source-of-truth pointer to the new path
 6. Codex stops flagging missing source-of-truth on every commit
