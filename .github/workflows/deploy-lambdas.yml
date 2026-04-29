@@ -28,55 +28,38 @@ jobs:
         run: |
           set -euo pipefail
 
+          mapfile -t ALL_LAMBDAS < <(
+            find scripts -maxdepth 1 -type f -name 'package-presttige-*.sh' \
+              -exec basename {} \; \
+              | sed -E 's/^package-(presttige-.*)\.sh$/\1/' \
+              | sort -u
+          )
+
+          echo "Discovered package scripts for ${#ALL_LAMBDAS[@]} Lambdas:"
+          printf ' - %s\n' "${ALL_LAMBDAS[@]}"
+
           BASE_SHA="${{ github.event.before }}"
+          CHANGED=""
+
           if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "::warning::Base SHA unavailable from event payload, deploying ALL Lambdas defensively"
+            CHANGED="ALL"
+          elif ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+            echo "::warning::Base SHA $BASE_SHA unavailable, deploying ALL Lambdas defensively"
             CHANGED="ALL"
           else
             CHANGED="$(git diff --name-only "$BASE_SHA" "${{ github.sha }}")"
           fi
 
           echo "Changed files:"
-          echo "$CHANGED"
+          echo "${CHANGED:-none}"
 
           LAMBDAS=()
 
-          if [ "$CHANGED" = "ALL" ] || echo "$CHANGED" | grep -q "^.github/workflows/deploy-lambdas.yml$"; then
-            LAMBDAS=(
-              "presttige-create-lead"
-              "presttige-verify-email"
-              "presttige-submit-access"
-              "presttige-review-action"
-              "presttige-stripe-webhook"
-              "presttige-gateway"
-            )
-          else
-            if echo "$CHANGED" | grep -qE "^(backend/lambdas/create-lead/|backend/email_utils\.py|backend/email/|shared/|scripts/package-presttige-create-lead\.sh)"; then
-              LAMBDAS+=("presttige-create-lead")
-            fi
-
-            if echo "$CHANGED" | grep -qE "^(backend/lambdas/verify-email/|shared/|scripts/package-presttige-verify-email\.sh)"; then
-              LAMBDAS+=("presttige-verify-email")
-            fi
-
-            if echo "$CHANGED" | grep -qE "^(backend/lambdas/submit-access/|shared/|scripts/package-presttige-submit-access\.sh)"; then
-              LAMBDAS+=("presttige-submit-access")
-            fi
-
-            if echo "$CHANGED" | grep -qE "^(backend/lambdas/review-action/|scripts/package-presttige-review-action\.sh)"; then
-              LAMBDAS+=("presttige-review-action")
-            fi
-
-            if echo "$CHANGED" | grep -qE "^(backend/lambdas/stripe-webhook/|shared/|scripts/package-presttige-stripe-webhook\.sh)"; then
-              LAMBDAS+=("presttige-stripe-webhook")
-            fi
-
-            if echo "$CHANGED" | grep -qE "^(backend/lambdas/gateway/|shared/|scripts/package-presttige-gateway\.sh)"; then
-              LAMBDAS+=("presttige-gateway")
-            fi
-          fi
-
-          if [ ${#LAMBDAS[@]} -gt 0 ]; then
-            mapfile -t LAMBDAS < <(printf "%s\n" "${LAMBDAS[@]}" | sort -u)
+          if [ "$CHANGED" = "ALL" ]; then
+            mapfile -t LAMBDAS < <(printf "%s\n" "${ALL_LAMBDAS[@]}")
+          elif [ -n "$CHANGED" ]; then
+            mapfile -t LAMBDAS < <(printf "%s\n" "${ALL_LAMBDAS[@]}")
           fi
 
           echo "Lambdas to deploy: ${LAMBDAS[*]:-none}"

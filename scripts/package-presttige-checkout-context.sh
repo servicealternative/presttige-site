@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-cd "$(dirname "$0")/../backend/create-checkout-session"
+cd "$(dirname "$0")/../backend/checkout-context"
 rm -rf lib
 mkdir -p lib
 cp ../lib/stripe-tier-contract.js lib/stripe-tier-contract.js
