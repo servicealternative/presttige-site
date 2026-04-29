@@ -1,234 +1,966 @@
+"use strict";
+
+const crypto = require("node:crypto");
+const path = require("node:path");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
-const { SecretsManagerClient, GetSecretValueCommand } = require("@aws-sdk/client-secrets-manager");
+const {
+  DynamoDBDocumentClient,
+  QueryCommand,
+  UpdateCommand,
+} = require("@aws-sdk/lib-dynamodb");
+const {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} = require("@aws-sdk/client-secrets-manager");
 const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
 
-const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
-const secrets = new SecretsManagerClient({ region: "us-east-1" });
-const ssm = new SSMClient({ region: "us-east-1" });
+function loadTierContractModule() {
+  const candidates = [
+    path.join(__dirname, "..", "lib", "stripe-tier-contract.js"),
+    path.join(__dirname, "lib", "stripe-tier-contract.js"),
+  ];
 
+  for (const candidate of candidates) {
+    try {
+      return require(candidate);
+    } catch (error) {
+      if (error.code !== "MODULE_NOT_FOUND") {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error("Stripe tier contract module not found");
+}
+
+const {
+  CHECKOUT_TOKEN_INDEX_NAME,
+  LEAD_PAYMENT_FIELDS,
+  getTierContract,
+  mustGetTierContract,
+} = loadTierContractModule();
+
+const REGION = "us-east-1";
 const TABLE_NAME = "presttige-db";
-const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
-const TIER_CONFIG = {
-  club: {
-    billing: "y1_prepay",
-    priceParameter: "/presttige/stripe/club-y1-price-id",
-  },
-  premier: {
-    billing: "y1_prepay",
-    priceParameter: "/presttige/stripe/premier-y1-price-id",
-  },
-  patron: {
-    billing: "lifetime",
-    priceParameter: "/presttige/stripe/patron-lifetime-price-id",
-  },
-};
+const STRIPE_SECRET_ID = "presttige-stripe-secret";
+const APP_ORIGIN = "https://presttige.net";
+const STANDARD_CURRENCY = "usd";
+const LEGACY_TIER_TO_CONTRACT = Object.freeze({
+  club: "club_yearly",
+  premier: "premier_yearly",
+  patron: "patron_yearly",
+  founder: "founder_lifetime",
+});
+const TERMINAL_PAYMENT_STATUSES = new Set([
+  "paid",
+  "subscription_active",
+  "subscription_cancel_at_period_end",
+  "renewal_cancelled",
+  "downgraded_to_subscriber",
+]);
 
-let cachedStripeKey = null;
+const ddb = DynamoDBDocumentClient.from(
+  new DynamoDBClient({ region: REGION })
+);
+const secrets = new SecretsManagerClient({ region: REGION });
+const ssm = new SSMClient({ region: REGION });
 
-async function getStripeKey() {
-  if (cachedStripeKey) {
-    return cachedStripeKey;
-  }
+let cachedStripeCredentials = null;
+const cachedPriceParameters = new Map();
 
-  try {
-    const response = await secrets.send(
-      new GetSecretValueCommand({ SecretId: "presttige-stripe-secret" })
-    );
-    cachedStripeKey = response.SecretString;
-    return cachedStripeKey;
-  } catch (error) {
-    if (process.env.STRIPE_SECRET_KEY) {
-      cachedStripeKey = process.env.STRIPE_SECRET_KEY;
-      return cachedStripeKey;
-    }
-    throw new Error("Stripe key not configured");
-  }
+function corsHeaders() {
+  return {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": APP_ORIGIN,
+    "Access-Control-Allow-Methods": "OPTIONS,POST",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
 }
-
-async function findLeadByMagicToken(token) {
-  let ExclusiveStartKey;
-
-  do {
-    const result = await ddb.send(
-      new ScanCommand({
-        TableName: TABLE_NAME,
-        FilterExpression: "magic_token = :token",
-        ExpressionAttributeValues: { ":token": token },
-        ExclusiveStartKey,
-      })
-    );
-
-    if (result.Items?.length) {
-      return result.Items[0];
-    }
-
-    ExclusiveStartKey = result.LastEvaluatedKey;
-  } while (ExclusiveStartKey);
-
-  return null;
-}
-
-function welcomeUrl(token) {
-  return `https://presttige.net/welcome/${token}`;
-}
-
-function cancelUrl(token, tier) {
-  return `https://presttige.net/tier-select/${token}/${tier}?cancelled=1`;
-}
-
-function computeFoundingRateExpiresAt(tier) {
-  if (tier === "patron") {
-    return null;
-  }
-
-  const expiresAt = new Date();
-  expiresAt.setUTCDate(expiresAt.getUTCDate() + 365);
-  return expiresAt.toISOString();
-}
-
-exports.handler = async (event) => {
-  const body = JSON.parse(event.body || "{}");
-  const { token, tier } = body;
-
-  if (!token || !tier) {
-    return response(400, { error: "Missing token or tier" });
-  }
-
-  if (!Object.prototype.hasOwnProperty.call(TIER_CONFIG, tier)) {
-    return response(400, { error: "Invalid tier" });
-  }
-
-  try {
-    const lead = await findLeadByMagicToken(token);
-    if (!lead) {
-      return response(404, { error: "Token not found" });
-    }
-
-    if (lead.magic_token_expires_at && new Date(lead.magic_token_expires_at) < new Date()) {
-      return response(410, { error: "Token expired" });
-    }
-
-    if (lead.magic_token_status === "used" && lead.account_active) {
-      return response(200, {
-        redirect_url: welcomeUrl(token),
-        already_active: true,
-      });
-    }
-
-    if (lead.payment_status === "paid") {
-      return response(200, {
-        redirect_url: welcomeUrl(token),
-        already_paid: true,
-      });
-    }
-
-    const stripeKey = await getStripeKey();
-    const config = TIER_CONFIG[tier];
-    const foundingRateExpiresAt = computeFoundingRateExpiresAt(tier);
-    const upgradeEligibleUntil = tier === "patron" ? null : UPGRADE_ELIGIBLE_UNTIL;
-    const priceParameter = await ssm.send(
-      new GetParameterCommand({
-        Name: config.priceParameter,
-      })
-    );
-    const priceId = priceParameter.Parameter.Value;
-
-    const params = new URLSearchParams();
-    params.append("mode", "payment");
-    params.append("line_items[0][price]", priceId);
-    params.append("line_items[0][quantity]", "1");
-    params.append("customer_email", lead.email || "");
-    params.append("success_url", `${welcomeUrl(token)}?session_id={CHECKOUT_SESSION_ID}`);
-    params.append("cancel_url", cancelUrl(token, tier));
-    params.append("client_reference_id", lead.lead_id);
-    params.append("metadata[lead_id]", lead.lead_id);
-    params.append("metadata[product]", "membership");
-    params.append("metadata[tier]", tier);
-    params.append("metadata[billing]", config.billing);
-    params.append("metadata[founding_rate_locked]", "true");
-    if (foundingRateExpiresAt) {
-      params.append("metadata[founding_rate_expires_at]", foundingRateExpiresAt);
-    }
-    if (upgradeEligibleUntil) {
-      params.append("metadata[upgrade_eligible_until]", upgradeEligibleUntil);
-    }
-
-    const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${stripeKey}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: params.toString(),
-    });
-
-    const session = await stripeResponse.json();
-    if (!stripeResponse.ok) {
-      console.error("Stripe checkout error", session);
-      return response(500, {
-        error: "Stripe checkout failed",
-        detail: session.error?.message || "Unknown Stripe error",
-      });
-    }
-
-    await ddb.send(
-      new UpdateCommand({
-        TableName: TABLE_NAME,
-        Key: { lead_id: lead.lead_id },
-        UpdateExpression: `
-          SET selected_tier = :tier,
-              selected_tier_billing = :billing,
-              stripe_session_id = :session_id,
-              payment_status = :payment_status,
-              founding_rate_locked = :founding_rate_locked,
-              founding_rate_expires_at = :founding_rate_expires_at,
-              upgrade_eligible_until = :upgrade_eligible_until,
-              stripe_checkout_mode = :stripe_checkout_mode,
-              selected_tier_selected_at = :selected_at,
-              stripe_checkout_started_at = :started_at,
-              selected_price_id = :price_id,
-              currency = :currency,
-              product_type = :product_type
-          REMOVE selected_periodicity, effective_tier, effective_tier_until
-        `,
-        ExpressionAttributeValues: {
-          ":tier": tier,
-          ":billing": config.billing,
-          ":session_id": session.id,
-          ":payment_status": "pending",
-          ":founding_rate_locked": true,
-          ":founding_rate_expires_at": foundingRateExpiresAt,
-          ":upgrade_eligible_until": upgradeEligibleUntil,
-          ":stripe_checkout_mode": "payment",
-          ":selected_at": new Date().toISOString(),
-          ":started_at": new Date().toISOString(),
-          ":price_id": priceId,
-          ":currency": "USD",
-          ":product_type": "membership",
-        },
-      })
-    );
-
-    return response(200, {
-      redirect_url: session.url,
-      session_id: session.id,
-      selected_tier: tier,
-      selected_tier_billing: config.billing,
-    });
-  } catch (error) {
-    console.error("create-checkout-session error", error);
-    return response(500, { error: "Internal", detail: error.message });
-  }
-};
 
 function response(statusCode, body) {
   return {
     statusCode,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "https://presttige.net",
-    },
+    headers: corsHeaders(),
     body: JSON.stringify(body),
   };
 }
+
+function emptyResponse(statusCode = 204) {
+  return {
+    statusCode,
+    headers: corsHeaders(),
+    body: "",
+  };
+}
+
+function errorResponse(statusCode, code, message, details = {}) {
+  return response(statusCode, {
+    error: {
+      code,
+      message,
+      ...details,
+    },
+  });
+}
+
+function normalizeString(value) {
+  if (value === undefined || value === null) {
+    return "";
+  }
+  return String(value).trim();
+}
+
+function isTruthy(value) {
+  if (value === true) {
+    return true;
+  }
+  if (value === false || value === undefined || value === null) {
+    return false;
+  }
+  return normalizeString(value).toLowerCase() === "true";
+}
+
+function parseBody(event) {
+  if (!event?.body) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(event.body);
+  } catch (error) {
+    throw new Error("Request body must be valid JSON");
+  }
+}
+
+function parseIsoDate(value) {
+  const input = normalizeString(value);
+  if (!input) {
+    return null;
+  }
+
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return date;
+}
+
+function buildIdempotencyKey(lead, contract) {
+  const raw = [
+    lead.lead_id,
+    contract.contractKey,
+    String(lead[LEAD_PAYMENT_FIELDS.checkoutTokenVersion] || 1),
+    contract.checkoutMode,
+  ].join("|");
+
+  return crypto.createHash("sha256").update(raw).digest("hex");
+}
+
+function parseStripeSecret(secretString) {
+  const raw = normalizeString(secretString);
+  if (!raw) {
+    throw new Error("Stripe secret is empty");
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    const secretKey = normalizeString(parsed.secret_key || parsed.secretKey);
+    const publishableKey = normalizeString(
+      parsed.publishable_key || parsed.publishableKey
+    );
+    return {
+      secretKey,
+      publishableKey,
+      accountId: normalizeString(parsed.account_id || parsed.accountId),
+      mode: normalizeString(parsed.mode),
+    };
+  } catch (error) {
+    return {
+      secretKey: raw,
+      publishableKey: "",
+      accountId: "",
+      mode: "",
+    };
+  }
+}
+
+async function getStripeCredentials() {
+  if (cachedStripeCredentials) {
+    return cachedStripeCredentials;
+  }
+
+  const result = await secrets.send(
+    new GetSecretValueCommand({ SecretId: STRIPE_SECRET_ID })
+  );
+  const credentials = parseStripeSecret(result.SecretString);
+
+  if (!credentials.secretKey) {
+    throw new Error("Stripe secret key missing from Secrets Manager");
+  }
+
+  if (!credentials.publishableKey) {
+    throw new Error("Stripe publishable key missing from Secrets Manager");
+  }
+
+  cachedStripeCredentials = credentials;
+  return credentials;
+}
+
+async function getPriceId(parameterName) {
+  if (cachedPriceParameters.has(parameterName)) {
+    return cachedPriceParameters.get(parameterName);
+  }
+
+  const result = await ssm.send(
+    new GetParameterCommand({
+      Name: parameterName,
+    })
+  );
+  const priceId = result.Parameter?.Value || "";
+  if (!priceId) {
+    throw new Error(`Price parameter resolved empty: ${parameterName}`);
+  }
+
+  cachedPriceParameters.set(parameterName, priceId);
+  return priceId;
+}
+
+function appendFormValue(params, prefix, value) {
+  if (value === undefined || value === null || value === "") {
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => {
+      const childPrefix =
+        item !== null && typeof item === "object"
+          ? `${prefix}[${index}]`
+          : `${prefix}[]`;
+      appendFormValue(params, childPrefix, item);
+    });
+    return;
+  }
+
+  if (typeof value === "object") {
+    for (const [key, nestedValue] of Object.entries(value)) {
+      appendFormValue(params, `${prefix}[${key}]`, nestedValue);
+    }
+    return;
+  }
+
+  params.append(prefix, String(value));
+}
+
+function toFormEncoded(data) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(data || {})) {
+    appendFormValue(params, key, value);
+  }
+  return params.toString();
+}
+
+async function stripeRequest({
+  method,
+  path: requestPath,
+  data = null,
+  idempotencyKey = null,
+  stripeSecretKey,
+}) {
+  const url = new URL(`https://api.stripe.com${requestPath}`);
+  const headers = {
+    Authorization: `Bearer ${stripeSecretKey}`,
+  };
+
+  const init = { method, headers };
+
+  if (method !== "GET" && data) {
+    headers["Content-Type"] = "application/x-www-form-urlencoded";
+    init.body = toFormEncoded(data);
+  }
+
+  if (idempotencyKey && method !== "GET") {
+    headers["Idempotency-Key"] = idempotencyKey;
+  }
+
+  const res = await fetch(url, init);
+  const text = await res.text();
+  let payload = {};
+
+  try {
+    payload = text ? JSON.parse(text) : {};
+  } catch (error) {
+    payload = { raw: text };
+  }
+
+  if (!res.ok) {
+    const err = new Error(
+      payload?.error?.message ||
+        `Stripe request failed with status ${res.status}`
+    );
+    err.statusCode = res.status;
+    err.type = payload?.error?.type || "stripe_error";
+    err.code = payload?.error?.code || null;
+    err.body = payload;
+    throw err;
+  }
+
+  return payload;
+}
+
+async function findLeadByCheckoutToken(token) {
+  const result = await ddb.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      IndexName: CHECKOUT_TOKEN_INDEX_NAME,
+      KeyConditionExpression: "#checkout_token = :checkout_token",
+      ExpressionAttributeNames: {
+        "#checkout_token": LEAD_PAYMENT_FIELDS.checkoutToken,
+      },
+      ExpressionAttributeValues: {
+        ":checkout_token": token,
+      },
+      Limit: 2,
+    })
+  );
+
+  if (!result.Items?.length) {
+    return null;
+  }
+
+  if (result.Items.length > 1) {
+    throw new Error("Checkout token lookup returned multiple lead records");
+  }
+
+  return result.Items[0];
+}
+
+function mapLegacyTierToContractKey(tier) {
+  const normalized = normalizeString(tier).toLowerCase();
+  return LEGACY_TIER_TO_CONTRACT[normalized] || "";
+}
+
+function resolveRequestedContractKey(body) {
+  const contractKey =
+    normalizeString(body.contractKey) ||
+    normalizeString(body.contract_key) ||
+    mapLegacyTierToContractKey(body.tier);
+
+  return contractKey;
+}
+
+function buildStripeMetadata(lead, contract) {
+  return {
+    lead_id: lead.lead_id,
+    contract_key: contract.contractKey,
+    checkout_mode: contract.checkoutMode,
+    checkout_token_version: String(
+      lead[LEAD_PAYMENT_FIELDS.checkoutTokenVersion] || 1
+    ),
+    tier: contract.tier,
+    billing: contract.billing,
+    charge_type: contract.chargeType,
+    tier_visibility: contract.tierVisibility,
+    requires_founder_referral: String(
+      Boolean(contract.requiresFounderReferral)
+    ),
+  };
+}
+
+function buildContractMetadata(contract) {
+  const metadata = {
+    tierVisibility: contract.tierVisibility,
+    downgradeTargetTier: contract.downgradeTargetTier,
+    commissionProfile: contract.commissionProfile,
+    requiresFounderReferral: Boolean(contract.requiresFounderReferral),
+  };
+
+  if (contract.upgradeStrategy) {
+    metadata.upgrade_strategy = contract.upgradeStrategy;
+  }
+  if (typeof contract.initialChargeUsdCents === "number") {
+    metadata.initial_charge_usd_cents = contract.initialChargeUsdCents;
+  }
+  if (typeof contract.renewalAmountUsdCents === "number") {
+    metadata.renewal_amount_usd_cents = contract.renewalAmountUsdCents;
+  }
+
+  return metadata;
+}
+
+function formatTierLabel(value) {
+  return normalizeString(value)
+    .split("_")
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" ");
+}
+
+function extractIntentIdFromClientSecret(clientSecret) {
+  const secret = normalizeString(clientSecret);
+  if (!secret || !secret.includes("_secret_")) {
+    return null;
+  }
+  return secret.split("_secret_")[0] || null;
+}
+
+function validateLeadForContract(lead, contract) {
+  const tokenStatus = normalizeString(
+    lead[LEAD_PAYMENT_FIELDS.checkoutTokenStatus]
+  ).toLowerCase();
+  const tokenExpiresAt = parseIsoDate(
+    lead[LEAD_PAYMENT_FIELDS.checkoutTokenExpiresAt]
+  );
+  const reviewStatus = normalizeString(lead.review_status).toLowerCase();
+  const paymentStatus = normalizeString(
+    lead[LEAD_PAYMENT_FIELDS.paymentStatus]
+  ).toLowerCase();
+  const selectedContractKey = normalizeString(
+    lead[LEAD_PAYMENT_FIELDS.selectedContractKey]
+  ).toLowerCase();
+
+  if (!tokenStatus || tokenStatus !== "active") {
+    return errorResponse(
+      410,
+      "checkout_token_inactive",
+      "Checkout token is not active.",
+      {
+        tokenStatus: tokenStatus || null,
+      }
+    );
+  }
+
+  if (tokenExpiresAt && tokenExpiresAt.getTime() < Date.now()) {
+    return errorResponse(
+      410,
+      "checkout_token_expired",
+      "Checkout token has expired."
+    );
+  }
+
+  if (reviewStatus !== "approved") {
+    return errorResponse(
+      403,
+      "lead_not_approved",
+      "Lead is not approved for checkout.",
+      {
+        reviewStatus: reviewStatus || null,
+      }
+    );
+  }
+
+  if (contract.requiresFounderReferral && !isTruthy(lead.founder_eligible)) {
+    return errorResponse(
+      403,
+      "founder_referral_required",
+      "Founder checkout requires founder-eligible referral attribution."
+    );
+  }
+
+  if (contract.chargeType === "upgrade") {
+    if (
+      selectedContractKey === contract.contractKey &&
+      ["checkout_ready", "checkout_started", "failed", "processing"].includes(
+        paymentStatus
+      )
+    ) {
+      return null;
+    }
+
+    const currentTier = normalizeString(
+      lead[LEAD_PAYMENT_FIELDS.selectedTier] ||
+        lead.selected_tier ||
+        lead.effective_tier
+    ).toLowerCase();
+
+    if (!currentTier || currentTier !== contract.fromTier) {
+      return errorResponse(
+        409,
+        "upgrade_not_eligible",
+        `Lead is not eligible for the ${contract.contractKey} upgrade.`,
+        {
+          requiredTier: contract.fromTier,
+          currentTier: currentTier || null,
+        }
+      );
+    }
+
+    return null;
+  }
+
+  if (TERMINAL_PAYMENT_STATUSES.has(paymentStatus)) {
+    return errorResponse(
+      409,
+      "checkout_already_completed",
+      "This lead already has an active or completed payment state.",
+      {
+        paymentStatus,
+      }
+    );
+  }
+
+  return null;
+}
+
+async function createOrReuseStripeCustomer(lead, credentials, idempotencyKey) {
+  const existingCustomerId = normalizeString(
+    lead[LEAD_PAYMENT_FIELDS.stripeCustomerId]
+  );
+  if (existingCustomerId) {
+    return { id: existingCustomerId };
+  }
+
+  return stripeRequest({
+    method: "POST",
+    path: "/v1/customers",
+    stripeSecretKey: credentials.secretKey,
+    idempotencyKey: `${idempotencyKey}:customer`,
+    data: {
+      email: normalizeString(lead.email) || undefined,
+      name: normalizeString(lead.name) || undefined,
+      phone:
+        normalizeString(lead.phone) ||
+        normalizeString(lead.phone_full) ||
+        undefined,
+      metadata: {
+        lead_id: lead.lead_id,
+        source: "presttige_mr3",
+      },
+    },
+  });
+}
+
+async function createPaymentModeBootstrap({
+  lead,
+  contract,
+  priceId,
+  customerId,
+  credentials,
+  idempotencyKey,
+}) {
+  const paymentIntent = await stripeRequest({
+    method: "POST",
+    path: "/v1/payment_intents",
+    stripeSecretKey: credentials.secretKey,
+    idempotencyKey: `${idempotencyKey}:payment_intent`,
+    data: {
+      amount: contract.initialChargeUsdCents,
+      currency: STANDARD_CURRENCY,
+      customer: customerId,
+      receipt_email: normalizeString(lead.email) || undefined,
+      automatic_payment_methods: {
+        enabled: true,
+      },
+      metadata: buildStripeMetadata(lead, contract),
+      description: `Presttige ${formatTierLabel(contract.tier)} checkout`,
+    },
+  });
+
+  if (!paymentIntent.client_secret) {
+    throw new Error("Stripe PaymentIntent did not return a client secret");
+  }
+
+  return {
+    clientSecret: paymentIntent.client_secret,
+    amount: paymentIntent.amount,
+    currency: normalizeString(paymentIntent.currency).toUpperCase(),
+    intentKind: "payment",
+    stripeObjectIds: {
+      customerId,
+      paymentIntentId: paymentIntent.id,
+      subscriptionId: null,
+      latestInvoiceId: null,
+    },
+  };
+}
+
+async function maybeCreateUpgradeInvoiceCredit({
+  lead,
+  contract,
+  customerId,
+  credentials,
+  idempotencyKey,
+}) {
+  if (contract.upgradeStrategy !== "first_invoice_adjustment") {
+    return null;
+  }
+
+  const creditAmount = Number(contract.initialChargeUsdCents) -
+    Number(contract.renewalAmountUsdCents);
+
+  if (!Number.isFinite(creditAmount) || creditAmount === 0) {
+    return null;
+  }
+
+  return stripeRequest({
+    method: "POST",
+    path: "/v1/invoiceitems",
+    stripeSecretKey: credentials.secretKey,
+    idempotencyKey: `${idempotencyKey}:upgrade_credit`,
+    data: {
+      customer: customerId,
+      amount: creditAmount,
+      currency: STANDARD_CURRENCY,
+      description: `${formatTierLabel(
+        contract.fromTier
+      )} to Patron upgrade founding credit`,
+      metadata: {
+        ...buildStripeMetadata(lead, contract),
+        invoice_adjustment: "upgrade_credit",
+      },
+    },
+  });
+}
+
+async function createSubscriptionModeBootstrap({
+  lead,
+  contract,
+  subscriptionPriceId,
+  customerId,
+  credentials,
+  idempotencyKey,
+}) {
+  await maybeCreateUpgradeInvoiceCredit({
+    lead,
+    contract,
+    customerId,
+    credentials,
+    idempotencyKey,
+  });
+
+  const subscription = await stripeRequest({
+    method: "POST",
+    path: "/v1/subscriptions",
+    stripeSecretKey: credentials.secretKey,
+    idempotencyKey: `${idempotencyKey}:subscription`,
+    data: {
+      customer: customerId,
+      items: [{ price: subscriptionPriceId }],
+      collection_method: "charge_automatically",
+      payment_behavior: "default_incomplete",
+      payment_settings: {
+        save_default_payment_method: "on_subscription",
+      },
+      expand: [
+        "latest_invoice.payment_intent",
+        "latest_invoice.confirmation_secret",
+      ],
+      metadata: buildStripeMetadata(lead, contract),
+    },
+  });
+
+  const latestInvoice = subscription.latest_invoice || null;
+  const paymentIntent = latestInvoice?.payment_intent || null;
+  const invoiceConfirmationSecret = latestInvoice?.confirmation_secret || null;
+  const clientSecret =
+    paymentIntent?.client_secret ||
+    invoiceConfirmationSecret?.client_secret ||
+    null;
+
+  if (!clientSecret) {
+    throw new Error(
+      "Stripe subscription bootstrap did not return a first-invoice client secret"
+    );
+  }
+
+  return {
+    clientSecret,
+    amount: contract.initialChargeUsdCents,
+    currency: STANDARD_CURRENCY.toUpperCase(),
+    intentKind: "payment",
+    stripeObjectIds: {
+      customerId,
+      paymentIntentId:
+        paymentIntent?.id || extractIntentIdFromClientSecret(clientSecret),
+      subscriptionId: subscription.id,
+      latestInvoiceId: latestInvoice?.id || null,
+    },
+  };
+}
+
+async function persistBootstrapState({
+  lead,
+  contract,
+  selectedPriceId,
+  stripeObjectIds,
+}) {
+  const now = new Date().toISOString();
+  const setExpressions = [
+    `${LEAD_PAYMENT_FIELDS.paymentStatus} = :payment_status`,
+    `${LEAD_PAYMENT_FIELDS.paymentStatusReason} = :payment_status_reason`,
+    `${LEAD_PAYMENT_FIELDS.selectedContractKey} = :selected_contract_key`,
+    `${LEAD_PAYMENT_FIELDS.selectedCheckoutMode} = :selected_checkout_mode`,
+    `${LEAD_PAYMENT_FIELDS.selectedTier} = :selected_tier`,
+    `${LEAD_PAYMENT_FIELDS.selectedTierBilling} = :selected_tier_billing`,
+    `${LEAD_PAYMENT_FIELDS.selectedPriceId} = :selected_price_id`,
+    `${LEAD_PAYMENT_FIELDS.stripeCustomerId} = :stripe_customer_id`,
+    `${LEAD_PAYMENT_FIELDS.stripeCheckoutStartedAt} = if_not_exists(${LEAD_PAYMENT_FIELDS.stripeCheckoutStartedAt}, :stripe_checkout_started_at)`,
+    "currency = :currency",
+    "product_type = :product_type",
+  ];
+  const removeExpressions = [];
+  const values = {
+    ":payment_status": "checkout_ready",
+    ":payment_status_reason": "bootstrap_created",
+    ":selected_contract_key": contract.contractKey,
+    ":selected_checkout_mode": contract.checkoutMode,
+    ":selected_tier": contract.tier,
+    ":selected_tier_billing": contract.billing,
+    ":selected_price_id": selectedPriceId,
+    ":stripe_customer_id": stripeObjectIds.customerId,
+    ":stripe_checkout_started_at": now,
+    ":currency": STANDARD_CURRENCY.toUpperCase(),
+    ":product_type": contract.chargeType,
+  };
+
+  if (stripeObjectIds.paymentIntentId) {
+    setExpressions.push(
+      `${LEAD_PAYMENT_FIELDS.stripePaymentIntentId} = :stripe_payment_intent_id`
+    );
+    values[":stripe_payment_intent_id"] = stripeObjectIds.paymentIntentId;
+  } else {
+    removeExpressions.push(LEAD_PAYMENT_FIELDS.stripePaymentIntentId);
+  }
+
+  if (stripeObjectIds.subscriptionId) {
+    setExpressions.push(
+      `${LEAD_PAYMENT_FIELDS.stripeSubscriptionId} = :stripe_subscription_id`
+    );
+    values[":stripe_subscription_id"] = stripeObjectIds.subscriptionId;
+  } else {
+    removeExpressions.push(LEAD_PAYMENT_FIELDS.stripeSubscriptionId);
+  }
+
+  if (stripeObjectIds.latestInvoiceId) {
+    setExpressions.push(
+      `${LEAD_PAYMENT_FIELDS.stripeLatestInvoiceId} = :stripe_latest_invoice_id`
+    );
+    values[":stripe_latest_invoice_id"] = stripeObjectIds.latestInvoiceId;
+  } else {
+    removeExpressions.push(LEAD_PAYMENT_FIELDS.stripeLatestInvoiceId);
+  }
+
+  removeExpressions.push(LEAD_PAYMENT_FIELDS.stripeSetupIntentId);
+
+  const updateExpression = [
+    `SET ${setExpressions.join(", ")}`,
+    removeExpressions.length ? `REMOVE ${removeExpressions.join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { lead_id: lead.lead_id },
+      UpdateExpression: updateExpression,
+      ExpressionAttributeValues: values,
+    })
+  );
+}
+
+async function resolveContractPriceIds(contract) {
+  const primaryPriceId = await getPriceId(contract.priceParameter);
+  const subscriptionTargetPriceId =
+    contract.subscriptionTargetPriceParameter &&
+    contract.subscriptionTargetPriceParameter !== contract.priceParameter
+      ? await getPriceId(contract.subscriptionTargetPriceParameter)
+      : primaryPriceId;
+
+  return {
+    primaryPriceId,
+    subscriptionTargetPriceId,
+  };
+}
+
+function buildBootstrapResponse({
+  credentials,
+  contract,
+  lead,
+  contractMetadata,
+  amount,
+  currency,
+  clientSecret,
+  intentKind,
+}) {
+  return {
+    publishableKey: credentials.publishableKey,
+    clientSecret,
+    contractKey: contract.contractKey,
+    checkoutMode: contract.checkoutMode,
+    contractMetadata,
+    amount,
+    currency,
+    customerEmail: normalizeString(lead.email) || null,
+    intentKind,
+  };
+}
+
+function isOptionsRequest(event) {
+  const method =
+    event?.requestContext?.http?.method || event?.httpMethod || event?.requestContext?.httpMethod;
+  return normalizeString(method).toUpperCase() === "OPTIONS";
+}
+
+exports.handler = async (event) => {
+  if (isOptionsRequest(event)) {
+    return emptyResponse();
+  }
+
+  let body;
+  try {
+    body = parseBody(event);
+  } catch (error) {
+    return errorResponse(400, "invalid_json", error.message);
+  }
+
+  const checkoutToken =
+    normalizeString(body.checkoutToken) ||
+    normalizeString(body.checkout_token) ||
+    normalizeString(body.token);
+  const requestedContractKey = resolveRequestedContractKey(body);
+
+  if (!checkoutToken) {
+    return errorResponse(
+      400,
+      "missing_checkout_token",
+      "Checkout token is required."
+    );
+  }
+
+  if (!requestedContractKey) {
+    return errorResponse(
+      400,
+      "missing_contract_key",
+      "Contract key is required."
+    );
+  }
+
+  let contract;
+  try {
+    contract = mustGetTierContract(requestedContractKey);
+  } catch (error) {
+    return errorResponse(
+      400,
+      "invalid_contract_key",
+      "Contract key is not recognized.",
+      { contractKey: requestedContractKey }
+    );
+  }
+
+  try {
+    const lead = await findLeadByCheckoutToken(checkoutToken);
+    if (!lead) {
+      return errorResponse(
+        404,
+        "checkout_token_not_found",
+        "Checkout token was not found."
+      );
+    }
+
+    const validationError = validateLeadForContract(lead, contract);
+    if (validationError) {
+      return validationError;
+    }
+
+    const credentials = await getStripeCredentials();
+    const priceIds = await resolveContractPriceIds(contract);
+    const idempotencyKey = buildIdempotencyKey(lead, contract);
+    const customer = await createOrReuseStripeCustomer(
+      lead,
+      credentials,
+      idempotencyKey
+    );
+
+    let bootstrap;
+    if (contract.checkoutMode === "payment") {
+      bootstrap = await createPaymentModeBootstrap({
+        lead,
+        contract,
+        priceId: priceIds.primaryPriceId,
+        customerId: customer.id,
+        credentials,
+        idempotencyKey,
+      });
+    } else {
+      bootstrap = await createSubscriptionModeBootstrap({
+        lead,
+        contract,
+        subscriptionPriceId: priceIds.subscriptionTargetPriceId,
+        customerId: customer.id,
+        credentials,
+        idempotencyKey,
+      });
+    }
+
+    await persistBootstrapState({
+      lead,
+      contract,
+      selectedPriceId:
+        contract.checkoutMode === "payment"
+          ? priceIds.primaryPriceId
+          : priceIds.subscriptionTargetPriceId,
+      stripeObjectIds: bootstrap.stripeObjectIds,
+    });
+
+    return response(
+      200,
+      buildBootstrapResponse({
+        credentials,
+        contract,
+        lead,
+        contractMetadata: buildContractMetadata(contract),
+        amount: bootstrap.amount,
+        currency: bootstrap.currency,
+        clientSecret: bootstrap.clientSecret,
+        intentKind: bootstrap.intentKind,
+      })
+    );
+  } catch (error) {
+    console.error("create-checkout-session bootstrap error", {
+      message: error.message,
+      statusCode: error.statusCode || null,
+      type: error.type || null,
+      code: error.code || null,
+      body: error.body || null,
+    });
+
+    if (error.message === "Stripe publishable key missing from Secrets Manager") {
+      return errorResponse(
+        500,
+        "stripe_publishable_key_missing",
+        "Stripe publishable key is not configured in Secrets Manager."
+      );
+    }
+
+    if (error.message === "Stripe secret key missing from Secrets Manager") {
+      return errorResponse(
+        500,
+        "stripe_secret_key_missing",
+        "Stripe secret key is not configured in Secrets Manager."
+      );
+    }
+
+    if (error.name === "ResourceNotFoundException") {
+      return errorResponse(
+        500,
+        "stripe_secret_not_found",
+        "Stripe credentials secret is not configured."
+      );
+    }
+
+    if (error.statusCode) {
+      return errorResponse(
+        502,
+        "stripe_bootstrap_failed",
+        error.message,
+        {
+          stripeStatusCode: error.statusCode,
+          stripeCode: error.code || null,
+          stripeType: error.type || null,
+        }
+      );
+    }
+
+    return errorResponse(500, "internal_error", error.message);
+  }
+};
