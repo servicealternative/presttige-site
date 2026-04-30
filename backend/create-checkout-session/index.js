@@ -363,6 +363,9 @@ function buildContractMetadata(contract) {
   if (contract.upgradeStrategy) {
     metadata.upgrade_strategy = contract.upgradeStrategy;
   }
+  if (contract.firstInvoiceCoupon) {
+    metadata.first_invoice_coupon = contract.firstInvoiceCoupon;
+  }
   if (typeof contract.initialChargeUsdCents === "number") {
     metadata.initial_charge_usd_cents = contract.initialChargeUsdCents;
   }
@@ -559,44 +562,6 @@ async function createPaymentModeBootstrap({
   };
 }
 
-async function maybeCreateUpgradeInvoiceCredit({
-  lead,
-  contract,
-  customerId,
-  credentials,
-  idempotencyKey,
-}) {
-  if (contract.upgradeStrategy !== "first_invoice_adjustment") {
-    return null;
-  }
-
-  const creditAmount = Number(contract.initialChargeUsdCents) -
-    Number(contract.renewalAmountUsdCents);
-
-  if (!Number.isFinite(creditAmount) || creditAmount === 0) {
-    return null;
-  }
-
-  return stripeRequest({
-    method: "POST",
-    path: "/v1/invoiceitems",
-    stripeSecretKey: credentials.secretKey,
-    idempotencyKey: `${idempotencyKey}:upgrade_credit`,
-    data: {
-      customer: customerId,
-      amount: creditAmount,
-      currency: STANDARD_CURRENCY,
-      description: `${formatTierLabel(
-        contract.fromTier
-      )} to Patron upgrade founding credit`,
-      metadata: {
-        ...buildStripeMetadata(lead, contract),
-        invoice_adjustment: "upgrade_credit",
-      },
-    },
-  });
-}
-
 async function createSubscriptionModeBootstrap({
   lead,
   contract,
@@ -605,33 +570,31 @@ async function createSubscriptionModeBootstrap({
   credentials,
   idempotencyKey,
 }) {
-  await maybeCreateUpgradeInvoiceCredit({
-    lead,
-    contract,
-    customerId,
-    credentials,
-    idempotencyKey,
-  });
+  const subscriptionPayload = {
+    customer: customerId,
+    items: [{ price: subscriptionPriceId }],
+    collection_method: "charge_automatically",
+    payment_behavior: "default_incomplete",
+    payment_settings: {
+      save_default_payment_method: "on_subscription",
+    },
+    expand: [
+      "latest_invoice.payment_intent",
+      "latest_invoice.confirmation_secret",
+    ],
+    metadata: buildStripeMetadata(lead, contract),
+  };
+
+  if (contract.firstInvoiceCoupon) {
+    subscriptionPayload.discounts = [{ coupon: contract.firstInvoiceCoupon }];
+  }
 
   const subscription = await stripeRequest({
     method: "POST",
     path: "/v1/subscriptions",
     stripeSecretKey: credentials.secretKey,
     idempotencyKey: `${idempotencyKey}:subscription`,
-    data: {
-      customer: customerId,
-      items: [{ price: subscriptionPriceId }],
-      collection_method: "charge_automatically",
-      payment_behavior: "default_incomplete",
-      payment_settings: {
-        save_default_payment_method: "on_subscription",
-      },
-      expand: [
-        "latest_invoice.payment_intent",
-        "latest_invoice.confirmation_secret",
-      ],
-      metadata: buildStripeMetadata(lead, contract),
-    },
+    data: subscriptionPayload,
   });
 
   const latestInvoice = subscription.latest_invoice || null;
@@ -745,10 +708,13 @@ async function persistBootstrapState({
 }
 
 async function resolveContractPriceIds(contract) {
-  const primaryPriceId = await getPriceId(contract.priceParameter);
+  const primaryPriceId = await getPriceId(
+    contract.basePriceParameter || contract.priceParameter
+  );
   const subscriptionTargetPriceId =
     contract.subscriptionTargetPriceParameter &&
-    contract.subscriptionTargetPriceParameter !== contract.priceParameter
+    contract.subscriptionTargetPriceParameter !==
+      (contract.basePriceParameter || contract.priceParameter)
       ? await getPriceId(contract.subscriptionTargetPriceParameter)
       : primaryPriceId;
 

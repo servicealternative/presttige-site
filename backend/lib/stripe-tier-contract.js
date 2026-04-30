@@ -3,6 +3,9 @@
 // Pricing migrated 2026-04-30 per matriz v0.3.x.
 // Account: METTALIX Test mode (acct_1TJdzqDmiQXcrE5N).
 // Old ULTRATTEK price IDs removed.
+// Upgrades use patron_yearly price + first-invoice coupon rather than
+// separate products, per Antonio's locked 4-product / 8-price architecture.
+// Cleanup applied in M-R6.1.5 on 2026-04-30.
 
 const CHECKOUT_TOKEN_INDEX_NAME = "checkout-token-index";
 const STRIPE_EVENTS_TABLE_NAME = "presttige-stripe-events";
@@ -97,8 +100,12 @@ function defineContract(definition) {
     stripePriceType: "recurring",
     renewalAmountUsdCents: definition.amountUsdCents,
     initialChargeUsdCents: definition.amountUsdCents,
+    basePriceParameter: definition.priceParameter,
     subscriptionTargetPriceParameter: definition.priceParameter,
+    firstInvoiceCoupon: null,
     upgradeStrategy: null,
+    display: null,
+    metadata: null,
     ...definition,
   });
 }
@@ -211,28 +218,48 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
     tier: "patron",
     billing: "yearly",
     chargeType: "upgrade",
-    priceParameter: "/presttige/stripe/club-to-patron-upgrade-price-id",
+    priceParameter: "/presttige/stripe/patron-yearly-price-id",
+    basePriceParameter: "/presttige/stripe/patron-yearly-price-id",
     amountUsdCents: 90000,
     commissionProfile: COMMISSION_PROFILES.patron,
     fromTier: "club",
     renewalAmountUsdCents: 99900,
     initialChargeUsdCents: 90000,
     subscriptionTargetPriceParameter: "/presttige/stripe/patron-yearly-price-id",
-    upgradeStrategy: "first_invoice_adjustment",
+    firstInvoiceCoupon: "upgrade_club_to_patron_first_invoice",
+    upgradeStrategy: "first_invoice_coupon",
+    display: {
+      firstInvoice: "$900 today",
+      recurring: "then $999/year",
+    },
+    metadata: {
+      fromTier: "club",
+      toTier: "patron",
+    },
   }),
   premier_to_patron_upgrade: defineContract({
     contractKey: "premier_to_patron_upgrade",
     tier: "patron",
     billing: "yearly",
     chargeType: "upgrade",
-    priceParameter: "/presttige/stripe/premier-to-patron-upgrade-price-id",
+    priceParameter: "/presttige/stripe/patron-yearly-price-id",
+    basePriceParameter: "/presttige/stripe/patron-yearly-price-id",
     amountUsdCents: 77700,
     commissionProfile: COMMISSION_PROFILES.patron,
     fromTier: "premier",
     renewalAmountUsdCents: 99900,
     initialChargeUsdCents: 77700,
     subscriptionTargetPriceParameter: "/presttige/stripe/patron-yearly-price-id",
-    upgradeStrategy: "first_invoice_adjustment",
+    firstInvoiceCoupon: "upgrade_premier_to_patron_first_invoice",
+    upgradeStrategy: "first_invoice_coupon",
+    display: {
+      firstInvoice: "$777 today",
+      recurring: "then $999/year",
+    },
+    metadata: {
+      fromTier: "premier",
+      toTier: "patron",
+    },
   }),
 });
 

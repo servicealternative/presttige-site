@@ -62,6 +62,7 @@ function main() {
       public_checkout_enabled: item.publicCheckoutEnabled,
       price_parameter: item.priceParameter,
       price_id: response.Parameter.Value,
+      base_price_parameter: item.basePriceParameter || item.priceParameter,
       subscription_target_price_parameter:
         item.subscriptionTargetPriceParameter || null,
       subscription_target_price_id: targetResponse
@@ -76,7 +77,10 @@ function main() {
       display_per_month: item.displayPerMonth || null,
       stripe_price_type: item.stripePriceType,
       from_tier: item.fromTier,
+      first_invoice_coupon: item.firstInvoiceCoupon || null,
       upgrade_strategy: item.upgradeStrategy,
+      display: item.display || null,
+      metadata: item.metadata || null,
     };
   });
 
