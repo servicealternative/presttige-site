@@ -20,9 +20,9 @@ function awsJson(args) {
 
 function main() {
   const keys = contract.listTierContractKeys();
-  if (keys.length !== 8) {
+  if (keys.length !== 10) {
     throw new Error(
-      `Expected 8 active Stripe tier contract keys, found ${keys.length}: ${keys.join(", ")}`
+      `Expected 10 active Stripe tier contract keys, found ${keys.length}: ${keys.join(", ")}`
     );
   }
 
@@ -70,6 +70,10 @@ function main() {
       amount_usd_cents: item.amountUsdCents,
       initial_charge_usd_cents: item.initialChargeUsdCents,
       renewal_amount_usd_cents: item.renewalAmountUsdCents,
+      recurring_interval: item.recurringInterval || null,
+      recurring_interval_count: item.recurringIntervalCount || null,
+      availability: item.availability || null,
+      display_per_month: item.displayPerMonth || null,
       stripe_price_type: item.stripePriceType,
       from_tier: item.fromTier,
       upgrade_strategy: item.upgradeStrategy,

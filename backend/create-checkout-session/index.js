@@ -9,10 +9,9 @@ const {
   UpdateCommand,
 } = require("@aws-sdk/lib-dynamodb");
 const {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} = require("@aws-sdk/client-secrets-manager");
-const { SSMClient, GetParameterCommand } = require("@aws-sdk/client-ssm");
+  SSMClient,
+  GetParameterCommand,
+} = require("@aws-sdk/client-ssm");
 
 function loadTierContractModule() {
   const candidates = [
@@ -42,7 +41,9 @@ const {
 
 const REGION = "us-east-1";
 const TABLE_NAME = "presttige-db";
-const STRIPE_SECRET_ID = "presttige-stripe-secret";
+const STRIPE_SECRET_KEY_PARAMETER = "/presttige/stripe/secret-key";
+const STRIPE_PUBLISHABLE_KEY_PARAMETER = "/presttige/stripe/publishable-key";
+const STRIPE_ACCOUNT_ID = "acct_1TJdzqDmiQXcrE5N";
 const APP_ORIGIN = "https://presttige.net";
 const STANDARD_CURRENCY = "usd";
 const LEGACY_TIER_TO_CONTRACT = Object.freeze({
@@ -62,7 +63,6 @@ const TERMINAL_PAYMENT_STATUSES = new Set([
 const ddb = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: REGION })
 );
-const secrets = new SecretsManagerClient({ region: REGION });
 const ssm = new SSMClient({ region: REGION });
 
 let cachedStripeCredentials = null;
@@ -156,50 +156,36 @@ function buildIdempotencyKey(lead, contract) {
   return crypto.createHash("sha256").update(raw).digest("hex");
 }
 
-function parseStripeSecret(secretString) {
-  const raw = normalizeString(secretString);
-  if (!raw) {
-    throw new Error("Stripe secret is empty");
-  }
-
-  try {
-    const parsed = JSON.parse(raw);
-    const secretKey = normalizeString(parsed.secret_key || parsed.secretKey);
-    const publishableKey = normalizeString(
-      parsed.publishable_key || parsed.publishableKey
-    );
-    return {
-      secretKey,
-      publishableKey,
-      accountId: normalizeString(parsed.account_id || parsed.accountId),
-      mode: normalizeString(parsed.mode),
-    };
-  } catch (error) {
-    return {
-      secretKey: raw,
-      publishableKey: "",
-      accountId: "",
-      mode: "",
-    };
-  }
-}
-
 async function getStripeCredentials() {
   if (cachedStripeCredentials) {
     return cachedStripeCredentials;
   }
 
-  const result = await secrets.send(
-    new GetSecretValueCommand({ SecretId: STRIPE_SECRET_ID })
-  );
-  const credentials = parseStripeSecret(result.SecretString);
+  const [secretResult, publishableResult] = await Promise.all([
+    ssm.send(
+      new GetParameterCommand({
+        Name: STRIPE_SECRET_KEY_PARAMETER,
+        WithDecryption: true,
+      })
+    ),
+    ssm.send(
+      new GetParameterCommand({
+        Name: STRIPE_PUBLISHABLE_KEY_PARAMETER,
+      })
+    ),
+  ]);
+
+  const credentials = {
+    secretKey: normalizeString(secretResult.Parameter?.Value),
+    publishableKey: normalizeString(publishableResult.Parameter?.Value),
+  };
 
   if (!credentials.secretKey) {
-    throw new Error("Stripe secret key missing from Secrets Manager");
+    throw new Error("Stripe secret key missing from SSM");
   }
 
   if (!credentials.publishableKey) {
-    throw new Error("Stripe publishable key missing from Secrets Manager");
+    throw new Error("Stripe publishable key missing from SSM");
   }
 
   cachedStripeCredentials = credentials;
@@ -902,6 +888,15 @@ exports.handler = async (event) => {
       stripeObjectIds: bootstrap.stripeObjectIds,
     });
 
+    console.log("stripe_bootstrap_created", {
+      stripe_account_id: STRIPE_ACCOUNT_ID,
+      lead_id: lead.lead_id,
+      contract_key: contract.contractKey,
+      checkout_mode: contract.checkoutMode,
+      stripe_customer_id: customer.id,
+      stripe_object_ids: bootstrap.stripeObjectIds,
+    });
+
     return response(
       200,
       buildBootstrapResponse({
@@ -924,19 +919,19 @@ exports.handler = async (event) => {
       body: error.body || null,
     });
 
-    if (error.message === "Stripe publishable key missing from Secrets Manager") {
+    if (error.message === "Stripe publishable key missing from SSM") {
       return errorResponse(
         500,
         "stripe_publishable_key_missing",
-        "Stripe publishable key is not configured in Secrets Manager."
+        "Stripe publishable key is not configured in SSM."
       );
     }
 
-    if (error.message === "Stripe secret key missing from Secrets Manager") {
+    if (error.message === "Stripe secret key missing from SSM") {
       return errorResponse(
         500,
         "stripe_secret_key_missing",
-        "Stripe secret key is not configured in Secrets Manager."
+        "Stripe secret key is not configured in SSM."
       );
     }
 
@@ -944,7 +939,7 @@ exports.handler = async (event) => {
       return errorResponse(
         500,
         "stripe_secret_not_found",
-        "Stripe credentials secret is not configured."
+        "Stripe credentials parameter is not configured."
       );
     }
 

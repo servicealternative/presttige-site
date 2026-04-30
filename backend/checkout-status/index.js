@@ -8,9 +8,9 @@ const {
   ScanCommand,
 } = require("@aws-sdk/lib-dynamodb");
 const {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} = require("@aws-sdk/client-secrets-manager");
+  SSMClient,
+  GetParameterCommand,
+} = require("@aws-sdk/client-ssm");
 
 function loadTierContractModule() {
   const candidates = [
@@ -40,12 +40,12 @@ const {
 const REGION = "us-east-1";
 const TABLE_NAME = "presttige-db";
 const APP_ORIGIN = "https://presttige.net";
-const STRIPE_SECRET_ID = "presttige-stripe-secret";
+const STRIPE_SECRET_KEY_PARAMETER = "/presttige/stripe/secret-key";
 
 const ddb = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: REGION })
 );
-const secrets = new SecretsManagerClient({ region: REGION });
+const ssm = new SSMClient({ region: REGION });
 let cachedStripeCredentials = null;
 
 function corsHeaders() {
@@ -154,39 +154,23 @@ async function findLeadByAnyToken(token) {
   return null;
 }
 
-function parseStripeSecret(secretString) {
-  const raw = normalizeString(secretString);
-  if (!raw) {
-    throw new Error("Stripe secret is empty");
-  }
-
-  try {
-    const parsed = JSON.parse(raw);
-    return {
-      secretKey:
-        normalizeString(parsed.secret_key || parsed.secretKey) || raw,
-    };
-  } catch (error) {
-    return {
-      secretKey: raw,
-    };
-  }
-}
-
 async function getStripeCredentials() {
   if (cachedStripeCredentials) {
     return cachedStripeCredentials;
   }
 
-  const result = await secrets.send(
-    new GetSecretValueCommand({
-      SecretId: STRIPE_SECRET_ID,
+  const result = await ssm.send(
+    new GetParameterCommand({
+      Name: STRIPE_SECRET_KEY_PARAMETER,
+      WithDecryption: true,
     })
   );
 
-  const credentials = parseStripeSecret(result.SecretString);
+  const credentials = {
+    secretKey: normalizeString(result.Parameter?.Value),
+  };
   if (!credentials.secretKey) {
-    throw new Error("Stripe secret key missing from Secrets Manager");
+    throw new Error("Stripe secret key missing from SSM");
   }
 
   cachedStripeCredentials = credentials;
