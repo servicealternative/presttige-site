@@ -1,7 +1,7 @@
 # PRESTTIGE — MATRIZ & REGRAS
 
-**Source of Truth Document — v0.3**
-**Date:** 29 April 2026
+**Source of Truth Document — v0.3.1**
+**Date:** 30 April 2026
 **Owner:** Antonio Pereira
 **Status:** Draft for review
 
@@ -24,6 +24,7 @@ If something is not yet decided, it appears in **Chapter 14 — Open Decisions**
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| v0.3.1 | 30 Apr 2026 | Codex (under Antonio direction) | Mark M-R4 verified end-to-end and add Day 2 progress log |
 | v0.3 | 29 Apr 2026 | Codex (under Antonio direction) | Update tier model to v2 recurring Patron + Founder, dual-path auth, and apps-ready checkout rules |
 | v0.2 | 28 Apr 2026 | Codex (under Antonio direction) | Add Email & DNS Infrastructure chapter |
 | v0.1 | 28 Apr 2026 | Claude (under Antonio direction) | Initial draft from parking lot + Chats 001-007 |
@@ -449,7 +450,48 @@ Originally targeted for full campaign launch. Revised by Antonio 28 April: **qua
 
 The new posture: ship when it's Presttige-grade, however long that takes. The phases above remain locked; specific in-phase milestones flex.
 
-## 8.3 Marketing communications strategy
+## 8.3 Stripe Rebuild — Milestone Progress Log
+
+Status as of 30 April 2026, 08:20 AM Dubai:
+
+✅ M-R1 — Planning, contract freeze (DONE)
+
+✅ M-R2 — Data foundation: GSI, idempotency table, contract module
+- Commit: `f0e5b7c`
+
+✅ M-R2v2 — v2 contract update: Patron→yearly, Founder lifetime
+- Matriz updated v0.2 → v0.3
+
+✅ M-R3 — Backend Payment Element bootstrap
+- Commit: `9019af0`
+- Closed audit findings: F3, F4, F5, F6, F8
+
+✅ M-R4 — Frontend tier-select / checkout / welcome
+- Commits: `01fa1d0`, `479b656`, `1b52d62`
+- Token-handoff fix: `1593bc2`
+- **VERIFIED END-TO-END BY ANTONIO ON 30 APRIL 2026, 08:10 UTC**
+- Verified flow: application → `/review` approve → 5-min E3 → CHOOSE YOUR TIER → `/tier-select` 4 tiers → Patron yearly → `/checkout` Payment Element + Apple Pay + Google Pay → Stripe test card 4242 succeeded → `/welcome` MEMBERSHIP CONFIRMED state with Patron yearly copy, payment recorded 30 April 2026 04:10 UTC.
+
+✅ M-R4.5 — CI/CD pipeline hardening
+- Commit `1162ddb`: workflow expanded 6 → 24 Lambda inventory coverage, base-SHA hardening for amend pushes, two new packaging scripts
+- Commit `1b80870`: IAM policy v2 (24 explicit Lambda ARNs, no wildcards). CI now 25/25 GREEN (run `25146976026`)
+- Diagnostic: `docs/CI-DEPLOY-DIAGNOSTIC-2026-04-30.md`
+- Out of scope (deferred): mixed package output paths, Node.js 20 action deprecation upgrades
+
+⏳ M-R5 — Webhook rebuild + subscription lifecycle (PENDING AUTHORIZATION)
+- Estimate: 12-18 hours Codex work
+
+⏳ M-R5.5 — New email templates for cancel / renewal / refund / dispute / founder (deferred from M-R5 to keep scope clean)
+
+⏳ M-R6 — Attribution + Stripe Connect onboarding
+
+⏳ M-R7 — Live readiness + Stripe Custom Email Domain verification (domain currently ~48h into 72h verification window since 28 April 8:13 AM)
+
+⏳ M-R8 — Multi-level commission orchestration
+
+⏳ M-R9 — End-to-end production readiness
+
+## 8.4 Marketing communications strategy
 
 Separate working session, planned within ~2 months of this draft. The strategy will cover: paid acquisition, organic content, partnerships, ambassador program, PR. Not in scope for this document beyond the principle that all communications must respect R1–R5 and the brand system (Chapter 9).
 
@@ -569,7 +611,7 @@ Active v2 Stripe contract parameters under `/presttige/stripe/`:
 - `/presttige/stripe/webhook-secret-live`
 - `/presttige/review/approve-to-e3-delay-minutes` (currently `2880` for production = 48h)
 
-Tester whitelist hardcoded in Lambda: 15-min E3 delay (bypasses SSM 2880).
+Tester whitelist hardcoded in Lambda: 5-min E3 delay (bypasses SSM 2880).
 
 ## 10.4 Branch policy
 
@@ -654,10 +696,16 @@ Each incident has: trigger, root cause, plan, status, related commits.
 ## 12.2 Tester whitelist behavior
 
 Two tester addresses (Chapter 6.3) bypass:
-- E3 production delay (15 min instead of 2880 min / 48h)
+- E3 production delay (5 min instead of 2880 min / 48h)
 - Tester records auto-cleanup 5 min after E5
 
 This enables rapid E2E testing without polluting production data. Tester records are clearly tagged with `is_test=true` so analytics and member counts exclude them.
+
+Effective 30 April 2026 (commit `b090328`): when a committee approval is for a whitelisted tester email (`antoniompereira@me.com`, `alternativeservice@gmail.com`), the EventBridge schedule for E3 fires after 5 MINUTES instead of the standard production delay (currently 2880 minutes = 48 hours).
+
+Email comparison is case-insensitive. The 14 INC-001 held candidates are unaffected (their schedules do not exist).
+
+Verified working on 30 April 2026 at ~02:18 AM Dubai.
 
 ## 12.3 Backfill safety
 
@@ -711,7 +759,7 @@ Items beyond the locked Chapters 3–11 are organized by priority. This list is 
 | M4 | RENEWAL email branching (renewable vs one-time Founder) | Parked |
 | M5 | Diego Miranda Ambassador proposal v2 (5 fixes pending) | Parked |
 | M6 | Manual Safari sign-off Bug 1.5 | ✅ DONE |
-| M7 | This document — `Presttige — Matriz & Regras` | Active draft, v0.3 |
+| M7 | This document — `Presttige — Matriz & Regras` | Active draft, v0.3.1 |
 
 ## 13.3 Low priority (L1–L4)
 
@@ -721,6 +769,16 @@ Items beyond the locked Chapters 3–11 are organized by priority. This list is 
 | L2 | Referral system v2 (5 invites/paying member, 10% credits, "Presttige Credits", first-year only, language: "introduce" not "earn") | Parked, post-launch |
 | L3 | Ambassador/Partner proposal pipeline (Ana Luisa + Laurie Weitzkorn shipped Chat 005, Diego v2 pending) | Parked |
 | L4 | C7-C SES deliverability audit | Low priority, SES healthy |
+
+## 13.4 Known parking lot items (deferred, non-blocking)
+
+- Mixed package output paths (zip path normalization in `deploy-lambdas.yml` workflow)
+- Node.js 20 action deprecation across CI workflow (cutoff 16 September 2026, default switch 2 June 2026)
+- MVP scope conversation ("what cuts, what stays" for V1)
+- CRM admin layer + analytics scope discussion
+- v2 plan §6.2 deferred questions per milestone
+- Pet shop / future projects brainstorm (deferred, total focus on Presttige)
+- DMARC reports started arriving at `dmarc@presttige.net` on 28 April; review cadence to be defined
 
 ---
 
@@ -777,7 +835,7 @@ Terms used across Presttige codebase, communications, and operations.
 | **B2 / B3 / B4 / B5** | Build phase identifiers (B2 = tier system; B3 = Stripe LIVE; B4 = Pixels; B5 = embedded checkout) |
 | **PITR** | Point-In-Time Recovery (DynamoDB feature, 35-day rollback) |
 | **Codex CLI** | The executor agent with full repo + AWS access |
-| **Tester whitelist** | Two test email addresses (6.3) that trigger 15-min E3 + 5-min cleanup |
+| **Tester whitelist** | Two test email addresses (6.3) that trigger 5-min E3 + 5-min cleanup |
 | **Founding rate** | Approved recurring price locked while the membership remains active (4.4) |
 | **Founder line** | Direct communication channel from Patron / Founder members to Antonio |
 | **Founder badge** | Visual marker for Founder members in member directory |
@@ -910,12 +968,12 @@ The apex presttige.net TXT record set contains multiple TXT values (currently 2:
 
 ---
 
-# End of Matriz & Regras v0.3
+# End of Matriz & Regras v0.3.1
 
 **Next steps:**
 1. Antonio reviews this draft
 2. Antonio flags errors / additions / omissions
-3. Claude iterates to v0.3
+3. Claude iterates from v0.3.1
 4. v1.0 commits to repo at `/docs/MATRIZ-E-REGRAS.md`
 5. `AGENTS.md` updates the source-of-truth pointer to the new path
 6. Codex stops flagging missing source-of-truth on every commit
