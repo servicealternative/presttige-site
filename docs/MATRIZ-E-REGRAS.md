@@ -1,6 +1,6 @@
 # PRESTTIGE — MATRIZ & REGRAS
 
-**Source of Truth Document — v0.3.1**
+**Source of Truth Document — v0.3.2**
 **Date:** 30 April 2026
 **Owner:** Antonio Pereira
 **Status:** Draft for review
@@ -24,6 +24,7 @@ If something is not yet decided, it appears in **Chapter 14 — Open Decisions**
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| v0.3.2 | 30 Apr 2026 | Codex (under Antonio direction) | Add M-R5 Stripe webhook event matrix and tier-downgrade Lambda |
 | v0.3.1 | 30 Apr 2026 | Codex (under Antonio direction) | Mark M-R4 verified end-to-end and add Day 2 progress log |
 | v0.3 | 29 Apr 2026 | Codex (under Antonio direction) | Update tier model to v2 recurring Patron + Founder, dual-path auth, and apps-ready checkout rules |
 | v0.2 | 28 Apr 2026 | Codex (under Antonio direction) | Add Email & DNS Infrastructure chapter |
@@ -591,6 +592,7 @@ This chapter is a high-level reference. Detailed engineering documentation lives
 | `presttige-review-fetch` | Handles /review GET (renders form or read-only state) |
 | `presttige-create-checkout-session` | Creates Stripe Elements bootstrap state for subscription or payment checkout (B5) |
 | `presttige-stripe-webhook` | Handles Stripe webhook events, triggers E5 |
+| `presttige-tier-downgrade` | One-shot scheduled downgrade to Subscriber at subscription period end |
 | `presttige-send-welcome-email` | Sends E5 to paid member |
 | `presttige-send-subscriber-welcome-email` | Sends E5-SUB to free Subscriber |
 
@@ -623,6 +625,25 @@ Tester whitelist hardcoded in Lambda: 5-min E3 delay (bypasses SSM 2880).
 ## 10.5 The "uncommitted change" Codex flag
 
 Codex repeatedly flags an uncommitted local modification in `backend/lambdas/verify-email/lambda_function.py` sitting in Antonio's working directory. Should be reviewed and either committed or reverted. Currently parked.
+
+## 10.6 Stripe Webhook Event Matrix (M-R5)
+
+**Status as of 30 April 2026. LOCKED for M-R5 implementation.**
+
+| Event | Action |
+|---|---|
+| `customer.subscription.created` | Persist subscription/customer IDs, set active subscription state when Stripe status is active, and invoke existing E5-paid welcome path. |
+| `customer.subscription.updated` | Persist status and period fields; create downgrade schedule when `cancel_at_period_end=true`; delete downgrade schedule on reactivation. |
+| `customer.subscription.deleted` | Downgrade member to Subscriber, mark subscription ended, and clear scheduled downgrade state. |
+| `payment_intent.succeeded` | Confirm first paid state for subscription checkout or Founder one-time payment; renewals update payment timestamps/counts idempotently. |
+| `payment_intent.payment_failed` | Persist failed payment state for observability; Stripe dunning remains native. |
+| `invoice.payment_succeeded` | Reconcile subscription payment success and renewal count without duplicating PaymentIntent handling. |
+| `invoice.payment_failed` | Mark renewal failure retrying and log; no customer email until M-R5.5 templates exist. |
+| `charge.refunded` | Full refund downgrades immediately to Subscriber; partial refund logs only. |
+| `charge.dispute.created` | Freeze member state as `under_dispute` and notify `office@presttige.net`; no automatic downgrade. |
+| `charge.dispute.closed` | Won disputes restore prior tier; lost disputes downgrade to Subscriber. |
+
+Webhook idempotency rule: every Stripe event is reserved in `presttige-stripe-events` by `event_id` before processing. Processed events short-circuit on replay. Failed or incomplete events remain retryable so Stripe 5xx retries are not swallowed.
 
 ---
 
@@ -759,7 +780,7 @@ Items beyond the locked Chapters 3–11 are organized by priority. This list is 
 | M4 | RENEWAL email branching (renewable vs one-time Founder) | Parked |
 | M5 | Diego Miranda Ambassador proposal v2 (5 fixes pending) | Parked |
 | M6 | Manual Safari sign-off Bug 1.5 | ✅ DONE |
-| M7 | This document — `Presttige — Matriz & Regras` | Active draft, v0.3.1 |
+| M7 | This document — `Presttige — Matriz & Regras` | Active draft, v0.3.2 |
 
 ## 13.3 Low priority (L1–L4)
 
@@ -968,12 +989,12 @@ The apex presttige.net TXT record set contains multiple TXT values (currently 2:
 
 ---
 
-# End of Matriz & Regras v0.3.1
+# End of Matriz & Regras v0.3.2
 
 **Next steps:**
 1. Antonio reviews this draft
 2. Antonio flags errors / additions / omissions
-3. Claude iterates from v0.3.1
+3. Claude iterates from v0.3.2
 4. v1.0 commits to repo at `/docs/MATRIZ-E-REGRAS.md`
 5. `AGENTS.md` updates the source-of-truth pointer to the new path
 6. Codex stops flagging missing source-of-truth on every commit
