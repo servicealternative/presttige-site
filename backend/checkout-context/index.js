@@ -226,14 +226,31 @@ function buildBillingChoice(contractKey) {
     return null;
   }
 
+  const labelByBilling = {
+    monthly: `$${formatUsd(contract.amountUsdCents)} / month`,
+    quarterly: `$${formatUsd(contract.amountUsdCents)} / quarter`,
+    yearly: `$${formatUsd(contract.amountUsdCents)} / year`,
+    lifetime: `$${formatUsd(contract.amountUsdCents)} lifetime`,
+  };
+
   return {
     contractKey: contract.contractKey,
     billing: contract.billing,
-    label:
-      contract.billing === "monthly"
-        ? `$${formatUsd(contract.amountUsdCents)} / month`
-        : `$${formatUsd(contract.amountUsdCents)} / year`,
+    label: labelByBilling[contract.billing] || `$${formatUsd(contract.amountUsdCents)}`,
   };
+}
+
+function buildHeadlinePriceLabel(contractKey) {
+  const contract = getTierContract(contractKey);
+  if (!contract) {
+    return "";
+  }
+
+  if (contract.billing === "lifetime") {
+    return `$${formatUsd(contract.amountUsdCents)} lifetime`;
+  }
+
+  return `$${formatUsd(contract.amountUsdCents)} / year`;
 }
 
 function buildPatronOption(lead) {
@@ -245,6 +262,7 @@ function buildPatronOption(lead) {
       contractKey: contract.contractKey,
       displayMode: "upgrade",
       upgradeFrom: "club",
+      headlinePriceLabel: buildHeadlinePriceLabel("patron_yearly"),
       initialChargeUsdCents: contract.initialChargeUsdCents,
       renewalAmountUsdCents: contract.renewalAmountUsdCents,
     };
@@ -257,6 +275,7 @@ function buildPatronOption(lead) {
       contractKey: contract.contractKey,
       displayMode: "upgrade",
       upgradeFrom: "premier",
+      headlinePriceLabel: buildHeadlinePriceLabel("patron_yearly"),
       initialChargeUsdCents: contract.initialChargeUsdCents,
       renewalAmountUsdCents: contract.renewalAmountUsdCents,
     };
@@ -266,6 +285,7 @@ function buildPatronOption(lead) {
     tier: "patron",
     contractKey: "patron_yearly",
     displayMode: "standard",
+    headlinePriceLabel: buildHeadlinePriceLabel("patron_yearly"),
   };
 }
 
@@ -279,14 +299,16 @@ function buildStandardOptions(lead) {
     club: {
       tier: "club",
       displayMode: "standard",
-      billingChoices: ["club_monthly", "club_yearly"]
+      headlinePriceLabel: buildHeadlinePriceLabel("club_yearly"),
+      billingChoices: ["club_monthly", "club_quarterly", "club_yearly"]
         .map(buildBillingChoice)
         .filter(Boolean),
     },
     premier: {
       tier: "premier",
       displayMode: "standard",
-      billingChoices: ["premier_monthly", "premier_yearly"]
+      headlinePriceLabel: buildHeadlinePriceLabel("premier_yearly"),
+      billingChoices: ["premier_monthly", "premier_quarterly", "premier_yearly"]
         .map(buildBillingChoice)
         .filter(Boolean),
     },
@@ -300,6 +322,7 @@ function buildFounderOptions() {
       tier: "founder",
       contractKey: "founder_lifetime",
       displayMode: "standard",
+      headlinePriceLabel: buildHeadlinePriceLabel("founder_lifetime"),
     },
   };
 }

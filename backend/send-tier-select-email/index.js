@@ -10,7 +10,6 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1"
 const TABLE_NAME = "presttige-db";
 const FROM = "committee@presttige.net";
 const REPLY_TO = "committee@presttige.net";
-const BCC = "committee@presttige.net";
 
 function loadTemplate() {
   return fs.readFileSync(path.join(__dirname, "tier-select-email.html"), "utf8");
@@ -69,18 +68,19 @@ exports.handler = async (event) => {
     console.log("SES sender config", {
       from: FROM,
       reply_to: REPLY_TO,
-      bcc: BCC,
+      to: [lead.email],
+      cc: [],
+      bcc: [],
       lead_id,
       recipient_email: lead.email,
     });
 
-    await ses.send(
+    const sesResponse = await ses.send(
       new SendEmailCommand({
         Source: FROM,
         ReplyToAddresses: [REPLY_TO],
         Destination: {
           ToAddresses: [lead.email],
-          BccAddresses: [BCC],
         },
         Message: {
           Subject: {
@@ -96,6 +96,14 @@ exports.handler = async (event) => {
         },
       })
     );
+    console.log("SES tier-select email sent", {
+      lead_id,
+      recipient_email: lead.email,
+      message_id: sesResponse?.MessageId || null,
+      to_count: 1,
+      cc_count: 0,
+      bcc_count: 0,
+    });
 
     await ddb.send(
       new UpdateCommand({

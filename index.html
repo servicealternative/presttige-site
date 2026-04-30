@@ -669,18 +669,18 @@
     <div class="apply-modal-inner" id="applyFormContainer">
       <h2 class="apply-modal-title" id="applyModalTitle">A private conversation begins</h2>
       <p class="apply-modal-body">Three details, for now. We will respond privately once the Committee has considered your profile.</p>
-      <form class="apply-form" id="applyForm" novalidate>
+      <form class="apply-form" id="applyForm" novalidate autocomplete="off">
         <div class="apply-field">
           <label for="applyName" class="apply-label">Your name</label>
-          <input type="text" id="applyName" name="fullName" class="apply-input" required autocomplete="name">
+          <input type="text" id="applyName" name="prst_candidate_display_name" class="apply-input" required autocomplete="off" spellcheck="false">
         </div>
         <div class="apply-field">
           <label for="applyEmail" class="apply-label">Your email</label>
-          <input type="email" id="applyEmail" name="email" class="apply-input" required autocomplete="email">
+          <input type="email" id="applyEmail" name="prst_candidate_contact_email" class="apply-input" required autocomplete="off" spellcheck="false">
         </div>
         <div class="apply-field">
           <label for="applyCountry" class="apply-label">Where you live</label>
-          <select id="applyCountry" name="country" class="apply-input" required></select>
+          <select id="applyCountry" name="prst_candidate_country_iso2" class="apply-input" required autocomplete="off" spellcheck="false"></select>
         </div>
         <div class="apply-submit">
           <button type="submit" class="apply-btn-send">Send</button>
@@ -1080,9 +1080,9 @@
           body: JSON.stringify({
             data: {
               fields: [
-                { key: 'name', value: name },
-                { key: 'email', value: email },
-                { key: 'country', value: country },
+                { key: 'prst_candidate_display_name', value: name },
+                { key: 'prst_candidate_contact_email', value: email },
+                { key: 'prst_candidate_country_iso2', value: country },
                 { key: 'application_type', value: applicationType },
                 { key: 'source', value: applySource || 'unknown' },
                 { key: 'campaign_id', value: campaignId }

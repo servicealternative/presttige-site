@@ -64,9 +64,11 @@
     }
 
     .masthead {
+      position: relative;
       display: grid;
       gap: 14px;
       margin-bottom: 26px;
+      padding-right: min(260px, 28vw);
     }
 
     .eyebrow {
@@ -95,28 +97,15 @@
       line-height: 1.75;
     }
 
-    .meta-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-
-    .meta-pill {
-      padding: 10px 14px;
-      border: 1px solid rgba(140, 112, 64, 0.18);
-      background: rgba(140, 112, 64, 0.05);
-      color: var(--pp-black);
+    .candidate-name {
+      position: absolute;
+      top: 2px;
+      right: 0;
+      max-width: 240px;
+      color: var(--pp-muted);
       font-size: 13px;
       line-height: 1.4;
-    }
-
-    .meta-pill strong {
-      display: block;
-      margin-bottom: 2px;
-      font-size: 10px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
+      text-align: right;
     }
 
     .grid {
@@ -125,10 +114,10 @@
     }
 
     .grid--standard {
-      grid-template-columns: minmax(0, 1.34fr) repeat(2, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.34fr) minmax(0, 1fr);
       grid-template-areas:
-        "patron premier club"
-        "patron subscriber subscriber";
+        "premier patron club"
+        "founder patron subscriber";
       align-items: stretch;
     }
 
@@ -173,6 +162,20 @@
     .card--subscriber {
       grid-area: subscriber;
       justify-content: space-between;
+    }
+
+    .card--founder-summary {
+      grid-area: founder;
+      border-color: rgba(140, 112, 64, 0.28);
+      background:
+        radial-gradient(circle at top right, rgba(140, 112, 64, 0.08), transparent 30%),
+        var(--pp-paper);
+      justify-content: space-between;
+    }
+
+    .card--secondary-small {
+      gap: 14px;
+      padding: 24px 24px 22px;
     }
 
     .stamp {
@@ -406,7 +409,7 @@
         grid-template-areas:
           "patron patron"
           "premier club"
-          "subscriber subscriber";
+          "founder subscriber";
       }
 
       .card--patron .card-header,
@@ -418,6 +421,16 @@
     @media (max-width: 760px) {
       .shell {
         padding-inline: 16px;
+      }
+
+      .masthead {
+        padding-right: 0;
+      }
+
+      .candidate-name {
+        position: static;
+        max-width: none;
+        text-align: left;
       }
 
       .title {
@@ -433,13 +446,15 @@
       .card--patron,
       .card--premier,
       .card--club,
+      .card--founder-summary,
       .card--subscriber {
         grid-area: auto;
       }
 
       .card,
       .card--patron,
-      .card--founder {
+      .card--founder,
+      .card--founder-summary {
         padding: 24px 22px 22px;
       }
 
@@ -615,12 +630,14 @@
       };
 
       const BILLING_LABELS = {
-        club_monthly: "$9.99 / month",
-        club_yearly: "$99 / year",
+        club_monthly: "$22 / month",
+        club_quarterly: "$77 / quarter",
+        club_yearly: "$222 / year",
         premier_monthly: "$33 / month",
-        premier_yearly: "$222 / year",
+        premier_quarterly: "$111 / quarter",
+        premier_yearly: "$333 / year",
         patron_yearly: "$999 / year",
-        founder_lifetime: "$9,999 one-time",
+        founder_lifetime: "$9,999 lifetime",
       };
 
       if (!state.token) {
@@ -645,16 +662,11 @@
       function render() {
         const founderOnly = state.context.tierVisibility === "founder_only";
         const profileName = state.context.profile?.name || "Presttige candidate";
-        const currentTier = state.context.lead?.currentTier || "";
-        const hasUpgrade =
-          state.context.options?.patron?.displayMode === "upgrade";
-        const upgradeLabel = hasUpgrade
-          ? `${titleCase(state.context.options.patron.upgradeFrom)} to Patron`
-          : "";
 
         app.className = "";
         app.innerHTML = `
           <section class="masthead">
+            <div class="candidate-name">${escapeHtml(profileName)}</div>
             <p class="eyebrow">Presttige Tier Selection</p>
             <h1 class="title">${escapeHtml(founderOnly ? "Founder access" : "Choose your tier")}</h1>
             <p class="lede">${
@@ -663,26 +675,6 @@
                 : "Select the membership posture that matches the access you want now. Club and Premier can be billed monthly or yearly; Patron remains yearly only."
             }</p>
           </section>
-          <div class="meta-strip">
-            <div class="meta-pill">
-              <strong>Candidate</strong>
-              ${escapeHtml(profileName)}
-            </div>
-            <div class="meta-pill">
-              <strong>Route</strong>
-              ${escapeHtml(founderOnly ? "Founder only" : "Standard tier choice")}
-            </div>
-            ${
-              currentTier
-                ? `<div class="meta-pill"><strong>Current tier</strong>${escapeHtml(titleCase(currentTier))}</div>`
-                : ""
-            }
-            ${
-              hasUpgrade
-                ? `<div class="meta-pill"><strong>Upgrade</strong>${escapeHtml(upgradeLabel)}</div>`
-                : ""
-            }
-          </div>
           ${
             founderOnly
               ? renderFounderView()
@@ -699,6 +691,7 @@
             ${renderPaidCard("patron", state.context.options.patron, { dominant: true })}
             ${renderPaidCard("premier", state.context.options.premier)}
             ${renderPaidCard("club", state.context.options.club)}
+            ${renderFounderSummaryCard()}
             ${renderSubscriberCard()}
           </section>
         `;
@@ -738,7 +731,7 @@
           .filter(Boolean)
           .join(" ");
         const currentContractKey = resolveActiveContractKey(tier, option);
-        const selectedPrice = describePrice(option, tier);
+        const selectedPrice = describeHeadlinePrice(option, tier);
         const titleClass = flags.dominant ? "card-title" : "card-title card-title--compact";
         const callout = buildTierCallout(tier, option);
 
@@ -773,6 +766,25 @@
                 ${isBusy(currentContractKey) ? "Loading…" : escapeHtml(buttonLabel(tier, option))}
               </button>
               <p class="helper">The next page keeps you on presttige.net for payment confirmation.</p>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderFounderSummaryCard() {
+        const copy = COPY.founder;
+        const price = BILLING_LABELS.founder_lifetime;
+        return `
+          <article class="card card--founder-summary card--secondary-small" data-tier-card="founder">
+            <header class="card-header">
+              <p class="eyebrow">BY EXCEPTION</p>
+              <h2 class="card-title card-title--compact">${escapeHtml(copy.title)}</h2>
+              <p class="price">${escapeHtml(price)}</p>
+              <p class="copy">${escapeHtml(copy.lead)}</p>
+            </header>
+            <div class="actions">
+              <a class="button button--secondary" href="${REQUEST_NEW_LINK}">Invitation required</a>
+              <p class="helper">Founder checkout appears only on a confirmed Founder referral route.</p>
             </div>
           </article>
         `;
@@ -982,6 +994,35 @@
         }
 
         return BILLING_LABELS[option.contractKey] || option.label || "";
+      }
+
+      function describeHeadlinePrice(option, tier) {
+        if (!option) {
+          return tier === "subscriber" ? "Free" : "";
+        }
+
+        if (option.displayMode === "upgrade") {
+          return `$${formatUsd(option.initialChargeUsdCents)} today, then $${formatUsd(option.renewalAmountUsdCents)} / year`;
+        }
+
+        if (option.headlinePriceLabel) {
+          return option.headlinePriceLabel;
+        }
+
+        if (tier === "club") {
+          return BILLING_LABELS.club_yearly;
+        }
+        if (tier === "premier") {
+          return BILLING_LABELS.premier_yearly;
+        }
+        if (tier === "patron") {
+          return BILLING_LABELS.patron_yearly;
+        }
+        if (tier === "founder") {
+          return BILLING_LABELS.founder_lifetime;
+        }
+
+        return describePrice(option, tier);
       }
 
       function findContract(contractKey) {

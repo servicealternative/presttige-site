@@ -94,6 +94,10 @@ def extract_fields_from_body(body):
         "email",
         "country",
         "phone",
+        "prst_candidate_display_name",
+        "prst_candidate_contact_email",
+        "prst_candidate_phone_e164",
+        "prst_candidate_country_iso2",
         "application_type",
         "source",
         "campaign_id",
@@ -126,10 +130,10 @@ def extract_fields_from_body(body):
                 return ""
             return str(value).strip()
 
-        name = as_text(mapped.get("name"))
-        email = as_text(mapped.get("email")).lower()
-        country = as_text(mapped.get("country"))
-        phone = as_text(mapped.get("phone"))
+        name = as_text(mapped.get("prst_candidate_display_name") or mapped.get("name"))
+        email = as_text(mapped.get("prst_candidate_contact_email") or mapped.get("email")).lower()
+        country = as_text(mapped.get("prst_candidate_country_iso2") or mapped.get("country"))
+        phone = as_text(mapped.get("prst_candidate_phone_e164") or mapped.get("phone"))
         application_type = as_text(mapped.get("application_type") or "access").lower()
         source = as_text(mapped.get("source") or "unknown")
         campaign_id = as_text(mapped.get("campaign_id"))
