@@ -14,6 +14,7 @@ permissions:
   id-token: write
   contents: read
 
+# IAM coverage verification keeps deploy permissions aligned with the package script inventory.
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
