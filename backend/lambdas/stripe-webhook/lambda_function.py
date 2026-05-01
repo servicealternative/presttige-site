@@ -48,6 +48,7 @@ OFFICE_NOTIFICATION_TO = os.environ.get("OFFICE_NOTIFICATION_TO", "office@prestt
 TESTER_WHITELIST = {
     "antoniompereira@me.com",
     "alternativeservice@gmail.com",
+    "analuisasf@gmail.com",
 }
 
 CONTRACTS = {

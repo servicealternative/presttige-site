@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 TESTER_EMAILS = [
     "antoniompereira@me.com",
+    "analuisasf@gmail.com",
 ]
 
 TESTER_SKIP_MARKER = "Skipped DynamoDB, CAPI, LinkedIn, GA4"

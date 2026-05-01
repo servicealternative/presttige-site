@@ -24,6 +24,7 @@ const TESTER_CLEANUP_SCHEDULER_ROLE_ARN =
 const TESTER_WHITELIST = new Set([
   "antoniompereira@me.com",
   "alternativeservice@gmail.com",
+  "analuisasf@gmail.com",
 ]);
 
 function loadTemplate() {

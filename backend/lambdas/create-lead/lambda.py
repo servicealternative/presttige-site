@@ -46,6 +46,7 @@ SCHEDULER_GROUP_NAME = os.environ.get("TESTER_PURGE_SCHEDULER_GROUP", "default")
 TESTER_WHITELIST = {
     "antoniompereira@me.com",
     "alternativeservice@gmail.com",
+    "analuisasf@gmail.com",
 }
 
 CORS_HEADERS = {

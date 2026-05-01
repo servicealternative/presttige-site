@@ -16,6 +16,7 @@ const SCHEDULER_GROUP_NAME = process.env.TESTER_PURGE_SCHEDULER_GROUP || "defaul
 const TESTER_WHITELIST = new Set([
   "antoniompereira@me.com",
   "alternativeservice@gmail.com",
+  "analuisasf@gmail.com",
 ]);
 
 function normalizeEmail(email) {

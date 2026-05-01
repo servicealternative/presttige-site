@@ -6,6 +6,7 @@ from typing import Dict, Iterable, List, Optional
 TESTER_WHITELIST = {
     "antoniompereira@me.com",
     "alternativeservice@gmail.com",
+    "analuisasf@gmail.com",
 }
 
 TERMINAL_REVIEW_STATUSES = {"approved", "rejected", "standby"}

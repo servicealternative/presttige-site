@@ -21,6 +21,7 @@ DELAY_PARAMETER_NAME = "/presttige/review/approve-to-e3-delay-minutes"
 TESTER_WHITELIST = {
     "antoniompereira@me.com",
     "alternativeservice@gmail.com",
+    "analuisasf@gmail.com",
 }
 TESTER_DELAY_MINUTES = 5
 PRODUCTION_DELAY_FALLBACK_MINUTES = 2880

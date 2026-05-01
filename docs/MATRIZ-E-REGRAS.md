@@ -1,7 +1,7 @@
 # PRESTTIGE — MATRIZ & REGRAS
 
-**Source of Truth Document — v0.3.2**
-**Date:** 30 April 2026
+**Source of Truth Document — v0.3.3**
+**Date:** 1 May 2026
 **Owner:** Antonio Pereira
 **Status:** Draft for review
 
@@ -24,6 +24,7 @@ If something is not yet decided, it appears in **Chapter 14 — Open Decisions**
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| v0.3.3 | 1 May 2026 | Codex (under Antonio direction) | Add Ana Luisa Fernandez to tester whitelist |
 | v0.3.2 | 30 Apr 2026 | Codex (under Antonio direction) | Add M-R5 Stripe webhook event matrix and tier-downgrade Lambda |
 | v0.3.1 | 30 Apr 2026 | Codex (under Antonio direction) | Mark M-R4 verified end-to-end and add Day 2 progress log |
 | v0.3 | 29 Apr 2026 | Codex (under Antonio direction) | Update tier model to v2 recurring Patron + Founder, dual-path auth, and apps-ready checkout rules |
@@ -388,6 +389,7 @@ The following test addresses bypass production timing and trigger 5-min cleanup 
 
 - `antoniompereira@me.com`
 - `alternativeservice@gmail.com`
+- `analuisasf@gmail.com`
 
 Tester records auto-delete from DynamoDB + S3 photos + EventBridge schedules + SES suppression 5 minutes after E5 fires. Recommended tester address: `alternativeservice@gmail.com` (Gmail handles repeat-sender testing better than iCloud, which spam-flags Codex traffic).
 
@@ -716,13 +718,13 @@ Each incident has: trigger, root cause, plan, status, related commits.
 
 ## 12.2 Tester whitelist behavior
 
-Two tester addresses (Chapter 6.3) bypass:
+Three tester addresses (Chapter 6.3) bypass:
 - E3 production delay (5 min instead of 2880 min / 48h)
 - Tester records auto-cleanup 5 min after E5
 
 This enables rapid E2E testing without polluting production data. Tester records are clearly tagged with `is_test=true` so analytics and member counts exclude them.
 
-Effective 30 April 2026 (commit `b090328`): when a committee approval is for a whitelisted tester email (`antoniompereira@me.com`, `alternativeservice@gmail.com`), the EventBridge schedule for E3 fires after 5 MINUTES instead of the standard production delay (currently 2880 minutes = 48 hours).
+Effective 30 April 2026 (commit `b090328`): when a committee approval is for a whitelisted tester email (`antoniompereira@me.com`, `alternativeservice@gmail.com`, `analuisasf@gmail.com`), the EventBridge schedule for E3 fires after 5 MINUTES instead of the standard production delay (currently 2880 minutes = 48 hours).
 
 Email comparison is case-insensitive. The 14 INC-001 held candidates are unaffected (their schedules do not exist).
 
@@ -856,7 +858,7 @@ Terms used across Presttige codebase, communications, and operations.
 | **B2 / B3 / B4 / B5** | Build phase identifiers (B2 = tier system; B3 = Stripe LIVE; B4 = Pixels; B5 = embedded checkout) |
 | **PITR** | Point-In-Time Recovery (DynamoDB feature, 35-day rollback) |
 | **Codex CLI** | The executor agent with full repo + AWS access |
-| **Tester whitelist** | Two test email addresses (6.3) that trigger 5-min E3 + 5-min cleanup |
+| **Tester whitelist** | Three test email addresses (6.3) that trigger 5-min E3 + 5-min cleanup |
 | **Founding rate** | Approved recurring price locked while the membership remains active (4.4) |
 | **Founder line** | Direct communication channel from Patron / Founder members to Antonio |
 | **Founder badge** | Visual marker for Founder members in member directory |
