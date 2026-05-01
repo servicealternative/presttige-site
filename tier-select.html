@@ -118,7 +118,7 @@
       grid-template-areas:
         "premier patron club"
         "founder patron subscriber";
-      align-items: stretch;
+      align-items: start;
     }
 
     .grid--founder {
@@ -130,7 +130,6 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
-      min-height: 100%;
       padding: 28px 28px 26px;
       border: 1px solid var(--pp-hairline);
       background: var(--pp-paper);
@@ -235,6 +234,13 @@
       line-height: 1.45;
     }
 
+    .price-note {
+      margin: -6px 0 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
     .renewal {
       margin: -4px 0 0;
       color: var(--pp-muted);
@@ -303,7 +309,6 @@
     .actions {
       display: grid;
       gap: 12px;
-      margin-top: auto;
       padding-top: 8px;
     }
 
@@ -509,56 +514,48 @@
           eyebrow: "ENTRY PATH",
           title: "Subscriber",
           lead:
-            "Stay close without committing to a paid tier today. Subscriber remains a post-approval choice, with the account preserved for future upgrade decisions.",
-          sections: [
-            {
-              title: "Status",
-              items: [
-                "Committee-approved access without payment",
-                "No member directory inclusion",
-                "Periodic Presttige communications",
-              ],
-            },
-            {
-              title: "Upgrade Path",
-              items: [
-                "Move to Club or Premier whenever you are ready",
-                "Patron upgrade window remains open through 31 December 2026",
-                "Founder is invitation-only and not a self-serve upgrade",
-              ],
-            },
-          ],
+            "You are approved. Confirm your subscription with no payment today, and decide your tier when you are ready.",
+          closing:
+            "Subscriber is your post-approval position — a recognised presence in the Presttige system, without yet choosing a paid tier. Your account is preserved, your record is held privately, and the path to Club, Premier, or Patron remains open whenever you are ready.",
+          sections: [],
           cta: "Join as Subscriber",
         },
         club: {
           eyebrow: "MEMBERSHIP TIER",
           title: "Club",
           lead:
-            "The entry to the Presttige network. Directory access, full communications, and the freedom to renew monthly or yearly while keeping the founding rate active.",
+            "The entry to the Presttige network. Directory access, full communications, and the curated rhythm of network life.",
           sections: [
             {
               title: "Included",
               items: [
                 "Member directory inclusion",
                 "Full network communications and curated updates",
-                "Graceful downgrade to Subscriber if the membership lapses",
+                "Access to network-wide events",
+              ],
+            },
+            {
+              title: "Club Privileges",
+              items: [
+                "Member directory inclusion",
+                "Full network communications",
+                "Curated updates and announcements",
+                "Access to network-wide events",
               ],
             },
             {
               title: "Renewal",
-              items: [
-                "Auto-renewing monthly or yearly billing",
-                "cancel_at_period_end supported",
-                "Founding rate stays locked while the membership remains active",
-              ],
+              items: ["Cancel anytime."],
             },
           ],
+          closing:
+            "Club is your entry to Presttige — the working membership where the network's rhythm becomes part of your week.",
         },
         premier: {
           eyebrow: "MEMBERSHIP TIER",
           title: "Premier",
           lead:
-            "Full network access with proposal rights and a stronger voice in the committee pipeline. Monthly and yearly billing remain available at the locked founding rate.",
+            "Full network access with proposal rights and a stronger voice in the committee pipeline.",
           sections: [
             {
               title: "Included",
@@ -569,14 +566,21 @@
               ],
             },
             {
-              title: "Renewal",
+              title: "Premier Privileges",
               items: [
-                "Auto-renewing monthly or yearly billing",
-                "cancel_at_period_end supported",
-                "Graceful downgrade to Subscriber if renewal ultimately fails",
+                "Member directory inclusion",
+                "Proposal rights with committee priority",
+                "Full network communications and curated updates",
+                "Invitations to selected member events",
               ],
             },
+            {
+              title: "Renewal",
+              items: ["Cancel anytime."],
+            },
           ],
+          closing:
+            "Premier sits at the heart of the Presttige program — full network access, proposal weight, and the rhythm of a network that meets regularly.",
         },
         patron: {
           eyebrow: "HIGHEST TIER · BY EXCEPTION",
@@ -593,38 +597,27 @@
               ],
             },
             {
-              title: "Renewal",
+              title: "Presttige Privileges",
               items: [
-                "Auto-renewing yearly membership",
-                "cancel_at_period_end supported",
-                "Downgrades gracefully to Subscriber if the membership ends",
+                "Exclusive concierge line in main cities",
+                "Random Presttige-issued event invitations",
+                "Access to business conferences, webinars, and meetings",
+                "Random invitations to Founder-only event overflow",
               ],
             },
+            {
+              title: "Renewal",
+              items: ["Cancel anytime."],
+            },
           ],
+          closing:
+            "Patron is the closest path to Presttige's full network — a yearly membership where every privilege of the wider program is available without exception.",
         },
         founder: {
           eyebrow: "FOUNDER INVITATION · REFERRAL REQUIRED",
           title: "Founder",
-          lead:
-            "Founder is a historical class, not a public tier. The invitation remains open only while the full system is still being completed, then closes permanently.",
-          sections: [
-            {
-              title: "Position",
-              items: [
-                "Invitation-only via Ambassador, Business Partner, or Agency referral",
-                "One-time lifetime purchase, no renewal",
-                "Permanent historical Founder status after the window closes",
-              ],
-            },
-            {
-              title: "Access",
-              items: [
-                "Invited to all events, workshops, and programming permanently",
-                "Founder communications and Founder-specific welcome materials",
-                "No standard four-tier choice is shown on this route",
-              ],
-            },
-          ],
+          lead: "By exception. Invitation only.",
+          sections: [],
           cta: "Continue to Founder Checkout",
         },
       };
@@ -672,7 +665,7 @@
             <p class="lede">${
               founderOnly
                 ? "This route is reserved for a Founder-eligible candidate whose referral and committee gate are already confirmed."
-                : "Select the membership posture that matches the access you want now. Club and Premier can be billed monthly or yearly; Patron remains yearly only."
+                : "Select the membership posture that matches the access you want now. Patron remains the centre of the programme; Club and Premier frame the same network at different depths."
             }</p>
           </section>
           ${
@@ -705,10 +698,9 @@
               <header class="card-header">
                 <p class="eyebrow">${escapeHtml(COPY.founder.eyebrow)}</p>
                 <h2 class="card-title">${escapeHtml(COPY.founder.title)}</h2>
-                <p class="price">$9,999 one-time</p>
+                <p class="price">$9,999 lifetime</p>
                 <p class="copy">${escapeHtml(COPY.founder.lead)}</p>
               </header>
-              ${COPY.founder.sections.map(renderSection).join("")}
               <div class="actions">
                 <button type="button" class="button" data-begin-checkout="founder_lifetime" ${isBusy("founder_lifetime") ? "disabled" : ""}>
                   ${isBusy("founder_lifetime") ? "Loading…" : escapeHtml(COPY.founder.cta)}
@@ -742,11 +734,11 @@
               <h2 class="${titleClass}">${escapeHtml(copy.title)}</h2>
               <p class="price" data-tier-price="${escapeHtml(tier)}">${escapeHtml(selectedPrice)}</p>
               ${
-                tier === "patron" && option.displayMode === "upgrade"
-                  ? `<p class="renewal">Immediate upgrade charge today, then Patron renews at $999/year while active.</p>`
-                  : tier !== "patron"
-                    ? `<p class="renewal">${escapeHtml(tier === "club" ? "Auto-renewing monthly or yearly." : "Auto-renewing monthly or yearly.")}</p>`
-                    : `<p class="renewal">Auto-renewing yearly membership.</p>`
+                tier === "club"
+                  ? `<p class="price-note">≈ $18.50/month</p>`
+                  : tier === "premier"
+                    ? `<p class="price-note">≈ $27.75/month</p>`
+                    : ""
               }
               <p class="copy">${escapeHtml(copy.lead)}</p>
             </header>
@@ -755,12 +747,8 @@
                 ? `<div class="callout"><strong>${escapeHtml(callout.label)}</strong>${escapeHtml(callout.body)}</div>`
                 : ""
             }
-            ${
-              option.billingChoices && option.billingChoices.length > 1
-                ? renderBillingToggle(tier, option.billingChoices)
-                : ""
-            }
             ${copy.sections.map(renderSection).join("")}
+            ${copy.closing ? `<p class="copy">${escapeHtml(copy.closing)}</p>` : ""}
             <div class="actions">
               <button type="button" class="button ${tier === "patron" ? "" : "button--secondary"}" data-begin-checkout="${escapeHtml(currentContractKey)}" ${isBusy(currentContractKey) ? "disabled" : ""}>
                 ${isBusy(currentContractKey) ? "Loading…" : escapeHtml(buttonLabel(tier, option))}
@@ -797,19 +785,14 @@
             <header class="card-header">
               <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
               <h2 class="card-title card-title--compact">${escapeHtml(copy.title)}</h2>
-              <p class="price">Free</p>
               <p class="copy">${escapeHtml(copy.lead)}</p>
             </header>
             ${copy.sections.map(renderSection).join("")}
+            ${copy.closing ? `<p class="copy">${escapeHtml(copy.closing)}</p>` : ""}
             <div class="actions">
               <button type="button" class="button button--subscriber" data-activate-subscriber="true" ${!state.context.token?.magicToken || isBusy("subscriber") ? "disabled" : ""}>
                 ${isBusy("subscriber") ? "Activating…" : escapeHtml(copy.cta)}
               </button>
-              <p class="helper">${
-                state.context.token?.magicToken
-                  ? "Subscriber activation remains a direct, no-payment path."
-                  : "Subscriber activation requires the original tier-select email link."
-              }</p>
             </div>
           </article>
         `;
@@ -948,14 +931,7 @@
         if (tier === "patron" && option.displayMode === "upgrade") {
           return {
             label: "Upgrade window",
-            body: `This route applies the ${titleCase(option.upgradeFrom)} to Patron upgrade rate now, then renews at $999/year while the membership remains active.`,
-          };
-        }
-
-        if (tier === "club" || tier === "premier") {
-          return {
-            label: "Billing choice",
-            body: "Choose monthly or yearly here before you continue to the embedded payment page.",
+            body: `This route applies the ${titleCase(option.upgradeFrom)} to Patron upgrade rate today.`,
           };
         }
 
@@ -981,7 +957,7 @@
 
       function describePrice(option, tier) {
         if (!option) {
-          return tier === "subscriber" ? "Free" : "";
+          return "";
         }
 
         if (option.displayMode === "upgrade") {
@@ -998,7 +974,7 @@
 
       function describeHeadlinePrice(option, tier) {
         if (!option) {
-          return tier === "subscriber" ? "Free" : "";
+          return "";
         }
 
         if (option.displayMode === "upgrade") {

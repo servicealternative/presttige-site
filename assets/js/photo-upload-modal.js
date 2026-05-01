@@ -40,7 +40,10 @@
     const fileInput = host.querySelector("[data-file-input]");
 
     dropzone.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", (event) => handleFiles(event.target.files));
+    fileInput.addEventListener("change", (event) => {
+      handleFiles(event.target.files);
+      event.target.value = "";
+    });
 
     dropzone.addEventListener("dragover", (event) => {
       event.preventDefault();
@@ -116,6 +119,10 @@
       throw new Error("Unsupported file type");
     }
 
+    if (hasDuplicateFileSignature(file.name, file.size)) {
+      throw new Error("This file is already added. Please choose a different photo.");
+    }
+
     const isHeic =
       file.type === "image/heic" ||
       file.type === "image/heif" ||
@@ -145,10 +152,18 @@
       throw new Error("Unsupported file type");
     }
 
+    const contentHash = await hashFile(processedFile);
+    if (contentHash && hasDuplicateContentHash(contentHash)) {
+      throw new Error("This file is already added. Please choose a different photo.");
+    }
+
     const previewUrl = URL.createObjectURL(processedFile);
     const photoEntry = {
       photo_id: null,
       file: processedFile,
+      originalName: file.name,
+      originalSize: file.size,
+      contentHash,
       previewUrl,
       progress: 0,
       status: "uploading",
@@ -159,6 +174,31 @@
     renderPreviews();
     updateContinueButton();
     await uploadFile(photoEntry);
+  }
+
+  async function hashFile(file) {
+    if (!window.crypto || !window.crypto.subtle || typeof file.arrayBuffer !== "function") {
+      return "";
+    }
+
+    const buffer = await file.arrayBuffer();
+    const digest = await window.crypto.subtle.digest("SHA-256", buffer);
+    return Array.from(new Uint8Array(digest))
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  function hasDuplicateFileSignature(name, size) {
+    const normalizedName = String(name || "").trim().toLowerCase();
+    return state.photos.some((photo) => {
+      const existingName = String(photo.originalName || photo.file?.name || "").trim().toLowerCase();
+      const existingSize = Number(photo.originalSize || photo.file?.size || 0);
+      return normalizedName && normalizedName === existingName && Number(size || 0) === existingSize;
+    });
+  }
+
+  function hasDuplicateContentHash(hash) {
+    return Boolean(hash) && state.photos.some((photo) => photo.contentHash === hash);
   }
 
   async function uploadFile(entry) {

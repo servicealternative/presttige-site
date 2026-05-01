@@ -390,6 +390,7 @@
     }
 
     .apply-field input,
+    .apply-field textarea,
     .apply-field select {
       width: 100%;
       min-height: 52px;
@@ -405,7 +406,17 @@
       -webkit-appearance: none;
     }
 
+    .apply-field textarea.apply-input {
+      display: block;
+      height: 52px;
+      resize: none;
+      overflow: hidden;
+      line-height: 52px;
+      font: inherit;
+    }
+
     .apply-field input::placeholder,
+    .apply-field textarea::placeholder,
     .apply-field select::placeholder {
       color: rgba(107, 107, 107, 0.7);
     }
@@ -427,12 +438,14 @@
     }
 
     .apply-field input:focus,
+    .apply-field textarea:focus,
     .apply-field select:focus {
       border-color: rgba(209,174,114,0.75);
       box-shadow: 0 0 0 3px rgba(209,174,114,0.12);
     }
 
     .apply-field.has-error input,
+    .apply-field.has-error textarea,
     .apply-field.has-error select {
       border-color: rgba(255,180,180,0.9);
       box-shadow: 0 0 0 3px rgba(255,180,180,0.12);
@@ -669,18 +682,18 @@
     <div class="apply-modal-inner" id="applyFormContainer">
       <h2 class="apply-modal-title" id="applyModalTitle">A private conversation begins</h2>
       <p class="apply-modal-body">Three details, for now. We will respond privately once the Committee has considered your profile.</p>
-      <form class="apply-form" id="applyForm" novalidate autocomplete="off">
+      <form class="apply-form" id="applyForm" novalidate autocomplete="off" data-form-type="other">
         <div class="apply-field">
           <label for="applyName" class="apply-label">Your name</label>
-          <input type="text" id="applyName" name="prst_candidate_display_name" class="apply-input" required autocomplete="off" spellcheck="false">
+          <textarea id="applyName" name="prst_candidate_display_name" class="apply-input" rows="1" maxlength="100" required autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" data-form-type="other"></textarea>
         </div>
         <div class="apply-field">
           <label for="applyEmail" class="apply-label">Your email</label>
-          <input type="email" id="applyEmail" name="prst_candidate_contact_email" class="apply-input" required autocomplete="off" spellcheck="false">
+          <input type="email" id="applyEmail" name="prst_candidate_contact_email" class="apply-input" required autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" data-form-type="other">
         </div>
         <div class="apply-field">
           <label for="applyCountry" class="apply-label">Where you live</label>
-          <select id="applyCountry" name="prst_candidate_country_iso2" class="apply-input" required autocomplete="off" spellcheck="false"></select>
+          <select id="applyCountry" name="prst_candidate_country_iso2" class="apply-input" required autocomplete="off" spellcheck="false" data-form-type="other"></select>
         </div>
         <div class="apply-submit">
           <button type="submit" class="apply-btn-send">Send</button>
@@ -1031,6 +1044,21 @@
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
     }
 
+    function enforceSingleLineTextarea(element) {
+      if (!element) return;
+      element.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+        }
+      });
+      element.addEventListener('input', function () {
+        const clean = element.value.replace(/[\r\n]+/g, ' ');
+        if (clean !== element.value) {
+          element.value = clean;
+        }
+      });
+    }
+
     async function handleApplyFrontend(event) {
       event.preventDefault();
 
@@ -1166,6 +1194,8 @@
     if (applyFormEl) {
       applyFormEl.addEventListener('submit', handleApplyFrontend);
     }
+
+    enforceSingleLineTextarea(document.getElementById('applyName'));
 
     const openApplyModalBtn = document.getElementById('openApplyModal');
     if (openApplyModalBtn) {

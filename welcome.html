@@ -40,11 +40,79 @@
     }
 
     .card {
-      width: min(100%, 780px);
+      width: min(100%, 1180px);
       padding: 34px 30px;
       border: 1px solid var(--pp-hairline);
       background: var(--pp-paper);
       box-shadow: var(--pp-shadow);
+    }
+
+    .card:not(.card--processing) {
+      max-width: 780px;
+    }
+
+    .processing-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(320px, 1.15fr) minmax(0, 1fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .processing-panel {
+      min-height: 100%;
+      padding: 22px;
+      border: 1px solid rgba(140, 112, 64, 0.14);
+      background: rgba(140, 112, 64, 0.035);
+    }
+
+    .brand-mark {
+      width: 86px;
+      height: 86px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+      border: 1px solid rgba(140, 112, 64, 0.42);
+      color: var(--pp-gold);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 58px;
+      font-style: italic;
+      line-height: 1;
+    }
+
+    .status-steps {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .status-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--pp-gold);
+      box-shadow: 0 0 0 6px rgba(140, 112, 64, 0.08);
+      animation: pulse 1.3s ease-in-out infinite;
+      flex: 0 0 auto;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 0.45;
+        transform: scale(0.92);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
 
     .eyebrow {
@@ -120,6 +188,12 @@
       background: transparent;
       color: var(--pp-gold);
     }
+
+    @media (max-width: 900px) {
+      .processing-layout {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -189,6 +263,7 @@
       }
 
       function renderPaid(status) {
+        app.className = "card";
         app.innerHTML = `
           <p class="eyebrow">Membership Confirmed</p>
           <h1 class="title">Welcome to Presttige</h1>
@@ -201,21 +276,42 @@
       }
 
       function renderProcessing(status) {
+        app.className = "card card--processing";
         app.innerHTML = `
-          <p class="eyebrow">Payment Processing</p>
-          <h1 class="title">We are confirming your payment.</h1>
-          <p class="copy">This page refreshes automatically while Stripe finalizes the membership state for ${escapeHtml(titleCase(status.tier || "member"))}.</p>
-          <div class="callout">Current state: ${escapeHtml(status.paymentStatus || "processing")}.</div>
+          <div class="processing-layout">
+            <aside class="processing-panel">
+              <div class="brand-mark" aria-hidden="true">P</div>
+              <p class="eyebrow">Welcome to Presttige</p>
+              <p class="copy">Your membership path is being prepared with care.</p>
+            </aside>
+            <section class="processing-panel">
+              <p class="eyebrow">Payment Processing</p>
+              <h1 class="title">We are confirming your payment.</h1>
+              <p class="copy">This page refreshes automatically while your ${escapeHtml(titleCase(status.tier || "member"))} access is confirmed.</p>
+              <div class="callout">
+                <div class="status-step"><span class="status-dot" aria-hidden="true"></span><span>Confirming...</span></div>
+              </div>
+            </section>
+            <aside class="processing-panel">
+              <p class="eyebrow">What happens next</p>
+              <div class="status-steps">
+                <div class="status-step"><span class="status-dot" aria-hidden="true"></span><span>Your account is being activated</span></div>
+                <div class="status-step"><span class="status-dot" aria-hidden="true"></span><span>You'll receive confirmation by email</span></div>
+                <div class="status-step"><span class="status-dot" aria-hidden="true"></span><span>Full network access begins immediately on confirmation</span></div>
+              </div>
+            </aside>
+          </div>
         `;
       }
 
       function renderFailed(status) {
+        app.className = "card";
         const retryUrl = status.retryUrl || "";
         app.innerHTML = `
           <p class="eyebrow">Payment Not Confirmed</p>
           <h1 class="title">This payment still needs attention.</h1>
           <p class="copy">The checkout did not finish cleanly. You can retry the payment from the same embedded checkout page, or request a fresh link if this route is no longer valid.</p>
-          <div class="failure">Current state: ${escapeHtml(status.paymentStatus || "failed")}.</div>
+          <div class="failure">We could not confirm the payment automatically. Please retry from checkout or request a fresh link.</div>
           <div class="actions">
             ${retryUrl ? `<a class="button" href="${escapeHtml(retryUrl)}">Retry payment</a>` : ""}
             <a class="button button--secondary" href="${REQUEST_NEW_LINK}">Request a new link</a>
@@ -224,6 +320,7 @@
       }
 
       function renderLegacySuccess(data) {
+        app.className = "card";
         const tier = String(data.tier || "").trim().toLowerCase();
         const body = tier === "founder"
           ? "Founder status is active."
@@ -237,6 +334,7 @@
       }
 
       function renderError(message) {
+        app.className = "card";
         app.innerHTML = `
           <p class="eyebrow">Presttige Membership</p>
           <h1 class="title">Link unavailable.</h1>
@@ -253,13 +351,13 @@
           return "Founder access is confirmed. This lifetime class remains on your record permanently.";
         }
         if (tier === "patron") {
-          return "Patron access is active. Your yearly membership remains at the approved rate while it stays in good standing.";
+          return "Patron access is active. Your Presttige record is confirmed.";
         }
         if (tier === "premier") {
-          return "Premier access is active. Monthly or yearly renewal remains anchored to the approved founding rate while the membership stays active.";
+          return "Premier access is active. Your Presttige record is confirmed.";
         }
         if (tier === "club") {
-          return "Club access is active. Monthly or yearly renewal remains anchored to the approved founding rate while the membership stays active.";
+          return "Club access is active. Your Presttige record is confirmed.";
         }
         return "Your Presttige membership is active.";
       }

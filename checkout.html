@@ -222,6 +222,16 @@
       font-size: 15px;
     }
 
+    .field select {
+      -webkit-appearance: none;
+      appearance: none;
+      padding-right: 38px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7' fill='none'%3E%3Cpath d='M1 1.5L5.5 5.5L10 1.5' stroke='%238C7040' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 11px 7px;
+    }
+
     .field input[readonly] {
       color: var(--pp-muted);
       background: rgba(232, 228, 218, 0.25);
@@ -281,6 +291,13 @@
       opacity: 0.66;
     }
 
+    .compliance-copy {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
     .subtle-link {
       color: var(--pp-gold);
       font-size: 13px;
@@ -292,7 +309,7 @@
       text-decoration: underline;
     }
 
-    .security {
+    .wallet-options {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -301,13 +318,30 @@
       line-height: 1.5;
     }
 
-    .security span {
+    .wallet-options span {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
-      padding: 7px 10px;
-      border: 1px solid rgba(140, 112, 64, 0.16);
-      background: rgba(140, 112, 64, 0.04);
+      min-height: 34px;
+      padding: 7px 14px;
+      border: 1px solid rgba(10, 10, 10, 0.16);
+      background: #fff;
+      color: var(--pp-black);
+      font-weight: 600;
+    }
+
+    .wallet-options .wallet-options__apple {
+      background: var(--pp-black);
+      color: var(--pp-paper);
+      border-color: var(--pp-black);
+    }
+
+    .request-link {
+      margin: 2px 0 0;
+      color: var(--pp-muted);
+      font-size: 12px;
+      line-height: 1.6;
     }
 
     .loading,
@@ -378,92 +412,79 @@
         club: {
           eyebrow: "MEMBERSHIP TIER",
           lead:
-            "The entry to the Presttige network. Directory access, full communications, and a graceful downgrade back to Subscriber if the membership is cancelled or ultimately fails renewal.",
+            "The entry to Presttige — full network access, member directory, and the curated rhythm of network life.",
           sections: [
             {
-              title: "Included",
+              title: "What's included",
               items: [
                 "Member directory inclusion",
-                "Full network communications and curated updates",
-                "Founding rate preserved while the membership remains active",
+                "Full network communications",
+                "Curated updates and announcements",
+                "Access to network-wide events",
               ],
             },
             {
-              title: "Renewal",
-              items: [
-                "Auto-renewing monthly or yearly billing",
-                "cancel_at_period_end supported",
-                "Graceful downgrade to Subscriber if the membership ends",
-              ],
+              title: "After payment",
+              items: ["You'll receive confirmation within minutes and full network access."],
             },
           ],
         },
         premier: {
           eyebrow: "MEMBERSHIP TIER",
           lead:
-            "Full network access with proposal rights and a higher signal to the committee. Monthly and yearly billing stay available under the locked founding rate.",
+            "Premier sits at the heart of the program — proposal weight, member directory, and full network rhythm.",
           sections: [
             {
-              title: "Included",
+              title: "What's included",
               items: [
                 "Member directory inclusion",
-                "Proposal rights with committee priority value",
+                "Proposal rights with committee priority",
                 "Full network communications and curated updates",
+                "Invitations to selected member events",
               ],
             },
             {
-              title: "Renewal",
-              items: [
-                "Auto-renewing monthly or yearly billing",
-                "cancel_at_period_end supported",
-                "Graceful downgrade to Subscriber if the membership ends",
-              ],
+              title: "After payment",
+              items: ["You'll receive confirmation within minutes and full network access."],
             },
           ],
         },
         patron: {
           eyebrow: "HIGHEST TIER · BY EXCEPTION",
           lead:
-            "Patron sits at the closest range to Presttige: full network access, founder line access, add-on services, and the strongest proposal weight in the paid tiers.",
+            "Patron is the closest path to Presttige's full network — every privilege of the wider program, without exception.",
           sections: [
             {
-              title: "Included",
+              title: "What's included",
               items: [
-                "Founder line and curated add-on services access",
-                "Full network access and member directory inclusion",
-                "Strongest proposal weight across paid tiers",
+                "Exclusive concierge line in main cities",
+                "Random Presttige-issued event invitations",
+                "Access to business conferences, webinars, and meetings",
+                "Random invitations to Founder-only event overflow",
               ],
             },
             {
-              title: "Renewal",
-              items: [
-                "Auto-renewing yearly membership",
-                "cancel_at_period_end supported",
-                "Graceful downgrade to Subscriber if the membership ends",
-              ],
+              title: "After payment",
+              items: ["You'll receive confirmation within minutes and full network access."],
             },
           ],
         },
         founder: {
           eyebrow: "FOUNDER INVITATION · REFERRAL REQUIRED",
           lead:
-            "Founder is the permanent historical class. The invitation remains open only until the full system is shipped, then closes permanently for new candidates.",
+            "Founder is by exception — a permanent, lifetime position in the network.",
           sections: [
             {
-              title: "Position",
+              title: "What's included",
               items: [
-                "One-time lifetime purchase, no renewal",
+                "Lifetime Founder position",
                 "Invitation-only path confirmed through referral and review",
-                "Founder status remains after the window closes",
+                "Founder communications and welcome materials",
               ],
             },
             {
-              title: "Access",
-              items: [
-                "All events, workshops, and programming permanently",
-                "Founder communications and welcome materials",
-                "No standard four-tier choice is available on this route",
-              ],
+              title: "After payment",
+              items: ["You'll receive confirmation within minutes and full network access."],
             },
           ],
         },
@@ -572,17 +593,13 @@
                   <div id="payment-element"></div>
                 </div>
                 <div id="error-box" class="error-box" hidden></div>
-                <div class="note-box">
-                  This checkout stays on presttige.net. Declines retry inline here without sending you back to tier selection.
+                <div class="wallet-options" aria-label="Supported wallet options">
+                  <span class="wallet-options__apple">Apple Pay</span>
+                  <span>G Pay</span>
                 </div>
+                <p class="compliance-copy">By providing your card information, you allow PRESTTIGE to charge your card for future payments in accordance with their terms.</p>
                 <button id="submit-button" class="button" type="button">Pay ${escapeHtml(displayPrice)}</button>
-                <div class="security">
-                  <span>Stripe-hosted card fields</span>
-                  <span>Apple Pay configured</span>
-                  <span>Google Pay configured</span>
-                </div>
-                <a class="subtle-link" href="/tier-select/${encodeURIComponent(backToken)}">Cancel and return to tier selection</a>
-                <p class="subtle-link" style="margin:0;"><a class="subtle-link" href="${REQUEST_NEW_LINK}">Request a new link</a></p>
+                <p class="request-link"><a class="subtle-link" href="${REQUEST_NEW_LINK}">Request a new link</a></p>
               </div>
             </aside>
           </section>
@@ -717,7 +734,7 @@
         const amount = formatUsd(cents);
 
         if (state.bootstrap.checkoutMode === "payment") {
-          return `$${amount} one-time`;
+          return `$${amount} lifetime`;
         }
 
         if (metadata.upgrade_strategy && typeof metadata.initial_charge_usd_cents === "number") {

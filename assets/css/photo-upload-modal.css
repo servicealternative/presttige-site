@@ -122,11 +122,12 @@
 }
 
 .photo-upload-inline__actions {
-  display: flex;
-  justify-content: flex-start;
+  display: block;
 }
 
 .photo-upload-inline__continue {
+  width: 100%;
+  display: block;
   min-height: 44px;
   padding: 0 30px;
   border: 0.5px solid var(--pp-primary);

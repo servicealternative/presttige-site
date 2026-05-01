@@ -214,6 +214,17 @@
       line-height: 1.55;
     }
 
+    .field textarea.single-line-field {
+      display: block;
+      min-height: 44px;
+      height: 44px;
+      resize: none;
+      overflow: hidden;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      line-height: 1.35;
+    }
+
     .field input:focus,
     .field textarea:focus,
     .field select:focus {
@@ -292,7 +303,8 @@
       display: none;
     }
 
-    .phone-input-wrap input {
+    .phone-input-wrap input,
+    .phone-input-wrap textarea {
       padding-left: 12px;
     }
 
@@ -681,7 +693,7 @@
         All applications are reviewed privately and individually.
       </p>
 
-      <form class="form" id="accessForm" data-form="access-step-2" novalidate>
+      <form class="form" id="accessForm" data-form="access-step-2" novalidate autocomplete="off" data-form-type="other">
         <input type="hidden" id="leadId" />
         <div class="form-complete-banner" id="formCompleteBanner" aria-live="polite">
           <p class="form-complete-banner__eyebrow">Application submitted</p>
@@ -694,10 +706,10 @@
             <div class="field">
               <label for="phone">Phone <span class="required-mark">*</span></label>
               <div class="phone-row">
-                <select id="phoneCountry" required></select>
+                <select id="phoneCountry" required autocomplete="off" data-form-type="other"></select>
                 <div class="phone-input-wrap">
                   <span class="phone-prefix" id="phoneDialCode">+1</span>
-                  <input id="phone" type="tel" autocomplete="tel-national" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="numeric" required />
+                  <textarea id="phone" name="prst_candidate_phone_e164" class="single-line-field" rows="1" maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="numeric" data-form-type="other" required></textarea>
                 </div>
               </div>
               <small id="phoneCountryHint">Selected country: United States</small>
@@ -705,7 +717,7 @@
 
             <div class="field">
               <label for="age">Age <span class="required-mark">*</span></label>
-              <input id="age" type="text" inputmode="numeric" required />
+              <input id="age" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" required />
             </div>
           </div>
         </div>
@@ -715,15 +727,15 @@
           <div class="grid-2">
             <div class="field locked-field" id="countryField">
               <label for="country">Country <span class="required-mark">*</span></label>
-              <select id="country" required disabled></select>
+              <select id="country" required disabled autocomplete="off" data-form-type="other"></select>
               <small class="locked-note" id="countryLockedNote">Selected earlier in your application.</small>
             </div>
 
             <div class="field">
               <label for="citySelect">City <span class="required-mark">*</span></label>
-              <select id="citySelect" required></select>
+              <select id="citySelect" required autocomplete="off" data-form-type="other"></select>
               <div class="subfield hidden" id="cityOtherWrap">
-                <input id="cityOther" type="text" autocomplete="address-level2" placeholder="Enter your city" />
+                <input id="cityOther" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" placeholder="Enter your city" />
               </div>
             </div>
           </div>
@@ -748,47 +760,47 @@
 
             <div class="field hidden" id="linkedinField">
               <label for="linkedin">LinkedIn <span class="required-mark" id="linkedinRequiredMark">*</span></label>
-              <input id="linkedin" type="text" placeholder="https://www.linkedin.com/in/yourname" autocapitalize="off" autocorrect="off" spellcheck="false" />
+              <input id="linkedin" type="text" placeholder="https://www.linkedin.com/in/yourname" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" />
             </div>
           </div>
 
           <div class="grid-2" id="socialFieldsRow">
             <div class="field">
               <label for="instagram">Instagram <span class="required-mark">*</span></label>
-              <input id="instagram" type="text" placeholder="@username or full URL" autocapitalize="off" autocorrect="off" spellcheck="false" required />
+              <input id="instagram" type="text" placeholder="@username or full URL" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" required />
             </div>
 
             <div class="field">
               <label for="tiktok">TikTok <span class="optional-mark">(optional)</span></label>
-              <input id="tiktok" type="text" placeholder="@username or full URL" />
+              <input id="tiktok" type="text" placeholder="@username or full URL" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" />
             </div>
           </div>
 
           <div class="field">
             <label for="occupationFull">Occupation <span class="optional-mark">(optional)</span></label>
-            <input id="occupationFull" type="text" />
+            <input id="occupationFull" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" />
           </div>
 
           <div class="grid-2">
             <div class="field">
               <label for="company">Company <span class="optional-mark">(optional)</span></label>
-              <input id="company" type="text" />
+              <input id="company" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" />
             </div>
 
             <div class="field">
               <label for="website">Website <span class="optional-mark">(optional)</span></label>
-              <input id="website" type="url" placeholder="https://..." />
+              <input id="website" type="url" placeholder="https://..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" />
             </div>
           </div>
 
           <div class="field">
             <label for="bio">Short Introduction <span class="required-mark">*</span></label>
-            <textarea id="bio" required></textarea>
+            <textarea id="bio" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" required></textarea>
           </div>
 
           <div class="field">
             <label for="why">Why do you want access to Presttige? <span class="required-mark">*</span></label>
-            <textarea id="why" required></textarea>
+            <textarea id="why" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" required></textarea>
           </div>
         </div>
 
@@ -1088,6 +1100,23 @@
     let isSubmitting = false;
     let pendingPhotoUpload = null;
     let photoStageActive = false;
+
+    function enforceSingleLineTextarea(element) {
+      if (!element) return;
+      element.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+        }
+      });
+      element.addEventListener('input', function () {
+        const clean = element.value.replace(/[\r\n]+/g, ' ');
+        if (clean !== element.value) {
+          element.value = clean;
+        }
+      });
+    }
+
+    enforceSingleLineTextarea(document.getElementById('phone'));
 
     const CITY_SUGGESTIONS = {
       'United States of America': ['New York', 'Los Angeles', 'Miami', 'Chicago', 'San Francisco', 'Other'],
