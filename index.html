@@ -408,11 +408,20 @@
 
     .apply-field textarea.apply-input {
       display: block;
+      box-sizing: border-box;
       height: 52px;
+      min-height: 52px;
+      padding: 14px 16px;
       resize: none;
-      overflow: hidden;
-      line-height: 52px;
-      font: inherit;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      line-height: 1.15;
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-style: italic;
+      font-weight: 400;
+      letter-spacing: -0.01em;
     }
 
     .apply-field input::placeholder,
@@ -685,14 +694,14 @@
       <form class="apply-form" id="applyForm" novalidate autocomplete="off" data-form-type="other">
         <div class="apply-field">
           <label for="applyName" class="apply-label">Your name</label>
-          <textarea id="applyName" name="prst_candidate_display_name" class="apply-input" rows="1" maxlength="100" required autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" data-form-type="other"></textarea>
+          <textarea id="applyName" name="prst_candidate_display_name" class="apply-input" rows="1" wrap="off" maxlength="100" required autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" data-form-type="other"></textarea>
         </div>
         <div class="apply-field">
           <label for="applyEmail" class="apply-label">Your email</label>
           <input type="email" id="applyEmail" name="prst_candidate_contact_email" class="apply-input" required autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" data-form-type="other">
         </div>
         <div class="apply-field">
-          <label for="applyCountry" class="apply-label">Where you live</label>
+          <label for="applyCountry" class="apply-label">Country</label>
           <select id="applyCountry" name="prst_candidate_country_iso2" class="apply-input" required autocomplete="off" spellcheck="false" data-form-type="other"></select>
         </div>
         <div class="apply-submit">

@@ -216,13 +216,22 @@
 
     .field textarea.single-line-field {
       display: block;
+      box-sizing: border-box;
       min-height: 44px;
       height: 44px;
+      padding: 10px 12px;
       resize: none;
-      overflow: hidden;
-      padding-top: 10px;
-      padding-bottom: 10px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
       line-height: 1.35;
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-size: 11pt;
+      color: var(--primary);
+      background: transparent;
+      border: 0.5px solid var(--accent-border);
+      border-radius: 0;
+      box-shadow: none;
     }
 
     .field input:focus,
@@ -709,7 +718,7 @@
                 <select id="phoneCountry" required autocomplete="off" data-form-type="other"></select>
                 <div class="phone-input-wrap">
                   <span class="phone-prefix" id="phoneDialCode">+1</span>
-                  <textarea id="phone" name="prst_candidate_phone_e164" class="single-line-field" rows="1" maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="numeric" data-form-type="other" required></textarea>
+                  <textarea id="phone" name="prst_candidate_phone_e164" class="single-line-field" rows="1" wrap="off" maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="numeric" data-form-type="other" required></textarea>
                 </div>
               </div>
               <small id="phoneCountryHint">Selected country: United States</small>
