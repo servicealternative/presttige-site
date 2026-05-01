@@ -175,7 +175,7 @@ def finalize_photo_submission(body):
         ExpressionAttributeValues={
             ":photo_uploads": updated_uploads,
             ":photo_ids": photo_ids,
-            ":profile_status": "complete",
+            ":profile_status": "submitted_to_committee",
             ":completed_at": now,
             ":submitted_at": now,
             ":updated_at": now,
@@ -272,7 +272,6 @@ def lambda_handler(event, context):
             "tiktok": as_text(body.get("tiktok")),
             "bio": as_text(body.get("bio")),
             "why": as_text(body.get("why")),
-            "profile_status": "photo_upload_pending",
             "profile_submitted_at": now,
             "updated_at": now,
         }
@@ -351,7 +350,7 @@ def lambda_handler(event, context):
         lead.update(consent_fields)
 
         return response(200, {
-            "message": "profile_saved_photo_upload_pending",
+            "message": "profile_saved",
             "lead_id": lead_id,
             "application_received_sent": False,
         })

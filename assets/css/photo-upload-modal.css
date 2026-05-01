@@ -1,4 +1,4 @@
-/* Presttige Photo Upload — inline continuation after form submission */
+/* Presttige Photo Upload — inline Step 2 photo selection */
 :root {
   --pp-primary: #0A0A0A;
   --pp-background: #F5F2ED;
@@ -99,6 +99,11 @@
   line-height: 22px;
 }
 
+.photo-upload-inline__preview-remove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .photo-upload-inline__preview-progress {
   position: absolute;
   left: 0;
@@ -125,31 +130,13 @@
   display: block;
 }
 
-.photo-upload-inline__continue {
-  width: 100%;
-  display: block;
-  min-height: 44px;
-  padding: 0 30px;
-  border: 0.5px solid var(--pp-primary);
-  background: transparent;
-  color: var(--pp-primary);
-  font-family: inherit;
-  font-size: 8.5pt;
-  font-weight: 500;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease, opacity 0.25s ease;
-}
-
-.photo-upload-inline__continue:hover:not(:disabled) {
-  background: var(--pp-primary);
-  color: var(--pp-paper);
-}
-
-.photo-upload-inline__continue:disabled {
-  opacity: 0.48;
-  cursor: not-allowed;
+.photo-upload-inline__count {
+  margin: 0;
+  color: var(--pp-muted);
+  font-size: 9.5pt;
+  line-height: 1.55;
+  font-style: italic;
+  text-align: center;
 }
 
 @media (max-width: 600px) {
@@ -168,10 +155,6 @@
   }
 
   .photo-upload-inline__actions {
-    justify-content: stretch;
-  }
-
-  .photo-upload-inline__continue {
-    width: 100%;
+    text-align: center;
   }
 }

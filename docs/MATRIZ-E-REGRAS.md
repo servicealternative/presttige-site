@@ -1,6 +1,6 @@
 # PRESTTIGE — MATRIZ & REGRAS
 
-**Source of Truth Document — v0.3.4**
+**Source of Truth Document — v0.3.5**
 **Date:** 1 May 2026
 **Owner:** Antonio Pereira
 **Status:** Draft for review
@@ -24,6 +24,7 @@ If something is not yet decided, it appears in **Chapter 14 — Open Decisions**
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| v0.3.5 | 1 May 2026 | Codex (under Antonio direction) | Consolidate Step 2 application fields and photos into one final submit |
 | v0.3.4 | 1 May 2026 | Codex (under Antonio direction) | Document M-R6.2.G submit-access IAM invoke permission |
 | v0.3.3 | 1 May 2026 | Codex (under Antonio direction) | Add Ana Luisa Fernandez to tester whitelist |
 | v0.3.2 | 30 Apr 2026 | Codex (under Antonio direction) | Add M-R5 Stripe webhook event matrix and tier-downgrade Lambda |
@@ -613,6 +614,14 @@ The live role `presttige-submit-access-role-bc8qqcmm` is managed directly in AWS
 
 Wildcards are forbidden for these permissions.
 
+## 10.2.2 Candidate Step 2 submission model
+
+Effective 1 May 2026 (M-R6.2.H), Step 2 is a single candidate-facing page. The candidate completes profile fields, adds photos at the bottom of the same page, and clicks one final `SUBMIT APPLICATION` button.
+
+The frontend defers S3 photo upload until that final submit. The backend saves profile fields first, then finalizes the current photo selection, sets `profile_status = submitted_to_committee`, invokes `presttige-send-committee-email`, and invokes `presttige-send-application-received`.
+
+The intermediate `photo_upload_pending` candidate state is retired.
+
 ## 10.3 SSM parameter conventions
 
 Active v2 Stripe contract parameters under `/presttige/stripe/`:
@@ -1006,12 +1015,12 @@ The apex presttige.net TXT record set contains multiple TXT values (currently 2:
 
 ---
 
-# End of Matriz & Regras v0.3.2
+# End of Matriz & Regras v0.3.5
 
 **Next steps:**
 1. Antonio reviews this draft
 2. Antonio flags errors / additions / omissions
-3. Claude iterates from v0.3.2
+3. Claude iterates from v0.3.5
 4. v1.0 commits to repo at `/docs/MATRIZ-E-REGRAS.md`
 5. `AGENTS.md` updates the source-of-truth pointer to the new path
 6. Codex stops flagging missing source-of-truth on every commit

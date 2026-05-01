@@ -704,10 +704,6 @@
 
       <form class="form" id="accessForm" data-form="access-step-2" novalidate autocomplete="off" data-form-type="other">
         <input type="hidden" id="leadId" />
-        <div class="form-complete-banner" id="formCompleteBanner" aria-live="polite">
-          <p class="form-complete-banner__eyebrow">Application submitted</p>
-          <p class="form-complete-banner__copy">Your profile has been received. Continue below with Step 3 and add at least two photos to complete this stage.</p>
-        </div>
 
         <div class="form-section">
           <div class="section-heading">Contact</div>
@@ -840,6 +836,12 @@
           <div id="consentError" class="consent-error">Please accept the Terms of Service and Privacy Policy to continue.</div>
         </fieldset>
 
+        <div class="form-section photo-form-section" id="photoFormSection">
+          <div class="section-heading">Photos</div>
+          <p class="photo-stage__copy">Please share two to three photos that represent you clearly and naturally. We recommend one clear portrait and one or two images that show context, style, or daily life.</p>
+          <div class="photo-stage__mount" data-photo-upload-stage></div>
+        </div>
+
         <div class="submit-shell">
           <div class="submit-divider"></div>
           <p class="submit-note">
@@ -854,15 +856,10 @@
         <div id="formMessage" class="message"></div>
       </form>
       </section>
-      <section id="photoUploadStage" class="photo-stage" aria-live="polite" hidden>
-        <p class="photo-stage__eyebrow">Step 3 · Photos</p>
-        <h2 class="photo-stage__title">Add your photos.</h2>
-        <p class="photo-stage__copy">Please share two to three photos that represent you clearly and naturally. We recommend one clear portrait and one or two images that show context, style, or daily life.</p>
-        <div class="photo-stage__mount" data-photo-upload-stage></div>
-      </section>
     </div>
   </div>
 
+  <script src="/assets/js/photo-upload-modal.js"></script>
   <script>
     function trackEvent() {
       if (typeof window.gtag === 'function') {
@@ -1079,11 +1076,9 @@
     const leadId = params.get('lead_id') || params.get('leadId') || '';
     const countryFromQuery = params.get('country') || '';
     document.getElementById('leadId').value = leadId;
-    const applicationPanel = document.getElementById('applicationPanel');
-    const applicationStep = document.getElementById('applicationStep');
     const accessForm = document.getElementById('accessForm');
     const submitBtn = document.getElementById('submitBtn');
-    const photoUploadStage = document.getElementById('photoUploadStage');
+    const photoFormSection = document.getElementById('photoFormSection');
     const countrySelect = document.getElementById('country');
     const countryField = document.getElementById('countryField');
     const countryLockedNote = document.getElementById('countryLockedNote');
@@ -1105,10 +1100,9 @@
     const termsAcceptedAtInput = document.getElementById('termsAcceptedAt');
     const marketingConsentAtInput = document.getElementById('marketingConsentAt');
     const MIN_LONG_TEXT_LENGTH = 50;
+    const MIN_PHOTO_COUNT = 2;
     let leadIdValid = false;
     let isSubmitting = false;
-    let pendingPhotoUpload = null;
-    let photoStageActive = false;
 
     function enforceSingleLineTextarea(element) {
       if (!element) return;
@@ -1873,41 +1867,16 @@
     }
 
     function syncSubmitAvailability() {
-      submitBtn.disabled = isSubmitting || !leadIdValid || !termsCheckbox.checked;
+      submitBtn.disabled = isSubmitting || !leadIdValid || !termsCheckbox.checked || !hasRequiredPhotos();
     }
 
-    function showPhotoUploadStage() {
-      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (photoStageActive) {
-        photoUploadStage.hidden = false;
-        applicationPanel.classList.add('is-step3');
-        photoUploadStage.classList.add('is-visible');
-        requestAnimationFrame(function () {
-          photoUploadStage.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
-        });
-        return;
-      }
+    function hasRequiredPhotos() {
+      return Boolean(window.PhotoUploadModal && window.PhotoUploadModal.getPhotoCount() >= MIN_PHOTO_COUNT);
+    }
 
-      photoStageActive = true;
-      photoUploadStage.hidden = false;
-      applicationPanel.classList.add('is-transitioning-step3');
-      requestAnimationFrame(function () {
-        photoUploadStage.classList.add('is-visible');
-      });
-
-      const finalizeStageSwap = function () {
-        applicationStep.hidden = true;
-        applicationPanel.classList.remove('is-transitioning-step3');
-        applicationPanel.classList.add('is-step3');
-        photoUploadStage.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
-      };
-
-      if (reducedMotion) {
-        finalizeStageSwap();
-        return;
-      }
-
-      window.setTimeout(finalizeStageSwap, 320);
+    function scrollToPhotoSection() {
+      if (!photoFormSection) return;
+      photoFormSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function validLeadId(id) {
@@ -1919,6 +1888,14 @@
     if (!leadIdValid) {
       setMessage('Invalid or missing application reference.', 'error');
     } else {
+      if (window.PhotoUploadModal) {
+        window.PhotoUploadModal.open({
+          leadId,
+          isTest: /^fdm_tst/.test(leadId),
+          onChange: syncSubmitAvailability
+        });
+      }
+
       trackEvent('event', 'begin_form_step_2', {
         application_type: 'access',
         page_location: window.location.href,
@@ -1940,12 +1917,6 @@
 
     accessForm.addEventListener('submit', async function (event) {
       event.preventDefault();
-
-      if (pendingPhotoUpload && window.PhotoUploadModal) {
-        showPhotoUploadStage();
-        window.PhotoUploadModal.open(pendingPhotoUpload);
-        return;
-      }
 
       if (!leadIdValid) {
         setMessage('Invalid or missing application reference.', 'error');
@@ -2049,8 +2020,18 @@
         return;
       }
 
+      if (!window.PhotoUploadModal) {
+        setMessage('Photo upload is still loading. Please try again in a moment.', 'error');
+        return;
+      }
+
+      if (!hasRequiredPhotos()) {
+        setMessage('Please add at least two photos before submitting.', 'error');
+        scrollToPhotoSection();
+        return;
+      }
+
       try {
-        let openedPhotoFlow = false;
         isSubmitting = true;
         syncSubmitAvailability();
         submitBtn.textContent = 'Submitting...';
@@ -2095,67 +2076,50 @@
         const resolvedLeadId =
           parsed && typeof parsed === 'object' && parsed.lead_id ? parsed.lead_id : payload.lead_id;
 
-        if (window.PhotoUploadModal && resolvedLeadId) {
-          pendingPhotoUpload = {
-            leadId: resolvedLeadId,
-            isTest: /^fdm_tst/.test(resolvedLeadId),
-            onComplete: async function (photoIds) {
-              setMessage('Submitting to committee...', '');
+        setMessage('Uploading photos...', '');
+        const photoIds = await window.PhotoUploadModal.uploadSelectedPhotos();
 
-              const finalizeResponse = await fetch('https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/submit-access', {
-                method: 'POST',
-                mode: 'cors',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                  action: 'finalize_photos',
-                  lead_id: resolvedLeadId,
-                  photo_ids: photoIds
-                })
-              });
+        setMessage('Submitting to committee...', '');
+        const finalizeResponse = await fetch('https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/submit-access', {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            action: 'finalize_photos',
+            lead_id: resolvedLeadId,
+            photo_ids: photoIds
+          })
+        });
 
-              const finalizeRawText = await finalizeResponse.text();
-              let finalizeParsed = null;
+        const finalizeRawText = await finalizeResponse.text();
+        let finalizeParsed = null;
 
-              try {
-                finalizeParsed = finalizeRawText ? JSON.parse(finalizeRawText) : null;
-              } catch (e) {
-                finalizeParsed = finalizeRawText;
-              }
-
-              if (!finalizeResponse.ok) {
-                const finalizeMessage =
-                  (finalizeParsed && typeof finalizeParsed === 'object' && (finalizeParsed.message || finalizeParsed.error)) ||
-                  `Photo submission failed (${finalizeResponse.status})`;
-                throw new Error(finalizeMessage);
-              }
-
-              pendingPhotoUpload = null;
-              trackEvent('event', 'photo_upload_completed', {
-                application_type: 'access',
-                page_location: window.location.href,
-                photo_count: photoIds.length
-              });
-              trackEvent('event', 'application_completed', {
-                application_type: 'access',
-                page_location: window.location.href
-              });
-              window.location.replace('https://presttige.net/thank-you.html');
-            }
-          };
-
-          openedPhotoFlow = true;
-          submitBtn.textContent = 'Resume Photo Upload';
-          showPhotoUploadStage();
-          window.PhotoUploadModal.open(pendingPhotoUpload);
-        } else {
-          setMessage('Application submitted successfully.', 'success');
-          setTimeout(() => {
-            window.location.replace('https://presttige.net/thank-you.html');
-          }, 900);
+        try {
+          finalizeParsed = finalizeRawText ? JSON.parse(finalizeRawText) : null;
+        } catch (e) {
+          finalizeParsed = finalizeRawText;
         }
+
+        if (!finalizeResponse.ok) {
+          const finalizeMessage =
+            (finalizeParsed && typeof finalizeParsed === 'object' && (finalizeParsed.message || finalizeParsed.error)) ||
+            `Photo submission failed (${finalizeResponse.status})`;
+          throw new Error(finalizeMessage);
+        }
+
+        trackEvent('event', 'photo_upload_completed', {
+          application_type: 'access',
+          page_location: window.location.href,
+          photo_count: photoIds.length
+        });
+        trackEvent('event', 'application_completed', {
+          application_type: 'access',
+          page_location: window.location.href
+        });
+        window.location.replace('https://presttige.net/thank-you.html');
 
       } catch (error) {
         const message = error && error.message ? error.message : 'Submission failed.';
@@ -2174,12 +2138,9 @@
       } finally {
         isSubmitting = false;
         syncSubmitAvailability();
-        if (!pendingPhotoUpload) {
-          submitBtn.textContent = 'Submit Application';
-        }
+        submitBtn.textContent = 'Submit Application';
       }
     });
   </script>
-  <script src="/assets/js/photo-upload-modal.js"></script>
 </body>
 </html>

@@ -12,7 +12,7 @@
     leadId: null,
     isTest: false,
     photos: [],
-    onComplete: null,
+    onChange: null,
     isCompleting: false,
   };
 
@@ -27,12 +27,12 @@
           <input type="file" data-file-input accept="image/jpeg,image/png,image/heic,image/heif" multiple hidden>
           <div>
             <p class="photo-upload-inline__dropzone-copy">Drag photos here or click to browse</p>
-            <p class="photo-upload-inline__helper">JPEG, PNG, or HEIC accepted. Please upload two to three images, up to 10MB each.</p>
+            <p class="photo-upload-inline__helper">JPEG, PNG, or HEIC accepted. Up to 10MB each. Two to three photos recommended.</p>
           </div>
         </div>
         <div class="photo-upload-inline__previews" data-previews></div>
         <div class="photo-upload-inline__actions">
-          <button class="photo-upload-inline__continue" data-continue disabled>Continue (need at least 2)</button>
+          <p class="photo-upload-inline__count" data-photo-count>Choose at least two photos.</p>
         </div>
       </div>
     `;
@@ -40,7 +40,10 @@
     const dropzone = host.querySelector("[data-dropzone]");
     const fileInput = host.querySelector("[data-file-input]");
 
-    dropzone.addEventListener("click", () => fileInput.click());
+    dropzone.addEventListener("click", () => {
+      if (!state.isCompleting) fileInput.click();
+    });
+
     fileInput.addEventListener("change", (event) => {
       handleFiles(event.target.files);
       event.target.value = "";
@@ -48,7 +51,9 @@
 
     dropzone.addEventListener("dragover", (event) => {
       event.preventDefault();
-      dropzone.classList.add("photo-upload-inline__dropzone--dragging");
+      if (!state.isCompleting) {
+        dropzone.classList.add("photo-upload-inline__dropzone--dragging");
+      }
     });
 
     dropzone.addEventListener("dragleave", () => {
@@ -58,30 +63,22 @@
     dropzone.addEventListener("drop", (event) => {
       event.preventDefault();
       dropzone.classList.remove("photo-upload-inline__dropzone--dragging");
-      handleFiles(event.dataTransfer.files);
-    });
-
-    host.querySelector("[data-continue]").addEventListener("click", async () => {
-      if (state.isCompleting) return;
-
-      const readyPhotos = state.photos.filter((photo) => photo.status === "ready");
-      if (readyPhotos.length >= MIN_PHOTOS && typeof state.onComplete === "function") {
-        state.isCompleting = true;
-        updateContinueButton();
-
-        try {
-          await state.onComplete(readyPhotos.map((photo) => photo.photo_id));
-        } catch (error) {
-          console.error("photo completion error", error);
-          showError(error.message || "Could not submit photos. Please try again.");
-        } finally {
-          state.isCompleting = false;
-          updateContinueButton();
-        }
-      }
+      if (!state.isCompleting) handleFiles(event.dataTransfer.files);
     });
 
     return host;
+  }
+
+  function notifyChange() {
+    updatePhotoCount();
+
+    if (typeof state.onChange === "function") {
+      state.onChange({
+        count: state.photos.length,
+        min: MIN_PHOTOS,
+        max: MAX_PHOTOS,
+      });
+    }
   }
 
   function showError(message) {
@@ -120,12 +117,12 @@
         await processFile(file);
       } catch (error) {
         console.error("processFile error", error);
-        showError(error.message || "Upload failed");
+        showError(error.message || "Could not add photo");
       }
     }
 
     renderPreviews();
-    updateContinueButton();
+    notifyChange();
   }
 
   async function processFile(file) {
@@ -172,7 +169,7 @@
     }
 
     const previewUrl = URL.createObjectURL(processedFile);
-    const photoEntry = {
+    state.photos.push({
       photo_id: null,
       file: processedFile,
       originalName: file.name,
@@ -180,14 +177,12 @@
       contentHash,
       previewUrl,
       progress: 0,
-      status: "uploading",
+      status: "selected",
       thumbnail_url: null,
-    };
+    });
 
-    state.photos.push(photoEntry);
     renderPreviews();
-    updateContinueButton();
-    await uploadFile(photoEntry);
+    notifyChange();
   }
 
   async function hashFile(file) {
@@ -216,6 +211,17 @@
   }
 
   async function uploadFile(entry) {
+    if (entry.status === "ready" && entry.photo_id) return entry.photo_id;
+
+    if (!state.leadId) {
+      throw new Error("Missing application reference for photo upload.");
+    }
+
+    entry.status = "uploading";
+    entry.progress = 0;
+    renderPreviews();
+    notifyChange();
+
     const initRes = await fetch(`${API_BASE}/photo-upload-init`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -232,13 +238,8 @@
       throw new Error(initData.error || "Init failed");
     }
 
-	    entry.photo_id = initData.photo_id;
-	    if (entry.removed) {
-	      await markPhotoRemoved(entry);
-	      return;
-	    }
-
-	    renderPreviews();
+    entry.photo_id = initData.photo_id;
+    renderPreviews();
 
     const formData = new FormData();
     Object.entries(initData.upload_fields).forEach(([key, value]) => formData.append(key, value));
@@ -266,8 +267,9 @@
 
     entry.status = "processing";
     renderPreviews();
-    updateContinueButton();
-    pollStatus(entry);
+    notifyChange();
+
+    return pollStatus(entry);
   }
 
   async function pollStatus(entry) {
@@ -286,8 +288,8 @@
           entry.status = "ready";
           entry.thumbnail_url = data.thumbnail_url;
           renderPreviews();
-          updateContinueButton();
-          return;
+          notifyChange();
+          return data.photo_id || entry.photo_id;
         }
       } catch (error) {
         console.warn("poll error", error);
@@ -296,36 +298,8 @@
 
     entry.status = "timeout";
     renderPreviews();
-    updateContinueButton();
-  }
-
-  async function markPhotoRemoved(photo) {
-    if (!photo?.photo_id || !state.leadId) return;
-
-    try {
-      const response = await fetch(`${API_BASE}/prod/submit-access`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          action: "remove_photo",
-          lead_id: state.leadId,
-          photo_id: photo.photo_id,
-        }),
-      });
-
-      if (!response.ok) {
-        console.warn("photo remove marker failed", {
-          lead_id: state.leadId,
-          photo_id: photo.photo_id,
-          status: response.status,
-        });
-      }
-    } catch (error) {
-      console.warn("photo remove marker failed", error);
-    }
+    notifyChange();
+    throw new Error("Photo processing timed out. Please try again.");
   }
 
   function renderPreviews() {
@@ -334,11 +308,21 @@
 
     container.innerHTML = state.photos
       .map((photo, index) => {
-        const statusLabel = photo.status === "ready" ? "Ready" : photo.status === "processing" ? "Processing" : photo.status === "timeout" ? "Retry needed" : "";
+        const statusLabel =
+          photo.status === "selected"
+            ? "Selected"
+            : photo.status === "ready"
+              ? "Ready"
+              : photo.status === "processing"
+                ? "Processing"
+                : photo.status === "timeout"
+                  ? "Retry needed"
+                  : "";
+
         return `
           <div class="photo-upload-inline__preview">
             <img src="${photo.thumbnail_url || photo.previewUrl}" alt="">
-            <button class="photo-upload-inline__preview-remove" type="button" data-remove="${index}">&times;</button>
+            <button class="photo-upload-inline__preview-remove" type="button" data-remove="${index}" ${state.isCompleting ? "disabled" : ""}>&times;</button>
             ${photo.status === "uploading" ? `<div class="photo-upload-inline__preview-progress" style="width:${photo.progress}%"></div>` : ""}
             ${statusLabel ? `<div class="photo-upload-inline__preview-status">${statusLabel}</div>` : ""}
           </div>
@@ -348,43 +332,71 @@
 
     container.querySelectorAll("[data-remove]").forEach((button) => {
       button.addEventListener("click", (event) => {
-        const index = parseInt(event.currentTarget.dataset.remove, 10);
-	        const removedPhoto = state.photos[index];
-	        if (removedPhoto) {
-	          removedPhoto.removed = true;
-	        }
+        if (state.isCompleting) return;
 
-	        if (removedPhoto?.previewUrl) {
+        const index = parseInt(event.currentTarget.dataset.remove, 10);
+        const removedPhoto = state.photos[index];
+        if (removedPhoto?.previewUrl) {
           URL.revokeObjectURL(removedPhoto.previewUrl);
         }
         state.photos.splice(index, 1);
-        markPhotoRemoved(removedPhoto);
         renderPreviews();
-        updateContinueButton();
+        notifyChange();
       });
     });
   }
 
-  function updateContinueButton() {
-    const button = document.querySelector("[data-continue]");
-    if (!button) return;
+  function updatePhotoCount() {
+    const count = document.querySelector("[data-photo-count]");
+    if (!count) return;
 
-    const readyCount = state.photos.filter((photo) => photo.status === "ready").length;
-    button.disabled = state.isCompleting || readyCount < MIN_PHOTOS;
+    const selectedCount = state.photos.length;
     if (state.isCompleting) {
-      button.textContent = "Submitting to committee...";
+      count.textContent = "Uploading selected photos. Please keep this page open.";
       return;
     }
 
-    button.textContent =
-      readyCount >= MIN_PHOTOS
-        ? `Continue with ${readyCount} photo${readyCount > 1 ? "s" : ""}`
-        : `Continue (need at least ${MIN_PHOTOS})`;
+    count.textContent =
+      selectedCount >= MIN_PHOTOS
+        ? `${selectedCount} photo${selectedCount > 1 ? "s" : ""} selected.`
+        : `Choose at least ${MIN_PHOTOS} photos. ${selectedCount} selected.`;
+  }
+
+  async function uploadSelectedPhotos() {
+    if (state.isCompleting) {
+      throw new Error("Photo upload is already in progress.");
+    }
+
+    if (state.photos.length < MIN_PHOTOS) {
+      throw new Error(`Please add at least ${MIN_PHOTOS} photos.`);
+    }
+
+    if (state.photos.length > MAX_PHOTOS) {
+      throw new Error(`Please keep your selection to ${MAX_PHOTOS} photos.`);
+    }
+
+    state.isCompleting = true;
+    notifyChange();
+
+    try {
+      const photoIds = [];
+      const selectedPhotos = state.photos.slice();
+      for (const photo of selectedPhotos) {
+        photoIds.push(await uploadFile(photo));
+      }
+      return photoIds;
+    } catch (error) {
+      showError(error.message || "Could not upload photos. Please try again.");
+      throw error;
+    } finally {
+      state.isCompleting = false;
+      notifyChange();
+    }
   }
 
   function open(options) {
     state.isTest = Boolean(options.isTest);
-    state.onComplete = options.onComplete;
+    state.onChange = options.onChange || null;
     state.isCompleting = false;
 
     if (state.leadId !== options.leadId) {
@@ -397,25 +409,31 @@
     state.leadId = options.leadId;
     buildInlineStage();
     renderPreviews();
-    updateContinueButton();
-
-    const stage = document.getElementById("photoUploadStage");
-    if (stage) {
-      stage.classList.add("is-visible");
-      stage.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    notifyChange();
   }
 
   function close() {
-    const stage = document.getElementById("photoUploadStage");
-    if (stage) {
-      stage.classList.remove("is-visible");
-    }
+    state.photos.forEach((photo) => {
+      if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl);
+    });
+    state.photos = [];
+    renderPreviews();
+    notifyChange();
   }
 
   function getPhotoIds() {
     return state.photos.filter((photo) => photo.status === "ready").map((photo) => photo.photo_id);
   }
 
-  window.PhotoUploadModal = { open, close, getPhotoIds };
+  function getPhotoCount() {
+    return state.photos.length;
+  }
+
+  window.PhotoUploadModal = {
+    open,
+    close,
+    getPhotoIds,
+    getPhotoCount,
+    uploadSelectedPhotos,
+  };
 })();
