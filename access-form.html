@@ -2087,7 +2087,7 @@
           throw new Error(backendMessage);
         }
 
-        trackEvent('event', 'application_completed', {
+        trackEvent('event', 'profile_form_submitted', {
           application_type: 'access',
           page_location: window.location.href
         });
@@ -2099,12 +2099,48 @@
           pendingPhotoUpload = {
             leadId: resolvedLeadId,
             isTest: /^fdm_tst/.test(resolvedLeadId),
-            onComplete: function (photoIds) {
+            onComplete: async function (photoIds) {
+              setMessage('Submitting to committee...', '');
+
+              const finalizeResponse = await fetch('https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/submit-access', {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                  action: 'finalize_photos',
+                  lead_id: resolvedLeadId,
+                  photo_ids: photoIds
+                })
+              });
+
+              const finalizeRawText = await finalizeResponse.text();
+              let finalizeParsed = null;
+
+              try {
+                finalizeParsed = finalizeRawText ? JSON.parse(finalizeRawText) : null;
+              } catch (e) {
+                finalizeParsed = finalizeRawText;
+              }
+
+              if (!finalizeResponse.ok) {
+                const finalizeMessage =
+                  (finalizeParsed && typeof finalizeParsed === 'object' && (finalizeParsed.message || finalizeParsed.error)) ||
+                  `Photo submission failed (${finalizeResponse.status})`;
+                throw new Error(finalizeMessage);
+              }
+
               pendingPhotoUpload = null;
               trackEvent('event', 'photo_upload_completed', {
                 application_type: 'access',
                 page_location: window.location.href,
                 photo_count: photoIds.length
+              });
+              trackEvent('event', 'application_completed', {
+                application_type: 'access',
+                page_location: window.location.href
               });
               window.location.replace('https://presttige.net/thank-you.html');
             }

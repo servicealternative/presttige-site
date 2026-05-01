@@ -123,6 +123,34 @@ function buildPhotoBlocks(readyPhotos, privateKey) {
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr>${cells.join("")}</tr></table>`;
 }
 
+function normalizePhotoIds(value) {
+  if (Array.isArray(value)) {
+    return Array.from(new Set(value.map((item) => String(item || "").trim()).filter(Boolean)));
+  }
+
+  if (typeof value === "string") {
+    return normalizePhotoIds(value.split(","));
+  }
+
+  return [];
+}
+
+function selectReadyPhotos(lead, requestedPhotoIds) {
+  const readyById = new Map(
+    Object.entries(lead.photo_uploads || {}).filter(([, photo]) => photo?.status === "ready")
+  );
+  const submittedPhotoIds = normalizePhotoIds(lead.submitted_photo_ids);
+  const selectedIds = requestedPhotoIds.length > 0 ? requestedPhotoIds : submittedPhotoIds;
+
+  if (selectedIds.length > 0) {
+    return selectedIds
+      .map((photoId) => [photoId, readyById.get(photoId)])
+      .filter(([, photo]) => Boolean(photo));
+  }
+
+  return Array.from(readyById.entries());
+}
+
 function buildBodyVariables(lead, token, readyPhotos, privateKey) {
   const reviewUrl = `${REVIEW_BASE_URL}/${token}`;
   const displayName = lead.name || "Anonymous";
@@ -155,6 +183,7 @@ exports.handler = async (event) => {
   const body = JSON.parse(event?.body || "{}");
   const leadId = body.lead_id;
   const allowNoPhotos = Boolean(body.allow_no_photos);
+  const requestedPhotoIds = normalizePhotoIds(body.photo_ids);
 
   if (!leadId) {
     return response(400, { error: "Missing lead_id" });
@@ -187,11 +216,13 @@ exports.handler = async (event) => {
       return response(200, { already_sent: true, sent_at: lead.e2_sent_at });
     }
 
-    const readyPhotos = Object.entries(lead.photo_uploads || {}).filter(([, photo]) => photo?.status === "ready");
+    const readyPhotos = selectReadyPhotos(lead, requestedPhotoIds);
     if (readyPhotos.length < 2 && !allowNoPhotos) {
       console.log("Committee email skipped until enough photos are ready", {
         lead_id: leadId,
         ready_count: readyPhotos.length,
+        requested_photo_ids: requestedPhotoIds,
+        submitted_photo_ids: normalizePhotoIds(lead.submitted_photo_ids),
         allow_no_photos: allowNoPhotos,
       });
       return response(425, { error: "Photos not ready", ready: readyPhotos.length });

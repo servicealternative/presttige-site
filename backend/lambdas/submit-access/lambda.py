@@ -58,6 +58,142 @@ def normalize_boolean_text(value):
     return "true" if as_text(value).lower() == "true" else "false"
 
 
+def parse_photo_ids(value):
+    if not isinstance(value, list):
+        return []
+
+    photo_ids = []
+    seen = set()
+    for item in value:
+        photo_id = as_text(item)
+        if not photo_id or photo_id in seen:
+            continue
+        seen.add(photo_id)
+        photo_ids.append(photo_id)
+    return photo_ids
+
+
+def invoke_async(function_name, payload):
+    lambda_client.invoke(
+        FunctionName=function_name,
+        InvocationType="Event",
+        Payload=json.dumps({"body": json.dumps(payload)}).encode("utf-8"),
+    )
+
+
+def mark_photo_removed(body):
+    lead_id = as_text(body.get("lead_id"))
+    photo_id = as_text(body.get("photo_id"))
+
+    if not lead_id or not photo_id:
+        return response(400, {"error": "missing_lead_id_or_photo_id"})
+
+    now = utc_now_iso()
+    table.update_item(
+        Key={"lead_id": lead_id},
+        UpdateExpression=(
+            "SET photo_uploads.#pid.#status = :removed, "
+            "photo_uploads.#pid.removed_at = :removed_at, "
+            "photo_uploads.#pid.selected_for_committee = :selected, "
+            "updated_at = :updated_at"
+        ),
+        ExpressionAttributeNames={
+            "#pid": photo_id,
+            "#status": "status",
+        },
+        ExpressionAttributeValues={
+            ":removed": "removed",
+            ":removed_at": now,
+            ":selected": False,
+            ":updated_at": now,
+        },
+    )
+
+    return response(200, {"removed": True, "lead_id": lead_id, "photo_id": photo_id})
+
+
+def finalize_photo_submission(body):
+    lead_id = as_text(body.get("lead_id"))
+    photo_ids = parse_photo_ids(body.get("photo_ids"))
+
+    if not lead_id:
+        return response(400, {"error": "missing_lead_id"})
+
+    if len(photo_ids) < 2:
+        return response(400, {"error": "minimum_two_photos_required", "photo_count": len(photo_ids)})
+
+    if len(photo_ids) > 3:
+        return response(400, {"error": "maximum_three_photos_allowed", "photo_count": len(photo_ids)})
+
+    db_response = table.get_item(Key={"lead_id": lead_id})
+    lead = db_response.get("Item")
+    if not lead:
+        return response(404, {"error": "lead_not_found"})
+
+    photo_uploads = dict(lead.get("photo_uploads") or {})
+    missing_or_not_ready = []
+    for photo_id in photo_ids:
+        photo = photo_uploads.get(photo_id) or {}
+        if photo.get("status") != "ready":
+            missing_or_not_ready.append(photo_id)
+
+    if missing_or_not_ready:
+        return response(425, {
+            "error": "photos_not_ready",
+            "photo_ids": missing_or_not_ready,
+        })
+
+    now = utc_now_iso()
+    selected = set(photo_ids)
+    updated_uploads = {}
+
+    for photo_id, photo in photo_uploads.items():
+        photo_meta = dict(photo or {})
+        if photo_id in selected:
+            photo_meta["selected_for_committee"] = True
+            photo_meta["submitted_at"] = now
+            if photo_meta.get("status") == "removed":
+                photo_meta["status"] = "ready"
+            photo_meta.pop("removed_at", None)
+        else:
+            photo_meta["selected_for_committee"] = False
+            if photo_meta.get("status") in {"awaiting_upload", "processing", "ready", "timeout"}:
+                photo_meta["status"] = "removed"
+                photo_meta["removed_at"] = now
+        updated_uploads[photo_id] = photo_meta
+
+    table.update_item(
+        Key={"lead_id": lead_id},
+        UpdateExpression=(
+            "SET photo_uploads = :photo_uploads, "
+            "submitted_photo_ids = :photo_ids, "
+            "profile_status = :profile_status, "
+            "profile_completed_at = :completed_at, "
+            "submitted_to_committee_at = :submitted_at, "
+            "updated_at = :updated_at"
+        ),
+        ExpressionAttributeValues={
+            ":photo_uploads": updated_uploads,
+            ":photo_ids": photo_ids,
+            ":profile_status": "complete",
+            ":completed_at": now,
+            ":submitted_at": now,
+            ":updated_at": now,
+        },
+    )
+
+    invoke_async("presttige-send-committee-email", {"lead_id": lead_id, "photo_ids": photo_ids})
+    invoke_async("presttige-send-application-received", {"lead_id": lead_id})
+
+    return response(200, {
+        "message": "application_submitted",
+        "lead_id": lead_id,
+        "photo_ids": photo_ids,
+        "committee_notification_triggered": True,
+        "application_received_triggered": True,
+    })
+
+
 def parse_iso_timestamp(value):
     timestamp = as_text(value)
     if not timestamp:
@@ -88,6 +224,14 @@ def lambda_handler(event, context):
 
     try:
         body = parse_body(event)
+        action = as_text(body.get("action")).lower()
+
+        if action == "remove_photo":
+            return mark_photo_removed(body)
+
+        if action == "finalize_photos":
+            return finalize_photo_submission(body)
+
         lead_id = as_text(body.get("lead_id"))
         terms_accepted = normalize_boolean_text(body.get("terms_accepted"))
         terms_accepted_at = as_text(body.get("terms_accepted_at"))
@@ -128,7 +272,7 @@ def lambda_handler(event, context):
             "tiktok": as_text(body.get("tiktok")),
             "bio": as_text(body.get("bio")),
             "why": as_text(body.get("why")),
-            "profile_status": "profile_submitted",
+            "profile_status": "photo_upload_pending",
             "profile_submitted_at": now,
             "updated_at": now,
         }
@@ -206,14 +350,8 @@ def lambda_handler(event, context):
         lead.update(profile_fields)
         lead.update(consent_fields)
 
-        lambda_client.invoke(
-            FunctionName="presttige-send-committee-email",
-            InvocationType="Event",
-            Payload=json.dumps({"body": json.dumps({"lead_id": lead_id})}).encode("utf-8"),
-        )
-
         return response(200, {
-            "message": "application_submitted",
+            "message": "profile_saved_photo_upload_pending",
             "lead_id": lead_id,
             "application_received_sent": False,
         })

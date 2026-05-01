@@ -40,13 +40,11 @@ exports.handler = async (event) => {
     }
 
     const privateKey = await loadSigningKey();
-    const photos = Object.entries(lead.photo_uploads || {})
-      .filter(([, photo]) => photo?.status === "ready" && photo?.thumbnails?.["400"] && photo?.thumbnails?.["1200"])
-      .map(([photoId, photo]) => ({
-        photo_id: photoId,
-        thumb_400: signUrl(photo.thumbnails["400"], privateKey),
-        thumb_1200: signUrl(photo.thumbnails["1200"], privateKey),
-      }));
+    const photos = selectReviewPhotos(lead).map(([photoId, photo]) => ({
+      photo_id: photoId,
+      thumb_400: signUrl(photo.thumbnails["400"], privateKey),
+      thumb_1200: signUrl(photo.thumbnails["1200"], privateKey),
+    }));
 
     const candidate = buildCandidate(lead, photos);
     const review = buildReviewState(lead);
@@ -105,6 +103,35 @@ function buildReviewState(lead) {
     locked: isRecorded,
     state: isRecorded ? "recorded" : "pending",
   };
+}
+
+function normalizePhotoIds(value) {
+  if (Array.isArray(value)) {
+    return Array.from(new Set(value.map((item) => String(item || "").trim()).filter(Boolean)));
+  }
+
+  if (typeof value === "string") {
+    return normalizePhotoIds(value.split(","));
+  }
+
+  return [];
+}
+
+function selectReviewPhotos(lead) {
+  const readyById = new Map(
+    Object.entries(lead.photo_uploads || {}).filter(
+      ([, photo]) => photo?.status === "ready" && photo?.thumbnails?.["400"] && photo?.thumbnails?.["1200"]
+    )
+  );
+  const submittedPhotoIds = normalizePhotoIds(lead.submitted_photo_ids);
+
+  if (submittedPhotoIds.length > 0) {
+    return submittedPhotoIds
+      .map((photoId) => [photoId, readyById.get(photoId)])
+      .filter(([, photo]) => Boolean(photo));
+  }
+
+  return Array.from(readyById.entries());
 }
 
 function buildCandidate(lead, photos) {

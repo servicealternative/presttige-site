@@ -13,6 +13,7 @@
     isTest: false,
     photos: [],
     onComplete: null,
+    isCompleting: false,
   };
 
   function buildInlineStage() {
@@ -60,10 +61,23 @@
       handleFiles(event.dataTransfer.files);
     });
 
-    host.querySelector("[data-continue]").addEventListener("click", () => {
+    host.querySelector("[data-continue]").addEventListener("click", async () => {
+      if (state.isCompleting) return;
+
       const readyPhotos = state.photos.filter((photo) => photo.status === "ready");
       if (readyPhotos.length >= MIN_PHOTOS && typeof state.onComplete === "function") {
-        state.onComplete(readyPhotos.map((photo) => photo.photo_id));
+        state.isCompleting = true;
+        updateContinueButton();
+
+        try {
+          await state.onComplete(readyPhotos.map((photo) => photo.photo_id));
+        } catch (error) {
+          console.error("photo completion error", error);
+          showError(error.message || "Could not submit photos. Please try again.");
+        } finally {
+          state.isCompleting = false;
+          updateContinueButton();
+        }
       }
     });
 
@@ -218,8 +232,13 @@
       throw new Error(initData.error || "Init failed");
     }
 
-    entry.photo_id = initData.photo_id;
-    renderPreviews();
+	    entry.photo_id = initData.photo_id;
+	    if (entry.removed) {
+	      await markPhotoRemoved(entry);
+	      return;
+	    }
+
+	    renderPreviews();
 
     const formData = new FormData();
     Object.entries(initData.upload_fields).forEach(([key, value]) => formData.append(key, value));
@@ -280,6 +299,35 @@
     updateContinueButton();
   }
 
+  async function markPhotoRemoved(photo) {
+    if (!photo?.photo_id || !state.leadId) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/prod/submit-access`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          action: "remove_photo",
+          lead_id: state.leadId,
+          photo_id: photo.photo_id,
+        }),
+      });
+
+      if (!response.ok) {
+        console.warn("photo remove marker failed", {
+          lead_id: state.leadId,
+          photo_id: photo.photo_id,
+          status: response.status,
+        });
+      }
+    } catch (error) {
+      console.warn("photo remove marker failed", error);
+    }
+  }
+
   function renderPreviews() {
     const container = document.querySelector("[data-previews]");
     if (!container) return;
@@ -301,10 +349,16 @@
     container.querySelectorAll("[data-remove]").forEach((button) => {
       button.addEventListener("click", (event) => {
         const index = parseInt(event.currentTarget.dataset.remove, 10);
-        if (state.photos[index]?.previewUrl) {
-          URL.revokeObjectURL(state.photos[index].previewUrl);
+	        const removedPhoto = state.photos[index];
+	        if (removedPhoto) {
+	          removedPhoto.removed = true;
+	        }
+
+	        if (removedPhoto?.previewUrl) {
+          URL.revokeObjectURL(removedPhoto.previewUrl);
         }
         state.photos.splice(index, 1);
+        markPhotoRemoved(removedPhoto);
         renderPreviews();
         updateContinueButton();
       });
@@ -316,7 +370,12 @@
     if (!button) return;
 
     const readyCount = state.photos.filter((photo) => photo.status === "ready").length;
-    button.disabled = readyCount < MIN_PHOTOS;
+    button.disabled = state.isCompleting || readyCount < MIN_PHOTOS;
+    if (state.isCompleting) {
+      button.textContent = "Submitting to committee...";
+      return;
+    }
+
     button.textContent =
       readyCount >= MIN_PHOTOS
         ? `Continue with ${readyCount} photo${readyCount > 1 ? "s" : ""}`
@@ -326,6 +385,7 @@
   function open(options) {
     state.isTest = Boolean(options.isTest);
     state.onComplete = options.onComplete;
+    state.isCompleting = false;
 
     if (state.leadId !== options.leadId) {
       state.photos.forEach((photo) => {
