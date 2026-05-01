@@ -1,6 +1,6 @@
 # PRESTTIGE — MATRIZ & REGRAS
 
-**Source of Truth Document — v0.3.3**
+**Source of Truth Document — v0.3.4**
 **Date:** 1 May 2026
 **Owner:** Antonio Pereira
 **Status:** Draft for review
@@ -24,6 +24,7 @@ If something is not yet decided, it appears in **Chapter 14 — Open Decisions**
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| v0.3.4 | 1 May 2026 | Codex (under Antonio direction) | Document M-R6.2.G submit-access IAM invoke permission |
 | v0.3.3 | 1 May 2026 | Codex (under Antonio direction) | Add Ana Luisa Fernandez to tester whitelist |
 | v0.3.2 | 30 Apr 2026 | Codex (under Antonio direction) | Add M-R5 Stripe webhook event matrix and tier-downgrade Lambda |
 | v0.3.1 | 30 Apr 2026 | Codex (under Antonio direction) | Mark M-R4 verified end-to-end and add Day 2 progress log |
@@ -597,6 +598,20 @@ This chapter is a high-level reference. Detailed engineering documentation lives
 | `presttige-tier-downgrade` | One-shot scheduled downgrade to Subscriber at subscription period end |
 | `presttige-send-welcome-email` | Sends E5 to paid member |
 | `presttige-send-subscriber-welcome-email` | Sends E5-SUB to free Subscriber |
+
+## 10.2.1 Manual IAM permission log
+
+Effective 1 May 2026 (M-R6.2.G), `presttige-submit-access` final photo submission invokes two downstream Lambdas after the candidate clicks the final submit button:
+
+- `presttige-send-committee-email`
+- `presttige-send-application-received`
+
+The live role `presttige-submit-access-role-bc8qqcmm` is managed directly in AWS IAM, not by in-repo IaC. The following least-privilege inline policies are required and must stay explicit-resource only:
+
+- `presttige-submit-access-invoke-e2`: allows `lambda:InvokeFunction` on `arn:aws:lambda:us-east-1:343218208384:function:presttige-send-committee-email`
+- `presttige-submit-access-invoke-application-received`: allows `lambda:InvokeFunction` on `arn:aws:lambda:us-east-1:343218208384:function:presttige-send-application-received`
+
+Wildcards are forbidden for these permissions.
 
 ## 10.3 SSM parameter conventions
 
