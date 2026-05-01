@@ -556,7 +556,6 @@
         const founder = tier === "founder";
         const displayPrice = describeCheckoutPrice();
         const backToken = route.sourceToken || state.context.token?.magicToken || route.token;
-        const country = normalizeCountry(state.context.profile?.country);
 
         app.className = "";
         app.innerHTML = `
@@ -585,10 +584,6 @@
                   <label for="cardholder-name">Cardholder name</label>
                   <input id="cardholder-name" type="text" value="${escapeHtml(state.context.profile?.name || "")}" autocomplete="cc-name">
                 </div>
-                <div class="field">
-                  <label for="billing-country">Country</label>
-                  <select id="billing-country">${renderCountryOptions(country)}</select>
-                </div>
                 <div class="element-shell" id="payment-shell" data-wallets="apple_pay,google_pay">
                   <div id="payment-element"></div>
                 </div>
@@ -614,6 +609,7 @@
           wallets: walletOrder.slice(),
           contractKey: route.contractKey,
           checkoutMode: state.bootstrap.checkoutMode,
+          billingCountry: normalizeCountry(state.context.profile?.country),
         };
 
         state.stripe = window.Stripe(state.bootstrap.publishableKey);
@@ -639,11 +635,27 @@
             radios: "always",
             spacedAccordionItems: false,
           },
-          paymentMethodOrder: walletOrder.concat(["link", "card"]),
+          paymentMethodOrder: walletOrder.concat(["card"]),
+          wallets: {
+            applePay: "auto",
+            googlePay: "auto",
+          },
           fields: {
             billingDetails: {
               name: "never",
               email: "never",
+              address: {
+                country: "never",
+              },
+            },
+          },
+          defaultValues: {
+            billingDetails: {
+              name: state.context.profile?.name || "",
+              email: state.bootstrap.customerEmail || state.context.profile?.email || "",
+              address: {
+                country: normalizeCountry(state.context.profile?.country),
+              },
             },
           },
         });
@@ -657,7 +669,7 @@
         }
 
         const name = document.getElementById("cardholder-name").value.trim();
-        const country = document.getElementById("billing-country").value.trim();
+        const country = normalizeCountry(state.context.profile?.country);
         const button = document.getElementById("submit-button");
         const errorBox = document.getElementById("error-box");
 
@@ -819,7 +831,12 @@
 
       function normalizeCountry(value) {
         const raw = String(value || "").trim().toUpperCase();
-        return raw && raw.length <= 3 ? raw : "AE";
+        if (raw && raw.length <= 3) {
+          return raw;
+        }
+
+        const match = COUNTRIES.find(([, label]) => label.toUpperCase() === raw);
+        return match ? match[0] : "AE";
       }
 
       function readRoute() {

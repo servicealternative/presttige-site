@@ -536,9 +536,7 @@ async function createPaymentModeBootstrap({
       currency: STANDARD_CURRENCY,
       customer: customerId,
       receipt_email: normalizeString(lead.email) || undefined,
-      automatic_payment_methods: {
-        enabled: true,
-      },
+      payment_method_types: ["card"],
       metadata: buildStripeMetadata(lead, contract),
       description: `Presttige ${formatTierLabel(contract.tier)} checkout`,
     },
@@ -577,6 +575,7 @@ async function createSubscriptionModeBootstrap({
     payment_behavior: "default_incomplete",
     payment_settings: {
       save_default_payment_method: "on_subscription",
+      payment_method_types: ["card"],
     },
     expand: [
       "latest_invoice.payment_intent",

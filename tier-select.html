@@ -114,11 +114,11 @@
     }
 
     .grid--standard {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.34fr) minmax(0, 1fr);
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       grid-template-areas:
-        "premier patron club"
-        "founder patron subscriber";
-      align-items: start;
+        "premier premier patron patron club club"
+        "founder founder founder subscriber subscriber subscriber";
+      align-items: stretch;
     }
 
     .grid--founder {
@@ -309,6 +309,7 @@
     .actions {
       display: grid;
       gap: 12px;
+      margin-top: auto;
       padding-top: 8px;
     }
 

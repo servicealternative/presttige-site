@@ -1,6 +1,6 @@
 # PRESTTIGE — MATRIZ & REGRAS
 
-**Source of Truth Document — v0.3.5**
+**Source of Truth Document — v0.3.6**
 **Date:** 1 May 2026
 **Owner:** Antonio Pereira
 **Status:** Draft for review
@@ -24,6 +24,7 @@ If something is not yet decided, it appears in **Chapter 14 — Open Decisions**
 
 | Version | Date | Author | Change |
 |---|---|---|---|
+| v0.3.6 | 1 May 2026 | Codex (under Antonio direction) | Align tier-select card rows and remove checkout Country/Stripe Link UI |
 | v0.3.5 | 1 May 2026 | Codex (under Antonio direction) | Consolidate Step 2 application fields and photos into one final submit |
 | v0.3.4 | 1 May 2026 | Codex (under Antonio direction) | Document M-R6.2.G submit-access IAM invoke permission |
 | v0.3.3 | 1 May 2026 | Codex (under Antonio direction) | Add Ana Luisa Fernandez to tester whitelist |
@@ -622,6 +623,12 @@ The frontend defers S3 photo upload until that final submit. The backend saves p
 
 The intermediate `photo_upload_pending` candidate state is retired.
 
+## 10.2.3 Checkout UI constraints
+
+Effective 1 May 2026 (M-R6.2.J/K), checkout must not show user-facing Country fields. Country is collected earlier in the application flow, normalized for Stripe, hidden in Payment Element with `billingDetails.address.country = never`, and sent through `defaultValues`/confirmation billing details.
+
+Stripe Link signup must remain hidden on `/checkout`. The checkout bootstrap uses explicit `card` payment method types server-side; Apple Pay and Google Pay remain available as card wallets.
+
 ## 10.3 SSM parameter conventions
 
 Active v2 Stripe contract parameters under `/presttige/stripe/`:
@@ -1015,12 +1022,12 @@ The apex presttige.net TXT record set contains multiple TXT values (currently 2:
 
 ---
 
-# End of Matriz & Regras v0.3.5
+# End of Matriz & Regras v0.3.6
 
 **Next steps:**
 1. Antonio reviews this draft
 2. Antonio flags errors / additions / omissions
-3. Claude iterates from v0.3.5
+3. Claude iterates from v0.3.6
 4. v1.0 commits to repo at `/docs/MATRIZ-E-REGRAS.md`
 5. `AGENTS.md` updates the source-of-truth pointer to the new path
 6. Codex stops flagging missing source-of-truth on every commit
