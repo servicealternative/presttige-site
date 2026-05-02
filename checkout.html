@@ -515,6 +515,15 @@
         ["JP", "Japan"],
       ];
 
+      const DISPLAY_PRICE_BY_CONTRACT = {
+        club_monthly: "$22.22 / month",
+        club_quarterly: "$99.99 / 6 months",
+        club_yearly: "$144.44 / year",
+        premier_monthly: "$55.55 / month",
+        premier_quarterly: "$277.77 / 6 months",
+        premier_yearly: "$388.88 / year",
+      };
+
       if (!route.token || !route.contractKey) {
         renderFatal("Missing checkout token or contract selection.");
         return;
@@ -751,6 +760,10 @@
 
         if (metadata.upgrade_strategy && typeof metadata.initial_charge_usd_cents === "number") {
           return `$${formatUsd(metadata.initial_charge_usd_cents)} today, then $${formatUsd(metadata.renewal_amount_usd_cents)} / year`;
+        }
+
+        if (DISPLAY_PRICE_BY_CONTRACT[route.contractKey]) {
+          return DISPLAY_PRICE_BY_CONTRACT[route.contractKey];
         }
 
         const contract = getSelectedOption();

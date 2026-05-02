@@ -624,12 +624,12 @@
       };
 
       const BILLING_LABELS = {
-        club_monthly: "$22 / month",
-        club_quarterly: "$77 / quarter",
-        club_yearly: "$222 / year",
-        premier_monthly: "$33 / month",
-        premier_quarterly: "$111 / quarter",
-        premier_yearly: "$333 / year",
+        club_monthly: "$22.22 / month",
+        club_quarterly: "$99.99 / 6 months",
+        club_yearly: "$144.44 / year",
+        premier_monthly: "$55.55 / month",
+        premier_quarterly: "$277.77 / 6 months",
+        premier_yearly: "$388.88 / year",
         patron_yearly: "$999 / year",
         founder_lifetime: "$9,999 lifetime",
       };
@@ -725,6 +725,7 @@
           .join(" ");
         const currentContractKey = resolveActiveContractKey(tier, option);
         const selectedPrice = describeHeadlinePrice(option, tier);
+        const priceNote = describePriceNote(tier, option);
         const titleClass = flags.dominant ? "card-title" : "card-title card-title--compact";
         const callout = buildTierCallout(tier, option);
 
@@ -734,13 +735,7 @@
               <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
               <h2 class="${titleClass}">${escapeHtml(copy.title)}</h2>
               <p class="price" data-tier-price="${escapeHtml(tier)}">${escapeHtml(selectedPrice)}</p>
-              ${
-                tier === "club"
-                  ? `<p class="price-note">≈ $18.50/month</p>`
-                  : tier === "premier"
-                    ? `<p class="price-note">≈ $27.75/month</p>`
-                    : ""
-              }
+              ${priceNote ? `<p class="price-note">${escapeHtml(priceNote)}</p>` : ""}
               <p class="copy">${escapeHtml(copy.lead)}</p>
             </header>
             ${
@@ -750,6 +745,11 @@
             }
             ${copy.sections.map(renderSection).join("")}
             ${copy.closing ? `<p class="copy">${escapeHtml(copy.closing)}</p>` : ""}
+            ${
+              option.billingChoices && option.billingChoices.length > 1
+                ? renderBillingToggle(tier, option.billingChoices)
+                : ""
+            }
             <div class="actions">
               <button type="button" class="button ${tier === "patron" ? "" : "button--secondary"}" data-begin-checkout="${escapeHtml(currentContractKey)}" ${isBusy(currentContractKey) ? "disabled" : ""}>
                 ${isBusy(currentContractKey) ? "Loading…" : escapeHtml(buttonLabel(tier, option))}
@@ -981,6 +981,11 @@
           return `$${formatUsd(option.initialChargeUsdCents)} today, then $${formatUsd(option.renewalAmountUsdCents)} / year`;
         }
 
+        if (option.billingChoices && option.billingChoices.length > 1) {
+          const active = option.billingChoices.find((choice) => choice.billing === state.selectedBilling[tier]) || option.billingChoices[0];
+          return BILLING_LABELS[active.contractKey] || active.label;
+        }
+
         if (option.headlinePriceLabel) {
           return option.headlinePriceLabel;
         }
@@ -999,6 +1004,22 @@
         }
 
         return describePrice(option, tier);
+      }
+
+      function describePriceNote(tier, option) {
+        if (!option || !option.billingChoices || option.billingChoices.length === 0) {
+          return "";
+        }
+
+        const active = option.billingChoices.find((choice) => choice.billing === state.selectedBilling[tier]) || option.billingChoices[0];
+        const noteByContractKey = {
+          club_quarterly: "≈ $16.67/month",
+          club_yearly: "≈ $12.04/month",
+          premier_quarterly: "≈ $46.30/month",
+          premier_yearly: "≈ $32.41/month",
+        };
+
+        return noteByContractKey[active.contractKey] || "";
       }
 
       function findContract(contractKey) {
