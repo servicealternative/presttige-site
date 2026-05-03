@@ -58,9 +58,23 @@ CONTRACTS = {
         "checkout_mode": "subscription",
         "founder_lifetime": False,
     },
+    "club_semi_annual": {
+        "tier": "club",
+        "billing": "semi_annual",
+        "checkout_mode": "subscription",
+        "founder_lifetime": False,
+    },
     "club_yearly": {
         "tier": "club",
         "billing": "yearly",
+        "checkout_mode": "subscription",
+        "founder_lifetime": False,
+    },
+    # RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
+    # active subscriptions. Do not remove backend support.
+    "club_quarterly": {
+        "tier": "club",
+        "billing": "quarterly",
         "checkout_mode": "subscription",
         "founder_lifetime": False,
     },
@@ -70,9 +84,23 @@ CONTRACTS = {
         "checkout_mode": "subscription",
         "founder_lifetime": False,
     },
+    "premier_semi_annual": {
+        "tier": "premier",
+        "billing": "semi_annual",
+        "checkout_mode": "subscription",
+        "founder_lifetime": False,
+    },
     "premier_yearly": {
         "tier": "premier",
         "billing": "yearly",
+        "checkout_mode": "subscription",
+        "founder_lifetime": False,
+    },
+    # RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
+    # active subscriptions. Do not remove backend support.
+    "premier_quarterly": {
+        "tier": "premier",
+        "billing": "quarterly",
         "checkout_mode": "subscription",
         "founder_lifetime": False,
     },

@@ -33,6 +33,7 @@ const {
   CHECKOUT_TOKEN_INDEX_NAME,
   LEAD_PAYMENT_FIELDS,
   getTierContract,
+  isLegacyQuarterlyContractKey,
 } = loadTierContractModule();
 
 const REGION = "us-east-1";
@@ -226,45 +227,9 @@ function buildBillingChoice(contractKey) {
     return null;
   }
 
-  // RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
-  // active subscriptions. Do not remove backend support.
-  const displayByContractKey = {
-    club_monthly: {
-      billing: "monthly",
-      label: "$22.22 / month",
-    },
-    club_quarterly: {
-      billing: "semi_annual",
-      label: "$99.99 / 6 months",
-    },
-    club_yearly: {
-      billing: "yearly",
-      label: "$144.44 / year",
-    },
-    premier_monthly: {
-      billing: "monthly",
-      label: "$55.55 / month",
-    },
-    premier_quarterly: {
-      billing: "semi_annual",
-      label: "$277.77 / 6 months",
-    },
-    premier_yearly: {
-      billing: "yearly",
-      label: "$388.88 / year",
-    },
-  };
-
-  if (displayByContractKey[contractKey]) {
-    return {
-      contractKey: contract.contractKey,
-      billing: displayByContractKey[contractKey].billing,
-      label: displayByContractKey[contractKey].label,
-    };
-  }
-
   const labelByBilling = {
     monthly: `$${formatUsd(contract.amountUsdCents)} / month`,
+    semi_annual: `$${formatUsd(contract.amountUsdCents)} / 6 months`,
     quarterly: `$${formatUsd(contract.amountUsdCents)} / quarter`,
     yearly: `$${formatUsd(contract.amountUsdCents)} / year`,
     lifetime: `$${formatUsd(contract.amountUsdCents)} lifetime`,
@@ -283,21 +248,16 @@ function buildHeadlinePriceLabel(contractKey) {
     return "";
   }
 
-  const displayByContractKey = {
-    club_monthly: "$22.22 / month",
-    club_quarterly: "$99.99 / 6 months",
-    club_yearly: "$144.44 / year",
-    premier_monthly: "$55.55 / month",
-    premier_quarterly: "$277.77 / 6 months",
-    premier_yearly: "$388.88 / year",
-  };
-
-  if (displayByContractKey[contractKey]) {
-    return displayByContractKey[contractKey];
-  }
-
   if (contract.billing === "lifetime") {
     return `$${formatUsd(contract.amountUsdCents)} lifetime`;
+  }
+
+  if (contract.billing === "monthly") {
+    return `$${formatUsd(contract.amountUsdCents)} / month`;
+  }
+
+  if (contract.billing === "semi_annual") {
+    return `$${formatUsd(contract.amountUsdCents)} / 6 months`;
   }
 
   return `$${formatUsd(contract.amountUsdCents)} / year`;
@@ -350,7 +310,7 @@ function buildStandardOptions(lead) {
       tier: "club",
       displayMode: "standard",
       headlinePriceLabel: buildHeadlinePriceLabel("club_yearly"),
-      billingChoices: ["club_monthly", "club_quarterly", "club_yearly"]
+      billingChoices: ["club_monthly", "club_semi_annual", "club_yearly"]
         .map(buildBillingChoice)
         .filter(Boolean),
     },
@@ -358,7 +318,7 @@ function buildStandardOptions(lead) {
       tier: "premier",
       displayMode: "standard",
       headlinePriceLabel: buildHeadlinePriceLabel("premier_yearly"),
-      billingChoices: ["premier_monthly", "premier_quarterly", "premier_yearly"]
+      billingChoices: ["premier_monthly", "premier_semi_annual", "premier_yearly"]
         .map(buildBillingChoice)
         .filter(Boolean),
     },
@@ -592,6 +552,14 @@ async function handleMintRequest(event) {
 
   if (!contractKey) {
     return errorResponse(400, "missing_contract_key", "Missing contract key.");
+  }
+
+  if (isLegacyQuarterlyContractKey(contractKey)) {
+    return errorResponse(
+      410,
+      "quarterly_contract_retired",
+      "Legacy quarterly billing is no longer available for new checkout. Please choose the semi-annual plan."
+    );
   }
 
   const lead = await findLeadByLeadId(leadId);
