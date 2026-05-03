@@ -111,6 +111,7 @@ function defineContract(definition) {
 }
 
 const STRIPE_TIER_CONTRACT = Object.freeze({
+  // TODO M-R6.2.M: Replace club_monthly Price ID with v4.0 amount ($22.22)
   club_monthly: defineContract({
     contractKey: "club_monthly",
     tier: "club",
@@ -122,6 +123,7 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
     renewalAmountUsdCents: 2200,
     availability: "after_first_year_only",
   }),
+  // TODO M-R6.2.M: Replace club_yearly Price ID with v4.0 amount ($144.44)
   club_yearly: defineContract({
     contractKey: "club_yearly",
     tier: "club",
@@ -133,6 +135,9 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
     renewalAmountUsdCents: 22200,
     displayPerMonth: "$18.50/mo on annual plan",
   }),
+  // RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
+  // active subscriptions. Do not remove backend support.
+  // TODO M-R6.2.M: Wire new Stripe Price ID for club_semi_annual ($99.99)
   club_quarterly: defineContract({
     contractKey: "club_quarterly",
     tier: "club",
@@ -147,6 +152,7 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
     availability: "after_first_year_only",
     displayPerMonth: "$19.25/mo on 4-month plan",
   }),
+  // TODO M-R6.2.M: Replace premier_monthly Price ID with v4.0 amount ($55.55)
   premier_monthly: defineContract({
     contractKey: "premier_monthly",
     tier: "premier",
@@ -158,6 +164,7 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
     renewalAmountUsdCents: 3300,
     availability: "after_first_year_only",
   }),
+  // TODO M-R6.2.M: Replace premier_yearly Price ID with v4.0 amount ($388.88)
   premier_yearly: defineContract({
     contractKey: "premier_yearly",
     tier: "premier",
@@ -169,6 +176,9 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
     renewalAmountUsdCents: 33300,
     displayPerMonth: "$27.75/mo on annual plan",
   }),
+  // RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
+  // active subscriptions. Do not remove backend support.
+  // TODO M-R6.2.M: Wire new Stripe Price ID for premier_semi_annual ($277.77)
   premier_quarterly: defineContract({
     contractKey: "premier_quarterly",
     tier: "premier",

@@ -226,6 +226,43 @@ function buildBillingChoice(contractKey) {
     return null;
   }
 
+  // RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
+  // active subscriptions. Do not remove backend support.
+  const displayByContractKey = {
+    club_monthly: {
+      billing: "monthly",
+      label: "$22.22 / month",
+    },
+    club_quarterly: {
+      billing: "semi_annual",
+      label: "$99.99 / 6 months",
+    },
+    club_yearly: {
+      billing: "yearly",
+      label: "$144.44 / year",
+    },
+    premier_monthly: {
+      billing: "monthly",
+      label: "$55.55 / month",
+    },
+    premier_quarterly: {
+      billing: "semi_annual",
+      label: "$277.77 / 6 months",
+    },
+    premier_yearly: {
+      billing: "yearly",
+      label: "$388.88 / year",
+    },
+  };
+
+  if (displayByContractKey[contractKey]) {
+    return {
+      contractKey: contract.contractKey,
+      billing: displayByContractKey[contractKey].billing,
+      label: displayByContractKey[contractKey].label,
+    };
+  }
+
   const labelByBilling = {
     monthly: `$${formatUsd(contract.amountUsdCents)} / month`,
     quarterly: `$${formatUsd(contract.amountUsdCents)} / quarter`,
@@ -244,6 +281,19 @@ function buildHeadlinePriceLabel(contractKey) {
   const contract = getTierContract(contractKey);
   if (!contract) {
     return "";
+  }
+
+  const displayByContractKey = {
+    club_monthly: "$22.22 / month",
+    club_quarterly: "$99.99 / 6 months",
+    club_yearly: "$144.44 / year",
+    premier_monthly: "$55.55 / month",
+    premier_quarterly: "$277.77 / 6 months",
+    premier_yearly: "$388.88 / year",
+  };
+
+  if (displayByContractKey[contractKey]) {
+    return displayByContractKey[contractKey];
   }
 
   if (contract.billing === "lifetime") {
