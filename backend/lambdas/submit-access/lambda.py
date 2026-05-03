@@ -54,6 +54,14 @@ def as_text(value):
     return str(value).strip()
 
 
+def request_method(event):
+    return as_text(
+        event.get("requestContext", {}).get("http", {}).get("method")
+        or event.get("httpMethod")
+        or "POST"
+    ).upper()
+
+
 def normalize_boolean_text(value):
     return "true" if as_text(value).lower() == "true" else "false"
 
@@ -194,6 +202,29 @@ def finalize_photo_submission(body):
     })
 
 
+def get_country_context(event):
+    params = event.get("queryStringParameters") or {}
+    lead_id = as_text(params.get("lead_id") or params.get("leadId"))
+
+    if not lead_id:
+        return response(400, {"error": "missing_lead_id"})
+
+    db_response = table.get_item(Key={"lead_id": lead_id})
+    lead = db_response.get("Item")
+
+    if not lead:
+        return response(404, {"error": "lead_not_found"})
+
+    country = as_text(lead.get("country"))
+    if not country:
+        return response(404, {"error": "country_not_found"})
+
+    return response(200, {
+        "lead_id": lead_id,
+        "country": country,
+    })
+
+
 def parse_iso_timestamp(value):
     timestamp = as_text(value)
     if not timestamp:
@@ -219,8 +250,19 @@ def validate_recent_timestamp(value, max_age_minutes=10):
 
 
 def lambda_handler(event, context):
-    if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
+    method = request_method(event)
+
+    if method == "OPTIONS":
         return response(200, {"message": "OK"})
+
+    if method == "GET":
+        action = as_text((event.get("queryStringParameters") or {}).get("action")).lower()
+        if action == "get_country_context":
+            return get_country_context(event)
+        return response(400, {"error": "unsupported_action"})
+
+    if method != "POST":
+        return response(405, {"error": "method_not_allowed"})
 
     try:
         body = parse_body(event)
