@@ -33,6 +33,7 @@ const {
   CHECKOUT_TOKEN_INDEX_NAME,
   LEAD_PAYMENT_FIELDS,
   getTierContract,
+  isLegacyQuarterlyContractKey,
 } = loadTierContractModule();
 
 const REGION = "us-east-1";
@@ -551,6 +552,14 @@ async function handleMintRequest(event) {
 
   if (!contractKey) {
     return errorResponse(400, "missing_contract_key", "Missing contract key.");
+  }
+
+  if (isLegacyQuarterlyContractKey(contractKey)) {
+    return errorResponse(
+      410,
+      "quarterly_contract_retired",
+      "Legacy quarterly billing is no longer available for new checkout. Please choose the semi-annual plan."
+    );
   }
 
   const lead = await findLeadByLeadId(leadId);

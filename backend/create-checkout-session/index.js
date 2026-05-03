@@ -35,6 +35,7 @@ function loadTierContractModule() {
 const {
   CHECKOUT_TOKEN_INDEX_NAME,
   LEAD_PAYMENT_FIELDS,
+  isLegacyQuarterlyContractKey,
   getTierContract,
   mustGetTierContract,
 } = loadTierContractModule();
@@ -783,6 +784,14 @@ exports.handler = async (event) => {
       400,
       "missing_contract_key",
       "Contract key is required."
+    );
+  }
+
+  if (isLegacyQuarterlyContractKey(requestedContractKey)) {
+    return errorResponse(
+      410,
+      "quarterly_contract_retired",
+      "Legacy quarterly billing is no longer available for new checkout. Please choose the semi-annual plan."
     );
   }
 

@@ -42,6 +42,11 @@ const PAYMENT_STATUSES = Object.freeze([
   "downgraded_to_subscriber",
 ]);
 
+const LEGACY_QUARTERLY_CONTRACT_KEYS = Object.freeze([
+  "club_quarterly",
+  "premier_quarterly",
+]);
+
 const LEAD_PAYMENT_FIELDS = Object.freeze({
   checkoutToken: "checkout_token",
   checkoutTokenStatus: "checkout_token_status",
@@ -122,14 +127,12 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
     renewalAmountUsdCents: 2222,
     availability: "after_first_year_only",
   }),
-  // M-R6.2.N: Semi-annual v4.0 uses the existing quarterly SSM parameter
-  // names until the parameter names are renamed in a later infra pass.
   club_semi_annual: defineContract({
     contractKey: "club_semi_annual",
     tier: "club",
     billing: "semi_annual",
     chargeType: "membership",
-    priceParameter: "/presttige/stripe/club-quarterly-price-id",
+    priceParameter: "/presttige/stripe/club-semi-annual-price-id",
     amountUsdCents: 9999,
     commissionProfile: COMMISSION_PROFILES.club,
     renewalAmountUsdCents: 9999,
@@ -176,14 +179,12 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
     renewalAmountUsdCents: 5555,
     availability: "after_first_year_only",
   }),
-  // M-R6.2.N: Semi-annual v4.0 uses the existing quarterly SSM parameter
-  // names until the parameter names are renamed in a later infra pass.
   premier_semi_annual: defineContract({
     contractKey: "premier_semi_annual",
     tier: "premier",
     billing: "semi_annual",
     chargeType: "membership",
-    priceParameter: "/presttige/stripe/premier-quarterly-price-id",
+    priceParameter: "/presttige/stripe/premier-semi-annual-price-id",
     amountUsdCents: 27777,
     commissionProfile: COMMISSION_PROFILES.premier,
     renewalAmountUsdCents: 27777,
@@ -315,6 +316,12 @@ function mustGetTierContract(contractKey) {
   return contract;
 }
 
+function isLegacyQuarterlyContractKey(contractKey) {
+  return LEGACY_QUARTERLY_CONTRACT_KEYS.includes(
+    String(contractKey || "").trim()
+  );
+}
+
 function isValidPaymentStatus(status) {
   return PAYMENT_STATUSES.includes(String(status || "").trim());
 }
@@ -335,6 +342,7 @@ module.exports = {
   listTierContractKeys,
   getTierContract,
   mustGetTierContract,
+  isLegacyQuarterlyContractKey,
   isValidPaymentStatus,
   isValidCheckoutTokenStatus,
 };
