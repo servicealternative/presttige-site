@@ -625,11 +625,13 @@
 
       const BILLING_LABELS = {
         club_monthly: "$22.22 / month",
-        club_quarterly: "$99.99 / 6 months",
+        club_semi_annual: "$99.99 / 6 months",
         club_yearly: "$144.44 / year",
+        club_quarterly: "$77 / quarter",
         premier_monthly: "$55.55 / month",
-        premier_quarterly: "$277.77 / 6 months",
+        premier_semi_annual: "$277.77 / 6 months",
         premier_yearly: "$388.88 / year",
+        premier_quarterly: "$111 / quarter",
         patron_yearly: "$999 / year",
         founder_lifetime: "$9,999 lifetime",
       };
@@ -1013,9 +1015,9 @@
 
         const active = option.billingChoices.find((choice) => choice.billing === state.selectedBilling[tier]) || option.billingChoices[0];
         const noteByContractKey = {
-          club_quarterly: "≈ $16.67/month",
+          club_semi_annual: "≈ $16.67/month",
           club_yearly: "≈ $12.04/month",
-          premier_quarterly: "≈ $46.30/month",
+          premier_semi_annual: "≈ $46.30/month",
           premier_yearly: "≈ $32.41/month",
         };
 

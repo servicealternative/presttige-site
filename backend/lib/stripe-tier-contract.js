@@ -111,33 +111,46 @@ function defineContract(definition) {
 }
 
 const STRIPE_TIER_CONTRACT = Object.freeze({
-  // TODO M-R6.2.M: Replace club_monthly Price ID with v4.0 amount ($22.22)
   club_monthly: defineContract({
     contractKey: "club_monthly",
     tier: "club",
     billing: "monthly",
     chargeType: "membership",
     priceParameter: "/presttige/stripe/club-monthly-price-id",
-    amountUsdCents: 2200,
+    amountUsdCents: 2222,
     commissionProfile: COMMISSION_PROFILES.club,
-    renewalAmountUsdCents: 2200,
+    renewalAmountUsdCents: 2222,
     availability: "after_first_year_only",
   }),
-  // TODO M-R6.2.M: Replace club_yearly Price ID with v4.0 amount ($144.44)
+  // M-R6.2.N: Semi-annual v4.0 uses the existing quarterly SSM parameter
+  // names until the parameter names are renamed in a later infra pass.
+  club_semi_annual: defineContract({
+    contractKey: "club_semi_annual",
+    tier: "club",
+    billing: "semi_annual",
+    chargeType: "membership",
+    priceParameter: "/presttige/stripe/club-quarterly-price-id",
+    amountUsdCents: 9999,
+    commissionProfile: COMMISSION_PROFILES.club,
+    renewalAmountUsdCents: 9999,
+    recurringInterval: "month",
+    recurringIntervalCount: 6,
+    availability: "after_first_year_only",
+    displayPerMonth: "$16.67/mo on 6-month plan",
+  }),
   club_yearly: defineContract({
     contractKey: "club_yearly",
     tier: "club",
     billing: "yearly",
     chargeType: "membership",
     priceParameter: "/presttige/stripe/club-yearly-price-id",
-    amountUsdCents: 22200,
+    amountUsdCents: 14444,
     commissionProfile: COMMISSION_PROFILES.club,
-    renewalAmountUsdCents: 22200,
-    displayPerMonth: "$18.50/mo on annual plan",
+    renewalAmountUsdCents: 14444,
+    displayPerMonth: "$12.04/mo on annual plan",
   }),
   // RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
   // active subscriptions. Do not remove backend support.
-  // TODO M-R6.2.M: Wire new Stripe Price ID for club_semi_annual ($99.99)
   club_quarterly: defineContract({
     contractKey: "club_quarterly",
     tier: "club",
@@ -152,33 +165,46 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
     availability: "after_first_year_only",
     displayPerMonth: "$19.25/mo on 4-month plan",
   }),
-  // TODO M-R6.2.M: Replace premier_monthly Price ID with v4.0 amount ($55.55)
   premier_monthly: defineContract({
     contractKey: "premier_monthly",
     tier: "premier",
     billing: "monthly",
     chargeType: "membership",
     priceParameter: "/presttige/stripe/premier-monthly-price-id",
-    amountUsdCents: 3300,
+    amountUsdCents: 5555,
     commissionProfile: COMMISSION_PROFILES.premier,
-    renewalAmountUsdCents: 3300,
+    renewalAmountUsdCents: 5555,
     availability: "after_first_year_only",
   }),
-  // TODO M-R6.2.M: Replace premier_yearly Price ID with v4.0 amount ($388.88)
+  // M-R6.2.N: Semi-annual v4.0 uses the existing quarterly SSM parameter
+  // names until the parameter names are renamed in a later infra pass.
+  premier_semi_annual: defineContract({
+    contractKey: "premier_semi_annual",
+    tier: "premier",
+    billing: "semi_annual",
+    chargeType: "membership",
+    priceParameter: "/presttige/stripe/premier-quarterly-price-id",
+    amountUsdCents: 27777,
+    commissionProfile: COMMISSION_PROFILES.premier,
+    renewalAmountUsdCents: 27777,
+    recurringInterval: "month",
+    recurringIntervalCount: 6,
+    availability: "after_first_year_only",
+    displayPerMonth: "$46.30/mo on 6-month plan",
+  }),
   premier_yearly: defineContract({
     contractKey: "premier_yearly",
     tier: "premier",
     billing: "yearly",
     chargeType: "membership",
     priceParameter: "/presttige/stripe/premier-yearly-price-id",
-    amountUsdCents: 33300,
+    amountUsdCents: 38888,
     commissionProfile: COMMISSION_PROFILES.premier,
-    renewalAmountUsdCents: 33300,
-    displayPerMonth: "$27.75/mo on annual plan",
+    renewalAmountUsdCents: 38888,
+    displayPerMonth: "$32.41/mo on annual plan",
   }),
   // RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
   // active subscriptions. Do not remove backend support.
-  // TODO M-R6.2.M: Wire new Stripe Price ID for premier_semi_annual ($277.77)
   premier_quarterly: defineContract({
     contractKey: "premier_quarterly",
     tier: "premier",
