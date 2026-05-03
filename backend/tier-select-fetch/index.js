@@ -8,9 +8,14 @@ const ssm = new SSMClient({ region: "us-east-1" });
 const TABLE_NAME = "presttige-db";
 const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
 const PRICE_PARAMETER_NAMES = {
-  club: "/presttige/stripe/club-y1-price-id",
-  premier: "/presttige/stripe/premier-y1-price-id",
-  patron: "/presttige/stripe/patron-lifetime-price-id",
+  club_monthly: "/presttige/stripe/club-monthly-price-id",
+  club_semi_annual: "/presttige/stripe/club-semi-annual-price-id",
+  club_yearly: "/presttige/stripe/club-yearly-price-id",
+  premier_monthly: "/presttige/stripe/premier-monthly-price-id",
+  premier_semi_annual: "/presttige/stripe/premier-semi-annual-price-id",
+  premier_yearly: "/presttige/stripe/premier-yearly-price-id",
+  patron_yearly: "/presttige/stripe/patron-yearly-price-id",
+  founder_lifetime: "/presttige/stripe/founder-lifetime-price-id",
 };
 const TIER_DEFINITIONS = {
   subscriber: {
@@ -28,12 +33,12 @@ const TIER_DEFINITIONS = {
     slug: "patron",
     eyebrow: "HIGHEST TIER · BY EXCEPTION",
     label: "Patron",
-    price: "$999 · one-time · lifetime",
+    price: "$999 / year",
     price_short: "$999",
-    billing: "lifetime",
-    renewal: null,
+    billing: "yearly",
+    renewal: "Renews at $999/year.",
     checkout_description:
-      "HIGHEST TIER · BY EXCEPTION — The inner circle. A single payment of $999 — once, forever. The full Presttige network, direct access to founders, and the only tier with our curated add-on services.",
+      "HIGHEST TIER · BY EXCEPTION — The inner circle. Full Presttige network access, direct access to founders, and the curated add-on services that sit above the wider member program.",
   },
   premier: {
     slug: "premier",
@@ -57,6 +62,17 @@ const TIER_DEFINITIONS = {
     checkout_description:
       "MEMBERSHIP TIER — The entry to the Presttige network. Founding-rate access for your first year, and the option to upgrade to Patron at any time before 31 December 2026.",
   },
+  founder: {
+    slug: "founder",
+    eyebrow: "FOUNDING TIER",
+    label: "Founder",
+    price: "$9,999 lifetime",
+    price_short: "$9,999 lifetime",
+    billing: "lifetime",
+    renewal: null,
+    checkout_description:
+      "FOUNDING TIER — Reserved founder access with a single lifetime payment and the deepest Presttige relationship.",
+  },
 };
 
 let cachedPriceIds = null;
@@ -73,12 +89,121 @@ async function loadPriceIds() {
   );
 
   const byName = new Map((response.Parameters || []).map((parameter) => [parameter.Name, parameter.Value]));
-  cachedPriceIds = {
-    club: byName.get(PRICE_PARAMETER_NAMES.club) || null,
-    premier: byName.get(PRICE_PARAMETER_NAMES.premier) || null,
-    patron: byName.get(PRICE_PARAMETER_NAMES.patron) || null,
-  };
+  cachedPriceIds = Object.fromEntries(
+    Object.entries(PRICE_PARAMETER_NAMES).map(([key, parameterName]) => [
+      key,
+      byName.get(parameterName) || null,
+    ])
+  );
   return cachedPriceIds;
+}
+
+function buildBillingChoice(contractKey, billing, label, priceId) {
+  return {
+    contract_key: contractKey,
+    billing,
+    label,
+    price_id: priceId,
+  };
+}
+
+function buildTierPayload(priceIds) {
+  return {
+    subscriber: {
+      ...TIER_DEFINITIONS.subscriber,
+      price_id: null,
+      price_ids: {},
+      billing_choices: [],
+    },
+    patron: {
+      ...TIER_DEFINITIONS.patron,
+      price_id: priceIds.patron_yearly,
+      price_ids: {
+        yearly: priceIds.patron_yearly,
+      },
+      billing_choices: [
+        buildBillingChoice(
+          "patron_yearly",
+          "yearly",
+          "$999 / year",
+          priceIds.patron_yearly
+        ),
+      ],
+    },
+    premier: {
+      ...TIER_DEFINITIONS.premier,
+      price_id: priceIds.premier_yearly,
+      price_ids: {
+        monthly: priceIds.premier_monthly,
+        semi_annual: priceIds.premier_semi_annual,
+        yearly: priceIds.premier_yearly,
+      },
+      billing_choices: [
+        buildBillingChoice(
+          "premier_monthly",
+          "monthly",
+          "$55.55 / month",
+          priceIds.premier_monthly
+        ),
+        buildBillingChoice(
+          "premier_semi_annual",
+          "semi_annual",
+          "$277.77 / 6 months",
+          priceIds.premier_semi_annual
+        ),
+        buildBillingChoice(
+          "premier_yearly",
+          "yearly",
+          "$388.88 / year",
+          priceIds.premier_yearly
+        ),
+      ],
+    },
+    club: {
+      ...TIER_DEFINITIONS.club,
+      price_id: priceIds.club_yearly,
+      price_ids: {
+        monthly: priceIds.club_monthly,
+        semi_annual: priceIds.club_semi_annual,
+        yearly: priceIds.club_yearly,
+      },
+      billing_choices: [
+        buildBillingChoice(
+          "club_monthly",
+          "monthly",
+          "$22.22 / month",
+          priceIds.club_monthly
+        ),
+        buildBillingChoice(
+          "club_semi_annual",
+          "semi_annual",
+          "$99.99 / 6 months",
+          priceIds.club_semi_annual
+        ),
+        buildBillingChoice(
+          "club_yearly",
+          "yearly",
+          "$144.44 / year",
+          priceIds.club_yearly
+        ),
+      ],
+    },
+    founder: {
+      ...TIER_DEFINITIONS.founder,
+      price_id: priceIds.founder_lifetime,
+      price_ids: {
+        lifetime: priceIds.founder_lifetime,
+      },
+      billing_choices: [
+        buildBillingChoice(
+          "founder_lifetime",
+          "lifetime",
+          "$9,999 lifetime",
+          priceIds.founder_lifetime
+        ),
+      ],
+    },
+  };
 }
 
 async function findLeadByMagicToken(token) {
@@ -135,24 +260,7 @@ exports.handler = async (event) => {
         email: lead.email || null,
       },
       upgrade_eligible_until: UPGRADE_ELIGIBLE_UNTIL,
-      tiers: {
-        subscriber: {
-          ...TIER_DEFINITIONS.subscriber,
-          price_id: null,
-        },
-        patron: {
-          ...TIER_DEFINITIONS.patron,
-          price_id: priceIds.patron,
-        },
-        premier: {
-          ...TIER_DEFINITIONS.premier,
-          price_id: priceIds.premier,
-        },
-        club: {
-          ...TIER_DEFINITIONS.club,
-          price_id: priceIds.club,
-        },
-      },
+      tiers: buildTierPayload(priceIds),
     });
   } catch (error) {
     console.error("tier-select-fetch error", error);
