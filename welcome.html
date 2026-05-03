@@ -65,18 +65,11 @@
       background: rgba(140, 112, 64, 0.035);
     }
 
-    .brand-mark {
-      width: 86px;
-      height: 86px;
-      display: grid;
-      place-items: center;
+    .brand-logo {
+      display: block;
+      width: min(220px, 100%);
+      height: auto;
       margin-bottom: 18px;
-      border: 1px solid rgba(140, 112, 64, 0.42);
-      color: var(--pp-gold);
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: 58px;
-      font-style: italic;
-      line-height: 1;
     }
 
     .status-steps {
@@ -280,7 +273,7 @@
         app.innerHTML = `
           <div class="processing-layout">
             <aside class="processing-panel">
-              <div class="brand-mark" aria-hidden="true">P</div>
+              <img class="brand-logo" src="/assets/images/presttige-p-lettering-no-fund.svg" alt="Presttige">
               <p class="eyebrow">Welcome to Presttige</p>
               <p class="copy">Your membership path is being prepared with care.</p>
             </aside>
