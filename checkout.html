@@ -410,62 +410,63 @@
 
       const TIER_COPY = {
         club: {
-          eyebrow: "MEMBERSHIP TIER",
+          eyebrow: "ENTRY",
           lead:
-            "The entry to Presttige — full network access, member directory, and the curated rhythm of network life.",
+            "Your entry into the network.",
           sections: [
             {
               title: "What's included",
               items: [
-                "Member directory inclusion",
-                "Full network communications",
-                "Curated updates and announcements",
-                "Access to network-wide events",
+                "The member directory",
+                "Network communications",
+                "Invitations to gatherings",
               ],
             },
             {
-              title: "After payment",
-              items: ["You'll receive confirmation within minutes and full network access."],
+              title: "Renewal",
+              items: ["Annual. At your discretion."],
             },
           ],
         },
         premier: {
-          eyebrow: "MEMBERSHIP TIER",
+          eyebrow: "PRESENCE",
           lead:
-            "Premier sits at the heart of the program — proposal weight, member directory, and full network rhythm.",
+            "A central position within the network, with the right to introduce proposals to the committee.",
           sections: [
             {
               title: "What's included",
               items: [
-                "Member directory inclusion",
-                "Proposal rights with committee priority",
-                "Full network communications and curated updates",
-                "Invitations to selected member events",
+                "The member directory",
+                "Proposal rights, with priority review",
+                "Network communications",
+                "Invitations to selected gatherings",
               ],
             },
             {
-              title: "After payment",
-              items: ["You'll receive confirmation within minutes and full network access."],
+              title: "Renewal",
+              items: ["Annual. At your discretion."],
             },
           ],
         },
         patron: {
-          eyebrow: "HIGHEST TIER · BY EXCEPTION",
+          eyebrow: "BY EXCEPTION",
           lead:
-            "Patron is the closest path to Presttige's full network — every privilege of the wider program, without exception.",
+            "The closest position to Presttige. A direct line into the network and its founders.",
           sections: [
             {
               title: "What's included",
               items: [
-                "Exclusive concierge line in main cities",
-                "Random Presttige-issued event invitations",
-                "Access to business conferences, webinars, and meetings",
-                "Random invitations to Founder-only event overflow",
+                "Full network access",
+                "Direct founder line",
+                "Priority within the proposal process",
+                "Invitations to private events and gatherings",
+                "Concierge in key cities",
+                "Access to select services beyond the programme",
               ],
             },
             {
-              title: "After payment",
-              items: ["You'll receive confirmation within minutes and full network access."],
+              title: "Renewal",
+              items: ["By annual conversation."],
             },
           ],
         },
@@ -517,13 +518,11 @@
 
       const DISPLAY_PRICE_BY_CONTRACT = {
         club_monthly: "$22.22 / month",
-        club_semi_annual: "$99.99 / 6 months",
+        club_quarterly: "$99.99 / 6 months",
         club_yearly: "$144.44 / year",
-        club_quarterly: "$77 / quarter",
         premier_monthly: "$55.55 / month",
-        premier_semi_annual: "$277.77 / 6 months",
+        premier_quarterly: "$277.77 / 6 months",
         premier_yearly: "$388.88 / year",
-        premier_quarterly: "$111 / quarter",
       };
 
       if (!route.token || !route.contractKey) {

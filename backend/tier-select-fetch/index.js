@@ -8,70 +8,54 @@ const ssm = new SSMClient({ region: "us-east-1" });
 const TABLE_NAME = "presttige-db";
 const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
 const PRICE_PARAMETER_NAMES = {
-  club_monthly: "/presttige/stripe/club-monthly-price-id",
-  club_semi_annual: "/presttige/stripe/club-semi-annual-price-id",
-  club_yearly: "/presttige/stripe/club-yearly-price-id",
-  premier_monthly: "/presttige/stripe/premier-monthly-price-id",
-  premier_semi_annual: "/presttige/stripe/premier-semi-annual-price-id",
-  premier_yearly: "/presttige/stripe/premier-yearly-price-id",
-  patron_yearly: "/presttige/stripe/patron-yearly-price-id",
-  founder_lifetime: "/presttige/stripe/founder-lifetime-price-id",
+  club: "/presttige/stripe/club-y1-price-id",
+  premier: "/presttige/stripe/premier-y1-price-id",
+  patron: "/presttige/stripe/patron-lifetime-price-id",
 };
 const TIER_DEFINITIONS = {
   subscriber: {
     slug: "subscriber",
-    eyebrow: "ENTRY PATH",
+    eyebrow: "ACCESS POINT",
     label: "Subscriber",
     price: "No payment required",
     price_short: "No payment required",
     billing: null,
     renewal: null,
     checkout_description:
-      "ENTRY PATH — For approved candidates who choose to stay close to Presttige without committing to a tier today. Receive Presttige communications, follow Patron seat availability, and upgrade to Club, Premier, or Patron whenever you're ready.",
+      "ACCESS POINT — You have been approved. No payment required at this stage. Your place is recognised. Your tier — Club, Premier, or Patron — is yours to choose, when you choose.",
   },
   patron: {
     slug: "patron",
-    eyebrow: "HIGHEST TIER · BY EXCEPTION",
+    eyebrow: "BY EXCEPTION",
     label: "Patron",
     price: "$999 / year",
-    price_short: "$999",
+    price_short: "$999 / year",
     billing: "yearly",
-    renewal: "Renews at $999/year.",
+    renewal: "By annual conversation.",
     checkout_description:
-      "HIGHEST TIER · BY EXCEPTION — The inner circle. Full Presttige network access, direct access to founders, and the curated add-on services that sit above the wider member program.",
+      "BY EXCEPTION — The closest position to Presttige. A direct line into the network and its founders.",
   },
   premier: {
     slug: "premier",
-    eyebrow: "MEMBERSHIP TIER",
+    eyebrow: "PRESENCE",
     label: "Premier",
-    price: "$55.55 / month · $277.77 / 6 months · $388.88 / year",
-    price_short: "$55.55 / month · $277.77 / 6 months · $388.88 / year",
-    billing: "y1_prepay",
-    renewal: "Renews at $55.55/month, $277.77/6 months, or $388.88/year.",
+    price: "$388.88 / year",
+    price_short: "$388.88 / year",
+    billing: "yearly",
+    renewal: "Annual. At your discretion.",
     checkout_description:
-      "MEMBERSHIP TIER — Full access to the Presttige network, with the right to suggest new members. A founding rate locked for your first year.",
+      "PRESENCE — A central position within the network, with the right to introduce proposals to the committee.",
   },
   club: {
     slug: "club",
-    eyebrow: "MEMBERSHIP TIER",
+    eyebrow: "ENTRY",
     label: "Club",
-    price: "$22.22 / month · $99.99 / 6 months · $144.44 / year",
-    price_short: "$22.22 / month · $99.99 / 6 months · $144.44 / year",
-    billing: "y1_prepay",
-    renewal: "Renews at $22.22/month, $99.99/6 months, or $144.44/year.",
+    price: "$144.44 / year",
+    price_short: "$144.44 / year",
+    billing: "yearly",
+    renewal: "Annual. At your discretion.",
     checkout_description:
-      "MEMBERSHIP TIER — The entry to the Presttige network. Founding-rate access for your first year, and the option to upgrade to Patron at any time before 31 December 2026.",
-  },
-  founder: {
-    slug: "founder",
-    eyebrow: "FOUNDING TIER",
-    label: "Founder",
-    price: "$9,999 lifetime",
-    price_short: "$9,999 lifetime",
-    billing: "lifetime",
-    renewal: null,
-    checkout_description:
-      "FOUNDING TIER — Reserved founder access with a single lifetime payment and the deepest Presttige relationship.",
+      "ENTRY — Your entry into the network.",
   },
 };
 
@@ -89,121 +73,12 @@ async function loadPriceIds() {
   );
 
   const byName = new Map((response.Parameters || []).map((parameter) => [parameter.Name, parameter.Value]));
-  cachedPriceIds = Object.fromEntries(
-    Object.entries(PRICE_PARAMETER_NAMES).map(([key, parameterName]) => [
-      key,
-      byName.get(parameterName) || null,
-    ])
-  );
+  cachedPriceIds = {
+    club: byName.get(PRICE_PARAMETER_NAMES.club) || null,
+    premier: byName.get(PRICE_PARAMETER_NAMES.premier) || null,
+    patron: byName.get(PRICE_PARAMETER_NAMES.patron) || null,
+  };
   return cachedPriceIds;
-}
-
-function buildBillingChoice(contractKey, billing, label, priceId) {
-  return {
-    contract_key: contractKey,
-    billing,
-    label,
-    price_id: priceId,
-  };
-}
-
-function buildTierPayload(priceIds) {
-  return {
-    subscriber: {
-      ...TIER_DEFINITIONS.subscriber,
-      price_id: null,
-      price_ids: {},
-      billing_choices: [],
-    },
-    patron: {
-      ...TIER_DEFINITIONS.patron,
-      price_id: priceIds.patron_yearly,
-      price_ids: {
-        yearly: priceIds.patron_yearly,
-      },
-      billing_choices: [
-        buildBillingChoice(
-          "patron_yearly",
-          "yearly",
-          "$999 / year",
-          priceIds.patron_yearly
-        ),
-      ],
-    },
-    premier: {
-      ...TIER_DEFINITIONS.premier,
-      price_id: priceIds.premier_yearly,
-      price_ids: {
-        monthly: priceIds.premier_monthly,
-        semi_annual: priceIds.premier_semi_annual,
-        yearly: priceIds.premier_yearly,
-      },
-      billing_choices: [
-        buildBillingChoice(
-          "premier_monthly",
-          "monthly",
-          "$55.55 / month",
-          priceIds.premier_monthly
-        ),
-        buildBillingChoice(
-          "premier_semi_annual",
-          "semi_annual",
-          "$277.77 / 6 months",
-          priceIds.premier_semi_annual
-        ),
-        buildBillingChoice(
-          "premier_yearly",
-          "yearly",
-          "$388.88 / year",
-          priceIds.premier_yearly
-        ),
-      ],
-    },
-    club: {
-      ...TIER_DEFINITIONS.club,
-      price_id: priceIds.club_yearly,
-      price_ids: {
-        monthly: priceIds.club_monthly,
-        semi_annual: priceIds.club_semi_annual,
-        yearly: priceIds.club_yearly,
-      },
-      billing_choices: [
-        buildBillingChoice(
-          "club_monthly",
-          "monthly",
-          "$22.22 / month",
-          priceIds.club_monthly
-        ),
-        buildBillingChoice(
-          "club_semi_annual",
-          "semi_annual",
-          "$99.99 / 6 months",
-          priceIds.club_semi_annual
-        ),
-        buildBillingChoice(
-          "club_yearly",
-          "yearly",
-          "$144.44 / year",
-          priceIds.club_yearly
-        ),
-      ],
-    },
-    founder: {
-      ...TIER_DEFINITIONS.founder,
-      price_id: priceIds.founder_lifetime,
-      price_ids: {
-        lifetime: priceIds.founder_lifetime,
-      },
-      billing_choices: [
-        buildBillingChoice(
-          "founder_lifetime",
-          "lifetime",
-          "$9,999 lifetime",
-          priceIds.founder_lifetime
-        ),
-      ],
-    },
-  };
 }
 
 async function findLeadByMagicToken(token) {
@@ -260,7 +135,24 @@ exports.handler = async (event) => {
         email: lead.email || null,
       },
       upgrade_eligible_until: UPGRADE_ELIGIBLE_UNTIL,
-      tiers: buildTierPayload(priceIds),
+      tiers: {
+        subscriber: {
+          ...TIER_DEFINITIONS.subscriber,
+          price_id: null,
+        },
+        patron: {
+          ...TIER_DEFINITIONS.patron,
+          price_id: priceIds.patron,
+        },
+        premier: {
+          ...TIER_DEFINITIONS.premier,
+          price_id: priceIds.premier,
+        },
+        club: {
+          ...TIER_DEFINITIONS.club,
+          price_id: priceIds.club,
+        },
+      },
     });
   } catch (error) {
     console.error("tier-select-fetch error", error);

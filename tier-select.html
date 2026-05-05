@@ -11,7 +11,7 @@
   <style>
     :root {
       --pp-black: #0A0A0A;
-      --pp-gold: #8C7040;
+      --pp-gold: #8A7544;
       --pp-paper: #FBF9F4;
       --pp-background: #F5F2ED;
       --pp-subscriber: #F8F4E8;
@@ -241,32 +241,6 @@
       margin-top: 6px;
     }
 
-    .billing {
-      display: inline-grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      padding: 6px;
-      border: 1px solid rgba(140, 112, 64, 0.16);
-      background: rgba(140, 112, 64, 0.04);
-    }
-
-    .billing__button {
-      min-height: 42px;
-      padding: 10px 12px;
-      border: 0;
-      background: transparent;
-      color: var(--pp-muted);
-      font: inherit;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 140ms ease, color 140ms ease;
-    }
-
-    .billing__button[aria-pressed="true"] {
-      background: var(--pp-gold);
-      color: var(--pp-paper);
-    }
-
     .actions {
       display: grid;
       gap: 12px;
@@ -284,10 +258,10 @@
       background: var(--pp-gold);
       color: var(--pp-paper);
       font: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      text-transform: none;
       cursor: pointer;
       text-decoration: none;
       transition: opacity 140ms ease, transform 140ms ease;
@@ -303,24 +277,12 @@
       opacity: 0.65;
     }
 
-    .button--secondary {
-      background: transparent;
-      color: var(--pp-gold);
-    }
-
     .button--subscriber {
       border-color: var(--pp-gold);
       background: var(--pp-gold);
       color: var(--pp-paper);
       letter-spacing: 0.02em;
       text-transform: none;
-    }
-
-    .helper {
-      margin: 0;
-      color: var(--pp-muted);
-      font-size: 13px;
-      line-height: 1.6;
     }
 
     .callout {
@@ -372,6 +334,68 @@
       background: rgba(138, 117, 68, 0.4);
     }
 
+    .comparison-wrap {
+      background: #FFFFFF;
+    }
+
+    .comparison {
+      width: 100%;
+      border-collapse: collapse;
+      background: #FFFFFF;
+    }
+
+    .comparison th,
+    .comparison td {
+      padding: 16px 14px;
+      border-bottom: 1px solid #DDDDDD;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .comparison th:first-child {
+      padding-left: 0;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-align: left;
+      text-transform: uppercase;
+    }
+
+    .comparison th:not(:first-child) {
+      color: #1A1A1A;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .comparison td:first-child {
+      padding-left: 0;
+      color: #1A1A1A;
+    }
+
+    .comparison td:not(:first-child) {
+      color: #1A1A1A;
+      text-align: center;
+    }
+
+    .comparison-mark {
+      color: var(--pp-gold);
+      font-weight: 600;
+    }
+
+    .comparison-note {
+      color: #1A1A1A;
+      font-weight: 400;
+    }
+
+    .comparison-empty {
+      color: #999999;
+    }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -417,8 +441,53 @@
         padding-top: 0;
       }
 
-      .billing {
+      .comparison thead {
+        display: none;
+      }
+
+      .comparison,
+      .comparison tbody,
+      .comparison tr,
+      .comparison td {
+        display: block;
         width: 100%;
+      }
+
+      .comparison tr {
+        padding: 18px 0;
+        border-bottom: 1px solid #DDDDDD;
+      }
+
+      .comparison td {
+        padding: 0;
+        border: 0;
+      }
+
+      .comparison td:first-child {
+        margin-bottom: 12px;
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .comparison td[data-tier-label] {
+        display: inline-flex;
+        width: auto;
+        align-items: center;
+        margin: 0 8px 8px 0;
+        padding: 8px 12px;
+        border: 1px solid #DDDDDD;
+        background: #FFFFFF;
+        font-size: 14px;
+      }
+
+      .comparison td[data-tier-label]::before {
+        content: attr(data-tier-label);
+        margin-right: 8px;
+        color: #1A1A1A;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
     }
   </style>
@@ -531,15 +600,80 @@
         },
       };
 
-      const BILLING_LABELS = {
-        club_monthly: "$22.22 / month",
-        club_quarterly: "$99.99 / 6 months",
-        club_yearly: "$144.44 / year",
-        premier_monthly: "$55.55 / month",
-        premier_quarterly: "$277.77 / 6 months",
-        premier_yearly: "$388.88 / year",
-        patron_yearly: "$999 / year",
-      };
+      const COMPARISON_ROWS = [
+        {
+          feature: "Member directory",
+          values: {
+            subscriber: "—",
+            club: "✓",
+            premier: "✓",
+            patron: "✓",
+          },
+        },
+        {
+          feature: "Network communications",
+          values: {
+            subscriber: "—",
+            club: "✓",
+            premier: "✓",
+            patron: "✓",
+          },
+        },
+        {
+          feature: "Event invitations",
+          values: {
+            subscriber: "—",
+            club: "✓",
+            premier: "✓",
+            patron: "✓",
+          },
+        },
+        {
+          feature: "Proposal rights",
+          values: {
+            subscriber: "—",
+            club: "—",
+            premier: "✓",
+            patron: "✓ priority",
+          },
+        },
+        {
+          feature: "Direct founder line",
+          values: {
+            subscriber: "—",
+            club: "—",
+            premier: "—",
+            patron: "✓",
+          },
+        },
+        {
+          feature: "Concierge in key cities",
+          values: {
+            subscriber: "—",
+            club: "—",
+            premier: "—",
+            patron: "✓",
+          },
+        },
+        {
+          feature: "Services beyond programme",
+          values: {
+            subscriber: "—",
+            club: "—",
+            premier: "—",
+            patron: "✓",
+          },
+        },
+        {
+          feature: "Private events",
+          values: {
+            subscriber: "—",
+            club: "—",
+            premier: "—",
+            patron: "✓",
+          },
+        },
+      ];
 
       if (!state.token) {
         renderFatal("Missing tier-selection token.");
@@ -586,6 +720,7 @@
               ${renderPaidCard("patron", state.context.options.patron)}
             </div>
             <div class="tier-divider" aria-hidden="true"></div>
+            ${renderComparisonTable()}
           </section>
         `;
       }
@@ -622,10 +757,9 @@
             ${copy.sections.map(renderSection).join("")}
             ${copy.closing ? `<p class="copy closing">${escapeHtml(copy.closing)}</p>` : ""}
             <div class="actions">
-              <button type="button" class="button ${tier === "patron" ? "" : "button--secondary"}" data-begin-checkout="${escapeHtml(currentContractKey)}" ${isBusy(currentContractKey) ? "disabled" : ""}>
+              <button type="button" class="button" data-begin-checkout="${escapeHtml(currentContractKey)}" ${isBusy(currentContractKey) ? "disabled" : ""}>
                 ${isBusy(currentContractKey) ? "Loading…" : escapeHtml(buttonLabel(tier, option))}
               </button>
-              <p class="helper">The next page keeps you on presttige.net for payment confirmation.</p>
             </div>
           </article>
         `;
@@ -676,28 +810,51 @@
         `;
       }
 
-      function renderBillingToggle(tier, choices) {
+      function renderComparisonTable() {
         return `
-          <div class="billing" role="group" aria-label="${escapeHtml(titleCase(tier))} billing">
-            ${choices
-              .map((choice) => {
-                const selected = state.selectedBilling[tier] === choice.billing;
-                return `<button type="button" class="billing__button" data-billing-choice="${escapeHtml(tier)}:${escapeHtml(choice.billing)}" aria-pressed="${selected ? "true" : "false"}">${escapeHtml(choice.label)}</button>`;
-              })
-              .join("")}
+          <div class="comparison-wrap">
+            <table class="comparison">
+              <thead>
+                <tr>
+                  <th scope="col">Feature</th>
+                  <th scope="col">Subscriber</th>
+                  <th scope="col">Club</th>
+                  <th scope="col">Premier</th>
+                  <th scope="col">Patron</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${COMPARISON_ROWS.map(renderComparisonRow).join("")}
+              </tbody>
+            </table>
           </div>
         `;
       }
 
-      function bind() {
-        app.querySelectorAll("[data-billing-choice]").forEach((button) => {
-          button.addEventListener("click", () => {
-            const [tier, billing] = button.getAttribute("data-billing-choice").split(":");
-            state.selectedBilling[tier] = billing;
-            render();
-          });
-        });
+      function renderComparisonRow(row) {
+        return `
+          <tr>
+            <td>${escapeHtml(row.feature)}</td>
+            ${renderComparisonCell("Subscriber", row.values.subscriber)}
+            ${renderComparisonCell("Club", row.values.club)}
+            ${renderComparisonCell("Premier", row.values.premier)}
+            ${renderComparisonCell("Patron", row.values.patron)}
+          </tr>
+        `;
+      }
 
+      function renderComparisonCell(label, value) {
+        let content = `<span class="comparison-empty">—</span>`;
+
+        if (value !== "—") {
+          const [mark, note] = String(value).split(" ", 2);
+          content = `<span class="comparison-mark">${escapeHtml(mark)}</span>${note ? ` <span class="comparison-note">${escapeHtml(note)}</span>` : ""}`;
+        }
+
+        return `<td data-tier-label="${escapeHtml(label)}">${content}</td>`;
+      }
+
+      function bind() {
         app.querySelectorAll("[data-begin-checkout]").forEach((button) => {
           button.addEventListener("click", async () => {
             const contractKey = button.getAttribute("data-begin-checkout");
@@ -717,12 +874,12 @@
         try {
           const contract = findContract(contractKey);
           if (!contract) {
-            renderFatal("This route does not allow that membership choice.");
+            renderFatal("This link does not allow that membership choice.");
             return;
           }
 
           if (!state.leadId || !state.context.token?.magicToken) {
-            renderFatal("This route cannot mint a checkout token yet. Please request a new link.");
+            renderFatal("This link cannot open checkout yet. Please request a new one.");
             return;
           }
 
@@ -768,37 +925,15 @@
 
         state.loadingAction = "subscriber";
         render();
-
-        try {
-          const response = await fetch(`${API_BASE}/activate-subscriber`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              token: state.context.token.magicToken,
-            }),
-          });
-          const data = await response.json();
-
-          if (!response.ok || !data.redirect_url) {
-            renderFatal(data.error || "Unable to activate Subscriber right now.");
-            return;
-          }
-
-          window.location.assign(data.redirect_url);
-        } catch (error) {
-          renderFatal("Unable to activate Subscriber right now.");
-        } finally {
-          state.loadingAction = "";
-        }
+        const subscriberUrl = `/subscriber-activated/${encodeURIComponent(state.context.token.magicToken)}?mode=confirm`;
+        window.location.assign(subscriberUrl);
       }
 
       function buildTierCallout(tier, option) {
         if (tier === "patron" && option.displayMode === "upgrade") {
           return {
             label: "Upgrade window",
-            body: `This route applies the ${titleCase(option.upgradeFrom)} to Patron upgrade rate today.`,
+            body: `This selection applies the ${titleCase(option.upgradeFrom)} to Patron upgrade rate today.`,
           };
         }
 
@@ -817,26 +952,9 @@
 
       function buttonLabel(tier, option) {
         if (tier === "patron" && option.displayMode === "upgrade") {
-          return "Continue to Patron Upgrade";
+          return "Choose Patron";
         }
-        return `Continue to ${COPY[tier].title}`;
-      }
-
-      function describePrice(option, tier) {
-        if (!option) {
-          return "";
-        }
-
-        if (option.displayMode === "upgrade") {
-          return `$${formatUsd(option.initialChargeUsdCents)} today, then $${formatUsd(option.renewalAmountUsdCents)} / year`;
-        }
-
-        if (option.billingChoices && option.billingChoices.length > 1) {
-          const active = option.billingChoices.find((choice) => choice.billing === state.selectedBilling[tier]) || option.billingChoices[0];
-          return BILLING_LABELS[active.contractKey] || active.label;
-        }
-
-        return BILLING_LABELS[option.contractKey] || option.label || "";
+        return `Choose ${COPY[tier].title}`;
       }
 
       function describeHeadlinePrice(option, tier) {
@@ -849,16 +967,16 @@
         }
 
         if (tier === "club") {
-          return BILLING_LABELS.club_yearly;
+          return "$144.44 / year";
         }
         if (tier === "premier") {
-          return BILLING_LABELS.premier_yearly;
+          return "$388.88 / year";
         }
         if (tier === "patron") {
-          return BILLING_LABELS.patron_yearly;
+          return "$999 / year";
         }
 
-        return describePrice(option, tier);
+        return "";
       }
 
       function describePriceNote(tier) {

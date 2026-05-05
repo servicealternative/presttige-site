@@ -10,15 +10,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --pp-black: #0A0A0A;
-      --pp-gold: #8C7040;
-      --pp-paper: #FBF9F4;
-      --pp-background: #F5F2ED;
+      --pp-black: #1A1A1A;
+      --pp-gold: #8A7544;
+      --pp-paper: #FFFFFF;
+      --pp-background: #FFFFFF;
       --pp-hairline: #D8D1C3;
       --pp-muted: #5F5B54;
-      --pp-error: #8B1E1E;
       --pp-success-tint: rgba(140, 112, 64, 0.08);
-      --pp-error-tint: rgba(139, 30, 30, 0.08);
       --pp-shadow: 0 24px 60px rgba(10, 10, 10, 0.06);
     }
 
@@ -32,9 +30,7 @@
       display: grid;
       place-items: center;
       padding: 24px;
-      background:
-        radial-gradient(circle at top left, rgba(140, 112, 64, 0.06), transparent 28%),
-        linear-gradient(180deg, #F8F5EF 0%, var(--pp-background) 100%);
+      background: var(--pp-background);
       color: var(--pp-black);
       font-family: "Source Serif 4", Georgia, serif;
     }
@@ -65,11 +61,18 @@
       background: rgba(140, 112, 64, 0.035);
     }
 
-    .brand-logo {
-      display: block;
-      width: min(220px, 100%);
-      height: auto;
+    .brand-mark {
+      width: 86px;
+      height: 86px;
+      display: grid;
+      place-items: center;
       margin-bottom: 18px;
+      border: 1px solid rgba(140, 112, 64, 0.42);
+      color: var(--pp-gold);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 58px;
+      font-style: italic;
+      line-height: 1;
     }
 
     .status-steps {
@@ -133,8 +136,7 @@
       line-height: 1.8;
     }
 
-    .callout,
-    .failure {
+    .callout {
       margin-top: 22px;
       padding: 16px 18px;
       font-size: 14px;
@@ -145,12 +147,6 @@
       border: 1px solid rgba(140, 112, 64, 0.18);
       background: var(--pp-success-tint);
       color: var(--pp-black);
-    }
-
-    .failure {
-      border: 1px solid rgba(139, 30, 30, 0.2);
-      background: var(--pp-error-tint);
-      color: var(--pp-error);
     }
 
     .actions {
@@ -170,10 +166,10 @@
       background: var(--pp-gold);
       color: var(--pp-paper);
       font: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      text-transform: none;
       text-decoration: none;
     }
 
@@ -273,7 +269,7 @@
         app.innerHTML = `
           <div class="processing-layout">
             <aside class="processing-panel">
-              <img class="brand-logo" src="/assets/images/presttige-p-lettering-no-fund.svg" alt="Presttige">
+              <div class="brand-mark" aria-hidden="true">P</div>
               <p class="eyebrow">Welcome to Presttige</p>
               <p class="copy">Your membership path is being prepared with care.</p>
             </aside>
@@ -301,15 +297,24 @@
         app.className = "card";
         const retryUrl = status.retryUrl || "";
         app.innerHTML = `
-          <p class="eyebrow">Payment Not Confirmed</p>
-          <h1 class="title">This payment still needs attention.</h1>
-          <p class="copy">The checkout did not finish cleanly. You can retry the payment from the same embedded checkout page, or request a fresh link if this route is no longer valid.</p>
-          <div class="failure">We could not confirm the payment automatically. Please retry from checkout or request a fresh link.</div>
+          <h1 class="title">Payment not confirmed</h1>
+          <p class="copy">Your transaction did not complete.</p>
+          <p class="copy" style="margin-top:18px;">You may return to checkout to finish, or request a new link at your convenience.</p>
           <div class="actions">
-            ${retryUrl ? `<a class="button" href="${escapeHtml(retryUrl)}">Retry payment</a>` : ""}
+            ${
+              retryUrl
+                ? `<a class="button" href="${escapeHtml(retryUrl)}">Return to checkout</a>`
+                : `<button type="button" class="button" data-history-back="true">Return to checkout</button>`
+            }
             <a class="button button--secondary" href="${REQUEST_NEW_LINK}">Request a new link</a>
           </div>
         `;
+        const historyButton = app.querySelector("[data-history-back]");
+        if (historyButton) {
+          historyButton.addEventListener("click", () => {
+            window.history.back();
+          });
+        }
       }
 
       function renderLegacySuccess(data) {
