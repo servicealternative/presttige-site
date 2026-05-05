@@ -338,7 +338,6 @@ function buildFounderOptions() {
 }
 
 function buildResponseBody(lead, tokenType) {
-  const founderOnly = isFounderOnlyLead(lead);
   const checkoutToken = normalizeString(lead[LEAD_PAYMENT_FIELDS.checkoutToken]);
   const magicToken = normalizeString(lead.magic_token);
   const paymentStatus = normalizeString(
@@ -378,10 +377,10 @@ function buildResponseBody(lead, tokenType) {
       Boolean(checkoutToken) &&
       normalizeString(lead[LEAD_PAYMENT_FIELDS.checkoutTokenStatus]).toLowerCase() ===
         "active",
-    tierVisibility: founderOnly ? "founder_only" : "standard",
+    tierVisibility: "standard",
     upgradeEligibleUntil: UPGRADE_ELIGIBLE_UNTIL,
     hasActiveMembership: ACTIVE_MEMBERSHIP_STATES.has(paymentStatus),
-    options: founderOnly ? buildFounderOptions() : buildStandardOptions(lead),
+    options: buildStandardOptions(lead),
   };
 }
 
@@ -394,9 +393,7 @@ function formatUsd(cents) {
 }
 
 function listAllowedContractKeys(lead) {
-  const options = isFounderOnlyLead(lead)
-    ? buildFounderOptions()
-    : buildStandardOptions(lead);
+  const options = buildStandardOptions(lead);
   const allowed = new Set();
 
   for (const option of Object.values(options)) {

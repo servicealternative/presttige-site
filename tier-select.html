@@ -14,6 +14,7 @@
       --pp-gold: #8C7040;
       --pp-paper: #FBF9F4;
       --pp-background: #F5F2ED;
+      --pp-subscriber: #F8F4E8;
       --pp-stone: #E8E4DA;
       --pp-muted: #5F5B54;
       --pp-hairline: #D8D1C3;
@@ -66,8 +67,8 @@
     .masthead {
       position: relative;
       display: grid;
-      gap: 14px;
-      margin-bottom: 26px;
+      gap: 18px;
+      margin-bottom: 30px;
       padding-right: min(260px, 28vw);
     }
 
@@ -82,19 +83,20 @@
 
     .title {
       margin: 0;
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: clamp(42px, 6vw, 72px);
-      font-style: italic;
-      font-weight: 500;
-      line-height: 0.95;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(36px, 4vw, 48px);
+      font-style: normal;
+      font-weight: 700;
+      line-height: 1.1;
     }
 
     .lede {
-      max-width: 760px;
+      max-width: 620px;
       margin: 0;
       color: var(--pp-muted);
-      font-size: 18px;
-      line-height: 1.75;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(19px, 2vw, 23px);
+      line-height: 1.5;
     }
 
     .candidate-name {
@@ -114,22 +116,16 @@
     }
 
     .grid--standard {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      grid-template-areas:
-        "premier premier patron patron club club"
-        "founder founder founder subscriber subscriber subscriber";
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       align-items: stretch;
-    }
-
-    .grid--founder {
-      grid-template-columns: minmax(0, 1fr);
     }
 
     .card {
       position: relative;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
+      height: 100%;
       padding: 28px 28px 26px;
       border: 1px solid var(--pp-hairline);
       background: var(--pp-paper);
@@ -137,8 +133,7 @@
       overflow: hidden;
     }
 
-    .card--patron,
-    .card--founder {
+    .card--patron {
       border-color: rgba(140, 112, 64, 0.45);
       background:
         radial-gradient(circle at top right, rgba(140, 112, 64, 0.14), transparent 34%),
@@ -146,113 +141,77 @@
     }
 
     .card--patron {
-      grid-area: patron;
       padding-top: 32px;
     }
 
-    .card--premier {
-      grid-area: premier;
-    }
-
-    .card--club {
-      grid-area: club;
-    }
-
     .card--subscriber {
-      grid-area: subscriber;
-      justify-content: space-between;
-    }
-
-    .card--founder-summary {
-      grid-area: founder;
-      border-color: rgba(140, 112, 64, 0.28);
-      background:
-        radial-gradient(circle at top right, rgba(140, 112, 64, 0.08), transparent 30%),
-        var(--pp-paper);
-      justify-content: space-between;
-    }
-
-    .card--secondary-small {
-      gap: 14px;
-      padding: 24px 24px 22px;
-    }
-
-    .stamp {
-      position: absolute;
-      top: 24px;
-      right: 24px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 60px;
-      padding: 12px 24px 10px;
-      border: 2px solid var(--pp-gold);
-      box-shadow: inset 0 0 0 1px rgba(140, 112, 64, 0.22);
-      background: linear-gradient(180deg, rgba(140, 112, 64, 0.06), rgba(140, 112, 64, 0.02));
-      color: var(--pp-gold);
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: clamp(18px, 2vw, 24px);
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      white-space: nowrap;
-      transform: rotate(8deg);
-      transform-origin: center;
-      max-width: calc(100% - 48px);
-    }
-
-    .stamp::after {
-      content: "";
-      position: absolute;
-      inset: 5px;
-      border: 1px solid rgba(140, 112, 64, 0.7);
-      pointer-events: none;
+      background: var(--pp-subscriber);
     }
 
     .card-header {
       display: grid;
-      gap: 10px;
-      padding-right: 88px;
+      gap: 12px;
+      padding-right: 0;
+    }
+
+    .card-label {
+      margin: 0;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
     }
 
     .card-title {
       margin: 0;
       font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: clamp(36px, 4vw, 58px);
-      font-style: italic;
-      font-weight: 500;
-      line-height: 0.94;
+      font-size: clamp(34px, 3.2vw, 44px);
+      font-style: normal;
+      font-weight: 600;
+      line-height: 1.02;
     }
 
     .card-title--compact {
-      font-size: clamp(32px, 3vw, 42px);
+      font-size: clamp(34px, 3.2vw, 44px);
     }
 
     .price {
       margin: 0;
-      font-size: 20px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22px;
+      font-weight: 400;
       line-height: 1.45;
     }
 
     .price-note {
-      margin: -6px 0 0;
+      margin: -8px 0 0;
       color: var(--pp-muted);
-      font-size: 15px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 16px;
+      font-style: italic;
+      font-weight: 400;
       line-height: 1.5;
-    }
-
-    .renewal {
-      margin: -4px 0 0;
-      color: var(--pp-muted);
-      font-size: 14px;
-      line-height: 1.55;
     }
 
     .copy {
       margin: 0;
       color: var(--pp-muted);
+      font-family: Georgia, "Times New Roman", serif;
       font-size: 16px;
-      line-height: 1.72;
+      line-height: 1.65;
+    }
+
+    .copy-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .closing {
+      color: var(--pp-gold);
+      font-size: 15px;
+      font-style: italic;
+      line-height: 1.55;
     }
 
     .section {
@@ -262,6 +221,7 @@
 
     .section-title {
       margin: 0 0 10px;
+      color: var(--pp-gold);
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.18em;
@@ -270,7 +230,8 @@
 
     .list {
       margin: 0;
-      padding-left: 18px;
+      padding: 0;
+      list-style: none;
       color: var(--pp-muted);
       font-size: 15px;
       line-height: 1.62;
@@ -348,9 +309,11 @@
     }
 
     .button--subscriber {
-      border-color: var(--pp-black);
-      background: var(--pp-black);
+      border-color: var(--pp-gold);
+      background: var(--pp-gold);
       color: var(--pp-paper);
+      letter-spacing: 0.02em;
+      text-transform: none;
     }
 
     .helper {
@@ -398,6 +361,17 @@
       line-height: 1.7;
     }
 
+    .standard-view {
+      display: grid;
+      gap: 22px;
+    }
+
+    .tier-divider {
+      width: 100%;
+      height: 1px;
+      background: rgba(138, 117, 68, 0.4);
+    }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -409,22 +383,7 @@
       border: 0;
     }
 
-    @media (max-width: 1100px) {
-      .grid--standard {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-areas:
-          "patron patron"
-          "premier club"
-          "founder subscriber";
-      }
-
-      .card--patron .card-header,
-      .card--founder .card-header {
-        padding-right: 84px;
-      }
-    }
-
-    @media (max-width: 760px) {
+    @media (max-width: 767px) {
       .shell {
         padding-inline: 16px;
       }
@@ -440,42 +399,22 @@
       }
 
       .title {
-        font-size: 54px;
+        font-size: 38px;
       }
 
-      .grid--standard,
-      .grid--founder {
+      .grid--standard {
         grid-template-columns: minmax(0, 1fr);
         grid-template-areas: none;
       }
 
-      .card--patron,
-      .card--premier,
-      .card--club,
-      .card--founder-summary,
-      .card--subscriber {
-        grid-area: auto;
-      }
-
       .card,
-      .card--patron,
-      .card--founder,
-      .card--founder-summary {
+      .card--patron {
         padding: 24px 22px 22px;
-      }
-
-      .stamp {
-        top: 18px;
-        right: 18px;
-        min-height: 48px;
-        padding: 9px 16px 8px;
-        font-size: 15px;
-        transform: rotate(4deg);
       }
 
       .card-header {
         padding-right: 0;
-        padding-top: 58px;
+        padding-top: 0;
       }
 
       .billing {
@@ -512,128 +451,94 @@
 
       const COPY = {
         subscriber: {
-          eyebrow: "ENTRY PATH",
+          label: "ACCESS POINT",
           title: "Subscriber",
-          lead:
-            "You are approved. Confirm your subscription with no payment today, and decide your tier when you are ready.",
-          closing:
-            "Subscriber is your post-approval position — a recognised presence in the Presttige system, without yet choosing a paid tier. Your account is preserved, your record is held privately, and the path to Club, Premier, or Patron remains open whenever you are ready.",
-          sections: [],
-          cta: "Join as Subscriber",
+          bodyLines: [
+            "You have been approved.",
+            "No payment required at this stage.",
+            "Your place is recognised. Your tier — Club, Premier, or Patron — is yours to choose, when you choose.",
+          ],
+          cta: "Confirm subscription",
         },
         club: {
-          eyebrow: "MEMBERSHIP TIER",
+          label: "ENTRY",
           title: "Club",
-          lead:
-            "The entry to the Presttige network. Directory access, full communications, and the curated rhythm of network life.",
+          leadLines: ["Your entry into the network."],
           sections: [
             {
-              title: "Included",
+              title: "INCLUDES",
               items: [
-                "Member directory inclusion",
-                "Full network communications and curated updates",
-                "Access to network-wide events",
+                "— The member directory",
+                "— Network communications",
+                "— Invitations to gatherings",
               ],
             },
             {
-              title: "Club Privileges",
-              items: [
-                "Member directory inclusion",
-                "Full network communications",
-                "Curated updates and announcements",
-                "Access to network-wide events",
-              ],
-            },
-            {
-              title: "Renewal",
-              items: ["Cancel anytime."],
+              title: "RENEWAL",
+              body: "Annual. At your discretion.",
             },
           ],
-          closing:
-            "Club is your entry to Presttige — the working membership where the network's rhythm becomes part of your week.",
+          closing: "Club is where you begin.",
         },
         premier: {
-          eyebrow: "MEMBERSHIP TIER",
+          label: "PRESENCE",
           title: "Premier",
-          lead:
-            "Full network access with proposal rights and a stronger voice in the committee pipeline.",
+          leadLines: [
+            "A central position within the network, with the right to introduce proposals to the committee.",
+          ],
           sections: [
             {
-              title: "Included",
+              title: "INCLUDES",
               items: [
-                "Member directory inclusion",
-                "Proposal rights with committee priority value",
-                "Full network communications and curated updates",
+                "— The member directory",
+                "— Proposal rights, with priority review",
+                "— Network communications",
+                "— Invitations to selected gatherings",
               ],
             },
             {
-              title: "Premier Privileges",
-              items: [
-                "Member directory inclusion",
-                "Proposal rights with committee priority",
-                "Full network communications and curated updates",
-                "Invitations to selected member events",
-              ],
-            },
-            {
-              title: "Renewal",
-              items: ["Cancel anytime."],
+              title: "RENEWAL",
+              body: "Annual. At your discretion.",
             },
           ],
-          closing:
-            "Premier sits at the heart of the Presttige program — full network access, proposal weight, and the rhythm of a network that meets regularly.",
+          closing: "Premier is where access becomes influence.",
         },
         patron: {
-          eyebrow: "HIGHEST TIER · BY EXCEPTION",
+          label: "BY EXCEPTION",
           title: "Patron",
-          lead:
-            "Presttige at the closest range: full network access, direct line to founders, proposal weight, and the curated add-on services that sit above the wider member program.",
+          leadLines: [
+            "The closest position to Presttige.",
+            "A direct line into the network and its founders.",
+          ],
           sections: [
             {
-              title: "Included",
+              title: "INCLUDES",
               items: [
-                "Full network access and member directory inclusion",
-                "Founder line and add-on services access",
-                "Strongest proposal weight across paid tiers",
+                "— Full network access",
+                "— Direct founder line",
+                "— Priority within the proposal process",
+                "— Invitations to private events and gatherings",
+                "— Concierge in key cities",
+                "— Access to select services beyond the programme",
               ],
             },
             {
-              title: "Presttige Privileges",
-              items: [
-                "Exclusive concierge line in main cities",
-                "Random Presttige-issued event invitations",
-                "Access to business conferences, webinars, and meetings",
-                "Random invitations to Founder-only event overflow",
-              ],
-            },
-            {
-              title: "Renewal",
-              items: ["Cancel anytime."],
+              title: "RENEWAL",
+              body: "By annual conversation.",
             },
           ],
-          closing:
-            "Patron is the closest path to Presttige's full network — a yearly membership where every privilege of the wider program is available without exception.",
-        },
-        founder: {
-          eyebrow: "FOUNDER INVITATION · REFERRAL REQUIRED",
-          title: "Founder",
-          lead: "By exception. Invitation only.",
-          sections: [],
-          cta: "Continue to Founder Checkout",
+          closing: "Patron is not an upgrade. It is proximity.",
         },
       };
 
       const BILLING_LABELS = {
         club_monthly: "$22.22 / month",
-        club_semi_annual: "$99.99 / 6 months",
+        club_quarterly: "$99.99 / 6 months",
         club_yearly: "$144.44 / year",
-        club_quarterly: "$77 / quarter",
         premier_monthly: "$55.55 / month",
-        premier_semi_annual: "$277.77 / 6 months",
+        premier_quarterly: "$277.77 / 6 months",
         premier_yearly: "$388.88 / year",
-        premier_quarterly: "$111 / quarter",
         patron_yearly: "$999 / year",
-        founder_lifetime: "$9,999 lifetime",
       };
 
       if (!state.token) {
@@ -656,66 +561,36 @@
       }
 
       function render() {
-        const founderOnly = state.context.tierVisibility === "founder_only";
         const profileName = state.context.profile?.name || "Presttige candidate";
 
         app.className = "";
         app.innerHTML = `
           <section class="masthead">
             <div class="candidate-name">${escapeHtml(profileName)}</div>
-            <p class="eyebrow">Presttige Tier Selection</p>
-            <h1 class="title">${escapeHtml(founderOnly ? "Founder access" : "Choose your tier")}</h1>
-            <p class="lede">${
-              founderOnly
-                ? "This route is reserved for a Founder-eligible candidate whose referral and committee gate are already confirmed."
-                : "Select the membership posture that matches the access you want now. Patron remains the centre of the programme; Club and Premier frame the same network at different depths."
-            }</p>
+            <h1 class="title">Choose your tier</h1>
+            <p class="lede">Define your level of access within the network. Patron sits at the centre of the programme, while Club and Premier shape the same circle at more selective depths.</p>
           </section>
-          ${
-            founderOnly
-              ? renderFounderView()
-              : renderStandardView()
-          }
-          <p class="footer-note">If this link no longer matches the path you need, <a class="placeholder-link" href="${REQUEST_NEW_LINK}">request a new link</a>. The self-serve reissue flow lands in M-R6.</p>
+          ${renderStandardView()}
+          <p class="footer-note">If this link no longer works, <a class="placeholder-link" href="${REQUEST_NEW_LINK}">request a new one</a>.</p>
         `;
         bind();
       }
 
       function renderStandardView() {
         return `
-          <section class="grid grid--standard" data-tier-visibility="standard">
-            ${renderPaidCard("patron", state.context.options.patron, { dominant: true })}
-            ${renderPaidCard("premier", state.context.options.premier)}
-            ${renderPaidCard("club", state.context.options.club)}
-            ${renderFounderSummaryCard()}
-            ${renderSubscriberCard()}
+          <section class="standard-view" data-tier-visibility="standard">
+            <div class="grid grid--standard">
+              ${renderSubscriberCard()}
+              ${renderPaidCard("club", state.context.options.club)}
+              ${renderPaidCard("premier", state.context.options.premier)}
+              ${renderPaidCard("patron", state.context.options.patron)}
+            </div>
+            <div class="tier-divider" aria-hidden="true"></div>
           </section>
         `;
       }
 
-      function renderFounderView() {
-        return `
-          <section class="grid grid--founder" data-tier-visibility="founder_only">
-            <article class="card card--founder" data-tier-card="founder">
-              <div class="stamp" aria-label="Become a founder — Founder tier">BECOME A FOUNDER</div>
-              <header class="card-header">
-                <p class="eyebrow">${escapeHtml(COPY.founder.eyebrow)}</p>
-                <h2 class="card-title">${escapeHtml(COPY.founder.title)}</h2>
-                <p class="price">$9,999 lifetime</p>
-                <p class="copy">${escapeHtml(COPY.founder.lead)}</p>
-              </header>
-              <div class="actions">
-                <button type="button" class="button" data-begin-checkout="founder_lifetime" ${isBusy("founder_lifetime") ? "disabled" : ""}>
-                  ${isBusy("founder_lifetime") ? "Loading…" : escapeHtml(COPY.founder.cta)}
-                </button>
-                <p class="helper">Only the Founder path is available on this route.</p>
-              </div>
-            </article>
-          </section>
-        `;
-      }
-
-      function renderPaidCard(tier, option, flags = {}) {
+      function renderPaidCard(tier, option) {
         const copy = COPY[tier];
         const cardClass = [
           "card",
@@ -727,18 +602,17 @@
           .join(" ");
         const currentContractKey = resolveActiveContractKey(tier, option);
         const selectedPrice = describeHeadlinePrice(option, tier);
-        const priceNote = describePriceNote(tier, option);
-        const titleClass = flags.dominant ? "card-title" : "card-title card-title--compact";
+        const priceNote = describePriceNote(tier);
         const callout = buildTierCallout(tier, option);
 
         return `
           <article class="${cardClass}" data-tier-card="${escapeHtml(tier)}">
             <header class="card-header">
-              <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
-              <h2 class="${titleClass}">${escapeHtml(copy.title)}</h2>
+              <p class="card-label">${escapeHtml(copy.label)}</p>
+              <h2 class="card-title card-title--compact">${escapeHtml(copy.title)}</h2>
               <p class="price" data-tier-price="${escapeHtml(tier)}">${escapeHtml(selectedPrice)}</p>
               ${priceNote ? `<p class="price-note">${escapeHtml(priceNote)}</p>` : ""}
-              <p class="copy">${escapeHtml(copy.lead)}</p>
+              ${renderCopyGroup(copy.leadLines)}
             </header>
             ${
               callout
@@ -746,12 +620,7 @@
                 : ""
             }
             ${copy.sections.map(renderSection).join("")}
-            ${copy.closing ? `<p class="copy">${escapeHtml(copy.closing)}</p>` : ""}
-            ${
-              option.billingChoices && option.billingChoices.length > 1
-                ? renderBillingToggle(tier, option.billingChoices)
-                : ""
-            }
+            ${copy.closing ? `<p class="copy closing">${escapeHtml(copy.closing)}</p>` : ""}
             <div class="actions">
               <button type="button" class="button ${tier === "patron" ? "" : "button--secondary"}" data-begin-checkout="${escapeHtml(currentContractKey)}" ${isBusy(currentContractKey) ? "disabled" : ""}>
                 ${isBusy(currentContractKey) ? "Loading…" : escapeHtml(buttonLabel(tier, option))}
@@ -762,35 +631,15 @@
         `;
       }
 
-      function renderFounderSummaryCard() {
-        const copy = COPY.founder;
-        const price = BILLING_LABELS.founder_lifetime;
-        return `
-          <article class="card card--founder-summary card--secondary-small" data-tier-card="founder">
-            <header class="card-header">
-              <p class="eyebrow">BY EXCEPTION</p>
-              <h2 class="card-title card-title--compact">${escapeHtml(copy.title)}</h2>
-              <p class="price">${escapeHtml(price)}</p>
-              <p class="copy">${escapeHtml(copy.lead)}</p>
-            </header>
-            <div class="actions">
-              <a class="button button--secondary" href="${REQUEST_NEW_LINK}">Invitation required</a>
-            </div>
-          </article>
-        `;
-      }
-
       function renderSubscriberCard() {
         const copy = COPY.subscriber;
         return `
           <article class="card card--subscriber" data-tier-card="subscriber">
             <header class="card-header">
-              <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
+              <p class="card-label">${escapeHtml(copy.label)}</p>
               <h2 class="card-title card-title--compact">${escapeHtml(copy.title)}</h2>
-              <p class="copy">${escapeHtml(copy.lead)}</p>
+              ${renderCopyGroup(copy.bodyLines)}
             </header>
-            ${copy.sections.map(renderSection).join("")}
-            ${copy.closing ? `<p class="copy">${escapeHtml(copy.closing)}</p>` : ""}
             <div class="actions">
               <button type="button" class="button button--subscriber" data-activate-subscriber="true" ${!state.context.token?.magicToken || isBusy("subscriber") ? "disabled" : ""}>
                 ${isBusy("subscriber") ? "Activating…" : escapeHtml(copy.cta)}
@@ -804,10 +653,26 @@
         return `
           <section class="section">
             <h3 class="section-title">${escapeHtml(section.title)}</h3>
-            <ul class="list">
-              ${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-            </ul>
+            ${
+              Array.isArray(section.items)
+                ? `<ul class="list">
+                    ${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                  </ul>`
+                : `<p class="copy">${escapeHtml(section.body || "")}</p>`
+            }
           </section>
+        `;
+      }
+
+      function renderCopyGroup(lines) {
+        if (!Array.isArray(lines) || lines.length === 0) {
+          return "";
+        }
+
+        return `
+          <div class="copy-group">
+            ${lines.map((line) => `<p class="copy">${escapeHtml(line)}</p>`).join("")}
+          </div>
         `;
       }
 
@@ -979,15 +844,6 @@
           return "";
         }
 
-        if (option.displayMode === "upgrade") {
-          return `$${formatUsd(option.initialChargeUsdCents)} today, then $${formatUsd(option.renewalAmountUsdCents)} / year`;
-        }
-
-        if (option.billingChoices && option.billingChoices.length > 1) {
-          const active = option.billingChoices.find((choice) => choice.billing === state.selectedBilling[tier]) || option.billingChoices[0];
-          return BILLING_LABELS[active.contractKey] || active.label;
-        }
-
         if (option.headlinePriceLabel) {
           return option.headlinePriceLabel;
         }
@@ -1001,27 +857,17 @@
         if (tier === "patron") {
           return BILLING_LABELS.patron_yearly;
         }
-        if (tier === "founder") {
-          return BILLING_LABELS.founder_lifetime;
-        }
 
         return describePrice(option, tier);
       }
 
-      function describePriceNote(tier, option) {
-        if (!option || !option.billingChoices || option.billingChoices.length === 0) {
-          return "";
-        }
-
-        const active = option.billingChoices.find((choice) => choice.billing === state.selectedBilling[tier]) || option.billingChoices[0];
-        const noteByContractKey = {
-          club_semi_annual: "≈ $16.67/month",
-          club_yearly: "≈ $12.04/month",
-          premier_semi_annual: "≈ $46.30/month",
-          premier_yearly: "≈ $32.41/month",
+      function describePriceNote(tier) {
+        const noteByTier = {
+          club: "$12.04 / month",
+          premier: "$32.41 / month",
         };
 
-        return noteByContractKey[active.contractKey] || "";
+        return noteByTier[tier] || "";
       }
 
       function findContract(contractKey) {
