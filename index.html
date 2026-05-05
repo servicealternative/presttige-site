@@ -26,6 +26,21 @@
   <script src="/assets/js/consent-banner.js" defer></script>
   <script>
     (function () {
+      const pathname = window.location.pathname;
+      const trimmedPath = pathname.replace(/\/+$/, "");
+      const subscriberMatch = pathname.match(/^\/subscriber\/([^/?#]+)\/?$/);
+
+      if (trimmedPath === "/payment-failed") {
+        window.location.replace(`/payment-failed/index.html${window.location.search}${window.location.hash}`);
+        return;
+      }
+
+      if (subscriberMatch) {
+        const token = encodeURIComponent(decodeURIComponent(subscriberMatch[1]));
+        window.location.replace(`/subscriber-activated/${token}${window.location.search}${window.location.hash}`);
+        return;
+      }
+
       if ('scrollRestoration' in history) {
         history.scrollRestoration = 'manual';
       }
@@ -419,7 +434,7 @@
       line-height: 1.15;
       font-family: var(--font-serif);
       font-size: 18px;
-      font-style: normal;
+      font-style: italic;
       font-weight: 400;
       letter-spacing: -0.01em;
     }
