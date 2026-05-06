@@ -10,6 +10,8 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1"
 const TABLE_NAME = "presttige-db";
 const FROM = "committee@presttige.net";
 const REPLY_TO = "committee@presttige.net";
+const PREVIEW_BANNER_HTML =
+  '<div style="margin:0 0 28px 0;padding:10px 14px;background:#353535;color:#D7D3CC;font-family:Georgia,serif;font-size:13px;line-height:1.5;font-style:italic;">PREVIEW MODE · No payment was processed · This journey will not appear in member records</div>';
 
 function loadTemplate() {
   return fs.readFileSync(path.join(__dirname, "tier-select-email.html"), "utf8");
@@ -52,7 +54,8 @@ exports.handler = async (event) => {
       return response(200, { already_sent: true });
     }
 
-    const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}?lead_id=${encodeURIComponent(lead.lead_id)}`;
+    const previewSuffix = lead.preview_mode ? "&preview=1" : "";
+    const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}?lead_id=${encodeURIComponent(lead.lead_id)}${previewSuffix}`;
     const html = fill(loadTemplate(), {
       subject: "Welcome to Presttige — Choose your membership",
       preheader: "Your application has been approved. Choose your preferred membership to continue.",
@@ -63,6 +66,7 @@ exports.handler = async (event) => {
       tier_select_url: tierSelectUrl,
       disclaimer:
         "This invitation is private and time-limited. The link above expires in 7 days. If you have questions, reply to this email.",
+      preview_banner: lead.preview_mode ? PREVIEW_BANNER_HTML : "",
     });
 
     console.log("SES sender config", {

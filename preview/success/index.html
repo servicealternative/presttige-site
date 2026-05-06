@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" class="notranslate">
+<head>
+  <meta name="google" content="notranslate">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Preview Success</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="/assets/js/preview-mode-banner.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-black: #1A1A1A;
+      --pp-paper: #FFFFFF;
+      --pp-background: #FBF9F4;
+      --pp-gold: #8A7544;
+      --pp-hairline: #DDD6C8;
+      --pp-muted: #4F4940;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: var(--pp-background);
+      color: var(--pp-black);
+      font-family: "Source Serif 4", Georgia, serif;
+    }
+
+    .shell {
+      width: min(100%, 760px);
+      padding: 24px;
+    }
+
+    .card {
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      padding: 42px 34px;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0 0 22px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(42px, 7vw, 64px);
+      font-weight: 600;
+      line-height: 0.95;
+    }
+
+    .copy {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    .copy + .copy {
+      margin-top: 18px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 24px;
+      border: 1px solid var(--pp-gold);
+      background: var(--pp-gold);
+      color: #FFFFFF;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .button--secondary {
+      background: transparent;
+      color: var(--pp-gold);
+    }
+  </style>
+  <link rel="stylesheet" href="/assets/css/brand-fonts.css">
+  <link rel="stylesheet" href="/assets/css/preview-mode-banner.css">
+</head>
+<body translate="no">
+  <main class="shell">
+    <section id="app" class="card">
+      <p class="eyebrow">Membership Confirmed</p>
+      <h1 class="title">Preparing your preview</h1>
+      <p class="copy">One moment while we confirm the preview membership state.</p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const REQUEST_NEW_LINK = "mailto:office@presttige.net?subject=Request%20a%20new%20Presttige%20link";
+      const app = document.getElementById("app");
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token") || "";
+
+      if (window.PresttigePreview) {
+        window.PresttigePreview.enable();
+      }
+
+      if (!token) {
+        renderError("Missing preview reference.");
+        return;
+      }
+
+      load();
+
+      async function load() {
+        try {
+          const status = await fetchJson(`${API_BASE}/checkout-status?token=${encodeURIComponent(token)}`);
+          renderSuccess(status);
+        } catch (error) {
+          renderError(error.message || "Unable to confirm the preview membership state.");
+        }
+      }
+
+      function renderSuccess(status) {
+        const tier = titleCase(status.tier || params.get("tier") || "membership");
+        const welcomeHref = `/welcome/${encodeURIComponent(token)}?preview=1`;
+
+        app.innerHTML = `
+          <p class="eyebrow">Membership Confirmed</p>
+          <h1 class="title">Welcome to Presttige</h1>
+          <p class="copy">${escapeHtml(tier)} has been completed in preview mode.</p>
+          <p class="copy">No payment was processed, and this journey is excluded from member counts and revenue reporting.</p>
+          <div class="actions">
+            <a class="button" href="${welcomeHref}">Open welcome page</a>
+            <a class="button button--secondary" href="${REQUEST_NEW_LINK}">Request a new link</a>
+          </div>
+        `;
+      }
+
+      function renderError(message) {
+        app.innerHTML = `
+          <p class="eyebrow">Membership Confirmed</p>
+          <h1 class="title">Preview unavailable</h1>
+          <p class="copy">${escapeHtml(message)}</p>
+          <div class="actions">
+            <a class="button button--secondary" href="${REQUEST_NEW_LINK}">Request a new link</a>
+          </div>
+        `;
+      }
+
+      async function fetchJson(url) {
+        const response = await fetch(url);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data?.error?.message || data.error || "Request failed");
+          throw error;
+        }
+        return data;
+      }
+
+      function titleCase(value) {
+        return String(value || "")
+          .split(/[_\s-]+/)
+          .filter(Boolean)
+          .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(" ");
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+    })();
+  </script>
+</body>
+</html>

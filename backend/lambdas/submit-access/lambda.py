@@ -11,8 +11,6 @@ for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
     if (candidate / "shared").exists() and candidate_str not in sys.path:
         sys.path.append(candidate_str)
 
-from shared.testers import get_tester_email_for_lead_id, log_tester_event
-
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("presttige-db")
 lambda_client = boto3.client("lambda", region_name="us-east-1")
@@ -330,37 +328,6 @@ def lambda_handler(event, context):
         if missing_fields:
             return response(400, {"error": "missing_required_fields", "fields": missing_fields})
 
-        tester_email = get_tester_email_for_lead_id(lead_id)
-        if tester_email:
-            logger.info(
-                "[TESTER] consent received",
-                extra={
-                    "lead_id": lead_id,
-                    "terms_accepted": terms_accepted,
-                    "terms_accepted_at": terms_accepted_at,
-                    "marketing_consent": marketing_consent,
-                    "marketing_consent_at": marketing_consent_at,
-                },
-            )
-            log_tester_event(
-                event_name="submit_access",
-                email=tester_email,
-                extra={
-                    "lead_id": lead_id,
-                    "delay_bypassed": True,
-                    "immediate_processing": True,
-                    "terms_accepted": terms_accepted,
-                    "terms_accepted_at": terms_accepted_at,
-                    "marketing_consent": marketing_consent,
-                    "marketing_consent_at": marketing_consent_at,
-                },
-            )
-            return response(200, {
-                "message": "application_submitted",
-                "lead_id": lead_id,
-                "application_received_sent": False,
-            })
-
         db_response = table.get_item(Key={"lead_id": lead_id})
         lead = db_response.get("Item")
 
@@ -395,6 +362,7 @@ def lambda_handler(event, context):
             "message": "profile_saved",
             "lead_id": lead_id,
             "application_received_sent": False,
+            "preview_mode": bool(lead.get("preview_mode")),
         })
 
     except Exception as e:

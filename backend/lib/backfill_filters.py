@@ -3,12 +3,6 @@ from __future__ import annotations
 from collections import Counter
 from typing import Dict, Iterable, List, Optional
 
-TESTER_WHITELIST = {
-    "antoniompereira@me.com",
-    "alternativeservice@gmail.com",
-    "analuisasf@gmail.com",
-}
-
 TERMINAL_REVIEW_STATUSES = {"approved", "rejected", "standby"}
 
 
@@ -34,7 +28,7 @@ def get_backfill_ineligibility_reasons(
     tester_whitelist: Optional[Iterable[str]] = None,
 ) -> List[str]:
     reasons: List[str] = []
-    whitelist = {normalize_email(email) for email in (tester_whitelist or TESTER_WHITELIST)}
+    whitelist = {normalize_email(email) for email in (tester_whitelist or [])}
 
     email = normalize_email(record.get("email"))
     review_status = normalize_review_status(record.get("review_status"))

@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Presttige Membership Selection</title>
   <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="/assets/js/preview-mode-banner.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
@@ -493,6 +494,7 @@
     }
   </style>
   <link rel="stylesheet" href="/assets/css/brand-fonts.css">
+  <link rel="stylesheet" href="/assets/css/preview-mode-banner.css">
 </head>
 <body translate="no">
   <main class="shell">
@@ -682,6 +684,10 @@
         return;
       }
 
+      if (window.PresttigePreview) {
+        window.PresttigePreview.syncFromQuery();
+      }
+
       load();
 
       async function load() {
@@ -689,6 +695,9 @@
           state.context = await fetchJson(buildContextUrl());
           state.leadId = state.context.profile?.leadId || state.leadId;
           state.sourceToken = state.context.token?.magicToken || state.token;
+          if (state.context.previewMode && window.PresttigePreview) {
+            window.PresttigePreview.enable();
+          }
           render();
         } catch (error) {
           const details = error?.body?.error || {};
@@ -880,6 +889,25 @@
             return;
           }
 
+          if (state.context.previewMode) {
+            const previewActivation = await fetchJson(`${API_BASE}/activate-subscriber`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                token: state.context.token.magicToken,
+                preview_tier: contract.tier,
+                contract_key: contractKey,
+              }),
+            });
+            window.location.assign(
+              previewActivation.redirect_url ||
+                `/preview/success/?token=${encodeURIComponent(state.context.token.magicToken)}&tier=${encodeURIComponent(contract.tier)}&preview=1`
+            );
+            return;
+          }
+
           if (!state.leadId || !state.context.token?.magicToken) {
             renderFatal("This link cannot open checkout yet. Please request a new one.");
             return;
@@ -927,7 +955,8 @@
 
         state.loadingAction = "subscriber";
         render();
-        const subscriberUrl = `/subscriber/${encodeURIComponent(state.context.token.magicToken)}`;
+        const previewParam = state.context.previewMode ? "?preview=1" : "";
+        const subscriberUrl = `/subscriber/${encodeURIComponent(state.context.token.magicToken)}${previewParam}`;
         window.location.assign(subscriberUrl);
       }
 

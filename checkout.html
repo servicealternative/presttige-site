@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Presttige Checkout</title>
   <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="/assets/js/preview-mode-banner.js"></script>
   <script src="https://js.stripe.com/v3/"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -387,6 +388,7 @@
     }
   </style>
   <link rel="stylesheet" href="/assets/css/brand-fonts.css">
+  <link rel="stylesheet" href="/assets/css/preview-mode-banner.css">
 </head>
 <body translate="no">
   <main class="shell">
@@ -409,6 +411,10 @@
         paymentElement: null,
         busy: false,
       };
+
+      if (window.PresttigePreview) {
+        window.PresttigePreview.syncFromQuery();
+      }
 
       const TIER_COPY = {
         club: {
@@ -537,6 +543,13 @@
       async function load() {
         try {
           state.context = await fetchJson(`${API_BASE}/checkout-context?token=${encodeURIComponent(route.token)}`);
+          if (state.context.previewMode) {
+            if (window.PresttigePreview) {
+              window.PresttigePreview.enable();
+            }
+            renderFatal("Preview mode memberships stay on Presttige and do not open Stripe checkout.");
+            return;
+          }
           if (!isContractAllowed(route.contractKey)) {
             renderFatal("This checkout selection is not available on the current link.");
             return;

@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="/assets/css/photo-upload-modal.css" />
   <!-- Google Analytics loads via consent-banner.js after user opt-in -->
   <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="/assets/js/preview-mode-banner.js"></script>
 
   <style>
     :root {
@@ -862,6 +863,7 @@
   </div>
 
   <script src="/assets/js/photo-upload-modal.js"></script>
+  <link rel="stylesheet" href="/assets/css/preview-mode-banner.css" />
   <script>
     function trackEvent() {
       if (typeof window.gtag === 'function') {
@@ -1076,6 +1078,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const leadId = params.get('lead_id') || params.get('leadId') || '';
+    const isPreviewMode = params.get('preview') === '1';
     const countryFromQuery = params.get('country') || '';
     const SUBMIT_ACCESS_API_URL = 'https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/submit-access';
     document.getElementById('leadId').value = leadId;
@@ -1950,13 +1953,17 @@
 
     leadIdValid = validLeadId(leadId);
 
+    if (isPreviewMode && window.PresttigePreview) {
+      window.PresttigePreview.enable();
+    }
+
     if (!leadIdValid) {
       setMessage('Invalid or missing application reference.', 'error');
     } else {
       if (window.PhotoUploadModal) {
         window.PhotoUploadModal.open({
           leadId,
-          isTest: /^fdm_tst/.test(leadId),
+          isTest: isPreviewMode,
           onChange: syncSubmitAvailability
         });
       }
@@ -2186,7 +2193,8 @@
           application_type: 'access',
           page_location: window.location.href
         });
-        window.location.replace('https://presttige.net/thank-you.html');
+        const previewParam = isPreviewMode ? '?preview=1' : '';
+        window.location.replace(`https://presttige.net/thank-you.html${previewParam}`);
 
       } catch (error) {
         const message = error && error.message ? error.message : 'Submission failed.';

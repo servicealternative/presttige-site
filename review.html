@@ -211,6 +211,17 @@
       text-transform: uppercase;
     }
 
+    .review-preview {
+      margin: 0 0 18px;
+      padding: 10px 12px;
+      background: #353535;
+      color: #D7D3CC;
+      font-family: Georgia, serif;
+      font-size: 13px;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
     .review-banner {
       margin: 0 0 24px;
       padding: 18px 20px;
@@ -343,10 +354,14 @@
         const profile = data.candidate || data.profile || {};
         const photos = profile.photos || data.photos || [];
         const phone = [profile.phone_country, profile.phone].filter(Boolean).join(" ");
+        const previewBanner = data.preview_mode
+          ? '<p class="review-preview">PREVIEW MODE · No payment was processed · This journey will not appear in member records</p>'
+          : '';
 
         app.className = "review-grid";
         app.innerHTML = `
           <section class="review-card">
+            ${previewBanner}
             <h2>${escapeHtml(profile.name || "Applicant")}</h2>
             <dl class="review-details">
               ${detailRow("Name", profile.name)}
@@ -407,6 +422,9 @@
         const photos = profile.photos || data.photos || [];
         const phone = [profile.phone_country, profile.phone].filter(Boolean).join(" ");
         const review = data.review || {};
+        const previewBanner = data.preview_mode
+          ? '<p class="review-preview">PREVIEW MODE · No payment was processed · This journey will not appear in member records</p>'
+          : '';
         const decision = normalizeDecision(data.decision || review.decision);
         const decisionLabel = decision ? decision.toUpperCase() : "RECORDED";
         const reviewedAt = formatReviewedAt(data.decided_at || review.reviewed_at);
@@ -426,6 +444,7 @@
         app.className = "review-grid";
         app.innerHTML = `
           <section class="review-card">
+            ${previewBanner}
             <div class="${bannerClass}">
               <p class="review-banner-label">Decision recorded</p>
               <h2 class="review-banner-title">DECISION RECORDED: ${escapeHtml(decisionLabel)}</h2>

@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Presttige Welcome</title>
   <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="/assets/js/preview-mode-banner.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
@@ -186,6 +187,7 @@
     }
   </style>
   <link rel="stylesheet" href="/assets/css/brand-fonts.css">
+  <link rel="stylesheet" href="/assets/css/preview-mode-banner.css">
 </head>
 <body translate="no">
   <section id="app" class="card">
@@ -202,6 +204,10 @@
       const REQUEST_NEW_LINK = "mailto:office@presttige.net?subject=Request%20a%20new%20Presttige%20link";
       const app = document.getElementById("app");
       const route = readRoute();
+
+      if (window.PresttigePreview) {
+        window.PresttigePreview.syncFromQuery();
+      }
 
       if (!route.token || route.token === "welcome" || route.token === "welcome.html") {
         renderError("Missing access token.");
@@ -237,6 +243,10 @@
       }
 
       function renderState(status) {
+        if (status.previewMode && window.PresttigePreview) {
+          window.PresttigePreview.enable();
+        }
+
         const state = status.displayState || "processing";
 
         if (state === "paid") {
@@ -320,6 +330,9 @@
       }
 
       function renderLegacySuccess(data) {
+        if (route.previewMode && window.PresttigePreview) {
+          window.PresttigePreview.enable();
+        }
         app.className = "card";
         const tier = String(data.tier || "").trim().toLowerCase();
         const body = tier === "founder"
@@ -366,6 +379,7 @@
         const segments = window.location.pathname.split("/").filter(Boolean);
         return {
           token: segments[0] === "welcome" ? segments[1] || "" : "",
+          previewMode: query.get("preview") === "1",
         };
       }
 

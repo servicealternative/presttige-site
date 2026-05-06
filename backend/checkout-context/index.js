@@ -42,6 +42,7 @@ const APP_ORIGIN = "https://presttige.net";
 const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
 const ACTIVE_MEMBERSHIP_STATES = new Set([
   "paid",
+  "preview_paid",
   "subscription_active",
   "subscription_cancel_at_period_end",
   "renewal_failed_retrying",
@@ -351,6 +352,7 @@ function buildResponseBody(lead, tokenType) {
     lead: {
       reviewStatus: normalizeString(lead.review_status).toLowerCase() || null,
       paymentStatus: paymentStatus || null,
+      previewMode: isTruthy(lead.preview_mode),
       currentTier: getCurrentTier(lead),
       tierIntent:
         normalizeString(lead[LEAD_PAYMENT_FIELDS.tierIntent]).toLowerCase() ||
@@ -373,6 +375,7 @@ function buildResponseBody(lead, tokenType) {
       Boolean(checkoutToken) &&
       normalizeString(lead[LEAD_PAYMENT_FIELDS.checkoutTokenStatus]).toLowerCase() ===
         "active",
+    previewMode: isTruthy(lead.preview_mode),
     tierVisibility: "standard",
     upgradeEligibleUntil: UPGRADE_ELIGIBLE_UNTIL,
     hasActiveMembership: ACTIVE_MEMBERSHIP_STATES.has(paymentStatus),
@@ -563,6 +566,14 @@ async function handleMintRequest(event) {
   const reviewError = validateApprovedLead(lead);
   if (reviewError) {
     return reviewError;
+  }
+
+  if (isTruthy(lead.preview_mode)) {
+    return errorResponse(
+      403,
+      "preview_mode_checkout_disabled",
+      "Preview mode memberships stay on Presttige and do not open Stripe checkout."
+    );
   }
 
   const tokenError = validateMagicTokenState(lead, magicToken);

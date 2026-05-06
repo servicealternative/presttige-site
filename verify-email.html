@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Source+Serif+Pro:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="/assets/js/preview-mode-banner.js"></script>
 
   <style>
     :root {
@@ -123,6 +124,7 @@
     }
   </style>
   <link rel="stylesheet" href="/assets/css/brand-fonts.css">
+  <link rel="stylesheet" href="/assets/css/preview-mode-banner.css">
 </head>
 <body translate="no">
   <div class="verify-page">
@@ -139,6 +141,10 @@
     (function () {
       const params = new URLSearchParams(window.location.search);
       const token = params.get('token');
+
+      if (window.PresttigePreview) {
+        window.PresttigePreview.syncFromQuery();
+      }
 
       const messageEl = document.getElementById('message');
       const fallbackLink = document.getElementById('fallbackLink');

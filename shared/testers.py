@@ -1,16 +1,36 @@
 import hashlib
 import hmac
 import json
+import os
 from datetime import datetime, timezone
 
 # TODO (follow-up when source lands):
 # - add tester guard to the missing Stripe checkout session-creation lambda
 # - add tester guard to the missing Stripe Connect split routing logic
 
-TESTER_EMAILS = [
-    "antoniompereira@me.com",
-    "analuisasf@gmail.com",
-]
+PREVIEW_MODE_EMAILS_ENV = "PREVIEW_MODE_EMAILS"
+PREVIEW_MODE_BANNER_TEXT = (
+    "PREVIEW MODE · No payment was processed · "
+    "This journey will not appear in member records"
+)
+
+
+def parse_preview_mode_emails(raw_value=None):
+    raw = raw_value if raw_value is not None else os.environ.get(PREVIEW_MODE_EMAILS_ENV, "")
+    normalized = []
+    seen = set()
+
+    for item in str(raw or "").split(","):
+        email = normalize_email(item)
+        if not email or email in seen:
+            continue
+        seen.add(email)
+        normalized.append(email)
+
+    return normalized
+
+
+TESTER_EMAILS = parse_preview_mode_emails()
 
 TESTER_SKIP_MARKER = "Skipped DynamoDB, CAPI, LinkedIn, GA4"
 
@@ -21,6 +41,28 @@ def normalize_email(email):
 
 def is_tester_email(email):
     return normalize_email(email) in [normalize_email(item) for item in TESTER_EMAILS]
+
+
+def is_preview_mode_email(email):
+    return is_tester_email(email)
+
+
+def is_preview_mode_lead(lead):
+    return bool((lead or {}).get("preview_mode"))
+
+
+def build_preview_banner_html():
+    return (
+        '<div style="margin:0 0 28px 0;padding:10px 14px;'
+        'background:#353535;color:#D7D3CC;font-family:Georgia,serif;'
+        'font-size:13px;line-height:1.5;font-style:italic;">'
+        f"{PREVIEW_MODE_BANNER_TEXT}"
+        "</div>"
+    )
+
+
+def build_preview_banner_text():
+    return PREVIEW_MODE_BANNER_TEXT
 
 
 def get_tester_lead_id(email):

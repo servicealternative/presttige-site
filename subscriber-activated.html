@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Presttige Subscriber</title>
   <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="/assets/js/preview-mode-banner.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
@@ -104,6 +105,7 @@
     }
   </style>
   <link rel="stylesheet" href="/assets/css/brand-fonts.css">
+  <link rel="stylesheet" href="/assets/css/preview-mode-banner.css">
 </head>
 <body translate="no">
   <section id="app" class="card">
@@ -127,6 +129,10 @@
       if (!route.token) {
         renderError("Missing access token.");
         return;
+      }
+
+      if (route.previewMode && window.PresttigePreview) {
+        window.PresttigePreview.enable();
       }
 
       render();
@@ -183,7 +189,8 @@
             return;
           }
 
-          window.location.assign(`/subscriber/${encodeURIComponent(route.token)}?status=confirmed`);
+          const previewParam = route.previewMode ? '&preview=1' : '';
+          window.location.assign(`/subscriber/${encodeURIComponent(route.token)}?status=confirmed${previewParam}`);
         } catch (error) {
           renderError("Unable to confirm your subscription right now.");
         } finally {
@@ -211,6 +218,7 @@
               : "",
           mode: query.get("mode") || "",
           status: query.get("status") || "",
+          previewMode: query.get("preview") === "1",
         };
       }
 

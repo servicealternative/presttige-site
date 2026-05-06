@@ -51,6 +51,7 @@ exports.handler = async (event) => {
 
     return response(200, {
       lead_id: lead.lead_id,
+      preview_mode: Boolean(lead.preview_mode),
       candidate,
       decision: review.decision,
       decided_at: review.reviewed_at,

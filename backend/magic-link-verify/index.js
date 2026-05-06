@@ -40,7 +40,7 @@ exports.handler = async (event) => {
       return response(404, { error: "Token not found" });
     }
 
-    if (!lead.account_active && !["paid", "free"].includes(lead.payment_status)) {
+    if (!lead.account_active && !["paid", "free", "preview_paid"].includes(lead.payment_status)) {
       return response(409, { error: "Membership not activated yet" });
     }
 

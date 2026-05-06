@@ -2,7 +2,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { S3Client, ListObjectsV2Command, DeleteObjectsCommand } = require("@aws-sdk/client-s3");
 const { SchedulerClient, DeleteScheduleCommand } = require("@aws-sdk/client-scheduler");
 const { SESv2Client, GetSuppressedDestinationCommand, DeleteSuppressedDestinationCommand } = require("@aws-sdk/client-sesv2");
-const { DynamoDBDocumentClient, GetCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, GetCommand, DeleteCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
 const s3 = new S3Client({ region: "us-east-1" });
@@ -13,18 +13,9 @@ const TABLE_NAME = "presttige-db";
 const ORIGINALS_BUCKET = process.env.PHOTOS_ORIGINALS_BUCKET || "presttige-applicant-photos";
 const THUMBNAILS_BUCKET = process.env.PHOTOS_THUMBNAILS_BUCKET || "presttige-applicant-photos-thumbnails";
 const SCHEDULER_GROUP_NAME = process.env.TESTER_PURGE_SCHEDULER_GROUP || "default";
-const TESTER_WHITELIST = new Set([
-  "antoniompereira@me.com",
-  "alternativeservice@gmail.com",
-  "analuisasf@gmail.com",
-]);
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
-}
-
-function isTesterEmail(email) {
-  return TESTER_WHITELIST.has(normalizeEmail(email));
 }
 
 async function deleteScheduleIfPresent(scheduleName) {
@@ -138,35 +129,32 @@ async function removeSesSuppressionIfPresent(email) {
   }
 }
 
-exports.handler = async (event) => {
-  const body = JSON.parse(event?.body || "{}");
-  const leadId = String(body.lead_id || "").trim();
-  const trigger = String(body.trigger || "scheduled_cleanup").trim();
+async function scanPreviewLeads() {
+  let ExclusiveStartKey;
+  const items = [];
 
-  if (!leadId) {
-    return response(400, { error: "Missing lead_id" });
-  }
-
-  const leadResult = await ddb.send(
-    new GetCommand({
-      TableName: TABLE_NAME,
-      Key: { lead_id: leadId },
-    })
-  );
-  const lead = leadResult.Item;
-
-  if (!lead) {
-    console.log(
-      `TESTER_PURGE_ON_FUNNEL_COMPLETE trigger=${trigger} email=unknown lead_id=${leadId} ` +
-        "deleted_record=false deleted_schedules=0 deleted_photos=0 ses_suppression_removed=false already_gone=true"
+  do {
+    const result = await ddb.send(
+      new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression: "preview_mode = :preview_mode",
+        ExpressionAttributeValues: {
+          ":preview_mode": true,
+        },
+        ExclusiveStartKey,
+      })
     );
-    return response(200, { already_gone: true, lead_id: leadId });
-  }
 
-  const testerLead = Boolean(lead.is_test) || isTesterEmail(lead.email);
-  if (!testerLead) {
-    return response(200, { skipped_real_user: true, lead_id: leadId });
-  }
+    items.push(...(result.Items || []));
+    ExclusiveStartKey = result.LastEvaluatedKey;
+  } while (ExclusiveStartKey);
+
+  return items;
+}
+
+async function purgeLeadRecord(lead, trigger) {
+  const leadId = String(lead?.lead_id || "").trim();
+  const email = normalizeEmail(lead?.email);
 
   const scheduleNames = [
     String(lead.e3_schedule_name || "").trim(),
@@ -196,20 +184,78 @@ exports.handler = async (event) => {
     console.log(`TESTER_PURGE_WARN delete_record_failed lead_id=${leadId} error=${error.message}`);
   }
 
-  const sesSuppressionRemoved = await removeSesSuppressionIfPresent(normalizeEmail(lead.email));
+  const sesSuppressionRemoved = await removeSesSuppressionIfPresent(email);
 
   console.log(
-    `TESTER_PURGE_ON_FUNNEL_COMPLETE trigger=${trigger} email=${normalizeEmail(lead.email)} lead_id=${leadId} ` +
+    `TESTER_PURGE_ON_FUNNEL_COMPLETE trigger=${trigger} email=${email} lead_id=${leadId} ` +
       `deleted_record=${String(deletedRecord)} deleted_schedules=${deletedSchedules} ` +
       `deleted_photos=${deletedPhotos} ses_suppression_removed=${String(sesSuppressionRemoved)}`
   );
 
-  return response(200, {
+  return {
     deletedRecord,
     deletedSchedules,
     deletedPhotos,
     sesSuppressionRemoved,
-  });
+  };
+}
+
+exports.handler = async (event) => {
+  const body = JSON.parse(event?.body || "{}");
+  const leadId = String(body.lead_id || "").trim();
+  const trigger = String(body.trigger || "scheduled_cleanup").trim();
+  const action = String(body.action || "").trim().toLowerCase();
+  const confirm = String(body.confirm || "").trim();
+
+  if (action === "delete_preview_leads") {
+    if (confirm !== "DELETE_PREVIEW_LEADS") {
+      return response(400, { error: "Missing confirmation token for bulk preview cleanup." });
+    }
+
+    const previewLeads = await scanPreviewLeads();
+    const deletedLeadIds = [];
+
+    for (const previewLead of previewLeads) {
+      const previewLeadId = String(previewLead?.lead_id || "").trim();
+      if (!previewLeadId) {
+        continue;
+      }
+      await purgeLeadRecord(previewLead, "bulk_preview_cleanup");
+      deletedLeadIds.push(previewLeadId);
+    }
+
+    return response(200, {
+      deleted_count: deletedLeadIds.length,
+      deleted_lead_ids: deletedLeadIds,
+    });
+  }
+
+  if (!leadId) {
+    return response(400, { error: "Missing lead_id" });
+  }
+
+  const leadResult = await ddb.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { lead_id: leadId },
+    })
+  );
+  const lead = leadResult.Item;
+
+  if (!lead) {
+    console.log(
+      `TESTER_PURGE_ON_FUNNEL_COMPLETE trigger=${trigger} email=unknown lead_id=${leadId} ` +
+        "deleted_record=false deleted_schedules=0 deleted_photos=0 ses_suppression_removed=false already_gone=true"
+    );
+    return response(200, { already_gone: true, lead_id: leadId });
+  }
+
+  const cleanupEligible = Boolean(lead.is_test) && !Boolean(lead.preview_mode);
+  if (!cleanupEligible) {
+    return response(200, { skipped_real_user: true, lead_id: leadId });
+  }
+
+  return response(200, await purgeLeadRecord(lead, trigger));
 };
 
 function response(statusCode, body) {

@@ -24,6 +24,9 @@ from email_utils import (
     render_transactional_email_template,
 )
 from shared.testers import (
+    build_preview_banner_html,
+    build_preview_banner_text,
+    is_preview_mode_email,
     normalize_email,
 )
 
@@ -43,11 +46,6 @@ VERIFY_BASE_URL = "https://presttige.net/verify-email.html"
 ORIGINALS_BUCKET = os.environ.get("PHOTOS_ORIGINALS_BUCKET", "presttige-applicant-photos")
 THUMBNAILS_BUCKET = os.environ.get("PHOTOS_THUMBNAILS_BUCKET", "presttige-applicant-photos-thumbnails")
 SCHEDULER_GROUP_NAME = os.environ.get("TESTER_PURGE_SCHEDULER_GROUP", "default")
-TESTER_WHITELIST = {
-    "antoniompereira@me.com",
-    "alternativeservice@gmail.com",
-    "analuisasf@gmail.com",
-}
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -69,7 +67,7 @@ def generate_lead_id():
 
 
 def is_tester(email: str) -> bool:
-    return normalize_email(email) in TESTER_WHITELIST
+    return is_preview_mode_email(email)
 
 
 def generate_token(lead_id, email):
@@ -329,15 +327,15 @@ def lambda_handler(event, context):
             return response(400, {"error": "Missing required fields"})
 
         email = normalize_email(email)
-        tester_whitelisted = is_tester(email)
+        preview_mode = is_tester(email)
 
-        if tester_whitelisted:
+        if preview_mode:
             try:
                 purge_tester_records(email)
             except Exception as exc:
                 print(f"TESTER_PURGE_WARN email={email} error={exc}")
 
-        if not tester_whitelisted and email_already_exists(email):
+        if not preview_mode and email_already_exists(email):
             print(json.dumps({
                 "event": "duplicate_email_attempt",
                 "email": email,
@@ -350,7 +348,7 @@ def lambda_handler(event, context):
             })
 
         phone_full = re.sub(r"[\s\-()]", "", phone)
-        if not tester_whitelisted and phone_already_exists(phone_full):
+        if not preview_mode and phone_already_exists(phone_full):
             print(json.dumps({
                 "event": "duplicate_phone_attempt",
                 "phone_full": phone_full,
@@ -385,8 +383,10 @@ def lambda_handler(event, context):
             "created_at": now,
             "updated_at": now
         }
-        if tester_whitelisted:
+        if preview_mode:
             item["is_test"] = True
+            item["preview_mode"] = True
+            item["preview_mode_enabled_at"] = now
         if phone:
             item["phone"] = phone
         if phone_full:
@@ -395,6 +395,8 @@ def lambda_handler(event, context):
         table.put_item(Item=item)
 
         verify_link = f"{VERIFY_BASE_URL}?token={verification_token}"
+        if preview_mode:
+            verify_link = f"{verify_link}&preview=1"
 
         email_context = {
             "subject": "Confirm your email to continue — Presttige",
@@ -411,6 +413,8 @@ def lambda_handler(event, context):
             "disclaimer": "If you did not initiate this request, no action is required.",
             "sign_off_name": "Member Services",
             "sign_off_title": "PRESTTIGE PRIVATE OFFICE",
+            "preview_banner_html": build_preview_banner_html() if preview_mode else "",
+            "preview_banner_text": build_preview_banner_text() if preview_mode else "",
         }
 
         print(json.dumps({
@@ -447,12 +451,13 @@ def lambda_handler(event, context):
             "lead_id": lead_id,
             "email": email,
             "ses_message_id": ses_response.get("MessageId"),
-            "is_tester": tester_whitelisted,
+            "is_tester": preview_mode,
         }))
 
         return response(200, {
             "message": "Step 1 submitted",
-            "lead_id": lead_id
+            "lead_id": lead_id,
+            "preview_mode": preview_mode,
         })
 
     except Exception as e:

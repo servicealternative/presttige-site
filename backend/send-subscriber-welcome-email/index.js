@@ -21,11 +21,8 @@ const TESTER_CLEANUP_FUNCTION_ARN =
 const TESTER_CLEANUP_SCHEDULER_ROLE_ARN =
   process.env.TESTER_CLEANUP_SCHEDULER_ROLE_ARN ||
   "arn:aws:iam::343218208384:role/presttige-scheduler-invoke-tester-cleanup-role";
-const TESTER_WHITELIST = new Set([
-  "antoniompereira@me.com",
-  "alternativeservice@gmail.com",
-  "analuisasf@gmail.com",
-]);
+const PREVIEW_BANNER_HTML =
+  '<div style="margin:0 0 28px 0;padding:10px 14px;background:#353535;color:#D7D3CC;font-family:Georgia,serif;font-size:13px;line-height:1.5;font-style:italic;">PREVIEW MODE · No payment was processed · This journey will not appear in member records</div>';
 
 function loadTemplate() {
   return fs.readFileSync(path.join(__dirname, "subscriber-welcome-email.html"), "utf8");
@@ -39,10 +36,6 @@ function fill(template, vars) {
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
-}
-
-function isTesterEmail(email) {
-  return TESTER_WHITELIST.has(normalizeEmail(email));
 }
 
 function buildTesterCleanupScheduleName(leadId) {
@@ -144,17 +137,18 @@ exports.handler = async (event) => {
       return response(400, { error: "Lead missing email or magic token" });
     }
 
-    const testerLead = Boolean(lead.is_test) || isTesterEmail(lead.email);
+    const cleanupEligible = Boolean(lead.is_test) && !Boolean(lead.preview_mode);
 
     if (lead.subscriber_welcome_email_sent_at) {
-      if (testerLead) {
+      if (cleanupEligible) {
         const cleanupSchedule = await scheduleTesterCleanup(lead, "e5_sub_sent");
         return response(200, { already_sent: true, tester_cleanup_scheduled: true, cleanup_schedule: cleanupSchedule });
       }
       return response(200, { already_sent: true });
     }
 
-    const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}?lead_id=${encodeURIComponent(lead.lead_id)}`;
+    const previewSuffix = lead.preview_mode ? "&preview=1" : "";
+    const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}?lead_id=${encodeURIComponent(lead.lead_id)}${previewSuffix}`;
     const displayName = lead.name || "Member";
     const subject = `Welcome to Presttige, ${displayName}`;
     const html = fill(loadTemplate(), {
@@ -162,6 +156,7 @@ exports.handler = async (event) => {
       headline: `Welcome, ${displayName}.`,
       tier_select_url: tierSelectUrl,
       name: displayName,
+      preview_banner: lead.preview_mode ? PREVIEW_BANNER_HTML : "",
     });
 
     console.log("SES subscriber sender config", {
@@ -206,7 +201,7 @@ exports.handler = async (event) => {
       })
     );
 
-    if (testerLead) {
+    if (cleanupEligible) {
       const cleanupSchedule = await scheduleTesterCleanup(
         {
           ...lead,

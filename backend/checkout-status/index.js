@@ -254,6 +254,7 @@ function mapDisplayState(paymentStatus) {
 
   if (
     normalized === "paid" ||
+    normalized === "preview_paid" ||
     normalized === "free" ||
     normalized === "subscription_active" ||
     normalized === "subscription_cancel_at_period_end"
@@ -326,7 +327,12 @@ function buildBody(lead, tokenType, stripeInsight) {
     tokenType,
     displayState: mapDisplayState(effectivePaymentStatus),
     paymentStatus: effectivePaymentStatus,
+    previewMode: Boolean(lead.preview_mode),
+    previewBannerText: Boolean(lead.preview_mode)
+      ? "PREVIEW MODE · No payment was processed · This journey will not appear in member records"
+      : null,
     recordedAt:
+      formatRecordedAt(lead.preview_mode_completed_at) ||
       formatRecordedAt(lead[LEAD_PAYMENT_FIELDS.stripeCheckoutCompletedAt]) ||
       formatRecordedAt(lead.updated_at),
     tier:
@@ -372,7 +378,7 @@ exports.handler = async (event) => {
     ).toLowerCase();
 
     let stripeInsight = null;
-    if (mapDisplayState(currentPaymentStatus) === "processing") {
+    if (!lead.preview_mode && mapDisplayState(currentPaymentStatus) === "processing") {
       try {
         stripeInsight = await inspectStripePaymentIntent(lead);
       } catch (error) {

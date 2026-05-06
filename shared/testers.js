@@ -16,7 +16,22 @@
  * handlers so the tester list remains centralized under `/shared`.
  */
 
-export const TESTER_EMAILS = ['antoniompereira@me.com', 'analuisasf@gmail.com'];
+export const PREVIEW_MODE_EMAILS_ENV = 'PREVIEW_MODE_EMAILS';
+
+export const PREVIEW_MODE_BANNER_TEXT =
+  'PREVIEW MODE · No payment was processed · This journey will not appear in member records';
+
+export const parsePreviewModeEmails = (rawValue = process.env[PREVIEW_MODE_EMAILS_ENV] || '') => {
+  const seen = new Set();
+  return String(rawValue)
+    .split(',')
+    .map((item) => String(item || '').toLowerCase().trim())
+    .filter((item) => item && !seen.has(item) && seen.add(item));
+};
+
+export const TESTER_EMAILS = parsePreviewModeEmails();
 
 export const isTesterEmail = (email = '') =>
   TESTER_EMAILS.includes(String(email).toLowerCase().trim());
+
+export const isPreviewModeEmail = isTesterEmail;

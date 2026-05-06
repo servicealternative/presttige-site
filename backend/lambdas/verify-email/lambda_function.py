@@ -13,17 +13,10 @@ for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
     if (candidate / "shared").exists() and candidate_str not in sys.path:
         sys.path.append(candidate_str)
 
-from shared.testers import (
-    get_tester_email_for_verification_token,
-    get_tester_lead_id,
-    log_tester_event,
-)
-
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table("presttige-db")
 
 BASE_URL = "https://presttige.net"
-TOKEN_SECRET = os.environ.get("TOKEN_SECRET", "").strip()
 
 
 def as_text(value):
@@ -32,10 +25,12 @@ def as_text(value):
     return str(value).strip()
 
 
-def build_access_form_redirect(lead_id, country=""):
+def build_access_form_redirect(lead_id, country="", preview_mode=False):
     redirect_params = {"lead_id": lead_id}
     if country:
         redirect_params["country"] = country
+    if preview_mode:
+        redirect_params["preview"] = "1"
     return redirect(f"{BASE_URL}/access-form.html?{urlencode(redirect_params)}")
 
 
@@ -58,22 +53,6 @@ def lambda_handler(event, context):
         if not token:
             return redirect(f"{BASE_URL}/check-email.html?error=missing_token")
 
-        tester_email = get_tester_email_for_verification_token(token, TOKEN_SECRET)
-        if tester_email:
-            lead_id = get_tester_lead_id(tester_email)
-            lead_item = table.get_item(Key={"lead_id": lead_id}, ConsistentRead=True).get("Item") or {}
-            country = as_text(lead_item.get("country"))
-            log_tester_event(
-                event_name="verify_email",
-                email=tester_email,
-                extra={
-                    "lead_id": lead_id,
-                    "delay_bypassed": True,
-                    "immediate_processing": True,
-                },
-            )
-            return build_access_form_redirect(lead_id, country)
-
         response = table.scan(
             FilterExpression=Attr("verification_token").eq(token),
             ConsistentRead=True
@@ -89,6 +68,7 @@ def lambda_handler(event, context):
         lead = items[0]
         lead_id = as_text(lead.get("lead_id"))
         country = as_text(lead.get("country"))
+        preview_mode = bool(lead.get("preview_mode"))
         current_email_status = as_text(lead.get("email_status") or "pending")
 
         print("VERIFY EMAIL LEAD ID:", lead_id)
@@ -116,7 +96,7 @@ def lambda_handler(event, context):
             table.update_item(**update_kwargs)
             print("VERIFY EMAIL UPDATED SUCCESSFULLY")
 
-        return build_access_form_redirect(lead_id, country)
+        return build_access_form_redirect(lead_id, country, preview_mode)
 
     except Exception as e:
         print("VERIFY EMAIL ERROR:", str(e))

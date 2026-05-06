@@ -408,6 +408,14 @@ function validateLeadForContract(lead, contract) {
     lead[LEAD_PAYMENT_FIELDS.selectedContractKey]
   ).toLowerCase();
 
+  if (isTruthy(lead.preview_mode)) {
+    return errorResponse(
+      403,
+      "preview_mode_checkout_disabled",
+      "Preview mode memberships stay on Presttige and do not open Stripe checkout."
+    );
+  }
+
   if (!tokenStatus || tokenStatus !== "active") {
     return errorResponse(
       410,

@@ -45,12 +45,6 @@ OFFICE_NOTIFICATION_FROM = os.environ.get(
 )
 OFFICE_NOTIFICATION_TO = os.environ.get("OFFICE_NOTIFICATION_TO", "office@presttige.net")
 
-TESTER_WHITELIST = {
-    "antoniompereira@me.com",
-    "alternativeservice@gmail.com",
-    "analuisasf@gmail.com",
-}
-
 CONTRACTS = {
     "club_monthly": {
         "tier": "club",
@@ -168,7 +162,7 @@ def normalize_email(value):
 
 
 def is_tester_lead(lead):
-    return bool((lead or {}).get("is_test")) or normalize_email((lead or {}).get("email")) in TESTER_WHITELIST
+    return bool((lead or {}).get("is_test"))
 
 
 def safe_get(value, key, default=None):

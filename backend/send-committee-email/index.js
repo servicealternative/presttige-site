@@ -156,11 +156,14 @@ function buildBodyVariables(lead, token, readyPhotos, privateKey) {
   const displayName = lead.name || "Anonymous";
   const shortIntroduction = lead.short_introduction || lead.bio || "—";
   const whyPresttige = lead.why_presttige || lead.why || "";
+  const previewMode = Boolean(lead.preview_mode);
 
   return {
-    subject: `New application — ${displayName}`,
-    preheader: `Committee review requested for ${displayName}.`,
-    eyebrow: "NEW APPLICATION — COMMITTEE REVIEW",
+    subject: `${previewMode ? "[PREVIEW] " : ""}New application — ${displayName}`,
+    preheader: `${previewMode ? "Preview mode " : ""}committee review requested for ${displayName}.`,
+    eyebrow: previewMode
+      ? "PREVIEW APPLICATION — COMMITTEE REVIEW"
+      : "NEW APPLICATION — COMMITTEE REVIEW",
     headline: esc(displayName),
     profile_rows: buildProfileRows(lead),
     short_introduction: esc(shortIntroduction),
@@ -246,7 +249,10 @@ exports.handler = async (event) => {
         ReplyToAddresses: [REPLY_TO],
         Destination: { ToAddresses: [TO_ADDRESS] },
         Message: {
-          Subject: { Data: `New application — ${lead.name || "Anonymous"}`, Charset: "UTF-8" },
+          Subject: {
+            Data: `${lead.preview_mode ? "[PREVIEW] " : ""}New application — ${lead.name || "Anonymous"}`,
+            Charset: "UTF-8",
+          },
           Body: {
             Html: { Data: html, Charset: "UTF-8" },
           },
