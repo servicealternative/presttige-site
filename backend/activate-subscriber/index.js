@@ -210,6 +210,19 @@ async function sendPreviewReceiptEmail(lead, tier) {
   }
 }
 
+async function markPreviewReceiptSent(leadId) {
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { lead_id: leadId },
+      UpdateExpression: "SET preview_receipt_sent_at = :sent_at",
+      ExpressionAttributeValues: {
+        ":sent_at": new Date().toISOString(),
+      },
+    })
+  );
+}
+
 exports.handler = async (event) => {
   const body = JSON.parse(event.body || "{}");
   const token = String(body.token || "").trim();
@@ -236,12 +249,25 @@ exports.handler = async (event) => {
       }
 
       if (lead.account_active && normalizeTier(lead.selected_tier) === previewTier) {
+        let welcomeTriggered = Boolean(lead.welcome_sent_at);
+        if (!welcomeTriggered) {
+          welcomeTriggered = await invokeWelcomeEmail(lead.lead_id);
+        }
+
+        let receiptSent = Boolean(lead.preview_receipt_sent_at);
+        if (!receiptSent) {
+          receiptSent = await sendPreviewReceiptEmail(lead, previewTier);
+          if (receiptSent) {
+            await markPreviewReceiptSent(lead.lead_id);
+          }
+        }
+
         return response(200, {
           activated: true,
           preview_mode: true,
           selected_tier: previewTier,
-          welcome_triggered: Boolean(lead.welcome_sent_at),
-          receipt_sent: Boolean(lead.preview_receipt_sent_at),
+          welcome_triggered: welcomeTriggered,
+          receipt_sent: receiptSent,
           redirect_url: previewSuccessRedirectUrl(token, previewTier),
         });
       }
@@ -291,16 +317,7 @@ exports.handler = async (event) => {
       const receiptSent = await sendPreviewReceiptEmail(lead, previewTier);
 
       if (receiptSent) {
-        await ddb.send(
-          new UpdateCommand({
-            TableName: TABLE_NAME,
-            Key: { lead_id: lead.lead_id },
-            UpdateExpression: "SET preview_receipt_sent_at = :sent_at",
-            ExpressionAttributeValues: {
-              ":sent_at": new Date().toISOString(),
-            },
-          })
-        );
+        await markPreviewReceiptSent(lead.lead_id);
       }
 
       return response(200, {

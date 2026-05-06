@@ -138,7 +138,20 @@
           const status = await fetchJson(`${API_BASE}/checkout-status?token=${encodeURIComponent(token)}`);
           renderSuccess(status);
         } catch (error) {
+          const fallback = await fetchLegacyFallback();
+          if (fallback) {
+            renderSuccess(fallback);
+            return;
+          }
           renderError(error.message || "Unable to confirm the preview membership state.");
+        }
+      }
+
+      async function fetchLegacyFallback() {
+        try {
+          return await fetchJson(`${API_BASE}/magic-link-verify?token=${encodeURIComponent(token)}`);
+        } catch (error) {
+          return null;
         }
       }
 
