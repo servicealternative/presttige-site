@@ -15,6 +15,10 @@ PREVIEW_MODE_BANNER_TEXT = (
 )
 
 
+def normalize_email(email):
+    return (email or "").strip().lower()
+
+
 def parse_preview_mode_emails(raw_value=None):
     raw = raw_value if raw_value is not None else os.environ.get(PREVIEW_MODE_EMAILS_ENV, "")
     normalized = []
@@ -33,10 +37,6 @@ def parse_preview_mode_emails(raw_value=None):
 TESTER_EMAILS = parse_preview_mode_emails()
 
 TESTER_SKIP_MARKER = "Skipped DynamoDB, CAPI, LinkedIn, GA4"
-
-
-def normalize_email(email):
-    return (email or "").strip().lower()
 
 
 def is_tester_email(email):
