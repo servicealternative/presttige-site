@@ -99,7 +99,7 @@ function previewSuccessRedirectUrl(token, tier) {
     tier,
     preview: "1",
   });
-  return `https://presttige.net/preview/success/?${query.toString()}`;
+  return `https://presttige.net/preview/success/index.html?${query.toString()}`;
 }
 
 function normalizeTier(value) {

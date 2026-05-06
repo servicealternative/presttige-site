@@ -903,7 +903,7 @@
             });
             window.location.assign(
               previewActivation.redirect_url ||
-                `/preview/success/?token=${encodeURIComponent(state.context.token.magicToken)}&tier=${encodeURIComponent(contract.tier)}&preview=1`
+                `/preview/success/index.html?token=${encodeURIComponent(state.context.token.magicToken)}&tier=${encodeURIComponent(contract.tier)}&preview=1`
             );
             return;
           }
