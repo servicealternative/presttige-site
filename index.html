@@ -29,16 +29,8 @@
     (function () {
       const pathname = window.location.pathname;
       const trimmedPath = pathname.replace(/\/+$/, "");
-      const subscriberMatch = pathname.match(/^\/subscriber\/([^/?#]+)\/?$/);
-
       if (trimmedPath === "/payment-failed") {
         window.location.replace(`/payment-failed/index.html${window.location.search}${window.location.hash}`);
-        return;
-      }
-
-      if (subscriberMatch) {
-        const token = encodeURIComponent(decodeURIComponent(subscriberMatch[1]));
-        window.location.replace(`/subscriber-activated/${token}${window.location.search}${window.location.hash}`);
         return;
       }
 
@@ -592,6 +584,7 @@
     }
   </style>
   <link rel="stylesheet" href="/assets/css/presttige.css">
+  <link rel="stylesheet" href="/assets/css/brand-fonts.css">
 </head>
 <body translate="no">
 
@@ -729,7 +722,7 @@
     <!-- Success state inline -->
     <div class="apply-modal-success" id="applySuccess" hidden>
       <p class="apply-success-title">Your interest is noted.</p>
-      <p class="apply-success-body">A verification email has been sent.<br>Please confirm it at your convenience.</p>
+      <p class="apply-success-body">Please open it at your convenience to confirm your email.<br>Once confirmed, you will be invited to complete your application, which will then be reviewed by the Committee.</p>
     </div>
   </div>
 </div>

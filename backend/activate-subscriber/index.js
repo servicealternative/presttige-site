@@ -54,7 +54,7 @@ async function invokeSubscriberWelcomeEmail(leadId) {
 }
 
 function redirectUrl(token) {
-  return `https://presttige.net/subscriber-activated/${token}`;
+  return `https://presttige.net/subscriber/${token}?status=confirmed`;
 }
 
 exports.handler = async (event) => {

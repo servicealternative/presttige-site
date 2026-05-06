@@ -386,6 +386,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/assets/css/brand-fonts.css">
 </head>
 <body translate="no">
   <main class="shell">
@@ -467,7 +468,7 @@
             },
             {
               title: "Renewal",
-              items: ["By annual conversation."],
+              items: ["Annual. At your discretion."],
             },
           ],
         },
@@ -574,7 +575,7 @@
             <article class="panel summary ${founder ? "summary--founder" : ""}">
               ${founder ? '<div class="stamp" aria-label="Become a founder — Founder tier">BECOME A FOUNDER</div>' : ""}
               <div class="summary__top">
-                <a class="summary__back" href="/tier-select/${encodeURIComponent(backToken)}">Back to tier selection</a>
+                <a class="summary__back" href="/tier-select/${encodeURIComponent(backToken)}">Back to membership selection</a>
                 <div class="summary__tier">${escapeHtml(titleCase(tier))}</div>
               </div>
               <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>

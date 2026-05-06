@@ -1,0 +1,77 @@
+:root {
+  --presttige-font-headline: Georgia, serif;
+  --presttige-font-body: Georgia, serif;
+  --presttige-font-label: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body,
+p,
+li,
+input,
+textarea,
+select,
+option,
+.copy,
+.lede,
+.price,
+.price-note,
+.comparison td,
+.confirm-body,
+.confirm-followup,
+.confirm-email,
+.verify-body,
+.section-copy,
+.hero-sub,
+.hero-subheadline,
+.request-link,
+.wallet-options,
+.apply-success-body,
+.apply-modal-body,
+.step-body,
+.field input,
+.field select {
+  font-family: var(--presttige-font-body) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.title,
+.card-title,
+.verify-title,
+.confirm-title,
+.hero h1,
+.hero-headline,
+.section-title {
+  font-family: var(--presttige-font-headline) !important;
+}
+
+button,
+.button,
+.btn-primary,
+.btn-secondary,
+.eyebrow,
+.label,
+.card-label,
+.section-title,
+.summary__tier,
+.field label,
+.confirm-link,
+.verify-link,
+.confirm-eyebrow,
+.verify-eyebrow,
+.topbar-link,
+.topbar-cta,
+.nav,
+.wallet-options span,
+.comparison th,
+.placeholder-link,
+.footer-note,
+.apply-label,
+.apply-btn-send,
+.apply-success-title {
+  font-family: var(--presttige-font-label) !important;
+}

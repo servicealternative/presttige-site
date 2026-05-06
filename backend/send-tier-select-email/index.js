@@ -55,11 +55,11 @@ exports.handler = async (event) => {
     const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}?lead_id=${encodeURIComponent(lead.lead_id)}`;
     const html = fill(loadTemplate(), {
       subject: "Welcome to Presttige — Choose your membership",
-      preheader: "Your application has been approved. Choose your preferred tier to continue.",
+      preheader: "Your application has been approved. Choose your preferred membership to continue.",
       eyebrow: "WELCOME — APPLICATION APPROVED",
       headline: lead.name || "Presttige Member",
       body_copy:
-        "Your application has been approved by the Presttige Committee. To activate your membership, please choose your preferred tier:",
+        "Your application has been approved by the Presttige Committee. To activate your membership, please choose your preferred membership:",
       tier_select_url: tierSelectUrl,
       disclaimer:
         "This invitation is private and time-limited. The link above expires in 7 days. If you have questions, reply to this email.",

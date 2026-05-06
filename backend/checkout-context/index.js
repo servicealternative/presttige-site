@@ -308,19 +308,15 @@ function buildStandardOptions(lead) {
     },
     club: {
       tier: "club",
+      contractKey: "club_yearly",
       displayMode: "standard",
       headlinePriceLabel: buildHeadlinePriceLabel("club_yearly"),
-      billingChoices: ["club_monthly", "club_semi_annual", "club_yearly"]
-        .map(buildBillingChoice)
-        .filter(Boolean),
     },
     premier: {
       tier: "premier",
+      contractKey: "premier_yearly",
       displayMode: "standard",
       headlinePriceLabel: buildHeadlinePriceLabel("premier_yearly"),
-      billingChoices: ["premier_monthly", "premier_semi_annual", "premier_yearly"]
-        .map(buildBillingChoice)
-        .filter(Boolean),
     },
     patron: buildPatronOption(lead),
   };
@@ -444,7 +440,7 @@ function validateMagicTokenState(lead, providedToken) {
     return errorResponse(
       410,
       "magic_token_inactive",
-      "Tier-selection link is not active."
+      "Membership selection link is not active."
     );
   }
 
@@ -453,7 +449,7 @@ function validateMagicTokenState(lead, providedToken) {
     return errorResponse(
       410,
       "magic_token_expired",
-      "Tier-selection link has expired."
+      "Membership selection link has expired."
     );
   }
 

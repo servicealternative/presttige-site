@@ -1,17 +1,10 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb");
-const { SSMClient, GetParametersCommand } = require("@aws-sdk/client-ssm");
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
-const ssm = new SSMClient({ region: "us-east-1" });
 
 const TABLE_NAME = "presttige-db";
 const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
-const PRICE_PARAMETER_NAMES = {
-  club: "/presttige/stripe/club-y1-price-id",
-  premier: "/presttige/stripe/premier-y1-price-id",
-  patron: "/presttige/stripe/patron-lifetime-price-id",
-};
 const TIER_DEFINITIONS = {
   subscriber: {
     slug: "subscriber",
@@ -22,7 +15,7 @@ const TIER_DEFINITIONS = {
     billing: null,
     renewal: null,
     checkout_description:
-      "ACCESS POINT — You have been approved. No payment required at this stage. Your place is recognised. Your tier — Club, Premier, or Patron — is yours to choose, when you choose.",
+      "ACCESS POINT — You have been approved. No payment required at this stage. Your place is recognised. Your membership — Club, Premier, or Patron — is yours to choose, when you choose.",
   },
   patron: {
     slug: "patron",
@@ -31,7 +24,7 @@ const TIER_DEFINITIONS = {
     price: "$999 / year",
     price_short: "$999 / year",
     billing: "yearly",
-    renewal: "By annual conversation.",
+    renewal: "Annual. At your discretion.",
     checkout_description:
       "BY EXCEPTION — The closest position to Presttige. A direct line into the network and its founders.",
   },
@@ -58,28 +51,6 @@ const TIER_DEFINITIONS = {
       "ENTRY — Your entry into the network.",
   },
 };
-
-let cachedPriceIds = null;
-
-async function loadPriceIds() {
-  if (cachedPriceIds) {
-    return cachedPriceIds;
-  }
-
-  const response = await ssm.send(
-    new GetParametersCommand({
-      Names: Object.values(PRICE_PARAMETER_NAMES),
-    })
-  );
-
-  const byName = new Map((response.Parameters || []).map((parameter) => [parameter.Name, parameter.Value]));
-  cachedPriceIds = {
-    club: byName.get(PRICE_PARAMETER_NAMES.club) || null,
-    premier: byName.get(PRICE_PARAMETER_NAMES.premier) || null,
-    patron: byName.get(PRICE_PARAMETER_NAMES.patron) || null,
-  };
-  return cachedPriceIds;
-}
 
 async function findLeadByMagicToken(token) {
   let ExclusiveStartKey;
@@ -127,8 +98,6 @@ exports.handler = async (event) => {
       return response(410, { error: "Token expired" });
     }
 
-    const priceIds = await loadPriceIds();
-
     return response(200, {
       profile: {
         name: lead.name || null,
@@ -142,15 +111,15 @@ exports.handler = async (event) => {
         },
         patron: {
           ...TIER_DEFINITIONS.patron,
-          price_id: priceIds.patron,
+          price_id: null,
         },
         premier: {
           ...TIER_DEFINITIONS.premier,
-          price_id: priceIds.premier,
+          price_id: null,
         },
         club: {
           ...TIER_DEFINITIONS.club,
-          price_id: priceIds.club,
+          price_id: null,
         },
       },
     });

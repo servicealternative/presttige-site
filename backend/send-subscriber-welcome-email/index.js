@@ -154,7 +154,7 @@ exports.handler = async (event) => {
       return response(200, { already_sent: true });
     }
 
-    const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}`;
+    const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}?lead_id=${encodeURIComponent(lead.lead_id)}`;
     const displayName = lead.name || "Member";
     const subject = `Welcome to Presttige, ${displayName}`;
     const html = fill(loadTemplate(), {

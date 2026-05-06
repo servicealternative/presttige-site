@@ -4,7 +4,7 @@
   <meta name="google" content="notranslate">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Presttige Tier Selection</title>
+  <title>Presttige Membership Selection</title>
   <script src="/assets/js/consent-banner.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -492,10 +492,11 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/assets/css/brand-fonts.css">
 </head>
 <body translate="no">
   <main class="shell">
-    <div id="app" class="state">Loading your tier options…</div>
+    <div id="app" class="state">Loading your membership options…</div>
   </main>
 
   <script>
@@ -526,7 +527,7 @@
           bodyLines: [
             "You have been approved.",
             "No payment required at this stage.",
-            "Your place is recognised. Your tier — Club, Premier, or Patron — is yours to choose, when you choose.",
+            "Your place is recognised. Your membership — Club, Premier, or Patron — is yours to choose, when you choose.",
           ],
           cta: "Confirm subscription",
         },
@@ -594,7 +595,7 @@
             },
             {
               title: "RENEWAL",
-              body: "By annual conversation.",
+              body: "Annual. At your discretion.",
             },
           ],
           closing: "Patron is not an upgrade. It is proximity.",
@@ -677,7 +678,7 @@
       ];
 
       if (!state.token) {
-        renderFatal("Missing tier-selection token.");
+        renderFatal("Missing membership selection link.");
         return;
       }
 
@@ -702,7 +703,7 @@
         app.innerHTML = `
           <section class="masthead">
             <div class="candidate-name">${escapeHtml(profileName)}</div>
-            <h1 class="title">Choose your tier</h1>
+            <h1 class="title">Choose your membership</h1>
             <p class="lede">Define your level of access within the network. Patron sits at the centre of the programme, while Club and Premier shape the same circle at more selective depths.</p>
           </section>
           ${renderStandardView()}
@@ -920,13 +921,13 @@
 
       async function activateSubscriber() {
         if (!state.context.token?.magicToken) {
-          renderFatal("Subscriber activation requires the original tier-select email link.");
+          renderFatal("Subscriber confirmation requires the original membership selection link.");
           return;
         }
 
         state.loadingAction = "subscriber";
         render();
-        const subscriberUrl = `/subscriber-activated/${encodeURIComponent(state.context.token.magicToken)}?mode=confirm`;
+        const subscriberUrl = `/subscriber/${encodeURIComponent(state.context.token.magicToken)}`;
         window.location.assign(subscriberUrl);
       }
 
@@ -1018,7 +1019,7 @@
       function renderFatal(message) {
         app.className = "error-state";
         app.innerHTML = `
-          <p class="eyebrow">Presttige Tier Selection</p>
+          <p class="eyebrow">Presttige Membership Selection</p>
           <h1 class="title">Link unavailable.</h1>
           <p class="lede">${escapeHtml(message)}</p>
           <p class="footer-note"><a class="placeholder-link" href="${REQUEST_NEW_LINK}">Request a new link</a></p>
