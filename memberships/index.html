@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" class="notranslate">
+<head>
+  <meta name="google" content="notranslate">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Memberships</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="/assets/js/preview-mode-banner.js"></script>
+  <style>
+    :root {
+      --pp-black: #1A1A1A;
+      --pp-gold: #8A7544;
+      --pp-paper: #FBF9F4;
+      --pp-background: #FBF9F4;
+      --pp-hairline: #DDD6C8;
+      --pp-muted: #4F4940;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--pp-background);
+      color: var(--pp-black);
+      font-family: Georgia, serif;
+    }
+
+    .card {
+      width: min(100%, 760px);
+      padding: 40px 34px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-gold);
+      font-family: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0 0 18px;
+      font-size: clamp(42px, 7vw, 64px);
+      font-style: italic;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .copy {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 18px;
+      line-height: 1.75;
+    }
+
+    .copy + .copy {
+      margin-top: 16px;
+    }
+
+    .link {
+      color: var(--pp-gold);
+    }
+  </style>
+  <link rel="stylesheet" href="/assets/css/brand-fonts.css">
+  <link rel="stylesheet" href="/assets/css/preview-mode-banner.css">
+</head>
+<body translate="no">
+  <section class="card">
+    <p class="eyebrow">Membership Selection</p>
+    <h1 class="title">Resuming your membership selection.</h1>
+    <p class="copy" id="status">One moment while we reopen your membership selection.</p>
+    <p class="copy" id="fallback" hidden>If nothing happens, <a class="link" id="fallback-link" href="/">continue here</a>.</p>
+  </section>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const params = new URLSearchParams(window.location.search);
+      const segments = window.location.pathname.split("/").filter(Boolean);
+      const token = params.get("token") || (segments[0] === "memberships" ? segments[1] || "" : "");
+      const leadId = params.get("lead_id") || "";
+      const preview = params.get("preview") === "1";
+      const status = document.getElementById("status");
+      const fallback = document.getElementById("fallback");
+      const fallbackLink = document.getElementById("fallback-link");
+
+      if (window.PresttigePreview) {
+        window.PresttigePreview.syncFromQuery();
+      }
+
+      if (!token) {
+        status.textContent = "This membership link is incomplete.";
+        fallback.hidden = false;
+        fallbackLink.href = "mailto:office@presttige.net?subject=Request%20a%20new%20Presttige%20link";
+        fallbackLink.textContent = "request a new link";
+        return;
+      }
+
+      const redirectUrl = new URL(`/tier-select/${encodeURIComponent(token)}`, window.location.origin);
+      if (leadId) {
+        redirectUrl.searchParams.set("lead_id", leadId);
+      }
+      if (preview) {
+        redirectUrl.searchParams.set("preview", "1");
+      }
+
+      fallback.hidden = false;
+      fallbackLink.href = redirectUrl.toString();
+      fallbackLink.textContent = "open your membership selection";
+      window.location.replace(redirectUrl.toString());
+    })();
+  </script>
+</body>
+</html>

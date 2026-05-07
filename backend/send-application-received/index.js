@@ -10,7 +10,7 @@ const { getBackfillResendIneligibilityReason } = loadBackfillFilters();
 const PREVIEW_BANNER_HTML =
   '<div style="margin:0 0 28px 0;padding:10px 14px;background:#353535;color:#D7D3CC;font-family:Georgia,serif;font-size:13px;line-height:1.5;font-style:italic;">PREVIEW MODE · No payment was processed · This journey will not appear in member records</div>';
 
-const FROM = "committee@presttige.net";
+const FROM = "Presttige <committee@presttige.net>";
 const REPLY_TO = "committee@presttige.net";
 
 function loadTemplate() {

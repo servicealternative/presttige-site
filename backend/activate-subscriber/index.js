@@ -13,7 +13,7 @@ const SEND_SUBSCRIBER_WELCOME_FUNCTION_NAME =
   process.env.SEND_SUBSCRIBER_WELCOME_FUNCTION_NAME || "presttige-send-subscriber-welcome-email";
 const SEND_WELCOME_FUNCTION_NAME =
   process.env.SEND_WELCOME_FUNCTION_NAME || "presttige-send-welcome-email";
-const RECEIPT_FROM = "office@presttige.net";
+const RECEIPT_FROM = "Presttige <office@presttige.net>";
 const RECEIPT_REPLY_TO = "info@presttige.net";
 const PREVIEW_BANNER_TEXT =
   "PREVIEW MODE · No payment was processed · This journey will not appear in member records";
@@ -146,7 +146,7 @@ function buildPreviewReceiptEmail(lead, tier) {
             <td style="padding:48px 56px 40px 56px;">
               ${PREVIEW_BANNER_HTML}
               <p style="margin:0 0 24px 0;color:#8A7544;font-size:11px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;">Membership · Preview receipt</p>
-              <h1 style="margin:0 0 24px 0;font-size:34px;font-weight:500;line-height:1.15;">Preview receipt</h1>
+              <h1 style="margin:0 0 24px 0;font-family:Georgia,'Times New Roman',serif;font-size:34px;font-style:italic;font-weight:400;line-height:1.15;">Preview receipt</h1>
               <p style="margin:0 0 18px 0;font-size:16px;line-height:1.7;color:#4A4A4A;">${name}, your ${tierLabel} membership journey has been completed in preview mode.</p>
               <p style="margin:0 0 18px 0;font-size:16px;line-height:1.7;color:#4A4A4A;">Membership selected: ${tierLabel}${amountLabel ? ` · ${amountLabel}` : ""}</p>
               <p style="margin:0;font-size:16px;line-height:1.7;color:#4A4A4A;">No payment was processed, no Stripe object was created, and this record is excluded from member counts and revenue reporting.</p>

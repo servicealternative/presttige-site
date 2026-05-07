@@ -40,8 +40,17 @@ DOWNGRADE_SCHEDULER_ROLE_ARN = os.environ.get(
     "arn:aws:iam::343218208384:role/presttige-scheduler-invoke-tier-downgrade-role",
 )
 SCHEDULER_GROUP_NAME = os.environ.get("DOWNGRADE_SCHEDULER_GROUP", "default")
-OFFICE_NOTIFICATION_FROM = os.environ.get(
-    "OFFICE_NOTIFICATION_FROM", "office@presttige.net"
+def with_display_name(value):
+    text = str(value or "").strip()
+    if not text:
+        return "Presttige <office@presttige.net>"
+    if "<" in text and ">" in text:
+        return text
+    return f"Presttige <{text}>"
+
+
+OFFICE_NOTIFICATION_FROM = with_display_name(
+    os.environ.get("OFFICE_NOTIFICATION_FROM", "office@presttige.net")
 )
 OFFICE_NOTIFICATION_TO = os.environ.get("OFFICE_NOTIFICATION_TO", "office@presttige.net")
 

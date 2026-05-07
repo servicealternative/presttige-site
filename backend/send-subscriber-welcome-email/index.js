@@ -11,7 +11,7 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1"
 const scheduler = new SchedulerClient({ region: "us-east-1" });
 
 const TABLE_NAME = "presttige-db";
-const FROM = "committee@presttige.net";
+const FROM = "Presttige <committee@presttige.net>";
 const REPLY_TO = "info@presttige.net";
 const SCHEDULER_GROUP_NAME = process.env.TESTER_PURGE_SCHEDULER_GROUP || "default";
 const TESTER_PURGE_DELAY_MINUTES = Math.max(1, Number(process.env.TESTER_PURGE_DELAY_MINUTES || "5"));
@@ -148,7 +148,7 @@ exports.handler = async (event) => {
     }
 
     const previewSuffix = lead.preview_mode ? "&preview=1" : "";
-    const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}?lead_id=${encodeURIComponent(lead.lead_id)}${previewSuffix}`;
+    const tierSelectUrl = `https://presttige.net/memberships/?token=${encodeURIComponent(lead.magic_token)}&lead_id=${encodeURIComponent(lead.lead_id)}${previewSuffix}`;
     const displayName = lead.name || "Member";
     const subject = `Welcome to Presttige, ${displayName}`;
     const html = fill(loadTemplate(), {

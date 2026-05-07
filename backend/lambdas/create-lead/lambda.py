@@ -40,7 +40,7 @@ sesv2 = boto3.client("sesv2", region_name="us-east-1")
 
 # CONFIG
 TOKEN_SECRET = os.environ.get("TOKEN_SECRET", "")
-FROM_EMAIL = "committee@presttige.net"
+FROM_EMAIL = "Presttige <committee@presttige.net>"
 REPLY_TO_EMAIL = "committee@presttige.net"
 VERIFY_BASE_URL = "https://presttige.net/verify-email.html"
 ORIGINALS_BUCKET = os.environ.get("PHOTOS_ORIGINALS_BUCKET", "presttige-applicant-photos")
@@ -380,6 +380,7 @@ def lambda_handler(event, context):
             "application_received_sent": False,
             "application_received_sent_at": None,
             "verification_token": verification_token,
+            "verification_token_status": "active",
             "created_at": now,
             "updated_at": now
         }

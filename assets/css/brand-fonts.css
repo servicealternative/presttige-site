@@ -44,9 +44,17 @@ h6,
 .verify-title,
 .confirm-title,
 .hero h1,
-.hero-headline,
-.section-title {
+.hero-headline {
   font-family: var(--presttige-font-headline) !important;
+}
+
+.application-step h1,
+.title,
+.verify-title,
+.confirm-title,
+.apply-success-title {
+  font-family: var(--presttige-font-headline) !important;
+  font-style: italic !important;
 }
 
 button,
@@ -71,7 +79,6 @@ button,
 .placeholder-link,
 .footer-note,
 .apply-label,
-.apply-btn-send,
-.apply-success-title {
+.apply-btn-send {
   font-family: var(--presttige-font-label) !important;
 }

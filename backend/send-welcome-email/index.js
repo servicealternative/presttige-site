@@ -15,7 +15,7 @@ const scheduler = new SchedulerClient({ region: "us-east-1" });
 const sesv2 = new SESv2Client({ region: "us-east-1" });
 
 const TABLE_NAME = "presttige-db";
-const FROM = "private@presttige.net";
+const FROM = "Presttige <private@presttige.net>";
 const REPLY_TO = "info@presttige.net";
 const BCC = "committee@presttige.net";
 const ORIGINALS_BUCKET = process.env.PHOTOS_ORIGINALS_BUCKET || "presttige-applicant-photos";

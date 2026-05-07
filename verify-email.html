@@ -19,7 +19,7 @@
   <style>
     :root {
       --primary: #0A0A0A;
-      --background: #F5F2ED;
+      --background: #FBF9F4;
       --paper: #FBF9F4;
       --accent: #8C7040;
       --muted: #4A4A4A;
@@ -141,6 +141,7 @@
     (function () {
       const params = new URLSearchParams(window.location.search);
       const token = params.get('token');
+      const error = params.get('error');
 
       if (window.PresttigePreview) {
         window.PresttigePreview.syncFromQuery();
@@ -148,6 +149,13 @@
 
       const messageEl = document.getElementById('message');
       const fallbackLink = document.getElementById('fallbackLink');
+
+      if (error === 'already_used') {
+        messageEl.textContent = 'This link has already been used.';
+        messageEl.classList.add('error');
+        fallbackLink.classList.remove('hidden');
+        return;
+      }
 
       if (!token) {
         messageEl.textContent = 'Invalid verification link.';

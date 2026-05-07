@@ -15,7 +15,7 @@
       --pp-black: #0A0A0A;
       --pp-gold: #8A7544;
       --pp-paper: #FBF9F4;
-      --pp-background: #F5F2ED;
+      --pp-background: #FBF9F4;
       --pp-subscriber: #F8F4E8;
       --pp-stone: #E8E4DA;
       --pp-muted: #5F5B54;
@@ -34,9 +34,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background:
-        radial-gradient(circle at top left, rgba(140, 112, 64, 0.06), transparent 28%),
-        linear-gradient(180deg, #F8F5EF 0%, var(--pp-background) 100%);
+      background: var(--pp-background);
       color: var(--pp-black);
       font-family: "Source Serif 4", Georgia, serif;
     }
@@ -713,7 +711,7 @@
           <section class="masthead">
             <div class="candidate-name">${escapeHtml(profileName)}</div>
             <h1 class="title">Choose your membership</h1>
-            <p class="lede">Define your level of access within the network. Patron sits at the centre of the programme, while Club and Premier shape the same circle at more selective depths.</p>
+            <p class="lede">Define your level of access within the network. Patron sits at the innermost circle of the programme. Club and Premier extend outward at progressively more selective depths.</p>
           </section>
           ${renderStandardView()}
           <p class="footer-note">If this link no longer works, <a class="placeholder-link" href="${REQUEST_NEW_LINK}">request a new one</a>.</p>
