@@ -52,7 +52,8 @@ h6,
 .title,
 .verify-title,
 .confirm-title,
-.apply-success-title {
+.apply-success-title,
+.apply-modal-title {
   font-family: var(--presttige-font-headline) !important;
   font-style: italic !important;
 }
