@@ -10,6 +10,7 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1"
 const TABLE_NAME = "presttige-db";
 const FROM = "Presttige <committee@presttige.net>";
 const REPLY_TO = "committee@presttige.net";
+const MAGIC_LINK_TTL_DAYS = 21;
 const PREVIEW_BANNER_HTML =
   '<div style="margin:0 0 28px 0;padding:10px 14px;background:#353535;color:#D7D3CC;font-family:Georgia,serif;font-size:13px;line-height:1.5;font-style:italic;">PREVIEW MODE · No payment was processed · This journey will not appear in member records</div>';
 
@@ -65,7 +66,7 @@ exports.handler = async (event) => {
         "Your application has been approved by the Presttige Committee. To activate your membership, please choose your preferred membership:",
       tier_select_url: tierSelectUrl,
       disclaimer:
-        "This invitation is private and time-limited. The link above expires in 7 days. If you have questions, reply to this email.",
+        `This invitation is private and time-limited. The link above expires in ${MAGIC_LINK_TTL_DAYS} days. If you have questions, reply to this email.`,
       preview_banner: lead.preview_mode ? PREVIEW_BANNER_HTML : "",
     });
 

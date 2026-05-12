@@ -30,7 +30,7 @@ These values are live in Stripe test mode and mirrored in SSM for the applicatio
 
 - Secret: `presttige-magic-link-secret`
 - Format: `HMAC-SHA256(lead_id + "|tier-select|" + attempt_id, secret)`
-- TTL: 7 days
+- TTL: 21 days
 - Statuses:
   - `active`
   - `used`
