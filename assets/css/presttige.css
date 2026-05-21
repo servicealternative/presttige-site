@@ -106,10 +106,7 @@
 /* ============ HERO ============ */
 body {
   padding-top: 64px;
-  background:
-    radial-gradient(ellipse at top center, rgba(201, 169, 97, 0.08), transparent 34%),
-    radial-gradient(ellipse at 50% 38%, rgba(26, 26, 26, 0.28), transparent 58%),
-    linear-gradient(180deg, #0a0a0a 0%, #111111 22%, #141414 46%, #101010 72%, #0a0a0a 100%);
+  background: var(--surface-cream);
 }
 @media (min-width: 768px) {
   body { padding-top: 72px; }
@@ -237,7 +234,7 @@ body {
   font-weight: 400;
   line-height: 1.08;
   letter-spacing: -0.012em;
-  color: var(--ivory-white);
+  color: var(--ink-black);
   margin-bottom: var(--space-xl);
   text-align: center;
 }
@@ -247,7 +244,7 @@ body {
   font-weight: 300;
   line-height: 1.85;
   letter-spacing: 0;
-  color: var(--ivory-white);
+  color: var(--ink-muted);
   margin-bottom: var(--space-lg);
 }
 .section-body p:last-child { margin-bottom: 0; }
@@ -295,7 +292,7 @@ body {
   font-family: var(--font-serif);
   font-size: 22px;
   font-weight: 400;
-  color: var(--ivory-white);
+  color: var(--ink-black);
   margin-bottom: var(--space-md);
   letter-spacing: -0.01em;
 }
@@ -329,15 +326,15 @@ body {
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--ivory-white);
+  color: var(--ink-black);
   background: transparent;
-  border: 1px solid var(--ivory-white);
+  border: 1px solid var(--ink-black);
   transition: all 500ms ease;
   cursor: pointer;
 }
 .btn-express-interest:hover {
-  background: var(--ivory-white);
-  color: var(--ink-black);
+  background: var(--ink-black);
+  color: var(--surface-cream);
   opacity: 1;
   transform: none;
 }
