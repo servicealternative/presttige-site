@@ -189,6 +189,13 @@ body {
   margin: 0 auto;
 }
 
+.title,
+.card-title,
+.verify-title,
+.confirm-title {
+  font-family: var(--font-serif);
+}
+
 /* ============ SECTIONS ============ */
 .section {
   padding: var(--space-2xl) 0;
