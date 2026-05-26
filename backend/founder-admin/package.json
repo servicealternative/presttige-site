@@ -1,0 +1,7 @@
+{
+  "name": "presttige-founder-admin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interim protected Founder admin Lambda for invite token management.",
+  "main": "lambda_function.py"
+}

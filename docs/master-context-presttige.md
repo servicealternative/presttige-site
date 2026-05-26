@@ -221,6 +221,14 @@ Current phase:
 - avoid architectural drift
 - avoid generic suggestions that ignore the accepted system design
 
+## 12.1 CRM Architecture Decision
+
+CRM is a separate application on the same shared `presttige-db`.
+
+The interim `/admin` Founder tool retires into the CRM later. The interim
+Founder admin must stay lean and self-contained, and must not become a CRM
+foundation.
+
 ## 13. How Any New Chat Must Start
 
 Before proposing changes, restate:

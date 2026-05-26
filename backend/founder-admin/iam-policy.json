@@ -1,0 +1,51 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "FounderAdminReadWritePresttigeDb",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:Query",
+        "dynamodb:UpdateItem",
+        "dynamodb:TransactWriteItems"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db",
+        "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db/index/email-index"
+      ]
+    },
+    {
+      "Sid": "FounderAdminAppendAuditOnly",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:TransactWriteItems"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-review-audit",
+        "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-review-audit/index/lead-id-index"
+      ]
+    },
+    {
+      "Sid": "ReadFounderTokenSecret",
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "arn:aws:secretsmanager:us-east-1:343218208384:secret:presttige-founder-token-secret-*"
+    },
+    {
+      "Sid": "WriteOwnLambdaLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": [
+        "arn:aws:logs:us-east-1:343218208384:log-group:/aws/lambda/presttige-founder-admin",
+        "arn:aws:logs:us-east-1:343218208384:log-group:/aws/lambda/presttige-founder-admin:*"
+      ]
+    }
+  ]
+}
