@@ -1,4 +1,4 @@
-# PRESTTIGE — TECHNICAL STATE
+# PRESTTIGE - TECHNICAL STATE
 
 Status: as-built technical record. No secrets or token values.
 
@@ -27,23 +27,29 @@ Status: as-built technical record. No secrets or token values.
   - malformed/unknown email failed
   - throwaway records deleted after test
 
-### PREPARED, NOT DEPLOYED
+`presttige-founder-admin` is deployed in AWS Lambda.
 
-`presttige-founder-admin` is prepared in the repo but not deployed.
-
-- Purpose: interim `/admin` Founder tool only.
-- Actions:
+- API Gateway HTTP API: `rwkz3d86u0`
+- JWT authorizer: `presttige-admin-cognito`
+- Protected routes:
+  - `POST /admin/founder-invite`
+  - `POST /admin/founder-token`
+- CORS preflight routes:
+  - `OPTIONS /admin/founder-invite`
+  - `OPTIONS /admin/founder-token`
+- Admins group enforcement: inside the Lambda, using the Cognito token claims.
+- Purpose:
   - create Founder invite
   - revoke Founder token
   - regenerate Founder token
-- Requires before deploy:
-  - Cognito authentication
-  - API Gateway route
-  - tightly scoped IAM
-  - live `FOUNDER_TOKEN_SECRET_ID`
 - This is the first Founder component with write access to `presttige-db`.
 - It writes audit rows to `presttige-review-audit` before mutating Founder invite state.
-- It must stay lean and self-contained because the real CRM will replace it later.
+
+Permanent secret:
+
+- Secrets Manager secret: `presttige-founder-token-secret`
+- Used by `presttige-founder-admin` for Founder token HMAC generation.
+- No secret values are stored in the repo or in this document.
 
 ### REDUNDANT
 
@@ -52,6 +58,42 @@ Status: as-built technical record. No secrets or token values.
 - Current status: redundant.
 - Retirement target: remove live Lambda/route after all callers use `/founder-gate`.
 - Do not extend this function.
+
+## Cognito
+
+`presttige-internal` is live in Amazon Cognito.
+
+- Region: `us-east-1`
+- User pool ID: `us-east-1_s5PvTEeHv`
+- MFA: required
+- MFA method: TOTP authenticator app
+- Group: `Admins`
+- Antonio user: `apereira@presttige.net`
+- Antonio user status: active
+
+`presttige-admin-cognito` is live as a JWT authorizer on HTTP API `rwkz3d86u0`.
+
+- Issuer: `https://cognito-idp.us-east-1.amazonaws.com/us-east-1_s5PvTEeHv`
+- Audience: Cognito app client for the admin SPA
+- Attached only to admin routes.
+- Public routes remain public.
+
+## Route 53
+
+Route 53 hosted zone for `ulttra.net` is created.
+
+- Hosted zone ID: `Z09939161TKOTM6MZBKCG`
+- Type: public hosted zone
+- GoDaddy nameservers: flipped to the AWS Route 53 nameservers.
+- Propagation status: in progress.
+- Default records only at creation: `NS` and `SOA`.
+
+AWS name servers:
+
+- `ns-140.awsdns-17.com`
+- `ns-1118.awsdns-11.org`
+- `ns-691.awsdns-22.net`
+- `ns-1904.awsdns-46.co.uk`
 
 ## Data model
 
@@ -94,18 +136,6 @@ Founder invite creation, when the record is intentionally Founder-eligible.
   - `founder_token_regenerate`
 - No secrets or token values in audit rows.
 
-## Pending setup owned by Antonio
-
-Antonio owns the authentication setup:
-
-- Cognito user pool
-- Cognito app client
-- admin account and MFA
-- API Gateway JWT authorizer
-- protected `/admin` frontend/session flow
-
-Codex must not create Cognito users, passwords, accounts, or credentials.
-
 ## CRM architecture decision
 
 CRM is a separate application on the same shared `presttige-db`.
@@ -116,6 +146,8 @@ The interim `/admin` implementation must not become a CRM foundation.
 
 ## Open items
 
+- Check Route 53 DNS propagation for `ulttra.net`.
+- Deploy Directus on AWS after DNS propagation is confirmed.
 - Non-home pages still load `brand-fonts.css`; confirm and remove/align as required.
 - Confirm DynamoDB encryption at rest for `presttige-db`.
 - Retire `presttige-founder-validate`.
