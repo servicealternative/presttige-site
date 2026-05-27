@@ -53,13 +53,15 @@ def lambda_handler(event, context):
     actor_id = get_cognito_actor_id(event)
     if not actor_id:
         return error_response(401, "unauthorized", "Cognito authentication is required.")
+    if not is_admin_actor(event):
+        return error_response(403, "forbidden", "Admins group membership is required.")
 
     try:
         payload = parse_json_body(event)
     except ValueError:
         return error_response(400, "invalid_json", "Request body must be valid JSON.")
 
-    action = normalize_string(payload.get("action")).lower()
+    action = resolve_action(event, payload)
     if action not in VALID_ACTIONS:
         return error_response(400, "invalid_action", "Action is not supported.")
 
@@ -375,19 +377,51 @@ def summarize_founder_state(lead):
 
 
 def get_cognito_actor_id(event):
-    claims = (
-        event.get("requestContext", {})
-        .get("authorizer", {})
-        .get("jwt", {})
-        .get("claims", {})
-    )
-    if not claims:
-        claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
+    claims = get_cognito_claims(event)
     return normalize_string(
         claims.get("sub")
         or claims.get("cognito:username")
         or claims.get("username")
     )
+
+
+def get_cognito_claims(event):
+    claims = event.get("requestContext", {}).get("authorizer", {}).get("jwt", {}).get("claims", {})
+    if not claims:
+        claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
+    return claims or {}
+
+
+def is_admin_actor(event):
+    groups = get_cognito_claims(event).get("cognito:groups")
+    if isinstance(groups, list):
+        return "Admins" in groups
+    if groups is None:
+        return False
+    return "Admins" in {group.strip() for group in str(groups).split(",")}
+
+
+def resolve_action(event, payload):
+    action = normalize_string(payload.get("action")).lower()
+    if action in {"revoke", "revoke_founder_token"}:
+        return "revoke_token"
+    if action in {"regenerate", "regenerate_founder_token"}:
+        return "regenerate_token"
+    if action:
+        return action
+
+    route_key = normalize_string(event.get("routeKey")).lower()
+    raw_path = normalize_string(event.get("rawPath") or event.get("path")).lower()
+    if "/admin/founder-invite" in route_key or raw_path.endswith("/admin/founder-invite"):
+        return "create_invite"
+    if "/admin/founder-token" in route_key or raw_path.endswith("/admin/founder-token"):
+        token_action = normalize_string(payload.get("token_action") or payload.get("mode")).lower()
+        if token_action in {"revoke", "revoke_token"}:
+            return "revoke_token"
+        if token_action in {"regenerate", "regenerate_token"}:
+            return "regenerate_token"
+
+    return ""
 
 
 def find_lead_by_email(email):
