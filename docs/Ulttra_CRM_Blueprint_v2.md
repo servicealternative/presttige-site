@@ -210,7 +210,80 @@ Planned integrations:
 
 Integrations are wired only in their approved phase.
 
-## 13. Build Order
+## 13. Architecture Rules
+
+### Data Velocity
+
+The CRM has three approved data speeds.
+
+Management analytics:
+
+- Scope: Google Analytics and subscriber management analytics.
+- Refresh model: periodic refresh.
+- Frequency: hourly is acceptable.
+- Data model: pull model.
+- Google Analytics has no webhook model for this purpose.
+- The CRM queries the GA4 API periodically.
+- This is not real-time.
+- This is sufficient for Antonio's management view.
+
+Active campaigns:
+
+- Scope: campaign tokens and Stripe payment events.
+- Refresh model: real-time.
+- Click, conversion, and payment events are recorded at the moment they happen.
+- Events are attributed to the agent and campaign at capture time.
+- Active campaign attribution does not depend on Google Analytics.
+- Stripe sends payment events through webhooks.
+
+Member Cards, concierge, and validation:
+
+- Scope: partner card validation, member privilege checks, and concierge
+  requests.
+- Refresh model: absolute real-time.
+- When a partner validates a card or a member requests concierge, the system
+  reads the current source-of-truth state at that moment.
+- Subscriber and membership state is read from `presttige-db`.
+- Privilege and CRM state is read from the CRM.
+- The read path is a fast API.
+- Cards and validation never depend on periodically synced copies.
+
+### Subscriber Data Source
+
+`presttige-db` remains the subscriber source of truth.
+
+For management analytics, subscriber data is synced into the CRM read-only and
+periodically. This is Option B.
+
+The CRM never writes to `presttige-db`.
+
+For card validation and concierge, the CRM reads the current subscriber and
+privilege state at request time. This does not use the periodic analytics copy.
+
+### Antonio's Command Panel
+
+The command panel must stay minimal, only what matters, and remain extensible
+for more metrics later.
+
+Initial command panel metrics:
+
+- Visitors, today, week, and month
+- Traffic sources and channels
+- Subscribers, global and by tier
+- Paid users and revenue
+- Conversion, visitors to members
+- Trend versus previous period
+- Top 3 cities and countries, extensible
+- Gender, M/F
+- Average age, global and latest
+
+Future note:
+
+- Prepare a catalogue of everything GA4 can provide so Antonio can choose what
+  to bring into the CRM.
+- This is a later task, not part of Phase 1.
+
+## 14. Build Order
 
 Phase 1: Base CRM collections.
 
@@ -248,7 +321,7 @@ Phase 7: petslab.net.
 
 - Build project-specific ecommerce CRM workflows.
 
-## 14. Compliance Principle
+## 15. Compliance Principle
 
 Identity documents are view-and-validate only.
 
