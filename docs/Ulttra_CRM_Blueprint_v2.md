@@ -212,6 +212,14 @@ Integrations are wired only in their approved phase.
 
 ## 13. Architecture Rules
 
+### Synthetic Test Records
+
+Records where `synthetic_test = true` are excluded from all statistics and
+dashboards, no exceptions, ever.
+
+This exclusion is an absolute rule for CRM analytics, command panels, funnel
+counts, exports, and future dashboard views.
+
 ### Data Velocity
 
 The CRM has three approved data speeds.
@@ -265,6 +273,20 @@ privilege state at request time. This does not use the periodic analytics copy.
 The command panel must stay minimal, only what matters, and remain extensible
 for more metrics later.
 
+At this stage, the command panel is a funnel view because the business has not
+launched and live paid-member counts are intentionally tiny.
+
+Current funnel panel metrics:
+
+- Total real leads, excluding `synthetic_test = true`
+- Leads by `review_status`, pending and approved
+- Leads by `payment_status`
+- Real paying members and tier
+- Leads by country
+
+Paid-member counts are tiny by design at this stage. The current Stripe-backed
+paid-member reality is one real paid member.
+
 Initial command panel metrics:
 
 - Visitors, today, week, and month
@@ -282,6 +304,26 @@ Future note:
 - Prepare a catalogue of everything GA4 can provide so Antonio can choose what
   to bring into the CRM.
 - This is a later task, not part of Phase 1.
+
+### Data Gaps To Close
+
+Known gaps before fuller management analytics:
+
+- Gender is not captured anywhere yet. Decide where to capture it, likely at
+  registration.
+- Age is present on only about 18 records. Decide whether to make it required
+  later.
+- Visitors, traffic sources, traffic demographics, and visitor conversion
+  require Google Analytics.
+
+### Email Management Direction
+
+Now that Ulttra exists as the master CRM, email management must be revisited
+with the CRM underneath it.
+
+Founder emails, Founder invites, and future project emails should move into a
+unified CRM-backed email management model. This closes the loop back to the
+original email-management problem that started the project.
 
 ## 14. Build Order
 

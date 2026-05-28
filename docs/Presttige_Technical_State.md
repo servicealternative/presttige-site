@@ -188,6 +188,31 @@ Compliance state:
 - `documents.file_ref` is an S3 object reference only.
 - IBAN and identity-validation fields are Admin-only in Directus permissions.
 
+Ulttra repository state:
+
+- Local repository: `/Users/antonio/Desktop/ulttra`
+- Purpose: master operating unit repository, independent from `presttige-site`
+- Current contents: README and Ulttra brand logos
+- Remote: none configured yet
+
+Directus branding state:
+
+- Project name: `ULTTRA crm`
+- Public background: silver
+- Project logo: Ulttra transparent-background logo
+- Login foreground: Ulttra transparent-background logo
+- Favicon: Ulttra transparent-background logo
+- No Presttige logo is used in the CRM branding.
+
+`presttige-db` read-only inspection for CRM analytics:
+
+- Total items inspected: 56
+- Records with `synthetic_test = true`: 15, excluded from all statistics
+- Real records used for analytics: 41
+- Current real paid-member reality: 1 paid member
+- Inspection was read-only. No `presttige-db` records were created, modified,
+  or deleted.
+
 The interim `/admin` Founder tool retires into the CRM later.
 
 The interim `/admin` implementation must not become a CRM foundation.
