@@ -85,7 +85,7 @@ Route 53 hosted zone for `ulttra.net` is created.
 - Hosted zone ID: `Z09939161TKOTM6MZBKCG`
 - Type: public hosted zone
 - GoDaddy nameservers: flipped to the AWS Route 53 nameservers.
-- Propagation status: in progress.
+- Propagation status: propagated.
 - Default records only at creation: `NS` and `SOA`.
 
 AWS name servers:
@@ -138,7 +138,55 @@ Founder invite creation, when the record is intentionally Founder-eligible.
 
 ## CRM architecture decision
 
-CRM is a separate application on the same shared `presttige-db`.
+CRM is a separate application on `crm.ulttra.net`.
+
+Directus is live as the CRM application.
+
+- Runtime: ECS Fargate
+- Network: dedicated VPC with public and private subnets
+- Public ingress: Application Load Balancer over HTTPS
+- Private runtime: Directus ECS tasks in private subnets
+- Private database: RDS PostgreSQL, encrypted at rest
+- File storage: S3 bucket `ulttra-crm-files`
+- Outbound access: NAT Gateway for private subnet egress
+- Auth: Cognito SSO through `presttige-internal`
+
+Cognito SSO is working for Antonio:
+
+- Cognito user: `apereira@presttige.net`
+- Directus provider: `cognito`
+- Directus role: Administrator
+
+Bootstrap admins are retained as fallback until clean logout/login with MFA is
+confirmed and Antonio approves retirement.
+
+CRM Phase 1 is built in Directus.
+
+Collections:
+
+- `people`
+- `companies`
+- `projects`
+- `documents`
+- `campaigns`
+- `ledgers`
+- `people_projects`
+- `companies_projects`
+
+Seed records:
+
+- Antonio Pereira: Admin, active
+- Ana: Team, active, `afernandez@presttige.net`
+- Presttige: `members_network`, live
+- petslab.net: `ecommerce`, `in_design`
+
+Compliance state:
+
+- Identity documents are view-and-validate only.
+- Passport, Emirates ID, and trade license images are not stored permanently as
+  CRM records.
+- `documents.file_ref` is an S3 object reference only.
+- IBAN and identity-validation fields are Admin-only in Directus permissions.
 
 The interim `/admin` Founder tool retires into the CRM later.
 
@@ -146,8 +194,9 @@ The interim `/admin` implementation must not become a CRM foundation.
 
 ## Open items
 
-- Check Route 53 DNS propagation for `ulttra.net`.
-- Deploy Directus on AWS after DNS propagation is confirmed.
+- Retire bootstrap admins after MFA is confirmed through clean logout/login.
+- Build CRM Phase 2: Analytics command centre, connecting Stripe and Google
+  Analytics first.
 - Non-home pages still load `brand-fonts.css`; confirm and remove/align as required.
 - Confirm DynamoDB encryption at rest for `presttige-db`.
 - Retire `presttige-founder-validate`.
