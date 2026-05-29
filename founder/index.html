@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#f4f1eb" />
+  <title>Invitation Verification | PRESTTIGE</title>
+  <meta name="description" content="PRESTTIGE invitation verification." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <style>
+    :root {
+      --paper: #f4f1eb;
+      --ink: #1f1b16;
+      --muted: #706a62;
+      --gold: #d1ae72;
+      --gold-dark: #8c7040;
+      --line: rgba(31, 27, 22, 0.14);
+      --panel: rgba(255, 252, 246, 0.72);
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(255, 252, 246, 0.44), rgba(244, 241, 235, 0) 34%),
+        var(--paper);
+      color: var(--ink);
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 24px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--ink);
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .brand img {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+    }
+
+    .home-link {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      transition: color 220ms ease;
+    }
+
+    .home-link:hover {
+      color: var(--gold-dark);
+    }
+
+    main {
+      flex: 1;
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 80px 0 96px;
+      display: grid;
+      align-items: center;
+    }
+
+    .gate-shell {
+      width: min(640px, 100%);
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      color: var(--gold-dark);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-weight: 500;
+      letter-spacing: 0;
+      color: var(--ink);
+    }
+
+    h1 {
+      font-size: clamp(48px, 9vw, 82px);
+      line-height: 0.98;
+      margin-bottom: 24px;
+    }
+
+    .lede {
+      max-width: 560px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.72;
+      margin-bottom: 40px;
+    }
+
+    .gate-panel {
+      padding: 34px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    .field {
+      display: grid;
+      gap: 9px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    input {
+      width: 100%;
+      min-height: 52px;
+      padding: 0 16px;
+      border: 1px solid rgba(31, 27, 22, 0.22);
+      border-radius: 0;
+      background: rgba(255, 255, 255, 0.62);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 180ms ease, background 180ms ease;
+    }
+
+    input:focus {
+      border-color: var(--gold-dark);
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .submit {
+      width: 100%;
+      min-height: 52px;
+      margin-top: 6px;
+      border: 1px solid var(--gold-dark);
+      background: var(--ink);
+      color: var(--paper);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      transition: background 180ms ease, color 180ms ease, opacity 180ms ease;
+    }
+
+    .submit:hover:not(:disabled) {
+      background: var(--gold-dark);
+      color: #fffaf0;
+    }
+
+    .submit:disabled {
+      cursor: wait;
+      opacity: 0.58;
+    }
+
+    .message {
+      margin-top: 18px;
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .message a {
+      color: var(--gold-dark);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .detail-shell[hidden] {
+      display: none;
+    }
+
+    .detail-shell {
+      width: 100%;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(300px, 0.55fr);
+      gap: clamp(32px, 6vw, 84px);
+      align-items: start;
+    }
+
+    .detail-copy {
+      max-width: 680px;
+    }
+
+    .detail-kicker {
+      display: inline-flex;
+      padding: 8px 12px;
+      border: 1px solid var(--gold);
+      color: var(--gold-dark);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .detail-title {
+      font-size: clamp(54px, 10vw, 104px);
+      line-height: 0.92;
+      margin-bottom: 28px;
+    }
+
+    .detail-lede,
+    .detail-copy p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.76;
+    }
+
+    .detail-section {
+      margin-top: 42px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+
+    .detail-section h3 {
+      margin-bottom: 16px;
+      color: var(--gold-dark);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .detail-list {
+      list-style: none;
+      display: grid;
+      gap: 14px;
+    }
+
+    .detail-list li {
+      position: relative;
+      padding-left: 22px;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.64;
+    }
+
+    .detail-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.72em;
+      width: 7px;
+      height: 7px;
+      border: 1px solid var(--gold-dark);
+      transform: rotate(45deg);
+    }
+
+    .detail-card {
+      padding: 30px;
+      border: 1px solid var(--line);
+      background: rgba(255, 252, 246, 0.7);
+    }
+
+    .detail-card h2 {
+      margin-bottom: 18px;
+      font-size: 34px;
+      line-height: 1.05;
+    }
+
+    .price {
+      color: var(--ink);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 42px;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .next-step {
+      margin-top: 26px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        width: min(100% - 28px, var(--max));
+      }
+
+      main {
+        width: min(100% - 28px, var(--max));
+        padding: 44px 0 72px;
+      }
+
+      .gate-panel {
+        padding: 24px 20px;
+      }
+
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-card {
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar" aria-label="PRESTTIGE">
+      <a class="brand" href="/" aria-label="PRESTTIGE home">
+        <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+        <span>PRESTTIGE</span>
+      </a>
+      <a class="home-link" href="/">Home</a>
+    </header>
+
+    <main>
+      <section id="gate" class="gate-shell" aria-labelledby="gate-title">
+        <p class="eyebrow">Private verification</p>
+        <h1 id="gate-title">Verify your invitation.</h1>
+        <p class="lede">Enter the two email addresses requested in your invitation. If they match our records, the next page will open here.</p>
+
+        <form id="gate-form" class="gate-panel" novalidate>
+          <div class="field">
+            <label for="invitee-email">Your email address</label>
+            <input id="invitee-email" name="invitee-email" type="email" autocomplete="email" inputmode="email" required>
+          </div>
+          <div class="field">
+            <label for="inviter-email">Inviter email address</label>
+            <input id="inviter-email" name="inviter-email" type="email" autocomplete="email" inputmode="email" required>
+          </div>
+          <button id="gate-submit" class="submit" type="submit">Continue</button>
+          <div id="gate-message" class="message" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section id="detail" class="detail-shell" aria-live="polite" hidden></section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      var gate = document.getElementById("gate");
+      var detail = document.getElementById("detail");
+      var form = document.getElementById("gate-form");
+      var submit = document.getElementById("gate-submit");
+      var message = document.getElementById("gate-message");
+
+      form.addEventListener("submit", onSubmit);
+
+      async function onSubmit(event) {
+        event.preventDefault();
+        setMessage("");
+
+        var inviteeEmail = normalizeEmail(document.getElementById("invitee-email").value);
+        var inviterEmail = normalizeEmail(document.getElementById("inviter-email").value);
+
+        if (!isEmail(inviteeEmail) || !isEmail(inviterEmail)) {
+          showFailure();
+          return;
+        }
+
+        submit.disabled = true;
+        submit.textContent = "Checking";
+
+        try {
+          var result = await postJson(API_BASE + "/founder-gate", {
+            invited_email: inviteeEmail,
+            inviter_email: inviterEmail
+          });
+
+          if (!result || result.valid !== true) {
+            showFailure();
+            return;
+          }
+
+          await revealDetail(inviteeEmail);
+        } catch (_error) {
+          showFailure();
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Continue";
+        }
+      }
+
+      async function postJson(url, body) {
+        var response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
+        });
+
+        try {
+          return await response.json();
+        } catch (_error) {
+          return { valid: false };
+        }
+      }
+
+      async function revealDetail(inviteeEmail) {
+        await loadDetailScript();
+
+        if (!window.PRESTTIGE_ACCESS_DETAIL || typeof window.PRESTTIGE_ACCESS_DETAIL.render !== "function") {
+          showFailure();
+          return;
+        }
+
+        gate.hidden = true;
+        detail.hidden = false;
+        window.PRESTTIGE_ACCESS_DETAIL.render(detail, {
+          email: inviteeEmail
+        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function loadDetailScript() {
+        if (window.PRESTTIGE_ACCESS_DETAIL) {
+          return Promise.resolve();
+        }
+
+        return new Promise(function (resolve, reject) {
+          var script = document.createElement("script");
+          script.src = "/assets/js/access-detail.js";
+          script.async = true;
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      function showFailure() {
+        var local = "founders";
+        var domain = "presttige.net";
+        var address = local + "@" + domain;
+        setMessage('We could not verify this invitation. Please contact <a href="mailto:' + address + '">' + address + '</a>.');
+      }
+
+      function setMessage(html) {
+        message.innerHTML = html;
+      }
+
+      function normalizeEmail(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function isEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254;
+      }
+    })();
+  </script>
+</body>
+</html>
