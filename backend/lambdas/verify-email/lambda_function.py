@@ -4,7 +4,7 @@ import sys
 import boto3
 from pathlib import Path
 from datetime import datetime
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlencode
 from boto3.dynamodb.conditions import Attr
 
 CURRENT_FILE = Path(__file__).resolve()
@@ -57,7 +57,7 @@ def lambda_handler(event, context):
                     "immediate_processing": True,
                 },
             )
-            return redirect(f"{BASE_URL}/access-form.html?lead_id={lead_id}")
+            return redirect(f"{BASE_URL}/access-form.html?{urlencode({'lead_id': lead_id})}")
 
         response = table.scan(
             FilterExpression=Attr("verification_token").eq(token),
@@ -73,9 +73,11 @@ def lambda_handler(event, context):
 
         lead = items[0]
         lead_id = lead.get("lead_id")
+        country = (lead.get("country") or "").strip()
         current_email_status = lead.get("email_status", "pending")
 
         print("VERIFY EMAIL LEAD ID:", lead_id)
+        print("VERIFY EMAIL COUNTRY:", country)
         print("VERIFY EMAIL CURRENT STATUS:", current_email_status)
 
         if not lead_id:
@@ -93,7 +95,11 @@ def lambda_handler(event, context):
             )
             print("VERIFY EMAIL UPDATED SUCCESSFULLY")
 
-        return redirect(f"{BASE_URL}/access-form.html?lead_id={lead_id}")
+        redirect_params = {"lead_id": lead_id}
+        if country:
+            redirect_params["country"] = country
+
+        return redirect(f"{BASE_URL}/access-form.html?{urlencode(redirect_params)}")
 
     except Exception as e:
         print("VERIFY EMAIL ERROR:", str(e))

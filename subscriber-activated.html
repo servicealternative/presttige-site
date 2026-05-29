@@ -7,41 +7,42 @@
   <script src="/assets/js/consent-banner.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --pp-primary: #0A0A0A;
-      --pp-paper: #FBF9F4;
-      --pp-background: #F5F2ED;
-      --pp-accent: #8C7040;
-      --pp-hairline: #D9D2C5;
-      --pp-muted: #6B6B6B;
-      --pp-error: #9F1D1D;
+      --pp-black: #1A1A1A;
+      --pp-paper: #FFFFFF;
+      --pp-background: #FBF9F4;
+      --pp-gold: #8A7544;
+      --pp-hairline: #DDD6C8;
+      --pp-muted: #4F4940;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
       display: grid;
       place-items: center;
-      background: var(--pp-background);
-      color: var(--pp-primary);
-      font-family: "Source Serif Pro", Georgia, serif;
       padding: 24px;
+      background: var(--pp-background);
+      color: var(--pp-black);
+      font-family: "Source Serif 4", Georgia, serif;
     }
 
     .card {
       width: min(100%, 760px);
-      background: var(--pp-paper);
+      padding: 42px 34px;
       border: 1px solid var(--pp-hairline);
-      padding: 40px 32px;
+      background: var(--pp-paper);
     }
 
-    .eyebrow {
-      margin: 0 0 14px;
-      color: var(--pp-accent);
+    .label {
+      margin: 0 0 16px;
+      color: var(--pp-gold);
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.22em;
@@ -49,19 +50,30 @@
     }
 
     .title {
-      margin: 0 0 18px;
+      margin: 0 0 22px;
       font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: clamp(42px, 7vw, 64px);
-      font-style: italic;
-      font-weight: 500;
+      font-size: clamp(44px, 7vw, 64px);
+      font-weight: 600;
       line-height: 0.95;
     }
 
+    .copy-group {
+      display: grid;
+      gap: 18px;
+    }
+
     .copy {
-      margin: 0 0 20px;
+      margin: 0;
       color: var(--pp-muted);
-      font-size: 17px;
+      font-size: 18px;
       line-height: 1.8;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
     }
 
     .button {
@@ -70,27 +82,34 @@
       justify-content: center;
       min-height: 48px;
       padding: 0 24px;
-      border: 1px solid var(--pp-primary);
-      background: var(--pp-primary);
-      color: var(--pp-paper);
+      border: 1px solid var(--pp-gold);
+      background: var(--pp-gold);
+      color: #FFFFFF;
       font: inherit;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
       text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button[disabled] {
+      cursor: default;
+      opacity: 0.7;
     }
 
     .error {
-      color: var(--pp-error);
+      color: #8B1E1E;
     }
   </style>
 </head>
 <body>
   <section id="app" class="card">
-    <p class="eyebrow">Presttige Subscriber</p>
-    <h1 class="title">You're on the list.</h1>
-    <p class="copy">Validating your access…</p>
+    <p class="label">ACCESS POINT</p>
+    <h1 class="title">Subscriber</h1>
+    <div class="copy-group">
+      <p class="copy">Loading your access…</p>
+    </div>
   </section>
 
   <script>
@@ -99,9 +118,12 @@
 
       const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
       const app = document.getElementById("app");
-      const token = window.location.pathname.split("/").filter(Boolean).pop();
+      const route = readRoute();
+      const state = {
+        busy: false,
+      };
 
-      if (!token || token === "subscriber-activated" || token === "subscriber-activated.html") {
+      if (!route.token || route.token === "subscriber-activated" || route.token === "subscriber-activated.html") {
         renderError("Missing access token.");
         return;
       }
@@ -110,36 +132,93 @@
 
       async function validate() {
         try {
-          const response = await fetch(`${API_BASE}/tier-select-fetch?token=${encodeURIComponent(token)}`);
+          const response = await fetch(`${API_BASE}/tier-select-fetch?token=${encodeURIComponent(route.token)}`);
           const data = await response.json();
 
           if (!response.ok) {
             renderError(data.error || "This link is no longer available.");
             return;
           }
-
-          renderSuccess(data.profile?.name || "Member");
+          render();
         } catch (error) {
           renderError("Unable to validate your access right now.");
         }
       }
 
-      function renderSuccess(name) {
+      function render() {
         app.innerHTML = `
-          <p class="eyebrow">Presttige Subscriber</p>
-          <h1 class="title">You're on the list.</h1>
-          <p class="copy">Thank you, ${escapeHtml(name)}. Your Subscriber status is now active — you'll hear from us with Presttige updates, Patron seat availability, and curated invitations to upgrade.</p>
-          <p class="copy">When you're ready to take a tier, you can return to this link at any time:</p>
-          <a class="button" href="/tier-select/${encodeURIComponent(token)}">Return to tier selection</a>
+          <p class="label">ACCESS POINT</p>
+          <h1 class="title">Subscriber</h1>
+          <div class="copy-group">
+            <p class="copy">You have been approved.</p>
+            <p class="copy">No payment required at this stage.</p>
+            <p class="copy">Your place is recognised. Your tier — Club, Premier, or Patron — is yours to choose, when you choose.</p>
+          </div>
+          <div class="actions">
+            ${
+              route.mode === "confirm"
+                ? `<button type="button" class="button" data-confirm-subscriber="true" ${state.busy ? "disabled" : ""}>${state.busy ? "Confirming…" : "Confirm subscription"}</button>`
+                : `<button type="button" class="button" disabled>Subscription confirmed</button>`
+            }
+          </div>
         `;
+
+        const button = app.querySelector("[data-confirm-subscriber]");
+        if (button) {
+          button.addEventListener("click", confirmSubscription);
+        }
+      }
+
+      async function confirmSubscription() {
+        if (state.busy) {
+          return;
+        }
+
+        state.busy = true;
+        render();
+
+        try {
+          const response = await fetch(`${API_BASE}/activate-subscriber`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              token: route.token,
+            }),
+          });
+          const data = await response.json();
+
+          if (!response.ok || !data.activated) {
+            renderError(data.error || "Unable to confirm your subscription right now.");
+            return;
+          }
+
+          window.location.assign(`/subscriber-activated/${encodeURIComponent(route.token)}`);
+        } catch (error) {
+          renderError("Unable to confirm your subscription right now.");
+        } finally {
+          state.busy = false;
+        }
       }
 
       function renderError(message) {
         app.innerHTML = `
-          <p class="eyebrow">Presttige Subscriber</p>
-          <h1 class="title">Link unavailable.</h1>
-          <p class="copy error">${escapeHtml(message)}</p>
+          <p class="label">ACCESS POINT</p>
+          <h1 class="title">Subscriber</h1>
+          <div class="copy-group">
+            <p class="copy error">${escapeHtml(message)}</p>
+          </div>
         `;
+      }
+
+      function readRoute() {
+        const segments = window.location.pathname.split("/").filter(Boolean);
+        const query = new URLSearchParams(window.location.search);
+        return {
+          token: segments[0] === "subscriber-activated" ? segments[1] || "" : "",
+          mode: query.get("mode") || "",
+        };
       }
 
       function escapeHtml(value) {

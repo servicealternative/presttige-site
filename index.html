@@ -26,6 +26,21 @@
   <script src="/assets/js/consent-banner.js" defer></script>
   <script>
     (function () {
+      const pathname = window.location.pathname;
+      const trimmedPath = pathname.replace(/\/+$/, "");
+      const subscriberMatch = pathname.match(/^\/subscriber\/([^/?#]+)\/?$/);
+
+      if (trimmedPath === "/payment-failed") {
+        window.location.replace(`/payment-failed/index.html${window.location.search}${window.location.hash}`);
+        return;
+      }
+
+      if (subscriberMatch) {
+        const token = encodeURIComponent(decodeURIComponent(subscriberMatch[1]));
+        window.location.replace(`/subscriber-activated/${token}${window.location.search}${window.location.hash}`);
+        return;
+      }
+
       if ('scrollRestoration' in history) {
         history.scrollRestoration = 'manual';
       }

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Payment Failed</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-black: #1A1A1A;
+      --pp-gold: #8A7544;
+      --pp-paper: #FFFFFF;
+      --pp-hairline: #DDD6C8;
+      --pp-muted: #5F5B54;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #FFFFFF;
+      color: var(--pp-black);
+      font-family: "Source Serif 4", Georgia, serif;
+    }
+
+    .card {
+      width: min(100%, 760px);
+      padding: 40px 34px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+    }
+
+    .title {
+      margin: 0 0 18px;
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(44px, 7vw, 64px);
+      font-weight: 600;
+      line-height: 0.95;
+    }
+
+    .copy {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    .copy + .copy {
+      margin-top: 18px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 24px;
+      border: 1px solid var(--pp-gold);
+      background: var(--pp-gold);
+      color: #FFFFFF;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button--secondary {
+      background: transparent;
+      color: var(--pp-gold);
+    }
+  </style>
+</head>
+<body>
+  <section class="card">
+    <h1 class="title">Payment not confirmed</h1>
+    <p class="copy">Your transaction did not complete.</p>
+    <p class="copy">You may return to checkout to finish, or request a new link at your convenience.</p>
+    <div class="actions">
+      <button type="button" class="button" id="return-to-checkout">Return to checkout</button>
+      <a class="button button--secondary" href="mailto:office@presttige.net?subject=Request%20a%20new%20Presttige%20link">Request a new link</a>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const params = new URLSearchParams(window.location.search);
+      const retryUrl = params.get("retry_url");
+      const button = document.getElementById("return-to-checkout");
+
+      button.addEventListener("click", () => {
+        if (retryUrl) {
+          window.location.assign(retryUrl);
+          return;
+        }
+        window.history.back();
+      });
+    })();
+  </script>
+</body>
+</html>
