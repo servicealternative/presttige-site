@@ -1,0 +1,30 @@
+{
+  "changed_flags": [
+    {
+      "lead_id": "fdm_mr62p_055817",
+      "synthetic_test": true,
+      "flagged_at": "2026-05-29T13:45:59.801Z"
+    },
+    {
+      "lead_id": "fdm_742f8f0447",
+      "synthetic_test": true,
+      "flagged_at": "2026-05-29T13:46:02.363Z"
+    },
+    {
+      "lead_id": "fdm_c8f2b323a4",
+      "synthetic_test": true,
+      "flagged_at": "2026-05-29T13:46:04.533Z"
+    },
+    {
+      "lead_id": "fdm_mr62p_054202",
+      "synthetic_test": true,
+      "flagged_at": "2026-05-29T13:45:57.628Z"
+    }
+  ],
+  "protected_records_unchanged": false,
+  "protected_before_file": "/Users/antonio/Desktop/presttige-site/audits/test-data-cleanup-stage2/protected-records-before-20260529T134536Z.json",
+  "protected_hash_before": "a4854fdf8046d51dc9bd2ff8a4640105d337219df3d631342c6b025708b4d3a9",
+  "protected_hash_after": "61e24ab1ccecd9b74871fb8ba2ec9ebba24425ac98376dc3602a69ad30db0ff0",
+  "real_records_only_count_after": 37,
+  "scanned_count": 56
+}

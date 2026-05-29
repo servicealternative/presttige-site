@@ -1,0 +1,580 @@
+{
+    "Responses": {
+        "presttige-db": [
+            {
+                "access_status": {
+                    "S": "active"
+                },
+                "age": {
+                    "S": "43"
+                },
+                "application_received_email_sent_at": {
+                    "S": "2026-04-26T21:48:43.802Z"
+                },
+                "application_type": {
+                    "S": "access"
+                },
+                "approval_cycle": {
+                    "N": "4"
+                },
+                "bio": {
+                    "S": "I enjoy a beautiful life—travel, work I care about, and real connection. Looking for a man who is strong, kind, and genuine in his intentions"
+                },
+                "campaign_id": {
+                    "S": ""
+                },
+                "cancel_at_period_end": {
+                    "BOOL": false
+                },
+                "checkout_token": {
+                    "S": "de6f3314ff368c5a2540592ba5a0cd2627a69ed4e5241c663cad3c148221652c"
+                },
+                "checkout_token_expires_at": {
+                    "S": "2026-06-16T17:06:51.241Z"
+                },
+                "checkout_token_issued_at": {
+                    "S": "2026-05-17T17:06:51.241Z"
+                },
+                "checkout_token_status": {
+                    "S": "active"
+                },
+                "checkout_token_version": {
+                    "N": "2"
+                },
+                "city": {
+                    "S": "Dubai"
+                },
+                "company": {
+                    "S": ""
+                },
+                "country": {
+                    "S": "United Arab Emirates"
+                },
+                "created_at": {
+                    "S": "2026-04-17T12:04:22.367420"
+                },
+                "currency": {
+                    "S": "USD"
+                },
+                "e2_sent_at": {
+                    "S": "2026-04-26T21:50:01.117Z"
+                },
+                "e3_manual_reissue_at": {
+                    "S": "2026-05-12T07:17:00.115270Z"
+                },
+                "e3_manual_reissue_reason": {
+                    "S": "reissued activation link under 21-day default on 2026-05-12; invalidated prior token 99a1da12 expiring 2026-05-19T07:07:23.930214Z"
+                },
+                "e3_sent_at": {
+                    "S": "2026-05-12T07:17:00.115270Z"
+                },
+                "e3_variant": {
+                    "S": "tier_select"
+                },
+                "email": {
+                    "S": "galina.galitskaya@gmail.com"
+                },
+                "email_status": {
+                    "S": "verified"
+                },
+                "instagram": {
+                    "S": "g_galytska"
+                },
+                "invite_expires_at": {
+                    "N": "1776798307"
+                },
+                "invite_send_at": {
+                    "N": "1776539107"
+                },
+                "invite_status": {
+                    "S": "scheduled"
+                },
+                "last_event_id": {
+                    "S": "evt_1TY8CjDmiQXcrE5NEVLy7D2t"
+                },
+                "last_event_type": {
+                    "S": "invoice.payment_succeeded"
+                },
+                "last_payment_at": {
+                    "S": "2026-05-17T17:10:20.711434+00:00"
+                },
+                "lead_id": {
+                    "S": "fdm_c3e0dca496"
+                },
+                "linkedin": {
+                    "S": "https://www.linkedin.com/in/galyna-galytska-b5417a71/"
+                },
+                "magic_token": {
+                    "S": "3d72909d73ff72e0ae672fd7081534e99f7ebe221c150b988fb06cb584625bf6"
+                },
+                "magic_token_expires_at": {
+                    "S": "2026-06-02T07:17:00.115270Z"
+                },
+                "magic_token_issued_at": {
+                    "S": "2026-05-12T07:17:00.115270Z"
+                },
+                "magic_token_status": {
+                    "S": "active"
+                },
+                "name": {
+                    "S": "Galyna Galytska"
+                },
+                "occupation": {
+                    "S": "Real Estate Investment Advisor"
+                },
+                "payment_status": {
+                    "S": "subscription_active"
+                },
+                "payment_status_reason": {
+                    "S": "invoice_payment_succeeded"
+                },
+                "phone": {
+                    "S": "+971504228067"
+                },
+                "phone_full": {
+                    "S": "+971504228067"
+                },
+                "phone_full_backfilled_at": {
+                    "S": "2026-04-22T13:04:02.544477+00:00"
+                },
+                "phone_status": {
+                    "S": "pending"
+                },
+                "product_type": {
+                    "S": "membership"
+                },
+                "profile_status": {
+                    "S": "complete"
+                },
+                "reinvite_count": {
+                    "N": "0"
+                },
+                "reinvite_eligible": {
+                    "BOOL": true
+                },
+                "reminder_due_at": {
+                    "N": "1776711907"
+                },
+                "review_attempt_id": {
+                    "S": "28d11888c11fc1a5"
+                },
+                "review_status": {
+                    "S": "approved"
+                },
+                "review_token": {
+                    "S": "207ba72bcb4c696291c01d7308079387c58fd4ed9af872b2d3ad67d3e4dd5d61"
+                },
+                "review_token_status": {
+                    "S": "active"
+                },
+                "reviewed_at": {
+                    "S": "1776495907"
+                },
+                "selected_checkout_mode": {
+                    "S": "subscription"
+                },
+                "selected_contract_key": {
+                    "S": "club_yearly"
+                },
+                "selected_price_id": {
+                    "S": "price_1TSxrkDmiQXcrE5NLMv0YXzS"
+                },
+                "selected_tier": {
+                    "S": "club"
+                },
+                "selected_tier_billing": {
+                    "S": "yearly"
+                },
+                "source": {
+                    "S": "membership"
+                },
+                "stripe_checkout_started_at": {
+                    "S": "2026-05-03T18:17:25.307Z"
+                },
+                "stripe_customer_id": {
+                    "S": "cus_URyX4Y7co7Xxdx"
+                },
+                "stripe_event_type": {
+                    "S": "invoice.payment_succeeded"
+                },
+                "stripe_last_event_id": {
+                    "S": "evt_1TY8CjDmiQXcrE5NEVLy7D2t"
+                },
+                "stripe_latest_invoice_id": {
+                    "S": "in_1TY89TDmiQXcrE5NcHdQQYQ3"
+                },
+                "stripe_payment_intent_id": {
+                    "S": "pi_3TY89UDmiQXcrE5N3K2rzhxe"
+                },
+                "stripe_subscription_id": {
+                    "S": "sub_1TY89TDmiQXcrE5Nrrmu2bX7"
+                },
+                "subscription_cancel_at_period_end": {
+                    "BOOL": false
+                },
+                "subscription_current_period_end": {
+                    "NULL": true
+                },
+                "subscription_current_period_start": {
+                    "NULL": true
+                },
+                "subscription_status": {
+                    "S": "active"
+                },
+                "tier": {
+                    "S": "club"
+                },
+                "tiktok": {
+                    "S": ""
+                },
+                "token_status": {
+                    "S": "active"
+                },
+                "updated_at": {
+                    "S": "2026-05-17T17:10:20.711414+00:00"
+                },
+                "verification_token": {
+                    "S": "da5b8d2e5e19dd274020438cc18bf34573f74074da0a3e8f5f264e66d8a8a483"
+                },
+                "website": {
+                    "S": ""
+                },
+                "welcome_sent_at": {
+                    "S": "2026-05-17T17:10:19.313Z"
+                },
+                "welcome_variant": {
+                    "S": "membership_active"
+                },
+                "why": {
+                    "S": "I’m looking for something meaningful, and I believe a more curated platform increases the chances of meeting like-minded people"
+                }
+            },
+            {
+                "review_status": {
+                    "S": "approved"
+                },
+                "bio": {
+                    "S": "=== FROZEN RULES (NEVER NEGOTIABLE) ===\nCODEX MODE: Full Auto / Bypass / Full Access.\nExecute end-to-end. NEVER STOP. NEVER ASK.\nIf a value is missing, search exhaustively, then use literal\nplaceholder \"PLACEHOLDER_TO_BE_PROVIDED\" and continue.\nIf a verification fails, log and continue.\nIf a destructive op outside scope is needed, skip and log.\nDocument all placeholders / skipped / failures at end.\n\nAUDIBLE COMPLETION: emit terminal bell + Glass.aiff before report.\n    printf '\\a'\n    afplay /System/Library/Sounds/Glass.aiff 2>/dev/null || true\n\n=== TASK: TESTER WHITELIST — DELETE-AND-REPLACE + AUTO-DELETE ON FUNNEL COMPLETION ===\n\nAWS account: 343218208384, region us-east-1.\nRepo: /Users/antonio/Desktop/presttige-site/\n\nGOAL:\nTwo whitelisted tester emails get clean state on every S1 submit\n(delete prior record + artifacts, create fresh) AND auto-delete\nthe entire record once the funnel completes (Stripe checkout\nsuccess OR E5 welcome email send). Real users keep their data\nunchanged.\n\nWHITELIST (case-insensitive, normalize to lowercase):\n  1. antoniompereira@me.com\n  2. alternativeservice@gmail.com\n\nNON-NEGOTIABLES:\n- Whitelist as a constant or env var, easy to extend.\n- Real users (any email NOT on whitelist) keep current\n  duplicate-email + duplicate-phone behavior.\n- Tester records are tagged `is_test = true` so any analytics\n  query can filter them out.\n- Funnel must complete end-to-end during the test session: E1\n  verify → S2 → S3 photos → /review → E3 → /tier-select →\n  Stripe → E5. Only at the FINAL step does the auto-delete fire.\n- Auto-delete is silent; no error if record already gone.\n\n=== PART A: CREATE-LEAD LAMBDA (DELETE-AND-REPLACE ON SUBMIT) ===\n\nSource: backend/lambdas/create-lead/lambda.py\nFunction: presttige-create-lead\n\n1. Add at top:\n     TESTER_WHITELIST = {\n         \"antoniompereira@me.com\",\n         \"alternativeservice@gmail.com\",\n     }\n     def is_tester(email: str) -> bool:\n         return (email or \"\").strip().lower() in TESTER_WHITELIST\n\n2. In the lead-creation handler:\n     - Normalize email to lowercase.\n     - If is_tester(email):\n         a) Find ALL prior lead records with that email\n            (Scan with FilterExpression, or GSI lookup if\n            available).\n         b) For each prior record, purge:\n            - EventBridge schedule (if e3_schedule_name set):\n                aws scheduler delete-schedule --name <name> \\\n                  --group-name default\n              (use boto3 scheduler client; ignore NotFound)\n            - S3 photos under the lead_id prefix on the upload\n              bucket (find bucket name in repo / Lambda env)\n            - DynamoDB DeleteItem on the leads table\n         c) Remove tester email from SES suppression list if\n            present:\n              aws sesv2 delete-suppressed-destination \\\n                --email-address <email>\n            (ignore NotFound)\n         d) Skip duplicate-email AND duplicate-phone checks\n            for this request.\n         e) Create new record with `is_test = true`.\n     - Else (real user): unchanged behavior.\n\n3. Logging:\n     CloudWatch line per tester purge:\n       \"TESTER_PURGE_ON_SUBMIT email=<x>\n        deleted_records=<n> deleted_schedules=<n>\n        deleted_photos=<n> ses_suppression_removed=<bool>\"\n\n=== PART B: AUTO-DELETE ON FUNNEL COMPLETION ===\n\nTester records must auto-delete at the END of the funnel. Two\ntrigger points — implement BOTH so whichever happens first wipes\nthe record:\n\nTRIGGER 1: Stripe checkout success\nTRIGGER 2: E5 welcome email send\n\n1. Identify the Stripe webhook handler Lambda (likely\n   presttige-stripe-webhook or similar; search repo + Lambda\n   list). On the `checkout.session.completed` event, after\n   normal processing:\n     - Look up the lead record being completed.\n     - If record has `is_test == true` OR if the lead's email\n       is in TESTER_WHITELIST:\n         a) Run the same purge sequence as PART A step 2.b/c\n            on this record's lead_id and email:\n              - Delete EventBridge schedule\n              - Delete S3 photos\n              - Remove SES suppression\n              - DeleteItem from leads table\n         b) Log: \"TESTER_PURGE_ON_FUNNEL_COMPLETE\n                  trigger=stripe_success email=<x>\n                  lead_id=<id>\"\n     - Real users: unchanged, record stays.\n\n2. Identify the E5 send Lambda (welcome email, sender private@).\n   After successful E5 SES send:\n     - If is_tester(record.email) OR record.is_test == true:\n         a) Same purge sequence.\n         b) Log: \"TESTER_PURGE_ON_FUNNEL_COMPLETE\n                  trigger=e5_sent email=<x> lead_id=<id>\"\n     - Real users: unchanged.\n\n3. Idempotency: if Stripe success fires first and deletes, then\n   E5 fires after on a no-longer-existing record — both\n   handlers must tolerate the record being already gone (catch\n   ConditionalCheckFailedException / ResourceNotFoundException\n   silently).\n\n=== PART C: IAM PERMISSIONS ===\n\nThe three Lambdas (create-lead, stripe-webhook, e5-send) need:\n  - dynamodb:Query, dynamodb:Scan, dynamodb:DeleteItem\n  - scheduler:DeleteSchedule\n  - sesv2:DeleteSuppressedDestination\n  - sesv2:GetSuppressedDestination\n  - s3:ListObjects (or ListObjectsV2), s3:DeleteObject on the\n    upload bucket\n\nIf any role is missing these, add them via inline policy.\nScope to the leads table ARN, the upload bucket ARN, and the\ndefault scheduler group. Log every IAM change in the report.\n\n=== PART D: BUILD + DEPLOY ===\n\n1. python3 -m py_compile on every modified Lambda.\n2. Repackage and update each affected Lambda (same flow used\n   in commit d50a95c).\n3. Single commit:\n     \"feat(testers): whitelist with delete-and-replace on submit\n      + auto-delete on funnel completion (Stripe / E5)\"\n4. Push. Amplify SUCCEED (frontend redeploys no-op, fine).\n\n=== PART E: VERIFICATION ===\n\na) Submit S1 with antoniompereira@me.com + UAE country.\n   - Expect 200, new lead_id, is_test=true, no prior record\n     remaining (count=1 for this email in DB).\n   - CloudWatch shows TESTER_PURGE_ON_SUBMIT log.\n\nb) Re-submit S1 with same email + Germany country.\n   - Expect 200, NEW lead_id, prior record gone, count=1.\n\nc) Run a tester through the full funnel using Stripe test\n   mode (sk_test_):\n   - S1 → E1 → S2 → photos → /review approve → E3 → tier-select\n     → Stripe checkout → confirm payment success.\n   - After Stripe webhook fires, query DynamoDB for that\n     lead_id → expect 0 records.\n   - CloudWatch shows TESTER_PURGE_ON_FUNNEL_COMPLETE\n     trigger=stripe_success.\n   - S3 prefix for that lead_id is empty.\n   - EventBridge schedule for that lead_id is gone.\n\nd) Run a second tester through to E5 send (without Stripe path\n   if possible, or simulate) → record auto-deletes with\n   trigger=e5_sent.\n\ne) Real-user regression: submit S1 with a fresh non-whitelisted\n   email twice.\n   - First: 200.\n   - Second: returns email_exists error.\n   - Confirms duplicate check still works for real users.\n\nf) SES suppression list contains neither tester email at end\n   of run.\n\n=== REPORT AT END ===\n- Files modified\n- Whitelist constant location\n- Commit SHA + Amplify job ID\n- IAM policy additions per role (Lambda + permissions)\n- Verification results for each scenario a-f\n- DynamoDB record counts at each checkpoint\n- CloudWatch log lines emitted (TESTER_PURGE_ON_SUBMIT,\n  TESTER_PURGE_ON_FUNNEL_COMPLETE)\n- Real-user regression: pass/fail\n- Any placeholders / skipped / failures\n\n=== END BRIEFING ==="
+                },
+                "subscription_status": {
+                    "S": "incomplete_expired"
+                },
+                "currency": {
+                    "S": "USD"
+                },
+                "marketing_consent_at": {
+                    "S": "2026-04-26T20:52:22.052Z"
+                },
+                "reviewed_at": {
+                    "S": "2026-04-26T21:11:57.326546+00:00"
+                },
+                "payment_status_reason": {
+                    "S": "subscription_incomplete_expired"
+                },
+                "review_note": {
+                    "NULL": true
+                },
+                "age": {
+                    "S": "63"
+                },
+                "verification_token": {
+                    "S": "9701310c7f6337565d5196946b97dc3851f30937acdba88b9da1fb39bb54a723"
+                },
+                "updated_at": {
+                    "S": "2026-05-04T11:59:09.391862+00:00"
+                },
+                "stripe_last_event_id": {
+                    "S": "evt_1TTL9RDmiQXcrE5NI5mkF6ZW"
+                },
+                "invite_send_at": {
+                    "N": "1777238817"
+                },
+                "magic_token_status": {
+                    "S": "active"
+                },
+                "selected_checkout_mode": {
+                    "S": "subscription"
+                },
+                "tiktok": {
+                    "S": ""
+                },
+                "campaign_id": {
+                    "S": ""
+                },
+                "review_token_used_at": {
+                    "S": "2026-04-26T21:11:57.326546+00:00"
+                },
+                "source": {
+                    "S": "invitation"
+                },
+                "review_token_status": {
+                    "S": "used"
+                },
+                "token_status": {
+                    "S": "active"
+                },
+                "e3_schedule_name": {
+                    "S": "presttige-e3-fdm_b331fe46e3-1777238817"
+                },
+                "company": {
+                    "S": ""
+                },
+                "e3_sent_at": {
+                    "S": "2026-04-26T21:27:03.634Z"
+                },
+                "name": {
+                    "S": "Antonio Manuel Pereira"
+                },
+                "phone_status": {
+                    "S": "pending"
+                },
+                "checkout_token_issued_at": {
+                    "S": "2026-05-03T12:58:07.855Z"
+                },
+                "review_attempt_id": {
+                    "S": "2d5829c26d5993f6"
+                },
+                "stripe_checkout_started_at": {
+                    "S": "2026-05-03T12:58:28.087Z"
+                },
+                "last_event_type": {
+                    "S": "customer.subscription.updated"
+                },
+                "subscription_current_period_end": {
+                    "NULL": true
+                },
+                "e2_sent_at": {
+                    "S": "2026-04-26T21:08:05.029Z"
+                },
+                "selected_tier": {
+                    "S": "club"
+                },
+                "created_at": {
+                    "S": "2026-04-26T20:49:27.495885"
+                },
+                "terms_accepted_at": {
+                    "S": "2026-04-26T20:52:22.052Z"
+                },
+                "email": {
+                    "S": "mova@movaglobal.net"
+                },
+                "stripe_payment_intent_id": {
+                    "S": "pi_3TSzbKDmiQXcrE5N3UBY0f9S"
+                },
+                "instagram": {
+                    "S": "a"
+                },
+                "reinvite_count": {
+                    "N": "0"
+                },
+                "subscription_cancel_at_period_end": {
+                    "BOOL": false
+                },
+                "magic_token_expires_at": {
+                    "S": "2026-05-03T21:27:01.924Z"
+                },
+                "payment_status": {
+                    "S": "processing"
+                },
+                "magic_token_issued_at": {
+                    "S": "2026-04-26T21:27:01.924Z"
+                },
+                "why": {
+                    "S": "=== FROZEN RULES (NEVER NEGOTIABLE) ===\nCODEX MODE: Full Auto / Bypass / Full Access.\nExecute end-to-end. NEVER STOP. NEVER ASK.\nIf a value is missing, search exhaustively, then use literal\nplaceholder \"PLACEHOLDER_TO_BE_PROVIDED\" and continue.\nIf a verification fails, log and continue.\nIf a destructive op outside scope is needed, skip and log.\nDocument all placeholders / skipped / failures at end.\n\nAUDIBLE COMPLETION: emit terminal bell + Glass.aiff before report.\n    printf '\\a'\n    afplay /System/Library/Sounds/Glass.aiff 2>/dev/null || true\n\n=== TASK: TESTER WHITELIST — DELETE-AND-REPLACE + AUTO-DELETE ON FUNNEL COMPLETION ===\n\nAWS account: 343218208384, region us-east-1.\nRepo: /Users/antonio/Desktop/presttige-site/\n\nGOAL:\nTwo whitelisted tester emails get clean state on every S1 submit\n(delete prior record + artifacts, create fresh) AND auto-delete\nthe entire record once the funnel completes (Stripe checkout\nsuccess OR E5 welcome email send). Real users keep their data\nunchanged.\n\nWHITELIST (case-insensitive, normalize to lowercase):\n  1. antoniompereira@me.com\n  2. alternativeservice@gmail.com\n\nNON-NEGOTIABLES:\n- Whitelist as a constant or env var, easy to extend.\n- Real users (any email NOT on whitelist) keep current\n  duplicate-email + duplicate-phone behavior.\n- Tester records are tagged `is_test = true` so any analytics\n  query can filter them out.\n- Funnel must complete end-to-end during the test session: E1\n  verify → S2 → S3 photos → /review → E3 → /tier-select →\n  Stripe → E5. Only at the FINAL step does the auto-delete fire.\n- Auto-delete is silent; no error if record already gone.\n\n=== PART A: CREATE-LEAD LAMBDA (DELETE-AND-REPLACE ON SUBMIT) ===\n\nSource: backend/lambdas/create-lead/lambda.py\nFunction: presttige-create-lead\n\n1. Add at top:\n     TESTER_WHITELIST = {\n         \"antoniompereira@me.com\",\n         \"alternativeservice@gmail.com\",\n     }\n     def is_tester(email: str) -> bool:\n         return (email or \"\").strip().lower() in TESTER_WHITELIST\n\n2. In the lead-creation handler:\n     - Normalize email to lowercase.\n     - If is_tester(email):\n         a) Find ALL prior lead records with that email\n            (Scan with FilterExpression, or GSI lookup if\n            available).\n         b) For each prior record, purge:\n            - EventBridge schedule (if e3_schedule_name set):\n                aws scheduler delete-schedule --name <name> \\\n                  --group-name default\n              (use boto3 scheduler client; ignore NotFound)\n            - S3 photos under the lead_id prefix on the upload\n              bucket (find bucket name in repo / Lambda env)\n            - DynamoDB DeleteItem on the leads table\n         c) Remove tester email from SES suppression list if\n            present:\n              aws sesv2 delete-suppressed-destination \\\n                --email-address <email>\n            (ignore NotFound)\n         d) Skip duplicate-email AND duplicate-phone checks\n            for this request.\n         e) Create new record with `is_test = true`.\n     - Else (real user): unchanged behavior.\n\n3. Logging:\n     CloudWatch line per tester purge:\n       \"TESTER_PURGE_ON_SUBMIT email=<x>\n        deleted_records=<n> deleted_schedules=<n>\n        deleted_photos=<n> ses_suppression_removed=<bool>\"\n\n=== PART B: AUTO-DELETE ON FUNNEL COMPLETION ===\n\nTester records must auto-delete at the END of the funnel. Two\ntrigger points — implement BOTH so whichever happens first wipes\nthe record:\n\nTRIGGER 1: Stripe checkout success\nTRIGGER 2: E5 welcome email send\n\n1. Identify the Stripe webhook handler Lambda (likely\n   presttige-stripe-webhook or similar; search repo + Lambda\n   list). On the `checkout.session.completed` event, after\n   normal processing:\n     - Look up the lead record being completed.\n     - If record has `is_test == true` OR if the lead's email\n       is in TESTER_WHITELIST:\n         a) Run the same purge sequence as PART A step 2.b/c\n            on this record's lead_id and email:\n              - Delete EventBridge schedule\n              - Delete S3 photos\n              - Remove SES suppression\n              - DeleteItem from leads table\n         b) Log: \"TESTER_PURGE_ON_FUNNEL_COMPLETE\n                  trigger=stripe_success email=<x>\n                  lead_id=<id>\"\n     - Real users: unchanged, record stays.\n\n2. Identify the E5 send Lambda (welcome email, sender private@).\n   After successful E5 SES send:\n     - If is_tester(record.email) OR record.is_test == true:\n         a) Same purge sequence.\n         b) Log: \"TESTER_PURGE_ON_FUNNEL_COMPLETE\n                  trigger=e5_sent email=<x> lead_id=<id>\"\n     - Real users: unchanged.\n\n3. Idempotency: if Stripe success fires first and deletes, then\n   E5 fires after on a no-longer-existing record — both\n   handlers must tolerate the record being already gone (catch\n   ConditionalCheckFailedException / ResourceNotFoundException\n   silently).\n\n=== PART C: IAM PERMISSIONS ===\n\nThe three Lambdas (create-lead, stripe-webhook, e5-send) need:\n  - dynamodb:Query, dynamodb:Scan, dynamodb:DeleteItem\n  - scheduler:DeleteSchedule\n  - sesv2:DeleteSuppressedDestination\n  - sesv2:GetSuppressedDestination\n  - s3:ListObjects (or ListObjectsV2), s3:DeleteObject on the\n    upload bucket\n\nIf any role is missing these, add them via inline policy.\nScope to the leads table ARN, the upload bucket ARN, and the\ndefault scheduler group. Log every IAM change in the report.\n\n=== PART D: BUILD + DEPLOY ===\n\n1. python3 -m py_compile on every modified Lambda.\n2. Repackage and update each affected Lambda (same flow used\n   in commit d50a95c).\n3. Single commit:\n     \"feat(testers): whitelist with delete-and-replace on submit\n      + auto-delete on funnel completion (Stripe / E5)\"\n4. Push. Amplify SUCCEED (frontend redeploys no-op, fine).\n\n=== PART E: VERIFICATION ===\n\na) Submit S1 with antoniompereira@me.com + UAE country.\n   - Expect 200, new lead_id, is_test=true, no prior record\n     remaining (count=1 for this email in DB).\n   - CloudWatch shows TESTER_PURGE_ON_SUBMIT log.\n\nb) Re-submit S1 with same email + Germany country.\n   - Expect 200, NEW lead_id, prior record gone, count=1.\n\nc) Run a tester through the full funnel using Stripe test\n   mode (sk_test_):\n   - S1 → E1 → S2 → photos → /review approve → E3 → tier-select\n     → Stripe checkout → confirm payment success.\n   - After Stripe webhook fires, query DynamoDB for that\n     lead_id → expect 0 records.\n   - CloudWatch shows TESTER_PURGE_ON_FUNNEL_COMPLETE\n     trigger=stripe_success.\n   - S3 prefix for that lead_id is empty.\n   - EventBridge schedule for that lead_id is gone.\n\nd) Run a second tester through to E5 send (without Stripe path\n   if possible, or simulate) → record auto-deletes with\n   trigger=e5_sent.\n\ne) Real-user regression: submit S1 with a fresh non-whitelisted\n   email twice.\n   - First: 200.\n   - Second: returns email_exists error.\n   - Confirms duplicate check still works for real users.\n\nf) SES suppression list contains neither tester email at end\n   of run.\n\n=== REPORT AT END ===\n- Files modified\n- Whitelist constant location\n- Commit SHA + Amplify job ID\n- IAM policy additions per role (Lambda + permissions)\n- Verification results for each scenario a-f\n- DynamoDB record counts at each checkpoint\n- CloudWatch log lines emitted (TESTER_PURGE_ON_SUBMIT,\n  TESTER_PURGE_ON_FUNNEL_COMPLETE)\n- Real-user regression: pass/fail\n- Any placeholders / skipped / failures\n\n=== END BRIEFING ==="
+                },
+                "phone_country": {
+                    "S": "+971"
+                },
+                "phone": {
+                    "S": "562195500"
+                },
+                "subscription_current_period_start": {
+                    "NULL": true
+                },
+                "application_type": {
+                    "S": "access"
+                },
+                "checkout_token_version": {
+                    "N": "1"
+                },
+                "application_received_sent_at": {
+                    "NULL": true
+                },
+                "review_token": {
+                    "S": "5d88961c5400b3e4f1e5b9687a62dbfa2880f89d44e4b5cd8562be62d4507f21"
+                },
+                "checkout_token": {
+                    "S": "f5e044c405b3e9fe9d29c310da24727f477595abe20e4607bb16e05de1f2b793"
+                },
+                "stripe_event_type": {
+                    "S": "customer.subscription.updated"
+                },
+                "occupation": {
+                    "S": ""
+                },
+                "website": {
+                    "S": ""
+                },
+                "e3_variant": {
+                    "S": "tier_select"
+                },
+                "stripe_latest_invoice_id": {
+                    "S": "in_1TSzbKDmiQXcrE5NDRvzfE42"
+                },
+                "lead_id": {
+                    "S": "fdm_b331fe46e3"
+                },
+                "application_received_sent": {
+                    "BOOL": false
+                },
+                "checkout_token_expires_at": {
+                    "S": "2026-06-02T12:58:07.855Z"
+                },
+                "selected_price_id": {
+                    "S": "price_1TSxrkDmiQXcrE5NLMv0YXzS"
+                },
+                "application_received_email_sent_at": {
+                    "S": "2026-04-26T21:08:06.194Z"
+                },
+                "stripe_customer_id": {
+                    "S": "cus_URtOTplu9SlwBS"
+                },
+                "selected_tier_billing": {
+                    "S": "yearly"
+                },
+                "email_status": {
+                    "S": "verified"
+                },
+                "profile_status": {
+                    "S": "profile_submitted"
+                },
+                "marketing_consent": {
+                    "S": "true"
+                },
+                "city": {
+                    "S": "Dubai"
+                },
+                "stripe_subscription_id": {
+                    "S": "sub_1TSzbKDmiQXcrE5N2Smh6bKK"
+                },
+                "magic_token": {
+                    "S": "4ad2de20d646dd72c56b1ad9192a83bf623107ffd07cf429d5acb926ee921f49"
+                },
+                "cancel_at_period_end": {
+                    "BOOL": false
+                },
+                "last_event_id": {
+                    "S": "evt_1TTL9RDmiQXcrE5NI5mkF6ZW"
+                },
+                "invite_status": {
+                    "S": "scheduled"
+                },
+                "referral_code": {
+                    "S": "invitation"
+                },
+                "country": {
+                    "S": "United Arab Emirates"
+                },
+                "linkedin": {
+                    "S": ""
+                },
+                "reinvite_eligible": {
+                    "BOOL": true
+                },
+                "photo_uploads": {
+                    "M": {
+                        "1de7039b4e3a3482b75069de51ef79dc": {
+                            "M": {
+                                "content_type": {
+                                    "S": "image/png"
+                                },
+                                "created_at": {
+                                    "S": "2026-04-26T21:08:01.310Z"
+                                },
+                                "file_size": {
+                                    "N": "275137"
+                                },
+                                "original_key": {
+                                    "S": "fdm_b331fe46e3/original/1de7039b4e3a3482b75069de51ef79dc.png"
+                                },
+                                "processed_at": {
+                                    "S": "2026-04-26T21:08:03.950Z"
+                                },
+                                "retention": {
+                                    "S": "pending"
+                                },
+                                "status": {
+                                    "S": "ready"
+                                },
+                                "thumbnails": {
+                                    "M": {
+                                        "400": {
+                                            "S": "fdm_b331fe46e3/thumbnails/1de7039b4e3a3482b75069de51ef79dc-400.jpg"
+                                        },
+                                        "1200": {
+                                            "S": "fdm_b331fe46e3/thumbnails/1de7039b4e3a3482b75069de51ef79dc-1200.jpg"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "60eb4b1b299c6c5506a08f278210cec4": {
+                            "M": {
+                                "content_type": {
+                                    "S": "image/jpeg"
+                                },
+                                "created_at": {
+                                    "S": "2026-04-26T21:08:03.297Z"
+                                },
+                                "file_size": {
+                                    "N": "44088"
+                                },
+                                "original_key": {
+                                    "S": "fdm_b331fe46e3/original/60eb4b1b299c6c5506a08f278210cec4.jpg"
+                                },
+                                "processed_at": {
+                                    "S": "2026-04-26T21:08:04.771Z"
+                                },
+                                "retention": {
+                                    "S": "pending"
+                                },
+                                "status": {
+                                    "S": "ready"
+                                },
+                                "thumbnails": {
+                                    "M": {
+                                        "400": {
+                                            "S": "fdm_b331fe46e3/thumbnails/60eb4b1b299c6c5506a08f278210cec4-400.jpg"
+                                        },
+                                        "1200": {
+                                            "S": "fdm_b331fe46e3/thumbnails/60eb4b1b299c6c5506a08f278210cec4-1200.jpg"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "profile_submitted_at": {
+                    "S": "2026-04-26T21:07:42.120964+00:00"
+                },
+                "checkout_token_status": {
+                    "S": "active"
+                },
+                "e3_scheduled_at": {
+                    "S": "2026-04-26T21:26:57.769968+00:00"
+                },
+                "terms_accepted": {
+                    "S": "true"
+                },
+                "product_type": {
+                    "S": "membership"
+                },
+                "selected_contract_key": {
+                    "S": "club_yearly"
+                }
+            }
+        ]
+    },
+    "UnprocessedKeys": {}
+}

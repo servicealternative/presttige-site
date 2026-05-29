@@ -23,6 +23,11 @@ reports/
 node_modules/
 dist/
 build/
+backend/**/dist.zip
+
+# Local archives and backups
+*.zip
+index.html.pre-T3-backup
 
 # OS / IDE
 Thumbs.db

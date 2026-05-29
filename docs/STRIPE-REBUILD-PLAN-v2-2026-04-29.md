@@ -298,6 +298,19 @@ Recommended attribution model:
    - renewals
 5. UTM capture remains parallel and separate from `ref`.
 
+Locked commission schedule:
+
+- Founder:
+  - 30% on the initial one-time payment
+- Patron:
+  - 30% on the initial purchase and every renewal year
+- Premier:
+  - 20% on the initial purchase and every renewal
+- Club:
+  - 10% on the initial purchase and every renewal
+
+The contract file should carry the numeric commission profile so the webhook and transfer ledger never guess rates from tier names alone.
+
 Recommended payout model:
 
 - **Primary recommendation:** Presttige remains merchant of record on the platform account, and commissions are paid out after confirmed payment events using Stripe Connect transfers from the platform balance.
@@ -358,6 +371,12 @@ Webhook orchestration rule:
 - if no split exists, send one transfer to the primary referrer
 - if a split exists, compute multiple transfer legs and persist each leg separately
 - split version is resolved at the time of payment event, not back-applied later
+
+Sub-helper onboarding implications:
+
+- sub-helpers need the same Stripe Connect onboarding requirement as primary referrers
+- a split relationship should not activate until every referenced Connect account is onboarding-complete
+- if payment lands before a sub-helper is onboarding-complete, the system should hold that leg in the transfer ledger as pending rather than silently reassigning it
 
 ### 1.12 Founder-specific S2.5 and review priority
 
@@ -660,6 +679,8 @@ That means the v2 plan is aligned to Antonio's 29 April 2026 locked briefing, bu
   - direct DynamoDB edits by Antonio only
   - or a minimal internal UI
 - Whether the referral code should be editable after first touch in any manual exception flow, or whether first-touch attribution is immutable.
+- Whether partial Connect onboarding should block checkout completion, block only payout release, or allow payout to remain pending until onboarding finishes.
+- Whether split changes made mid-renewal-cycle apply immediately to the next paid invoice or only from an explicit future effective date.
 
 ### 6.3 Technical risks likely to surprise implementation
 
@@ -668,6 +689,7 @@ That means the v2 plan is aligned to Antonio's 29 April 2026 locked briefing, bu
 - Old commission logic exists in legacy webhook code with rates that no longer match the locked v2 rates.
 - Upgrade billing is the most likely Stripe-behavior hotspot because it combines immediate delta pricing with future recurring Patron renewal.
 - Transfer reversals for refunds and chargebacks will require careful ledger design even if the actual refund policy remains outside this rebuild.
+- Sub-helper activation mid-cycle is a real edge case: the payment event must resolve the split version deterministically so later relationship edits do not mutate historical payout math.
 - Apple Pay domain verification is locked in, but its Stripe Dashboard steps add operational dependency even though DNS changes are out of scope.
 
 ### 6.4 Recommendation

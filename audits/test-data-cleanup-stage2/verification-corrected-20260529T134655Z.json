@@ -1,0 +1,62 @@
+{
+  "changed_flags": [
+    {
+      "lead_id": "fdm_742f8f0447",
+      "synthetic_test": true,
+      "synthetic_test_flagged_at": "2026-05-29T13:46:02.363Z"
+    },
+    {
+      "lead_id": "fdm_c8f2b323a4",
+      "synthetic_test": true,
+      "synthetic_test_flagged_at": "2026-05-29T13:46:04.533Z"
+    },
+    {
+      "lead_id": "fdm_mr62p_054202",
+      "synthetic_test": true,
+      "synthetic_test_flagged_at": "2026-05-29T13:45:57.628Z"
+    },
+    {
+      "lead_id": "fdm_mr62p_055817",
+      "synthetic_test": true,
+      "synthetic_test_flagged_at": "2026-05-29T13:45:59.801Z"
+    }
+  ],
+  "audit_rows_found": [
+    {
+      "audit_id": "d6b66ada-ef01-4323-a046-e645061acc06",
+      "timestamp": "2026-05-29T13:46:02.363Z",
+      "lead_id": "fdm_742f8f0447",
+      "action": "synthetic_test_flag_set"
+    },
+    {
+      "audit_id": "ed237c41-1a89-4c9d-a0d4-decedaf73cde",
+      "timestamp": "2026-05-29T13:46:04.533Z",
+      "lead_id": "fdm_c8f2b323a4",
+      "action": "synthetic_test_flag_set"
+    },
+    {
+      "audit_id": "3fad3cf1-af2e-4fe9-995f-442f8bcb3b9f",
+      "timestamp": "2026-05-29T13:45:57.628Z",
+      "lead_id": "fdm_mr62p_054202",
+      "action": "synthetic_test_flag_set"
+    },
+    {
+      "audit_id": "9fbd25df-faad-4e78-a238-220ade0cf7ff",
+      "timestamp": "2026-05-29T13:45:59.801Z",
+      "lead_id": "fdm_mr62p_055817",
+      "action": "synthetic_test_flag_set"
+    }
+  ],
+  "audit_rows_found_count": 4,
+  "protected_records_unchanged": true,
+  "protected_records": [
+    "fdm_b331fe46e3",
+    "fdm_c3e0dca496"
+  ],
+  "protected_before_file": "/Users/antonio/Desktop/presttige-site/audits/test-data-cleanup-stage2/protected-records-before-20260529T134536Z.json",
+  "protected_hash_before": "ec15a840a364d452ded79ae5f8141d75be4632682b5887fc292cf7ec647ad0aa",
+  "protected_hash_after": "ec15a840a364d452ded79ae5f8141d75be4632682b5887fc292cf7ec647ad0aa",
+  "real_records_only_count_after": 37,
+  "scanned_count": 56,
+  "note": "Comparison uses canonicalized DynamoDB JSON so map-key order cannot affect the hash."
+}
