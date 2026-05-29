@@ -233,11 +233,42 @@ Directus branding state:
 `presttige-db` read-only inspection for CRM analytics:
 
 - Total items inspected: 56
-- Records with `synthetic_test = true`: 15, excluded from all statistics
-- Real records used for analytics: 41
+- Records with `synthetic_test = true`: 19, excluded from all statistics
+- Real records used for analytics: 37
 - Current real paid-member reality: 1 paid member
 - Inspection was read-only. No `presttige-db` records were created, modified,
   or deleted.
+
+Production cleanup completed on 2026-05-29:
+
+- DB test-data cleanup done.
+- Four records were flagged `synthetic_test = true`:
+  - `rec_645a754b`
+  - `rec_ada58156`
+  - `rec_327ac78e`
+  - `rec_4c21f980`
+- Cleanup was backup-first, audit-logged in `presttige-review-audit`, and
+  reversible by clearing the synthetic-test flag and related flag metadata.
+- Real live paying member `rec_9e856c0f` was untouched.
+- Real incomplete lead `rec_aaadbc4f` was untouched.
+- Real-records-only count is now 37.
+- Stripe TEST-mode cleanup done.
+- Three TEST subscriptions were cancelled:
+  - `sub_1TSsnADmiQXcrE5NNDfbFvrk`
+  - `sub_1TSt2tDmiQXcrE5NIzAAjtai`
+  - `sub_1TStPxDmiQXcrE5NyjwhhA8F`
+- Active TEST subscriptions now count 0.
+- No LIVE Stripe object was touched.
+- Production checkout is confirmed LIVE by default:
+  - `presttige-create-checkout-session` reads live SSM Stripe keys.
+  - `presttige-checkout-status` reads live SSM Stripe keys.
+  - `checkout.html` calls `/create-checkout-session` as the live checkout path.
+
+Frozen analytics rule:
+
+- No test record where `synthetic_test = true` may ever appear in any
+  statistic, dashboard, count, or analytic, anywhere, including the Ulttra CRM.
+- Only real data reaches CRM and analytics.
 
 Google Analytics progress:
 
