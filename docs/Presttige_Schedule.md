@@ -6,8 +6,9 @@ Status: open-items schedule. No secrets or token values.
 
 Antonio's order:
 
-1. Founder complete, full funnel: checkbox to payment plus activation,
-   submission flow plus Antonio approval panel, and the two automatic emails.
+1. Founder complete, full funnel: payment plus activation is live, remaining
+   work is submission flow plus Antonio approval panel and the two automatic
+   emails, SES-dependent.
 2. SES emails complete, including the Founder emails.
 3. Cleanups and blockers, including parked legacy Stripe test-key cleanup,
    `/gateway` route plus `presttige-gateway` archive plus stripping test keys
@@ -29,11 +30,11 @@ Antonio's order:
 Roadmap items 1 and 2 are active.
 
 - Finish the full Founder process:
-  1. `/founder` checkbox to payment, reuse proven live mechanism, no payment
-     tests.
-  2. Activation `founder_invited` to Founder post-payment.
-  3. Submission flow and Antonio approval panel.
-  4. The two automatic emails.
+  1. `/founder` checkbox to payment, DONE and live.
+  2. Activation `founder_invited` to Founder post-payment, DONE and live with
+     hardened webhook matching.
+  3. Submission flow and Antonio approval panel, remaining.
+  4. The two automatic emails, remaining and SES-dependent.
 - Do the Founder process alongside or right after SES.
 - SES: resolve email deliverability, prerequisite for the two Founder emails
   and all email automation. Run in parallel with the Founder build.
@@ -60,6 +61,12 @@ Roadmap item 3 is parked until separately approved.
 - `/founder` page: design and all copy/content review, technically approved
   only.
 - Missing E2 email.
+- Review and safely commit or stash the parked uncommitted worktree work:
+  tier-select redesign, subscriber-activated redesign, payment-failed page,
+  welcome and index redirect changes, verify-email country propagation,
+  tier-select-fetch, `STRIPE-REBUILD-PLAN` doc, `dist.zip` artifacts, image
+  zip, and `index.html.pre-T3-backup`. Uncommitted work is a loss risk and
+  makes deploys delicate.
 
 ## Future Phases
 

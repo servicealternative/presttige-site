@@ -70,17 +70,52 @@ Ulttra holds only the admin commands and real-time analytics for Antonio.
 - Live URL: `https://presttige.net/founder/`
 - Amplify app: `dh6banfgh3wmi`
 - Production branch: `main`
-- Production commit: `87b9a8bf1951aa1fef6a7ec463e51663a9caf8b0`
-- Page state: public-facing Founder gate, technically approved only for now
-- Initial source: neutral gate only
-- Initial raw HTML: no Founder content
+- Production commit: `cc2f7b2c5305d117b945dcac176cd281e4c47cba`
+- Founder payment and activation deploy:
+  - Amplify job: `299`
+  - GitHub Actions Lambda deploy run: `26644684963`
+- Page state: public-facing Founder gate plus full Founder detail page,
+  technically approved only for now
+- Initial source: neutral gate first, Founder detail revealed only after a
+  successful gate
+- Initial raw HTML: no Founder detail content before gate success
 - Backend call: existing `/founder-gate` route on API Gateway `rwkz3d86u0`
 - Failure behavior: neutral message with `founders@presttige.net`
 - Visual state: cream design, dark ink text, gold accents
 - `brand-fonts.css`: not loaded
-- Payment: not yet wired
-- Activation: not yet wired
+- Payment path: live and deployed.
+- Gate flow: `/founder` gate to full Founder detail page to required consent
+  checkbox to live Founder checkout.
+- Required consent:
+  - Consent checkbox is required before proceeding to payment.
+  - Proceeding records `checkbox_consent_at` on the Founder invite record.
+- Founder checkout:
+  - Existing proven live checkout path is reused.
+  - Stripe product: `prod_URrwkKbbICL760`
+  - Live Stripe price: `price_1TSyCjDmiQXcrE5NyKR5cb60`
+  - Amount: USD 9,999 one-time.
+- `presttige-create-checkout-session` rejects Founder checkout unless
+  `checkbox_consent_at` is present.
+- Activation: live and deployed through `presttige-stripe-webhook` on
+  `payment_intent.succeeded`.
+- Founder activation hardening:
+  - Requires `livemode = true`.
+  - Requires `stripe_product_id == prod_URrwkKbbICL760`.
+  - Requires `stripe_price_id == price_1TSyCjDmiQXcrE5NyKR5cb60` or the
+    lead's exact stored `selected_price_id`.
+  - Missing or mismatched Founder product or price records
+    `founder_activation_rejected` and makes no lead state change.
+  - Successful activation flips `subscriber_type` from `founder_invited` to
+    `founder`.
+  - Successful activation sets the canonical paid Founder fields.
+  - Audit is transactional and written before the lead update, if audit fails
+    the activation fails.
+  - Activation is idempotent.
+  - Founder activation is never marked `synthetic_test`.
 - Design and Founder copy/content: pending review and revision later
+- Remaining Founder roadmap work:
+  - Submission flow and Antonio approval panel.
+  - The two automatic emails, dependent on SES deliverability.
 
 Approved Founder funnel v4 is saved in
 `docs/Presttige_Founder_Funnel_v4.md`.
@@ -263,6 +298,9 @@ Production cleanup completed on 2026-05-29:
   - `presttige-create-checkout-session` reads live SSM Stripe keys.
   - `presttige-checkout-status` reads live SSM Stripe keys.
   - `checkout.html` calls `/create-checkout-session` as the live checkout path.
+- Note: legacy Secrets Manager secret `presttige-stripe-secret` still
+  classifies as TEST, but it is not used by the deployed checkout code. This
+  remains tracked under scheduled cleanup item 3.
 
 Frozen analytics rule:
 
