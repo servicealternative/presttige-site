@@ -7,6 +7,7 @@ const {
   DynamoDBDocumentClient,
   GetCommand,
   QueryCommand,
+  ScanCommand,
   UpdateCommand,
 } = require("@aws-sdk/lib-dynamodb");
 
@@ -33,7 +34,6 @@ const {
   CHECKOUT_TOKEN_INDEX_NAME,
   LEAD_PAYMENT_FIELDS,
   getTierContract,
-  isLegacyQuarterlyContractKey,
 } = loadTierContractModule();
 
 const REGION = "us-east-1";
@@ -42,12 +42,19 @@ const APP_ORIGIN = "https://presttige.net";
 const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
 const ACTIVE_MEMBERSHIP_STATES = new Set([
   "paid",
-  "preview_paid",
   "subscription_active",
   "subscription_cancel_at_period_end",
   "renewal_failed_retrying",
   "subscription_past_due",
 ]);
+const FOUNDER_ACTIVE_PAYMENT_STATUSES = new Set([
+  "paid",
+  "free",
+  "subscription_active",
+  "preview_paid",
+]);
+const MAX_EMAIL_LENGTH = 254;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ddb = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: REGION })
@@ -85,6 +92,18 @@ function normalizeString(value) {
     return "";
   }
   return String(value).trim();
+}
+
+function normalizeEmail(value) {
+  return normalizeString(value).toLowerCase();
+}
+
+function isSupportedEmail(email) {
+  return (
+    email.length > 0 &&
+    email.length <= MAX_EMAIL_LENGTH &&
+    EMAIL_PATTERN.test(email)
+  );
 }
 
 function isTruthy(value) {
@@ -156,6 +175,34 @@ async function findLeadByLeadId(leadId) {
   return result.Item || null;
 }
 
+async function findLeadsByEmails(emails) {
+  const wantedEmails = Array.from(new Set(emails.map(normalizeEmail)));
+  const found = [];
+  let ExclusiveStartKey;
+
+  do {
+    const result = await ddb.send(
+      new ScanCommand({
+        TableName: TABLE_NAME,
+        FilterExpression: "email IN (:email0, :email1)",
+        ExpressionAttributeValues: {
+          ":email0": wantedEmails[0],
+          ":email1": wantedEmails[1],
+        },
+        ExclusiveStartKey,
+      })
+    );
+
+    if (result.Items?.length) {
+      found.push(...result.Items);
+    }
+
+    ExclusiveStartKey = result.LastEvaluatedKey;
+  } while (ExclusiveStartKey);
+
+  return found;
+}
+
 async function findLeadByAnyToken(token) {
   const byCheckoutToken = await findLeadByCheckoutToken(token);
   if (byCheckoutToken) {
@@ -222,15 +269,100 @@ function isFounderOnlyLead(lead) {
   );
 }
 
+function hasFounderActiveAccountMarker(record) {
+  const paymentStatus = normalizeString(record?.payment_status).toLowerCase();
+  return (
+    isTruthy(record?.account_active) ||
+    normalizeString(record?.access_status).toLowerCase() === "active" ||
+    FOUNDER_ACTIVE_PAYMENT_STATUSES.has(paymentStatus)
+  );
+}
+
+function isFounderGateValid(invitedRecord, inviterRecord, inviterEmail) {
+  if (!invitedRecord || !inviterRecord) {
+    return false;
+  }
+
+  if (normalizeString(invitedRecord.subscriber_type).toLowerCase() !== "founder_invited") {
+    return false;
+  }
+
+  if (normalizeString(invitedRecord.founder_token_status).toLowerCase() !== "active") {
+    return false;
+  }
+
+  if (!isTruthy(invitedRecord[LEAD_PAYMENT_FIELDS.founderEligible])) {
+    return false;
+  }
+
+  if (normalizeString(invitedRecord[LEAD_PAYMENT_FIELDS.founderGateStatus]).toLowerCase() !== "confirmed") {
+    return false;
+  }
+
+  if (normalizeString(invitedRecord[LEAD_PAYMENT_FIELDS.tierIntent]).toLowerCase() !== "founder") {
+    return false;
+  }
+
+  if (normalizeEmail(invitedRecord.inviter_email) !== inviterEmail) {
+    return false;
+  }
+
+  if (normalizeString(invitedRecord.inviter_lead_id) !== normalizeString(inviterRecord.lead_id)) {
+    return false;
+  }
+
+  if (normalizeString(inviterRecord.review_status).toLowerCase() !== "approved") {
+    return false;
+  }
+
+  return hasFounderActiveAccountMarker(inviterRecord);
+}
+
 function buildBillingChoice(contractKey) {
   const contract = getTierContract(contractKey);
   if (!contract) {
     return null;
   }
 
+  // RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
+  // active subscriptions. Do not remove backend support.
+  const displayByContractKey = {
+    club_monthly: {
+      billing: "monthly",
+      label: "$22.22 / month",
+    },
+    club_quarterly: {
+      billing: "semi_annual",
+      label: "$99.99 / 6 months",
+    },
+    club_yearly: {
+      billing: "yearly",
+      label: "$144.44 / year",
+    },
+    premier_monthly: {
+      billing: "monthly",
+      label: "$55.55 / month",
+    },
+    premier_quarterly: {
+      billing: "semi_annual",
+      label: "$277.77 / 6 months",
+    },
+    premier_yearly: {
+      billing: "yearly",
+      label: "$388.88 / year",
+    },
+  };
+
+  if (displayByContractKey[contractKey]) {
+    return {
+      contractKey: contract.contractKey,
+      billing: displayByContractKey[contractKey].billing,
+      label: displayByContractKey[contractKey].label,
+    };
+  }
+
   const labelByBilling = {
     monthly: `$${formatUsd(contract.amountUsdCents)} / month`,
-    semi_annual: `$${formatUsd(contract.amountUsdCents)} / 6 months`,
     quarterly: `$${formatUsd(contract.amountUsdCents)} / quarter`,
     yearly: `$${formatUsd(contract.amountUsdCents)} / year`,
     lifetime: `$${formatUsd(contract.amountUsdCents)} lifetime`,
@@ -249,16 +381,21 @@ function buildHeadlinePriceLabel(contractKey) {
     return "";
   }
 
+  const displayByContractKey = {
+    club_monthly: "$22.22 / month",
+    club_quarterly: "$99.99 / 6 months",
+    club_yearly: "$144.44 / year",
+    premier_monthly: "$55.55 / month",
+    premier_quarterly: "$277.77 / 6 months",
+    premier_yearly: "$388.88 / year",
+  };
+
+  if (displayByContractKey[contractKey]) {
+    return displayByContractKey[contractKey];
+  }
+
   if (contract.billing === "lifetime") {
     return `$${formatUsd(contract.amountUsdCents)} lifetime`;
-  }
-
-  if (contract.billing === "monthly") {
-    return `$${formatUsd(contract.amountUsdCents)} / month`;
-  }
-
-  if (contract.billing === "semi_annual") {
-    return `$${formatUsd(contract.amountUsdCents)} / 6 months`;
   }
 
   return `$${formatUsd(contract.amountUsdCents)} / year`;
@@ -309,15 +446,19 @@ function buildStandardOptions(lead) {
     },
     club: {
       tier: "club",
-      contractKey: "club_yearly",
       displayMode: "standard",
       headlinePriceLabel: buildHeadlinePriceLabel("club_yearly"),
+      billingChoices: ["club_monthly", "club_quarterly", "club_yearly"]
+        .map(buildBillingChoice)
+        .filter(Boolean),
     },
     premier: {
       tier: "premier",
-      contractKey: "premier_yearly",
       displayMode: "standard",
       headlinePriceLabel: buildHeadlinePriceLabel("premier_yearly"),
+      billingChoices: ["premier_monthly", "premier_quarterly", "premier_yearly"]
+        .map(buildBillingChoice)
+        .filter(Boolean),
     },
     patron: buildPatronOption(lead),
   };
@@ -335,6 +476,7 @@ function buildFounderOptions() {
 }
 
 function buildResponseBody(lead, tokenType) {
+  const founderOnly = isFounderOnlyLead(lead);
   const checkoutToken = normalizeString(lead[LEAD_PAYMENT_FIELDS.checkoutToken]);
   const magicToken = normalizeString(lead.magic_token);
   const paymentStatus = normalizeString(
@@ -352,7 +494,6 @@ function buildResponseBody(lead, tokenType) {
     lead: {
       reviewStatus: normalizeString(lead.review_status).toLowerCase() || null,
       paymentStatus: paymentStatus || null,
-      previewMode: isTruthy(lead.preview_mode),
       currentTier: getCurrentTier(lead),
       tierIntent:
         normalizeString(lead[LEAD_PAYMENT_FIELDS.tierIntent]).toLowerCase() ||
@@ -375,11 +516,10 @@ function buildResponseBody(lead, tokenType) {
       Boolean(checkoutToken) &&
       normalizeString(lead[LEAD_PAYMENT_FIELDS.checkoutTokenStatus]).toLowerCase() ===
         "active",
-    previewMode: isTruthy(lead.preview_mode),
-    tierVisibility: "standard",
+    tierVisibility: founderOnly ? "founder_only" : "standard",
     upgradeEligibleUntil: UPGRADE_ELIGIBLE_UNTIL,
     hasActiveMembership: ACTIVE_MEMBERSHIP_STATES.has(paymentStatus),
-    options: buildStandardOptions(lead),
+    options: founderOnly ? buildFounderOptions() : buildStandardOptions(lead),
   };
 }
 
@@ -392,7 +532,9 @@ function formatUsd(cents) {
 }
 
 function listAllowedContractKeys(lead) {
-  const options = buildStandardOptions(lead);
+  const options = isFounderOnlyLead(lead)
+    ? buildFounderOptions()
+    : buildStandardOptions(lead);
   const allowed = new Set();
 
   for (const option of Object.values(options)) {
@@ -443,7 +585,7 @@ function validateMagicTokenState(lead, providedToken) {
     return errorResponse(
       410,
       "magic_token_inactive",
-      "Membership selection link is not active."
+      "Tier-selection link is not active."
     );
   }
 
@@ -452,7 +594,7 @@ function validateMagicTokenState(lead, providedToken) {
     return errorResponse(
       410,
       "magic_token_expired",
-      "Membership selection link has expired."
+      "Tier-selection link has expired."
     );
   }
 
@@ -512,6 +654,57 @@ async function mintCheckoutToken(lead) {
   return payload;
 }
 
+async function mintFounderCheckoutToken(lead) {
+  const payload = issueCheckoutTokenPayload(lead);
+  const consentAt = payload.checkoutTokenIssuedAt;
+
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        lead_id: lead.lead_id,
+      },
+      ConditionExpression: [
+        "review_status = :approved",
+        "subscriber_type = :founder_invited",
+        "founder_eligible = :founder_eligible",
+        "founder_gate_status = :founder_gate_status",
+        "tier_intent = :tier_intent",
+        "founder_token_status = :founder_token_status",
+      ].join(" AND "),
+      UpdateExpression: [
+        `SET ${LEAD_PAYMENT_FIELDS.checkoutToken} = :checkout_token`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenStatus} = :checkout_token_status`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenVersion} = :checkout_token_version`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenIssuedAt} = :checkout_token_issued_at`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenExpiresAt} = :checkout_token_expires_at`,
+        "checkbox_consent_at = :checkbox_consent_at",
+        "updated_at = :updated_at",
+      ].join(", "),
+      ExpressionAttributeValues: {
+        ":approved": "approved",
+        ":founder_invited": "founder_invited",
+        ":founder_eligible": true,
+        ":founder_gate_status": "confirmed",
+        ":tier_intent": "founder",
+        ":founder_token_status": "active",
+        ":checkout_token": payload.checkoutToken,
+        ":checkout_token_status": payload.checkoutTokenStatus,
+        ":checkout_token_version": payload.checkoutTokenVersion,
+        ":checkout_token_issued_at": payload.checkoutTokenIssuedAt,
+        ":checkout_token_expires_at": payload.checkoutTokenExpiresAt,
+        ":checkbox_consent_at": consentAt,
+        ":updated_at": payload.updatedAt,
+      },
+    })
+  );
+
+  return {
+    ...payload,
+    checkboxConsentAt: consentAt,
+  };
+}
+
 function parseRequestBody(event) {
   if (!event?.body) {
     return {};
@@ -538,6 +731,10 @@ async function handleMintRequest(event) {
     normalizeString(body.contractKey) ||
     normalizeString(body.contract_key);
 
+  if (contractKey === "founder_lifetime") {
+    return handleFounderConsentCheckoutRequest(body);
+  }
+
   if (!leadId) {
     return errorResponse(400, "missing_lead_id", "Missing lead_id.");
   }
@@ -550,14 +747,6 @@ async function handleMintRequest(event) {
     return errorResponse(400, "missing_contract_key", "Missing contract key.");
   }
 
-  if (isLegacyQuarterlyContractKey(contractKey)) {
-    return errorResponse(
-      410,
-      "quarterly_contract_retired",
-      "Legacy quarterly billing is no longer available for new checkout. Please choose the semi-annual plan."
-    );
-  }
-
   const lead = await findLeadByLeadId(leadId);
   if (!lead) {
     return errorResponse(404, "lead_not_found", "Lead not found.");
@@ -566,14 +755,6 @@ async function handleMintRequest(event) {
   const reviewError = validateApprovedLead(lead);
   if (reviewError) {
     return reviewError;
-  }
-
-  if (isTruthy(lead.preview_mode)) {
-    return errorResponse(
-      403,
-      "preview_mode_checkout_disabled",
-      "Preview mode memberships stay on Presttige and do not open Stripe checkout."
-    );
   }
 
   const tokenError = validateMagicTokenState(lead, magicToken);
@@ -600,6 +781,52 @@ async function handleMintRequest(event) {
     checkoutTokenVersion: payload.checkoutTokenVersion,
     checkoutTokenIssuedAt: payload.checkoutTokenIssuedAt,
     checkoutTokenExpiresAt: payload.checkoutTokenExpiresAt,
+  });
+}
+
+async function handleFounderConsentCheckoutRequest(body) {
+  const invitedEmail = normalizeEmail(
+    body.invited_email || body.founder_email || body.email
+  );
+  const inviterEmail = normalizeEmail(body.inviter_email);
+  const consentAccepted = isTruthy(
+    body.checkbox_consent_accepted || body.consent_accepted || body.consent
+  );
+
+  if (!isSupportedEmail(invitedEmail) || !isSupportedEmail(inviterEmail)) {
+    return errorResponse(400, "invalid_founder_emails", "Founder invitation details are invalid.");
+  }
+
+  if (invitedEmail === inviterEmail) {
+    return errorResponse(400, "invalid_founder_emails", "Founder invitation details are invalid.");
+  }
+
+  if (!consentAccepted) {
+    return errorResponse(400, "consent_required", "Founder consent is required before checkout.");
+  }
+
+  const records = await findLeadsByEmails([invitedEmail, inviterEmail]);
+  const invitedRecord = records.find(
+    (record) => normalizeEmail(record.email) === invitedEmail
+  );
+  const inviterRecord = records.find(
+    (record) => normalizeEmail(record.email) === inviterEmail
+  );
+
+  if (!isFounderGateValid(invitedRecord, inviterRecord, inviterEmail)) {
+    return errorResponse(403, "founder_gate_not_confirmed", "Founder invitation could not be confirmed.");
+  }
+
+  const payload = await mintFounderCheckoutToken(invitedRecord);
+  return response(200, {
+    checkoutToken: payload.checkoutToken,
+    checkoutTokenStatus: payload.checkoutTokenStatus,
+    checkoutTokenVersion: payload.checkoutTokenVersion,
+    checkoutTokenIssuedAt: payload.checkoutTokenIssuedAt,
+    checkoutTokenExpiresAt: payload.checkoutTokenExpiresAt,
+    checkboxConsentAt: payload.checkboxConsentAt,
+    contractKey: "founder_lifetime",
+    tier: "founder",
   });
 }
 

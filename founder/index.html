@@ -353,6 +353,64 @@
       text-transform: uppercase;
     }
 
+    .founder-consent {
+      margin-top: 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .founder-consent__label {
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.55;
+      text-transform: none;
+    }
+
+    .founder-consent__label input {
+      width: 18px;
+      min-height: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--gold-dark);
+    }
+
+    .founder-consent__button {
+      width: 100%;
+      min-height: 52px;
+      border: 1px solid var(--gold-dark);
+      background: var(--ink);
+      color: var(--paper);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      transition: background 180ms ease, color 180ms ease, opacity 180ms ease;
+    }
+
+    .founder-consent__button:hover:not(:disabled) {
+      background: var(--gold-dark);
+      color: #fffaf0;
+    }
+
+    .founder-consent__button:disabled {
+      cursor: not-allowed;
+      opacity: 0.52;
+    }
+
+    .founder-consent__message {
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
     @media (max-width: 760px) {
       .topbar {
         width: min(100% - 28px, var(--max));
@@ -450,7 +508,7 @@
             return;
           }
 
-          await revealDetail(inviteeEmail);
+          await revealDetail(inviteeEmail, inviterEmail);
         } catch (_error) {
           showFailure();
         } finally {
@@ -475,7 +533,7 @@
         }
       }
 
-      async function revealDetail(inviteeEmail) {
+      async function revealDetail(inviteeEmail, inviterEmail) {
         await loadDetailScript();
 
         if (!window.PRESTTIGE_ACCESS_DETAIL || typeof window.PRESTTIGE_ACCESS_DETAIL.render !== "function") {
@@ -486,7 +544,9 @@
         gate.hidden = true;
         detail.hidden = false;
         window.PRESTTIGE_ACCESS_DETAIL.render(detail, {
-          email: inviteeEmail
+          email: inviteeEmail,
+          inviterEmail: inviterEmail,
+          apiBase: API_BASE
         });
         window.scrollTo({ top: 0, behavior: "smooth" });
       }

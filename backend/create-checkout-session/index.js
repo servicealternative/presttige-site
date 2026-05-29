@@ -35,7 +35,6 @@ function loadTierContractModule() {
 const {
   CHECKOUT_TOKEN_INDEX_NAME,
   LEAD_PAYMENT_FIELDS,
-  isLegacyQuarterlyContractKey,
   getTierContract,
   mustGetTierContract,
 } = loadTierContractModule();
@@ -408,14 +407,6 @@ function validateLeadForContract(lead, contract) {
     lead[LEAD_PAYMENT_FIELDS.selectedContractKey]
   ).toLowerCase();
 
-  if (isTruthy(lead.preview_mode)) {
-    return errorResponse(
-      403,
-      "preview_mode_checkout_disabled",
-      "Preview mode memberships stay on Presttige and do not open Stripe checkout."
-    );
-  }
-
   if (!tokenStatus || tokenStatus !== "active") {
     return errorResponse(
       410,
@@ -451,6 +442,14 @@ function validateLeadForContract(lead, contract) {
       403,
       "founder_referral_required",
       "Founder checkout requires founder-eligible referral attribution."
+    );
+  }
+
+  if (contract.contractKey === "founder_lifetime" && !normalizeString(lead.checkbox_consent_at)) {
+    return errorResponse(
+      403,
+      "founder_consent_required",
+      "Founder consent is required before checkout."
     );
   }
 
@@ -546,7 +545,13 @@ async function createPaymentModeBootstrap({
       customer: customerId,
       receipt_email: normalizeString(lead.email) || undefined,
       payment_method_types: ["card"],
-      metadata: buildStripeMetadata(lead, contract),
+      metadata: {
+        ...buildStripeMetadata(lead, contract),
+        stripe_price_id: priceId,
+        ...(contract.stripeProductId
+          ? { stripe_product_id: contract.stripeProductId }
+          : {}),
+      },
       description: `Presttige ${formatTierLabel(contract.tier)} checkout`,
     },
   });
@@ -792,14 +797,6 @@ exports.handler = async (event) => {
       400,
       "missing_contract_key",
       "Contract key is required."
-    );
-  }
-
-  if (isLegacyQuarterlyContractKey(requestedContractKey)) {
-    return errorResponse(
-      410,
-      "quarterly_contract_retired",
-      "Legacy quarterly billing is no longer available for new checkout. Please choose the semi-annual plan."
     );
   }
 

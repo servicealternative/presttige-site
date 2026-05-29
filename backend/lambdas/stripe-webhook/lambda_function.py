@@ -2,10 +2,12 @@ import base64
 import json
 import os
 import traceback
+import uuid
 from datetime import datetime, timezone
 
 import boto3
 from botocore.exceptions import ClientError
+from boto3.dynamodb.types import TypeSerializer
 
 try:
     import stripe
@@ -25,6 +27,7 @@ STRIPE_SIGNATURE_ERROR = (
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 LEADS_TABLE_NAME = os.environ.get("LEADS_TABLE_NAME", "presttige-db")
 EVENTS_TABLE_NAME = os.environ.get("STRIPE_EVENTS_TABLE_NAME", "presttige-stripe-events")
+AUDIT_TABLE_NAME = os.environ.get("AUDIT_TABLE_NAME", "presttige-review-audit")
 WEBHOOK_SECRET_PARAMETER = os.environ.get(
     "STRIPE_WEBHOOK_SECRET_PARAMETER", "/presttige/stripe/webhook-secret"
 )
@@ -40,30 +43,21 @@ DOWNGRADE_SCHEDULER_ROLE_ARN = os.environ.get(
     "arn:aws:iam::343218208384:role/presttige-scheduler-invoke-tier-downgrade-role",
 )
 SCHEDULER_GROUP_NAME = os.environ.get("DOWNGRADE_SCHEDULER_GROUP", "default")
-def with_display_name(value):
-    text = str(value or "").strip()
-    if not text:
-        return "Presttige <office@presttige.net>"
-    if "<" in text and ">" in text:
-        return text
-    return f"Presttige <{text}>"
-
-
-OFFICE_NOTIFICATION_FROM = with_display_name(
-    os.environ.get("OFFICE_NOTIFICATION_FROM", "office@presttige.net")
+OFFICE_NOTIFICATION_FROM = os.environ.get(
+    "OFFICE_NOTIFICATION_FROM", "office@presttige.net"
 )
 OFFICE_NOTIFICATION_TO = os.environ.get("OFFICE_NOTIFICATION_TO", "office@presttige.net")
+
+TESTER_WHITELIST = {
+    "antoniompereira@me.com",
+    "alternativeservice@gmail.com",
+    "analuisasf@gmail.com",
+}
 
 CONTRACTS = {
     "club_monthly": {
         "tier": "club",
         "billing": "monthly",
-        "checkout_mode": "subscription",
-        "founder_lifetime": False,
-    },
-    "club_semi_annual": {
-        "tier": "club",
-        "billing": "semi_annual",
         "checkout_mode": "subscription",
         "founder_lifetime": False,
     },
@@ -73,37 +67,15 @@ CONTRACTS = {
         "checkout_mode": "subscription",
         "founder_lifetime": False,
     },
-    # RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
-    # active subscriptions. Do not remove backend support.
-    "club_quarterly": {
-        "tier": "club",
-        "billing": "quarterly",
-        "checkout_mode": "subscription",
-        "founder_lifetime": False,
-    },
     "premier_monthly": {
         "tier": "premier",
         "billing": "monthly",
         "checkout_mode": "subscription",
         "founder_lifetime": False,
     },
-    "premier_semi_annual": {
-        "tier": "premier",
-        "billing": "semi_annual",
-        "checkout_mode": "subscription",
-        "founder_lifetime": False,
-    },
     "premier_yearly": {
         "tier": "premier",
         "billing": "yearly",
-        "checkout_mode": "subscription",
-        "founder_lifetime": False,
-    },
-    # RETAINED M-R6.2.M: Quarterly removed from UI but kept for legacy
-    # active subscriptions. Do not remove backend support.
-    "premier_quarterly": {
-        "tier": "premier",
-        "billing": "quarterly",
         "checkout_mode": "subscription",
         "founder_lifetime": False,
     },
@@ -118,6 +90,7 @@ CONTRACTS = {
         "billing": "lifetime",
         "checkout_mode": "payment",
         "founder_lifetime": True,
+        "stripe_product_id": "prod_URrwkKbbICL760",
     },
     "club_to_patron_upgrade": {
         "tier": "patron",
@@ -133,13 +106,16 @@ CONTRACTS = {
     },
 }
 
+FOUNDER_LIVE_PRICE_ID = "price_1TSyCjDmiQXcrE5NyKR5cb60"
 SUBSCRIPTION_ACTIVE_STATUSES = {"active", "trialing"}
 SUBSCRIPTION_PROCESSING_STATUSES = {"incomplete", "incomplete_expired"}
 SUBSCRIPTION_PAST_DUE_STATUSES = {"past_due", "unpaid"}
 
 dynamodb = boto3.resource("dynamodb", region_name=REGION)
+ddb_client = boto3.client("dynamodb", region_name=REGION)
 leads_table = dynamodb.Table(LEADS_TABLE_NAME)
 events_table = dynamodb.Table(EVENTS_TABLE_NAME)
+serializer = TypeSerializer()
 ssm = boto3.client("ssm", region_name=REGION)
 lambda_client = boto3.client("lambda", region_name=REGION)
 scheduler = boto3.client("scheduler", region_name=REGION)
@@ -171,7 +147,7 @@ def normalize_email(value):
 
 
 def is_tester_lead(lead):
-    return bool((lead or {}).get("is_test"))
+    return bool((lead or {}).get("is_test")) or normalize_email((lead or {}).get("email")) in TESTER_WHITELIST
 
 
 def safe_get(value, key, default=None):
@@ -329,6 +305,7 @@ def extract_context(event_type, obj):
         "subscription_id": subscription_id,
         "payment_intent_id": payment_intent_id,
         "charge_id": charge_id,
+        "livemode": bool(safe_get(obj, "livemode", False)),
         "metadata": metadata,
     }
 
@@ -490,6 +467,152 @@ def set_lead_fields(lead_id, fields, remove_fields=None, add_fields=None):
     return result.get("Attributes", {})
 
 
+def serialize_item(item):
+    return {key: serializer.serialize(value) for key, value in item.items()}
+
+
+def summarize_founder_activation_state(lead):
+    if not lead:
+        return {}
+    return {
+        "subscriber_type": lead.get("subscriber_type"),
+        "tier": lead.get("tier"),
+        "selected_tier": lead.get("selected_tier"),
+        "selected_tier_billing": lead.get("selected_tier_billing"),
+        "selected_contract_key": lead.get("selected_contract_key"),
+        "payment_status": lead.get("payment_status"),
+        "payment_status_reason": lead.get("payment_status_reason"),
+        "subscription_status": lead.get("subscription_status"),
+        "access_status": lead.get("access_status"),
+        "founder_lifetime": lead.get("founder_lifetime"),
+        "synthetic_test": lead.get("synthetic_test"),
+    }
+
+
+def founder_activation_audit_item(lead, event_id, event_type, previous_state, new_state):
+    timestamp = now_iso()
+    return {
+        "audit_id": str(uuid.uuid4()),
+        "timestamp": timestamp,
+        "lead_id": lead["lead_id"],
+        "target_lead_id": lead["lead_id"],
+        "action": "founder_payment_activate",
+        "actor_id": "stripe_webhook",
+        "reviewer_id": "stripe_webhook",
+        "previous_state": previous_state,
+        "new_state": new_state,
+        "metadata": {
+            "component": "presttige-stripe-webhook",
+            "stripe_event_id": event_id,
+            "stripe_event_type": event_type,
+            "operation": "founder_invited_to_founder",
+            "synthetic_test": False,
+        },
+        "is_test": False,
+    }
+
+
+def activate_founder_payment_transaction(lead, fields, event_id, event_type):
+    if (
+        normalize_string(lead.get("subscriber_type")).lower() == "founder"
+        and normalize_string(lead.get("payment_status")).lower() == "paid"
+        and lead.get("founder_lifetime") is True
+    ):
+        return get_lead(lead["lead_id"]), {
+            "invoked": False,
+            "reason": "already_founder",
+        }
+
+    previous_state = summarize_founder_activation_state(lead)
+    new_state = {
+        **previous_state,
+        "subscriber_type": "founder",
+        "tier": "founder",
+        "selected_tier": "founder",
+        "selected_tier_billing": "lifetime",
+        "selected_contract_key": "founder_lifetime",
+        "payment_status": "paid",
+        "payment_status_reason": "founder_payment_succeeded",
+        "subscription_status": "none",
+        "access_status": "active",
+        "founder_lifetime": True,
+        "synthetic_test": False,
+    }
+    audit_item = founder_activation_audit_item(
+        lead=lead,
+        event_id=event_id,
+        event_type=event_type,
+        previous_state=previous_state,
+        new_state=new_state,
+    )
+
+    expression_names = {f"#f{index}": field for index, field in enumerate(fields.keys())}
+    expression_values = {f":v{index}": serializer.serialize(value) for index, value in enumerate(fields.values())}
+    expression_values[":founder_invited"] = serializer.serialize("founder_invited")
+    expression_values[":approved"] = serializer.serialize("approved")
+    expression_values[":false"] = serializer.serialize(False)
+
+    ddb_client.transact_write_items(
+        TransactItems=[
+            {
+                "Put": {
+                    "TableName": AUDIT_TABLE_NAME,
+                    "Item": serialize_item(audit_item),
+                    "ConditionExpression": "attribute_not_exists(audit_id)",
+                }
+            },
+            {
+                "Update": {
+                    "TableName": LEADS_TABLE_NAME,
+                    "Key": {"lead_id": serializer.serialize(lead["lead_id"])},
+                    "UpdateExpression": "SET " + ", ".join(
+                        f"{name_key} = :v{index}"
+                        for index, name_key in enumerate(expression_names.keys())
+                    ),
+                    "ConditionExpression": (
+                        "subscriber_type = :founder_invited "
+                        "AND review_status = :approved "
+                        "AND (attribute_not_exists(synthetic_test) OR synthetic_test = :false)"
+                    ),
+                    "ExpressionAttributeNames": expression_names,
+                    "ExpressionAttributeValues": expression_values,
+                }
+            },
+        ]
+    )
+
+    updated = get_lead(lead["lead_id"])
+    return updated, {
+        "invoked": True,
+        "audit_id": audit_item["audit_id"],
+    }
+
+
+def reject_founder_activation(event_id, event_type, lead, reason, metadata_price_id, metadata_product_id, selected_price_id):
+    log_json(
+        "founder_activation_rejected",
+        event_id=event_id,
+        event_type=event_type,
+        lead_id=lead.get("lead_id"),
+        reason=reason,
+        stripe_price_id=metadata_price_id or None,
+        stripe_product_id=metadata_product_id or None,
+        selected_price_id=selected_price_id or None,
+        expected_price_id=FOUNDER_LIVE_PRICE_ID,
+        expected_product_id=CONTRACTS["founder_lifetime"]["stripe_product_id"],
+    )
+    return {
+        "action": "founder_activation_rejected",
+        "lead_id": lead.get("lead_id"),
+        "new_state": {
+            "reason": reason,
+            "subscriber_type": lead.get("subscriber_type"),
+            "payment_status": lead.get("payment_status"),
+            "subscription_status": lead.get("subscription_status"),
+        },
+    }
+
+
 def event_fields(event_id, event_type):
     return {
         "last_event_id": event_id,
@@ -583,7 +706,7 @@ def invoke_welcome_email(lead):
 
 def notify_office_dispute(lead, context, dispute):
     lead_id = (lead or {}).get("lead_id") or context.get("lead_id") or "unknown"
-    subject = f"Presttige Stripe dispute opened — {lead_id}"
+    subject = f"Presttige Stripe dispute opened, {lead_id}"
     body = "\n".join(
         [
             "A Stripe dispute has been opened and requires human review.",
@@ -787,6 +910,7 @@ def handle_subscription_deleted(event_id, event_type, obj, context, lead):
 def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
     contract_key, contract = get_contract(context.get("contract_key"), lead)
     is_founder = contract_key == "founder_lifetime" or contract.get("founder_lifetime")
+    is_live_event = context.get("livemode") is True
     payment_intent_id = context.get("payment_intent_id") or safe_get(obj, "id")
     is_initial_payment = (
         not lead.get("stripe_checkout_completed_at")
@@ -806,8 +930,58 @@ def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
     welcome = {"invoked": False, "reason": "not_applicable"}
 
     if is_founder:
+        if not is_live_event:
+            raise RuntimeError("Founder activation requires a live Stripe payment event")
+        metadata_price_id = normalize_string((context.get("metadata") or {}).get("stripe_price_id"))
+        metadata_product_id = normalize_string((context.get("metadata") or {}).get("stripe_product_id"))
+        selected_price_id = normalize_string(lead.get("selected_price_id"))
+        expected_product_id = normalize_string(contract.get("stripe_product_id"))
+        allowed_price_ids = {FOUNDER_LIVE_PRICE_ID}
+        if selected_price_id:
+            allowed_price_ids.add(selected_price_id)
+        if not metadata_product_id:
+            return reject_founder_activation(
+                event_id,
+                event_type,
+                lead,
+                "missing_founder_product_metadata",
+                metadata_price_id,
+                metadata_product_id,
+                selected_price_id,
+            )
+        if metadata_product_id != expected_product_id:
+            return reject_founder_activation(
+                event_id,
+                event_type,
+                lead,
+                "founder_product_metadata_mismatch",
+                metadata_price_id,
+                metadata_product_id,
+                selected_price_id,
+            )
+        if not metadata_price_id:
+            return reject_founder_activation(
+                event_id,
+                event_type,
+                lead,
+                "missing_founder_price_metadata",
+                metadata_price_id,
+                metadata_product_id,
+                selected_price_id,
+            )
+        if metadata_price_id not in allowed_price_ids:
+            return reject_founder_activation(
+                event_id,
+                event_type,
+                lead,
+                "founder_price_metadata_mismatch",
+                metadata_price_id,
+                metadata_product_id,
+                selected_price_id,
+            )
         fields.update(
             {
+                "subscriber_type": "founder",
                 "tier": "founder",
                 "selected_tier": "founder",
                 "selected_tier_billing": "lifetime",
@@ -835,7 +1009,16 @@ def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
         if not is_initial_payment:
             add_fields["renewal_count"] = 1
 
-    updated = set_lead_fields(lead["lead_id"], fields, add_fields=add_fields)
+    if is_founder:
+        updated, audit = activate_founder_payment_transaction(
+            lead=lead,
+            fields=fields,
+            event_id=event_id,
+            event_type=event_type,
+        )
+    else:
+        updated = set_lead_fields(lead["lead_id"], fields, add_fields=add_fields)
+        audit = {"invoked": False, "reason": "not_founder"}
     if not is_founder:
         welcome = invoke_welcome_email(updated)
 
@@ -847,6 +1030,7 @@ def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
             "tier": updated.get("tier"),
             "founder_lifetime": updated.get("founder_lifetime", False),
             "renewal_count": updated.get("renewal_count"),
+            "audit": audit,
             "welcome": welcome,
         },
     }
