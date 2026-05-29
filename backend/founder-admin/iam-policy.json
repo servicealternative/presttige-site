@@ -35,6 +35,18 @@
       "Resource": "arn:aws:secretsmanager:us-east-1:343218208384:secret:presttige-founder-token-secret-*"
     },
     {
+      "Sid": "SendFounderInviteEmails",
+      "Effect": "Allow",
+      "Action": [
+        "ses:SendEmail",
+        "ses:SendRawEmail"
+      ],
+      "Resource": [
+        "arn:aws:ses:us-east-1:343218208384:identity/presttige.net",
+        "arn:aws:ses:us-east-1:343218208384:identity/committee@presttige.net"
+      ]
+    },
+    {
       "Sid": "WriteOwnLambdaLogs",
       "Effect": "Allow",
       "Action": [

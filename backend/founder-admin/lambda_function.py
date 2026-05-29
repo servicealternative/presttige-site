@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import hmac
+import html
 import json
 import os
 import secrets
@@ -21,6 +22,8 @@ FOUNDER_TOKEN_SECRET_ID = os.environ.get(
     "presttige-founder-token-secret",
 )
 APP_ORIGIN = os.environ.get("APP_ORIGIN", "https://presttige.net")
+FOUNDER_URL = os.environ.get("FOUNDER_URL", "https://presttige.net/founder")
+FOUNDER_EMAIL_FROM = "committee@presttige.net"
 
 VALID_ACTIONS = {
     "create_invite",
@@ -38,6 +41,7 @@ EMAIL_INDEX_NAME = "email-index"
 dynamodb = boto3.resource("dynamodb", region_name=REGION)
 ddb_client = boto3.client("dynamodb", region_name=REGION)
 secrets_client = boto3.client("secretsmanager", region_name=REGION)
+ses_client = boto3.client("ses", region_name=REGION)
 table = dynamodb.Table(TABLE_NAME)
 serializer = TypeSerializer()
 _cached_founder_token_secret = None
@@ -204,6 +208,12 @@ def create_founder_invite(payload, actor_id):
         expression_values=expression_values,
         expression_names=expression_names,
     )
+    email_result = send_founder_invite_emails(
+        lead_id=target_lead_id,
+        invited_email=invited_email,
+        invited_name=invited_name,
+        inviter=inviter,
+    )
 
     return {
         "ok": True,
@@ -211,6 +221,7 @@ def create_founder_invite(payload, actor_id):
         "lead_id": target_lead_id,
         "founder_token_status": "active",
         "founder_token_version": token_version,
+        "founder_email": email_result,
     }
 
 
@@ -338,6 +349,263 @@ def transact_audit_and_update(
             {"Update": update_request},
         ]
     )
+
+
+def send_founder_invite_emails(lead_id, invited_email, invited_name, inviter):
+    lead = table.get_item(Key={"lead_id": lead_id}).get("Item") or {}
+    result = {
+        "invitee": send_founder_invitee_email_if_needed(lead, invited_email, invited_name),
+        "inviter": send_founder_inviter_email_if_needed(lead, inviter),
+    }
+    print(
+        json.dumps(
+            {
+                "event": "founder_invite_emails_processed",
+                "lead_id": lead_id,
+                "invitee": result["invitee"],
+                "inviter": result["inviter"],
+            }
+        )
+    )
+    return result
+
+
+def send_founder_invitee_email_if_needed(lead, invited_email, invited_name):
+    lead_id = lead.get("lead_id")
+    if lead.get("founder_invite_email_sent_at"):
+        return {"sent": False, "skipped": True, "reason": "already_sent"}
+
+    recipient = normalize_email(lead.get("email") or invited_email)
+    if not is_valid_email(recipient):
+        raise AdminError(409, "invite_email_missing", "Founder invite record has no valid email.")
+
+    first_name = first_name_for_email(invited_name or lead.get("name"), recipient)
+    html_body = founder_invitee_html(first_name, FOUNDER_URL)
+    text_body = founder_invitee_text(first_name, FOUNDER_URL)
+    ses_response = ses_client.send_email(
+        Source=FOUNDER_EMAIL_FROM,
+        ReplyToAddresses=[FOUNDER_EMAIL_FROM],
+        Destination={"ToAddresses": [recipient]},
+        Message={
+            "Subject": {"Data": "Your invitation to Presttige", "Charset": "UTF-8"},
+            "Body": {
+                "Text": {"Data": text_body, "Charset": "UTF-8"},
+                "Html": {"Data": html_body, "Charset": "UTF-8"},
+            },
+        },
+    )
+    sent_at = utc_now_iso()
+    mark_founder_email_sent(lead_id, "founder_invite_email_sent_at", sent_at)
+    return {
+        "sent": True,
+        "skipped": False,
+        "sent_at": sent_at,
+        "message_id": ses_response.get("MessageId"),
+    }
+
+
+def send_founder_inviter_email_if_needed(lead, inviter):
+    lead_id = lead.get("lead_id")
+    if lead.get("founder_inviter_email_sent_at"):
+        return {"sent": False, "skipped": True, "reason": "already_sent"}
+
+    inviter_email = normalize_email(lead.get("inviter_email") or (inviter or {}).get("email"))
+    if not is_valid_email(inviter_email):
+        print(
+            json.dumps(
+                {
+                    "event": "founder_inviter_email_skipped",
+                    "lead_id": lead_id,
+                    "reason": "missing_inviter_email",
+                }
+            )
+        )
+        return {"sent": False, "skipped": True, "reason": "missing_inviter_email"}
+
+    first_name = first_name_for_email((inviter or {}).get("name"), inviter_email)
+    html_body = founder_inviter_html(first_name)
+    text_body = founder_inviter_text(first_name)
+    ses_response = ses_client.send_email(
+        Source=FOUNDER_EMAIL_FROM,
+        ReplyToAddresses=[FOUNDER_EMAIL_FROM],
+        Destination={"ToAddresses": [inviter_email]},
+        Message={
+            "Subject": {
+                "Data": "Thank you, your introduction has been made",
+                "Charset": "UTF-8",
+            },
+            "Body": {
+                "Text": {"Data": text_body, "Charset": "UTF-8"},
+                "Html": {"Data": html_body, "Charset": "UTF-8"},
+            },
+        },
+    )
+    sent_at = utc_now_iso()
+    mark_founder_email_sent(lead_id, "founder_inviter_email_sent_at", sent_at)
+    return {
+        "sent": True,
+        "skipped": False,
+        "sent_at": sent_at,
+        "message_id": ses_response.get("MessageId"),
+    }
+
+
+def mark_founder_email_sent(lead_id, field_name, sent_at):
+    table.update_item(
+        Key={"lead_id": lead_id},
+        UpdateExpression=f"SET {field_name} = if_not_exists({field_name}, :sent_at), updated_at = :updated_at",
+        ExpressionAttributeValues={
+            ":sent_at": sent_at,
+            ":updated_at": sent_at,
+        },
+    )
+
+
+def first_name_for_email(name, email):
+    cleaned_name = normalize_string(name)
+    if cleaned_name:
+        return cleaned_name.split()[0]
+    local_part = normalize_string(email).split("@", 1)[0]
+    local_part = local_part.replace(".", " ").replace("_", " ").replace("-", " ").strip()
+    return local_part.split()[0].title() if local_part else "there"
+
+
+def founder_invitee_text(first_name, founder_url):
+    return "\n\n".join(
+        [
+            f"Dear {first_name},",
+            "You have been personally put forward for Founding membership of Presttige.",
+            "This is not an application. Someone whose judgment we trust has invited you directly, and your place has been prepared.",
+            "To continue, visit the link below and confirm your details. You will be asked for your own email and the email of the person who invited you, a simple step that keeps this private and confirms the introduction.",
+            f"Begin, {founder_url}",
+            "Once confirmed, you will see everything Founding membership holds, and how to take your place.",
+            "Should you have any question at any point, the person who invited you will be glad to accompany you, or you may reply to this message directly.",
+            "With warm regards,\nThe Presttige Committee",
+        ]
+    )
+
+
+def founder_inviter_text(first_name):
+    return "\n\n".join(
+        [
+            f"Dear {first_name},",
+            "Thank you. The person you put forward for Founding membership has now been contacted, and we are in conversation with them.",
+            "As the one who opened this door, you are best placed to accompany them through it. A quiet word, an answered question, a reassurance at the right moment, these make all the difference, and they are part of what Presttige membership means: people looked after by people they trust.",
+            "There is nothing you need to do unless they reach out. We simply wanted you to know the introduction has landed, so you can be there if they have questions as they take the next steps.",
+            "With our thanks,\nThe Presttige Committee",
+        ]
+    )
+
+
+def founder_invitee_html(first_name, founder_url):
+    paragraphs = [
+        f"Dear {html.escape(first_name)},",
+        "You have been personally put forward for Founding membership of Presttige.",
+        "This is not an application. Someone whose judgment we trust has invited you directly, and your place has been prepared.",
+        "To continue, visit the link below and confirm your details. You will be asked for your own email and the email of the person who invited you, a simple step that keeps this private and confirms the introduction.",
+        "Once confirmed, you will see everything Founding membership holds, and how to take your place.",
+        "Should you have any question at any point, the person who invited you will be glad to accompany you, or you may reply to this message directly.",
+        "With warm regards,<br>The Presttige Committee",
+    ]
+    return founder_email_shell(
+        subject="Your invitation to Presttige",
+        preheader="You have been personally put forward for Founding membership of Presttige.",
+        eyebrow="Founder invitation",
+        headline="Your invitation to Presttige",
+        paragraphs=paragraphs,
+        cta_label="Begin",
+        cta_url=founder_url,
+    )
+
+
+def founder_inviter_html(first_name):
+    paragraphs = [
+        f"Dear {html.escape(first_name)},",
+        "Thank you. The person you put forward for Founding membership has now been contacted, and we are in conversation with them.",
+        "As the one who opened this door, you are best placed to accompany them through it. A quiet word, an answered question, a reassurance at the right moment, these make all the difference, and they are part of what Presttige membership means: people looked after by people they trust.",
+        "There is nothing you need to do unless they reach out. We simply wanted you to know the introduction has landed, so you can be there if they have questions as they take the next steps.",
+        "With our thanks,<br>The Presttige Committee",
+    ]
+    return founder_email_shell(
+        subject="Thank you, your introduction has been made",
+        preheader="The person you put forward for Founding membership has now been contacted.",
+        eyebrow="Founder introduction",
+        headline="Thank you, your introduction has been made",
+        paragraphs=paragraphs,
+    )
+
+
+def founder_email_shell(subject, preheader, eyebrow, headline, paragraphs, cta_label=None, cta_url=None):
+    paragraph_html = "\n".join(
+        f'<p style="margin:0 0 20px 0;font-family:\'Source Serif Pro\',Georgia,serif;font-size:16px;line-height:26px;color:#0A0A0A;">{paragraph}</p>'
+        for paragraph in paragraphs
+    )
+    cta_html = ""
+    if cta_label and cta_url:
+        cta_html = f"""
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="{html.escape(cta_url)}" style="display:inline-block;padding:16px 28px;background:#0A0A0A;color:#FBF9F4;font-family:'Source Serif Pro',Georgia,serif;font-size:12px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;">{html.escape(cta_label)}</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 28px 0;font-family:'Source Serif Pro',Georgia,serif;font-size:14px;line-height:22px;color:#4A4A4A;"><a href="{html.escape(cta_url)}" style="color:#8C7040;text-decoration:none;">{html.escape(cta_url)}</a></p>
+        """
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
+  <title>{html.escape(subject)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F5F2ED;font-family:'Source Serif Pro',Georgia,serif;color:#0A0A0A;">
+  <div style="display:none;font-size:1px;color:#F5F2ED;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{html.escape(preheader)}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F2ED;">
+    <tr>
+      <td align="center" style="padding:0 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background-color:#FBF9F4;">
+          <tr>
+            <td align="center" style="background-color:#000000;padding:36px 56px 28px 56px;">
+              <img src="https://presttige.net/assets/images/presttige-p-lettering.png?v=4" alt="Presttige" width="220" height="49" style="display:block;margin:0 auto 14px auto;border:0;outline:none;text-decoration:none;max-width:220px;">
+              <p style="margin:0;font-family:'Source Serif Pro',Georgia,serif;font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#8C7040;">Private, Selective, Prestigious</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:48px 56px 40px 56px;">
+              <p style="margin:0 0 24px 0;font-family:'Source Serif Pro',Georgia,serif;font-size:11px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#8C7040;">{html.escape(eyebrow)}</p>
+              <h1 style="margin:0 0 28px 0;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:500;font-size:34px;line-height:42px;color:#0A0A0A;">{html.escape(headline)}</h1>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 32px 0;">
+                <tr><td style="width:38px;border-top:1px solid #8C7040;font-size:0;line-height:0;height:1px;">&nbsp;</td></tr>
+              </table>
+              {paragraph_html}
+              {cta_html}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 56px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="border-top:1px solid #D9D2C5;font-size:0;line-height:0;height:1px;">&nbsp;</td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="background-color:#000000;padding:36px 56px;">
+              <img src="https://presttige.net/assets/images/presttige-p-ring.png" alt="Presttige" width="64" height="64" style="display:block;margin:0 auto 16px auto;border:0;outline:none;text-decoration:none;">
+              <p style="margin:0 0 12px 0;font-family:'Source Serif Pro',Georgia,serif;font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#8C7040;">New York, London, Dubai</p>
+              <p style="margin:0;font-family:'Source Serif Pro',Georgia,serif;font-size:12px;color:#D9D2C5;">
+                <a href="https://presttige.net" style="color:#D9D2C5;text-decoration:none;">www.presttige.net</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
 
 
 def build_audit_item(action, actor_id, target_lead_id, timestamp, previous_state, new_state):
