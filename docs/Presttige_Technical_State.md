@@ -59,6 +59,32 @@ Permanent secret:
 - Retirement target: remove live Lambda/route after all callers use `/founder-gate`.
 - Do not extend this function.
 
+## Founder funnel
+
+Founder stays entirely in Presttige.
+
+Ulttra holds only the admin commands and real-time analytics for Antonio.
+
+`/founder` is live on the Presttige site.
+
+- Live URL: `https://presttige.net/founder/`
+- Amplify app: `dh6banfgh3wmi`
+- Production branch: `main`
+- Production commit: `87b9a8bf1951aa1fef6a7ec463e51663a9caf8b0`
+- Page state: public-facing Founder gate, technically approved only for now
+- Initial source: neutral gate only
+- Initial raw HTML: no Founder content
+- Backend call: existing `/founder-gate` route on API Gateway `rwkz3d86u0`
+- Failure behavior: neutral message with `founders@presttige.net`
+- Visual state: cream design, dark ink text, gold accents
+- `brand-fonts.css`: not loaded
+- Payment: not yet wired
+- Activation: not yet wired
+- Design and Founder copy/content: pending review and revision later
+
+Approved Founder funnel v4 is saved in
+`docs/Presttige_Founder_Funnel_v4.md`.
+
 ## Cognito
 
 `presttige-internal` is live in Amazon Cognito.
@@ -212,6 +238,23 @@ Directus branding state:
 - Current real paid-member reality: 1 paid member
 - Inspection was read-only. No `presttige-db` records were created, modified,
   or deleted.
+
+Google Analytics progress:
+
+- GA4 property: `530348665`
+- GA4 property confirmed as: `presttige.net`
+- GA account: `Presttige`
+- GA account ID: `389155166`
+- Google Cloud project: `ulttra-crm`
+- Service account:
+  `ulttra-ga-reader@ulttra-crm.iam.gserviceaccount.com`
+- JSON key validation: valid service account key
+- OAuth token minting: successful
+- GA4 Data API: reachable
+- Current GA4 Data API status for property `530348665`: `PERMISSION_DENIED`
+- Meaning: the service account needs Viewer access in GA4 Property Access
+  Management, likely propagation or access grant still pending
+- No private key or JSON secret value is stored in this document
 
 The interim `/admin` Founder tool retires into the CRM later.
 
