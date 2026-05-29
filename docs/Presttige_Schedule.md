@@ -2,7 +2,45 @@
 
 Status: open-items schedule. No secrets or token values.
 
+## Roadmap
+
+Antonio's order:
+
+1. Founder complete, full funnel: checkbox to payment plus activation,
+   submission flow plus Antonio approval panel, and the two automatic emails.
+2. SES emails complete, including the Founder emails.
+3. Cleanups and blockers, including parked legacy Stripe test-key cleanup,
+   `/gateway` route plus `presttige-gateway` archive plus stripping test keys
+   from `presttige-gateway` and `presttige-stripe-webhook`,
+   `brand-fonts.css` on non-home pages, retire `presttige-founder-validate`,
+   Galyna emails, missing E2 email, retire bootstrap admins after MFA, and
+   Ulttra GitHub remote.
+4. CRM Phase 2 plus Admin plus GA, sync the 37 real subscribers by state,
+   command panel and funnel analytics, GA connection once Viewer access
+   propagates. Frozen: no `synthetic_test` data ever in any analytic.
+5. Subscribers and users: login, photos, profile.
+6. Form with interests, etc.
+7. Member Cards.
+8. Promotion campaigns.
+9. App.
+
+## Active Plan
+
+Roadmap items 1 and 2 are active.
+
+- Finish the full Founder process:
+  1. `/founder` checkbox to payment, reuse proven live mechanism, no payment
+     tests.
+  2. Activation `founder_invited` to Founder post-payment.
+  3. Submission flow and Antonio approval panel.
+  4. The two automatic emails.
+- Do the Founder process alongside or right after SES.
+- SES: resolve email deliverability, prerequisite for the two Founder emails
+  and all email automation. Run in parallel with the Founder build.
+
 ## Scheduled / Parked
+
+Roadmap item 3 is parked until separately approved.
 
 - Legacy Stripe test-key cleanup, separate approved config task:
   disable or remove API Gateway route `ANY /gateway`.
@@ -21,15 +59,15 @@ Status: open-items schedule. No secrets or token values.
 - Retire bootstrap admins after MFA confirmed via clean logout/login.
 - `/founder` page: design and all copy/content review, technically approved
   only.
+- Missing E2 email.
 
-## Next Active Plan
+## Future Phases
 
-- Finish the full Founder process:
-  1. `/founder` checkbox to payment, reuse proven live mechanism, no payment
-     tests.
-  2. Activation `founder_invited` to Founder post-payment.
-  3. Submission flow and Antonio approval panel.
-  4. The two automatic emails.
-- Do the Founder process alongside or right after SES.
-- SES: resolve email deliverability, prerequisite for the two Founder emails
-  and all email automation. Run in parallel with the Founder build.
+Roadmap items 4 and later are future phases.
+
+- CRM Phase 2 plus Admin plus GA.
+- Subscribers and users: login, photos, profile.
+- Form with interests, etc.
+- Member Cards.
+- Promotion campaigns.
+- App.
