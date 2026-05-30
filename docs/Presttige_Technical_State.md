@@ -269,10 +269,33 @@ Live people schema findings:
 - Fine-grained permission, visibility, and dashboard fields are intentionally
   left dynamic for later in the permissions area. Add or remove those fields
   only when the model requires them.
-- C1 mirror writer from Ulttra to `presttige-eligible-inviters` remains to be
-  built.
-- Gate eligibility fix for the Galina gap remains to be built after the C1
-  mirror writer.
+- C1 step A1 mirror infrastructure is DONE:
+  - Directus read-only identity: role `Presttige Sync (read-only)`, user
+    `Presttige Sync`, email `presttige-sync@ulttra.net`
+  - Static sync token storage: encrypted SSM parameter
+    `/presttige/ulttra-sync/directus-token`
+  - The sync token is separate from the Codex admin token, reads only
+    `people`, `people_projects`, and `projects`, and was verified read-only
+    with write denied as HTTP 403.
+  - DynamoDB mirror table: `presttige-eligible-inviters`, account
+    `343218208384`, region `us-east-1`, partition key `email`, on-demand
+    billing
+  - Sync Lambda: `presttige-eligible-inviters-sync`, Python 3.12
+  - EventBridge rule: `presttige-eligible-inviters-sync-5min`, enabled,
+    `rate(5 minutes)`
+  - The Lambda reads active Presttige `people_projects` rows with
+    `invite_permission=true`, keeps only internal types, normalizes email to
+    lower-case and role to technical form, and reconciles the mirror by
+    upserting eligible rows and deleting ineligible rows.
+  - Least-privilege IAM is scoped to that one SSM parameter and the
+    `presttige-eligible-inviters` table.
+- The mirror is currently empty because no `people_projects` row has
+  `invite_permission=true`; this is expected and safe.
+- Live founder-gate, checkout, and existing Lambdas or routes were untouched
+  by C1 step A1.
+- C1 step A2, the gate eligibility fix for the Galina gap, remains to be
+  built after A1. A2 must make the gate fail closed against the local
+  `presttige-eligible-inviters` mirror.
 
 Seed records:
 

@@ -42,6 +42,36 @@ The bridge is push/event based, not real-time-per-second.
 
 Each project gets its own mirror. Nobody hops between projects.
 
+## C1 Step State
+
+C1 step A1 is DONE.
+
+Live A1 components:
+
+- Directus read-only identity: role `Presttige Sync (read-only)`, user
+  `Presttige Sync`, email `presttige-sync@ulttra.net`
+- Static sync token stored encrypted in SSM at
+  `/presttige/ulttra-sync/directus-token`, separate from the Codex admin token
+- DynamoDB mirror `presttige-eligible-inviters`, account `343218208384`,
+  region `us-east-1`, partition key `email`, on-demand billing
+- Sync Lambda `presttige-eligible-inviters-sync`, Python 3.12, reconciling the
+  mirror from active Presttige `people_projects` rows where
+  `invite_permission=true`
+- EventBridge rule `presttige-eligible-inviters-sync-5min`, enabled,
+  `rate(5 minutes)`
+- Least-privilege IAM scoped to the sync token parameter and mirror table
+
+The mirror is currently empty because no active Presttige `people_projects`
+row has `invite_permission=true`; this is expected and safe.
+
+Live founder-gate, checkout, and existing Lambdas or routes were untouched by
+A1.
+
+C1 step A2 is next. A2 wires the shared eligibility check to the local mirror
+and makes the gate fail closed: if the inviter is not proven eligible in the
+mirror or through the later qualifying-Founder branch, the gate rejects the
+Founder path.
+
 ## Rewritten Gate Eligibility
 
 Use one shared `isEligibleFounderInviter()` function in:
@@ -67,12 +97,16 @@ For the external Founder branch, later, `presttige-db` needs:
 
 ## Build Order
 
-1. Build the Ulttra internal-member model.
-2. Build the C1 mirror table.
-3. Build the Ulttra to mirror push mechanism.
-4. Wire shared `isEligibleFounderInviter()` into gate, admin, and checkout with explicit blocking.
-5. Later, build Founder monthly-entitlement.
-6. Only then run the controlled Ambassador test with an Antonio-owned identity and no real member.
+1. Build the Ulttra internal-member model, DONE.
+2. Build C1 step A1, read-only sync identity, mirror table, and five-minute
+   sync Lambda, DONE.
+3. Build C1 step A2, wire shared `isEligibleFounderInviter()` into gate,
+   admin, and checkout with explicit blocking and fail-closed mirror reads.
+4. Build branch B, the Founder monthly-entitlement tree.
+5. Build the permissions area, Standards per type, permissions, visibility,
+   and dashboard.
+6. Only then run the controlled Ambassador test with an Antonio-owned identity
+   and no real member.
 
 ## Respects
 

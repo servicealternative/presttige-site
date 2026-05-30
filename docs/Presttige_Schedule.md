@@ -21,7 +21,8 @@ Antonio's order:
    propagates. Frozen: no `synthetic_test` data ever in any analytic. Locked
    CRM access model is documented. Dedicated Codex Service Directus user is
    live for schema/build work. Internal-member structural base on
-   `people_projects` is DONE.
+   `people_projects` is DONE. C1 step A1 mirror infrastructure is DONE and
+   live, with the mirror currently empty by design.
 5. Subscribers and users: login, photos, profile.
 6. Form with interests, etc.
 7. Member Cards.
@@ -77,10 +78,12 @@ Roadmap items 4 and later are future phases.
 
 - CRM Phase 2 plus Admin plus GA:
   1. Internal-member structural base on `people_projects`, DONE.
-  2. Build C1 mirror plus gate eligibility fix.
-  3. Build the permissions area, Standards per type, permissions plus
+  2. C1 step A1 mirror infrastructure, DONE.
+  3. Build C1 step A2, gate eligibility fix.
+  4. Build branch B, Founder tree.
+  5. Build the permissions area, Standards per type, permissions plus
      visibility plus dashboard.
-  4. Only then run the controlled Ambassador test.
+  6. Only then run the controlled Ambassador test.
 - Subscribers and users: login, photos, profile.
 - Form with interests, etc.
 - Member Cards.
