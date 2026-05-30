@@ -18,7 +18,9 @@ Antonio's order:
    Ulttra GitHub remote.
 4. CRM Phase 2 plus Admin plus GA, sync the 37 real subscribers by state,
    command panel and funnel analytics, GA connection once Viewer access
-   propagates. Frozen: no `synthetic_test` data ever in any analytic.
+   propagates. Frozen: no `synthetic_test` data ever in any analytic. Locked
+   CRM access model is documented. Dedicated Codex Service Directus user is
+   live for schema/build work.
 5. Subscribers and users: login, photos, profile.
 6. Form with interests, etc.
 7. Member Cards.
@@ -72,7 +74,12 @@ Roadmap item 3 is parked until separately approved.
 
 Roadmap items 4 and later are future phases.
 
-- CRM Phase 2 plus Admin plus GA.
+- CRM Phase 2 plus Admin plus GA:
+  1. Design Standards per type, permissions plus visibility plus dashboard,
+     including `pending` state for delegated adds.
+  2. Add `people_projects.status` and `people_projects.invite_permission`.
+  3. Build C1 mirror plus gate eligibility fix.
+  4. Only then run the controlled Ambassador test.
 - Subscribers and users: login, photos, profile.
 - Form with interests, etc.
 - Member Cards.

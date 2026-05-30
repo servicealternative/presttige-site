@@ -218,6 +218,16 @@ Cognito SSO is working for Antonio:
 - Directus provider: `cognito`
 - Directus role: Administrator
 
+Codex CRM access is restored:
+
+- Dedicated Directus user: `Codex Service`
+- Service email: `codex-service@ulttra.net`
+- Directus role: Administrator
+- Static token storage: encrypted SSM parameter `/ulttra/directus/codex-token`
+- Current token authenticates as the service user, not Antonio's personal
+  account.
+- Antonio can rotate or remove his personal Directus token at will.
+
 Bootstrap admins are retained as fallback until clean logout/login with MFA is
 confirmed and Antonio approves retirement.
 
@@ -233,6 +243,21 @@ Collections:
 - `ledgers`
 - `people_projects`
 - `companies_projects`
+
+Live people schema findings:
+
+- `people.type` holds the internal role.
+- Current `people.type` choices: `Admin`, `Team`, `Ambassador`,
+  `Business Partner`, `Influencer`.
+- Current live role values: `Admin`, `Team`.
+- `people_projects` exists as the people to projects many-to-many junction.
+- Current `people_projects` fields: `id`, `person`, `project`.
+- Missing for the locked access model:
+  - `people_projects.status`, with values `active`, `standby`, `cancelled`,
+    `removed`
+  - `people_projects.invite_permission`, boolean
+- C1 mirror writer from Ulttra to `presttige-eligible-inviters` remains to be
+  built.
 
 Seed records:
 
@@ -328,6 +353,14 @@ Google Analytics progress:
 The interim `/admin` Founder tool retires into the CRM later.
 
 The interim `/admin` implementation must not become a CRM foundation.
+
+Founder inviter-eligibility enforcement is a known live gap:
+
+- Live `/founder-gate` does not yet enforce the frozen inviter rule.
+- The Galina case confirmed that a Club member could be accepted as inviter.
+- This must be fixed through the C1 bridge build by checking the local
+  `presttige-eligible-inviters` mirror and explicitly blocking Club, Premier,
+  Patron, and plain subscribers.
 
 ## Open items
 
