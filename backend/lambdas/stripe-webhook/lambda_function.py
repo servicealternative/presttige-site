@@ -47,7 +47,7 @@ OFFICE_NOTIFICATION_FROM = os.environ.get(
     "OFFICE_NOTIFICATION_FROM", "office@presttige.net"
 )
 OFFICE_NOTIFICATION_TO = os.environ.get("OFFICE_NOTIFICATION_TO", "office@presttige.net")
-FOUNDER_WELCOME_EMAIL_FROM = "committee@presttige.net"
+FOUNDER_WELCOME_EMAIL_FROM = "founders@presttige.net"
 
 TESTER_WHITELIST = {
     "antoniompereira@me.com",

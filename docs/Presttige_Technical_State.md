@@ -430,14 +430,17 @@ Live people schema findings:
 - C1 branch B step B5, Founder welcome email on activation, is DONE and live:
   - Live activation webhook: `presttige-stripe-webhook`.
   - Webhook CodeSha256:
-    `yEttzS+lpDt04KiAvT3jKEwxeJfEFeUUss25Gv8zm9E=`.
+    `0wu384dLDfO+xjkqVbqk6GREs1J3vNHBZ6DQPA0uwGY=`.
   - `presttige-stripe-webhook` kept `stripe-layer:1`.
   - Founder activation sends a dedicated Founder welcome email from
-    `committee@presttige.net` after the hardened Founder activation
+    `founders@presttige.net` after the hardened Founder activation
     transaction succeeds.
   - Idempotency flag: `founder_welcome_email_sent_at`.
   - Synthetic test safety is enforced: synthetic Founder welcome sends are
     allowed only for Antonio-controlled test addresses.
+  - Later task, not actioned here: review which sender each Founder email
+    uses, and replace the plain SES emails with approved Presttige branded
+    templates and design.
   - No payment logic, activation guards, idempotency logic, or other email
     path was changed by B5.
   - Audit backup:

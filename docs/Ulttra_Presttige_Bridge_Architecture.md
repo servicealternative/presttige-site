@@ -133,13 +133,16 @@ Branch B step B5 is DONE.
 Live B5 state:
 
 - `presttige-stripe-webhook` sends the dedicated Founder welcome email from
-  `committee@presttige.net` after the hardened Founder activation transaction
+  `founders@presttige.net` after the hardened Founder activation transaction
   succeeds.
 - The welcome send is idempotent through `founder_welcome_email_sent_at`.
 - Synthetic test safety allows sends only to Antonio-controlled test
   addresses.
+- Later task, not actioned here: review which sender each Founder email uses,
+  and replace the plain SES emails with approved Presttige branded templates
+  and design.
 - `presttige-stripe-webhook` CodeSha256:
-  `yEttzS+lpDt04KiAvT3jKEwxeJfEFeUUss25Gv8zm9E=`.
+  `0wu384dLDfO+xjkqVbqk6GREs1J3vNHBZ6DQPA0uwGY=`.
 - `stripe-layer:1` is preserved.
 
 Branch B step B6 is DONE.
