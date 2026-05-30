@@ -203,10 +203,13 @@ The following real backend URLs are referenced in the frontend files.
 - Backend type: API Gateway
 
 ### `https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/gateway`
-- File where it appears: `assets/js/app.js`
-- What it appears to do:
-  - Appears to initiate checkout or product gateway behavior for founder/access/membership flows
-- Backend type: API Gateway
+- Status: retired 2026-05-30
+- Former backend type: API Gateway
+- Current state:
+  - API Gateway route `ANY /gateway` removed from `presttige-api`.
+  - `presttige-gateway` archived in place with reserved concurrency `0`.
+  - Public Function URL removed.
+  - Legacy gateway `STRIPE_SECRET_KEY` removed.
 
 ### `https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/validate`
 - File where it appears: `assets/js/app.js`

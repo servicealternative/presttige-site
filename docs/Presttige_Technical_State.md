@@ -592,9 +592,32 @@ Production cleanup completed on 2026-05-29:
   - `presttige-create-checkout-session` reads live SSM Stripe keys.
   - `presttige-checkout-status` reads live SSM Stripe keys.
   - `checkout.html` calls `/create-checkout-session` as the live checkout path.
-- Note: legacy Secrets Manager secret `presttige-stripe-secret` still
-  classifies as TEST, but it is not used by the deployed checkout code. This
-  remains tracked under scheduled cleanup item 3.
+- Legacy Stripe test-key residue cleanup is DONE:
+  - Pre-check confirmed `presttige-gateway` had 0 invocations in the prior
+    30 days and no current site caller.
+  - API Gateway route `ANY /gateway` was removed from `presttige-api`.
+  - The public Function URL for `presttige-gateway` was removed.
+  - `presttige-gateway` was archived in place, tagged archived, and reserved
+    concurrency was set to `0`.
+  - `STRIPE_SECRET_KEY` was removed from `presttige-gateway`.
+  - Unused `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` environment
+    variables were removed from `presttige-stripe-webhook`.
+  - `presttige-stripe-webhook` logic was not redeployed or changed;
+    CodeSha256 stayed `0wu384dLDfO+xjkqVbqk6GREs1J3vNHBZ6DQPA0uwGY=`,
+    `stripe-layer:1` stayed preserved, and the webhook still reads signing
+    secret metadata through SSM `/presttige/stripe/webhook-secret`.
+  - `presttige-create-checkout-session`, `presttige-checkout-status`,
+    SSM `/presttige/stripe/*`, and real member
+    `fdm_c3e0dca496` were untouched.
+  - Legacy Secrets Manager secret `presttige-stripe-secret` still exists and
+    was not deleted. Recommendation: delete it only in a separate approved
+    final-secret-removal task after one more no-live-dependency check.
+  - Verification note: an invalid-token smoke against
+    `presttige-checkout-status` exposed a pre-existing `dynamodb:Scan` IAM
+    denial on the invalid-token path. It was not caused by this cleanup and no
+    checkout IAM was changed in this run.
+  - Audit backup:
+    `audits/stripe-test-key-cleanup-20260530T163128Z/`.
 
 Email test-address finding:
 

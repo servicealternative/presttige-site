@@ -10,9 +10,7 @@ Antonio's order:
    work is submission flow plus Antonio approval panel and the two automatic
    emails, SES-dependent.
 2. SES emails complete, including the Founder emails.
-3. Cleanups and blockers, including parked legacy Stripe test-key cleanup,
-   `/gateway` route plus `presttige-gateway` archive plus stripping test keys
-   from `presttige-gateway` and `presttige-stripe-webhook`,
+3. Cleanups and blockers, including completed legacy Stripe test-key cleanup,
    `brand-fonts.css` on non-home pages, retire `presttige-founder-validate`,
    Galyna emails, missing E2 email, retire bootstrap admins after MFA, and
    Ulttra GitHub remote.
@@ -56,16 +54,17 @@ Roadmap items 1 and 2 are active.
 
 Roadmap item 3 is parked until separately approved.
 
-- Legacy Stripe test-key cleanup, separate approved config task:
-  disable or remove API Gateway route `ANY /gateway`.
-  `presttige-gateway` is dead, 0 invocations in 30 days, no live caller.
-  Then archive `presttige-gateway` and strip its TEST `STRIPE_SECRET_KEY`
-  plus legacy price environment variables. Remove unused TEST environment
-  variables `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` from
-  `presttige-stripe-webhook`. Keep SSM `/presttige/stripe/webhook-secret`.
-  Do not touch `presttige-create-checkout-session`,
-  `presttige-checkout-status`, `presttige-db`, or the real live member.
-  Low risk, targets confirmed dead or unused.
+- Legacy Stripe test-key cleanup, DONE:
+  `ANY /gateway` removed, `presttige-gateway` archived in place with reserved
+  concurrency `0`, gateway `STRIPE_SECRET_KEY` removed, and unused webhook
+  env vars `STRIPE_SECRET_KEY` plus `STRIPE_WEBHOOK_SECRET` removed.
+  `presttige-create-checkout-session`, `presttige-checkout-status`,
+  SSM `/presttige/stripe/*`, `presttige-db`, and the real live member were
+  untouched. Legacy Secrets Manager secret `presttige-stripe-secret` remains
+  parked for a separate approved deletion decision.
+- Follow-up found during cleanup verification:
+  `presttige-checkout-status` invalid-token smoke returns a pre-existing
+  `dynamodb:Scan` IAM denial. This is separate from Stripe key cleanup.
 - Non-home pages still load `brand-fonts.css`, font fix.
 - Retire redundant `presttige-founder-validate` Lambda.
 - Galyna: welcome-email "Patron for life" copy fix, interest email.
