@@ -328,6 +328,34 @@ Live people schema findings:
   - No public copy, payment logic, activation logic, webhook logic, or
     subscriber data changed.
   - Audit backup: `audits/c1-a2-gate-eligibility-20260530T101522Z/`.
+- C1 branch B step B1, Founder-invite dynamic config and entitlement field
+  contract, is DONE:
+  - Dynamic config lives in SSM Parameter Store, account `343218208384`,
+    region `us-east-1`, plain `String` parameters, not secrets.
+  - `/presttige/founder-invite/initial-delay-hours = 24`
+  - `/presttige/founder-invite/cycle = monthly`
+  - `/presttige/founder-invite/validity-days = 30`
+  - `/presttige/founder-invite/global-cap = 250`
+  - These timings and caps must be read from config by later branch B code,
+    never hardcoded, so Antonio can change them at runtime.
+  - No scheduler exists yet and none was changed by B1.
+  - No gate, checkout, activation, webhook, subscriber data, or
+    `presttige-db` record was changed by B1.
+- Founder-invite entitlement field contract for a Founder's `presttige-db`
+  record:
+  - `founder_activated_at`, timestamp, set at activation by B2 wiring
+  - `founder_invite_status`, enum string, `none`, `active`, or `expired`
+  - `founder_invite_token`, current monthly invite id, one at a time
+  - `founder_invite_issued_at`, timestamp
+  - `founder_invite_expires_at`, timestamp, `issued_at` plus
+    `validity-days`
+  - `founder_invite_invitee_lead_id`, lead invited with the current token,
+    null until used
+  - `founder_invites_issued_count`, integer, Founder's own dashboard
+  - `founder_invites_converted_count`, integer, Founder's own dashboard
+  - `presttige-db` is DynamoDB with primary key `lead_id`, so no schema
+    migration or backfill is needed. These fields appear only when later
+    branch B steps write them.
 
 Seed records:
 
