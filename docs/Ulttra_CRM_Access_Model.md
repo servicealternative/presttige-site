@@ -34,6 +34,18 @@ A Standard per type defines permissions, visibility, and dashboard. Standards ar
 
 Only Antonio grants per-user authorizations above or below the Standard.
 
+The `people_projects` junction is the structural backing for project access:
+
+- `status` records the per-project lifecycle, including `pending` and `active`.
+- `invite_permission` records whether the user may issue Founder invites for
+  that project.
+- `added_by` records who created the project membership.
+- `validated_by` and `validated_at` record Antonio's activation step.
+
+Delegated adds remain `pending` until Antonio validates them. Antonio-only
+activation is represented by `validated_by`, `validated_at`, and
+`status=active`.
+
 ## Dashboard And Visibility
 
 Each user's dashboard shows all of their own personal information without restriction, including their data, commissions, invitees, and equivalent personal operating records.

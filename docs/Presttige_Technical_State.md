@@ -251,13 +251,28 @@ Live people schema findings:
   `Business Partner`, `Influencer`.
 - Current live role values: `Admin`, `Team`.
 - `people_projects` exists as the people to projects many-to-many junction.
-- Current `people_projects` fields: `id`, `person`, `project`.
-- Missing for the locked access model:
-  - `people_projects.status`, with values `active`, `standby`, `cancelled`,
-    `removed`
-  - `people_projects.invite_permission`, boolean
+- `people_projects` structural base is DONE:
+  - `status`, select, values `pending`, `active`, `standby`, `cancelled`,
+    `removed`, default `pending`, required
+  - `invite_permission`, boolean, default `false`, required
+  - `added_by`, M2O to `people`, nullable, on delete `SET NULL`
+  - `validated_by`, M2O to `people`, nullable, on delete `SET NULL`
+  - `validated_at`, timestamp, nullable
+- Existing Presttige rows:
+  - Antonio, Admin, status `active`, validated by Antonio,
+    `invite_permission=false`, `added_by=null`
+  - Ana, Team, status `active`, validated by Antonio,
+    `invite_permission=false`, `added_by=null`
+- The per-project status now supports the frozen rule: a delegate creates a
+  membership as `pending`; only Antonio validates it to `active`, recorded
+  through `validated_by` and `validated_at`.
+- Fine-grained permission, visibility, and dashboard fields are intentionally
+  left dynamic for later in the permissions area. Add or remove those fields
+  only when the model requires them.
 - C1 mirror writer from Ulttra to `presttige-eligible-inviters` remains to be
   built.
+- Gate eligibility fix for the Galina gap remains to be built after the C1
+  mirror writer.
 
 Seed records:
 
