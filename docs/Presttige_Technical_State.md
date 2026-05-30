@@ -13,6 +13,8 @@ Status: as-built technical record. No secrets or token values.
   - `POST /founder-gate`
   - `OPTIONS /founder-gate`
 - DynamoDB access: read-only `Scan` on `presttige-db`
+- C1 inviter eligibility access: read-only `GetItem` on
+  `presttige-eligible-inviters`
 - Throttle:
   - rate: `5 rps`
   - burst: `10`
@@ -42,6 +44,8 @@ Status: as-built technical record. No secrets or token values.
   - create Founder invite
   - revoke Founder token
   - regenerate Founder token
+- Founder invite creation now requires eligible inviter authority through the
+  C1 mirror.
 - This is the first Founder component with write access to `presttige-db`.
 - It writes audit rows to `presttige-review-audit` before mutating Founder invite state.
 
@@ -291,11 +295,39 @@ Live people schema findings:
     `presttige-eligible-inviters` table.
 - The mirror is currently empty because no `people_projects` row has
   `invite_permission=true`; this is expected and safe.
-- Live founder-gate, checkout, and existing Lambdas or routes were untouched
-  by C1 step A1.
-- C1 step A2, the gate eligibility fix for the Galina gap, remains to be
-  built after A1. A2 must make the gate fail closed against the local
-  `presttige-eligible-inviters` mirror.
+- C1 step A2 gate eligibility fix is DONE and live:
+  - The inviter eligibility gap from the Galina case is closed.
+  - Shared inviter eligibility rule:
+    `isEligibleFounderInviter(inviterEmail)`.
+  - Implemented in `backend/lib/founder-inviter-eligibility.js` for Node
+    Lambdas and `backend/lib/founder_inviter_eligibility.py` for the Python
+    admin Lambda.
+  - Used by live `presttige-founder-gate`, `presttige-checkout-context`,
+    `presttige-create-checkout-session`, and `presttige-founder-admin`.
+  - Internal inviter path: only an email present in
+    `presttige-eligible-inviters` passes.
+  - Club, Premier, Patron, and plain subscriber records are blocked as
+    inviters, even when active or paid in `presttige-db`.
+  - Founder inviter branch is fail-closed for now with a TODO for branch B,
+    the Founder invitation tree.
+  - Live deployed CodeSha256:
+    - `presttige-founder-gate`:
+      `syIn2D16odCK/vWSZTDRiwbGgLKEHECdvDDMPwAug1s=`
+    - `presttige-checkout-context`:
+      `prwGNmUO3KSCJpqRxk9JX7eN6UFFvXZhpve7nopk3OU=`
+    - `presttige-create-checkout-session`:
+      `C0R/H/9YBuU1BrwLwd2cMKx/NLfNwpH1RE6hgXV6gxM=`
+    - `presttige-founder-admin`:
+      `4ItVwvngtua2DaILjSdbEn2JDEWL/EpWCOSSPAhzXuY=`
+  - Verification: Galina's Club record was absent from the mirror and live
+    `/founder-gate` returned neutral `{"valid":false}`.
+  - Verification: Founder checkout rejected the ineligible inviter.
+  - Verification: admin invite-create rejected an ineligible inviter and left
+    no test record behind.
+  - Verification: `presttige-eligible-inviters` remained empty, count `0`.
+  - No public copy, payment logic, activation logic, webhook logic, or
+    subscriber data changed.
+  - Audit backup: `audits/c1-a2-gate-eligibility-20260530T101522Z/`.
 
 Seed records:
 
@@ -392,16 +424,21 @@ The interim `/admin` Founder tool retires into the CRM later.
 
 The interim `/admin` implementation must not become a CRM foundation.
 
-Founder inviter-eligibility enforcement is a known live gap:
+Founder inviter-eligibility enforcement is now live:
 
-- Live `/founder-gate` does not yet enforce the frozen inviter rule.
-- The Galina case confirmed that a Club member could be accepted as inviter.
-- This must be fixed through the C1 bridge build by checking the local
-  `presttige-eligible-inviters` mirror and explicitly blocking Club, Premier,
-  Patron, and plain subscribers.
+- Live `/founder-gate`, Founder checkout, and admin invite-create enforce the
+  frozen inviter rule through `isEligibleFounderInviter()`.
+- The Galina case is closed in live code: a Club member cannot pass as a
+  Founder inviter.
+- Internal inviters must be present in the local
+  `presttige-eligible-inviters` mirror.
+- Club, Premier, Patron, and plain subscribers are blocked.
+- Founder inviters remain fail-closed until branch B is built.
 
 ## Open items
 
+- Galina personal note from Antonio, to disregard the earlier erroneous email,
+  remains an open human task.
 - Retire bootstrap admins after MFA is confirmed through clean logout/login.
 - Build CRM Phase 2: Analytics command centre, connecting Stripe and Google
   Analytics first.

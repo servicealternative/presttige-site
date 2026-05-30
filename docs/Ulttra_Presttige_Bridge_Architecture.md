@@ -67,10 +67,22 @@ row has `invite_permission=true`; this is expected and safe.
 Live founder-gate, checkout, and existing Lambdas or routes were untouched by
 A1.
 
-C1 step A2 is next. A2 wires the shared eligibility check to the local mirror
-and makes the gate fail closed: if the inviter is not proven eligible in the
-mirror or through the later qualifying-Founder branch, the gate rejects the
-Founder path.
+C1 step A2 is DONE.
+
+Live A2 state:
+
+- Shared `isEligibleFounderInviter(inviterEmail)` is wired into
+  `founder-gate`, admin invite-create, and Founder checkout.
+- Internal inviter eligibility reads the local
+  `presttige-eligible-inviters` mirror.
+- Club, Premier, Patron, and plain subscriber records are explicitly blocked
+  as inviters, even when active or paid in `presttige-db`.
+- The Founder inviter branch is fail-closed with a TODO for branch B.
+- With A1 plus A2 complete, the C1 internal inviter branch is complete.
+
+Remaining bridge work:
+
+- Branch B, the qualifying-Founder invitation tree.
 
 ## Rewritten Gate Eligibility
 
@@ -83,9 +95,13 @@ Use one shared `isEligibleFounderInviter()` function in:
 An inviter is eligible only if:
 
 - internal inviter is active in the mirror with invite permission, or
-- genuine Founder has `tier=founder`, `founder_lifetime=true`, paid/active status, and meets monthly-entitlement plus previous-invitee-converted conditions
+- later branch B says a genuine Founder has `tier=founder`,
+  `founder_lifetime=true`, paid/active status, and meets monthly-entitlement
+  plus previous-invitee-converted conditions
 
 Explicitly block Club, Premier, Patron, and plain subscriber records, even if active.
+
+Until branch B is built, the Founder inviter branch fails closed.
 
 ## Founder Monthly Entitlement
 
@@ -101,7 +117,8 @@ For the external Founder branch, later, `presttige-db` needs:
 2. Build C1 step A1, read-only sync identity, mirror table, and five-minute
    sync Lambda, DONE.
 3. Build C1 step A2, wire shared `isEligibleFounderInviter()` into gate,
-   admin, and checkout with explicit blocking and fail-closed mirror reads.
+   admin, and checkout with explicit blocking and fail-closed mirror reads,
+   DONE.
 4. Build branch B, the Founder monthly-entitlement tree.
 5. Build the permissions area, Standards per type, permissions, visibility,
    and dashboard.

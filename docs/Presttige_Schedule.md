@@ -22,7 +22,8 @@ Antonio's order:
    CRM access model is documented. Dedicated Codex Service Directus user is
    live for schema/build work. Internal-member structural base on
    `people_projects` is DONE. C1 step A1 mirror infrastructure is DONE and
-   live, with the mirror currently empty by design.
+   live, with the mirror currently empty by design. C1 step A2 gate
+   eligibility fix is DONE and live; the Galina inviter hole is closed.
 5. Subscribers and users: login, photos, profile.
 6. Form with interests, etc.
 7. Member Cards.
@@ -79,8 +80,8 @@ Roadmap items 4 and later are future phases.
 - CRM Phase 2 plus Admin plus GA:
   1. Internal-member structural base on `people_projects`, DONE.
   2. C1 step A1 mirror infrastructure, DONE.
-  3. Build C1 step A2, gate eligibility fix.
-  4. Build branch B, Founder tree.
+  3. C1 step A2, gate eligibility fix, DONE.
+  4. Build branch B, Founder tree, pending Antonio's two confirmations.
   5. Build the permissions area, Standards per type, permissions plus
      visibility plus dashboard.
   6. Only then run the controlled Ambassador test.
