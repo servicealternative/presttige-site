@@ -1,0 +1,44 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadFounderInviteConfig",
+      "Effect": "Allow",
+      "Action": "ssm:GetParameters",
+      "Resource": "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/founder-invite/*"
+    },
+    {
+      "Sid": "ReadWriteFounderInviteFields",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db"
+    },
+    {
+      "Sid": "SendFounderInviteEmail",
+      "Effect": "Allow",
+      "Action": [
+        "ses:SendEmail"
+      ],
+      "Resource": [
+        "arn:aws:ses:us-east-1:343218208384:identity/presttige.net",
+        "arn:aws:ses:us-east-1:343218208384:identity/founders@presttige.net"
+      ]
+    },
+    {
+      "Sid": "WriteOwnLambdaLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": [
+        "arn:aws:logs:us-east-1:343218208384:log-group:/aws/lambda/presttige-founder-invite-scheduler",
+        "arn:aws:logs:us-east-1:343218208384:log-group:/aws/lambda/presttige-founder-invite-scheduler:*"
+      ]
+    }
+  ]
+}

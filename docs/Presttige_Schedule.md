@@ -44,7 +44,9 @@ Roadmap items 1 and 2 are active.
   5. Founder invite email scheduler and test harness, DONE.
   6. Controlled test run through the B6 harness, DONE, with the synthetic
      Founder eligibility limitation recorded in Technical State.
-  7. Real Founder welcome and invite copy plus design review, remaining.
+  7. Real Founder email sender, copy, and design review, remaining, including
+     the founder-admin inviter thank-you plus invitee invitation sender
+     decision.
   8. Founder checkout pay button, disabled until Stripe live.
 - Do the Founder process alongside or right after SES.
 - SES: resolve email deliverability for the controlled Founder test sends and

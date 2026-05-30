@@ -379,7 +379,11 @@ Live people schema findings:
     `audits/c1-branch-b-b2-founder-invite-scheduler-20260530T110559Z/`.
   - New scheduler Lambda: `presttige-founder-invite-scheduler`, Python 3.12.
   - Scheduler CodeSha256:
-    `UnbmHIZEbC9CALM2PUzrSGX6AqM49sMWHIlHnpJcJLE=`.
+    `hh47EN8YVHUjmnSln04iYJBKmYPmq9g+8yBC0LtuRyg=`.
+  - Founder invite email sender:
+    `founders@presttige.net`.
+  - Scheduler SES send permission allows the Presttige domain identity plus
+    `founders@presttige.net`.
   - EventBridge rule: `presttige-founder-invite-scheduler-daily`, enabled,
     `rate(1 day)`.
   - The scheduler reads `/presttige/founder-invite/*` SSM config at runtime.
@@ -446,9 +450,11 @@ Live people schema findings:
   - Idempotency flag: `founder_welcome_email_sent_at`.
   - Synthetic test safety is enforced: synthetic Founder welcome sends are
     allowed only for Antonio-controlled test addresses.
-  - Later task, not actioned here: review which sender each Founder email
-    uses, and replace the plain SES emails with approved Presttige branded
-    templates and design.
+  - Later task, not actioned here: the remaining Founder email work is the
+    inviter thank-you plus invitee invitation emails in `founder-admin`,
+    which still send from `committee@presttige.net`; decide their sender
+    during the email design pass, then replace all plain SES emails with the
+    approved Presttige branded templates and design.
   - No payment logic, activation guards, idempotency logic, or other email
     path was changed by B5.
   - Audit backup:
