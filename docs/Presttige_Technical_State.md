@@ -119,7 +119,10 @@ Ulttra holds only the admin commands and real-time analytics for Antonio.
 - Design and Founder copy/content: pending review and revision later
 - Remaining Founder roadmap work:
   - Submission flow and Antonio approval panel.
-  - The two automatic emails, dependent on SES deliverability.
+  - Controlled Founder test run through the B6 test harness.
+  - Real Founder welcome and invite copy plus design review.
+  - Founder checkout pay button remains disabled until Stripe live is
+    approved for that run.
 
 Approved Founder funnel v4 is saved in
 `docs/Presttige_Founder_Funnel_v4.md`.
@@ -424,12 +427,57 @@ Live people schema findings:
   - No emails were sent and no test data was left behind.
   - Audit backup:
     `audits/c1-branch-b-b3-founder-eligibility-20260530T112415Z/`.
-- C1 branch B code is COMPLETE:
+- C1 branch B step B5, Founder welcome email on activation, is DONE and live:
+  - Live activation webhook: `presttige-stripe-webhook`.
+  - Webhook CodeSha256:
+    `yEttzS+lpDt04KiAvT3jKEwxeJfEFeUUss25Gv8zm9E=`.
+  - `presttige-stripe-webhook` kept `stripe-layer:1`.
+  - Founder activation sends a dedicated Founder welcome email from
+    `committee@presttige.net` after the hardened Founder activation
+    transaction succeeds.
+  - Idempotency flag: `founder_welcome_email_sent_at`.
+  - Synthetic test safety is enforced: synthetic Founder welcome sends are
+    allowed only for Antonio-controlled test addresses.
+  - No payment logic, activation guards, idempotency logic, or other email
+    path was changed by B5.
+  - Audit backup:
+    `audits/c1-branch-b-b5-founder-welcome-20260530T131715Z/`.
+- C1 branch B step B6, repeatable self-cleaning Founder test harness, is DONE
+  and live:
+  - Test-only Lambda: `presttige-founder-test-harness`, Python 3.12.
+  - Harness CodeSha256:
+    `qwgEPRx2pYN2X7KkXIocE4Q5W/0C5Anhj42w69I2yWI=`.
+  - Test commands:
+    - `welcome`, simulates synthetic Founder activation and fires the B5
+      welcome path for Antonio-controlled addresses only
+    - `schedule_invite`, creates a one-off test schedule for the Founder
+      invite email
+    - `reset`, clears synthetic Founder test state, test schedules, mirror
+      rows, and matching Ulttra test people plus `people_projects` rows
+  - Internal scheduled action: `send_invite`.
+  - Test delay config: SSM
+    `/presttige/founder-invite/test-delay-minutes = 5`.
+  - Reset requires `confirm=RESET_FOUNDER_TEST`.
+  - Harness refuses non-Antonio addresses and non-`synthetic_test` Founder
+    records.
+  - SES suppression is not touched by the harness.
+  - Production webhook and production scheduler were unchanged by B6.
+  - Production scheduler still excludes `synthetic_test` records.
+  - Dry checks verified no send and no write for `dry_check`, rejection of a
+    non-Antonio address, rejection of reset without confirmation, and reset
+    dry-run counts of zero matching test state.
+  - Audit backup:
+    `audits/c1-branch-b-b6-founder-test-harness-20260530T133204Z/`.
+- C1 branch B is COMPLETE in code:
   - B1 dynamic config and entitlement field contract, DONE.
   - B2 activation stamp and monthly invite scheduler, DONE.
   - B3 shared eligibility wiring and activation resolution, DONE.
-  - Remaining: B4 controlled test with Antonio-controlled addresses only,
-    then the permissions area, then the controlled Ambassador test.
+  - B5 Founder welcome email on activation, DONE.
+  - B6 repeatable self-cleaning Founder test harness, DONE.
+  - Remaining real work: run the controlled test through the harness, then
+    the permissions area, then the controlled Ambassador test.
+  - Open review items: real Founder welcome and invite copy plus design
+    review, and the Founder checkout pay button, disabled until Stripe live.
 
 Seed records:
 

@@ -128,14 +128,44 @@ Live B3 state:
   and an empty internal mirror. No emails were sent and no test data was left
   behind.
 
-C1 is complete in code:
+Branch B step B5 is DONE.
+
+Live B5 state:
+
+- `presttige-stripe-webhook` sends the dedicated Founder welcome email from
+  `committee@presttige.net` after the hardened Founder activation transaction
+  succeeds.
+- The welcome send is idempotent through `founder_welcome_email_sent_at`.
+- Synthetic test safety allows sends only to Antonio-controlled test
+  addresses.
+- `presttige-stripe-webhook` CodeSha256:
+  `yEttzS+lpDt04KiAvT3jKEwxeJfEFeUUss25Gv8zm9E=`.
+- `stripe-layer:1` is preserved.
+
+Branch B step B6 is DONE.
+
+Live B6 state:
+
+- Test-only Lambda `presttige-founder-test-harness` is deployed.
+- Harness CodeSha256:
+  `qwgEPRx2pYN2X7KkXIocE4Q5W/0C5Anhj42w69I2yWI=`.
+- Commands are `welcome`, `schedule_invite`, and `reset`.
+- SSM test delay config:
+  `/presttige/founder-invite/test-delay-minutes = 5`.
+- Reset requires `confirm=RESET_FOUNDER_TEST`.
+- The harness refuses non-Antonio addresses and non-`synthetic_test` records.
+- Production webhook and production scheduler are unchanged. The production
+  scheduler still excludes `synthetic_test`.
+
+C1 branch B is complete in code:
 
 - Internal branch, A1 plus A2, DONE.
-- Founder branch, B1 plus B2 plus B3, DONE.
+- Founder branch, B1 plus B2 plus B3 plus B5 plus B6, DONE.
 
-Remaining branch B work:
+Remaining real branch B work:
 
-- B4, run the controlled test with Antonio-controlled addresses only.
+- Run B4, the controlled test with Antonio-controlled addresses only, through
+  the B6 harness.
 
 ## Rewritten Gate Eligibility
 
@@ -153,7 +183,7 @@ An inviter is eligible only if:
 
 Explicitly block Club, Premier, Patron, and plain subscriber records, even if active.
 
-B3 is built. The Founder inviter branch is live and gated by the branch B
+Branch B is built. The Founder inviter branch is live and gated by the
 conditions above.
 
 ## Founder Monthly Entitlement
@@ -183,11 +213,14 @@ For the external Founder branch, `presttige-db` uses:
    DONE.
 6. Build branch B step B3, wire the Founder branch into shared eligibility
    and resolve invite state when the invitee subscribes, DONE.
-7. Build branch B step B4, controlled test with Antonio-controlled addresses
-   only.
-8. Build the permissions area, Standards per type, permissions, visibility,
+7. Build branch B step B5, Founder welcome email on activation, DONE.
+8. Build branch B step B6, repeatable self-cleaning Founder test harness,
+   DONE.
+9. Run branch B step B4, controlled test with Antonio-controlled addresses
+   only, through the B6 harness.
+10. Build the permissions area, Standards per type, permissions, visibility,
    and dashboard.
-9. Only then run the controlled Ambassador test with an Antonio-owned identity
+11. Only then run the controlled Ambassador test with an Antonio-owned identity
    and no real member.
 
 ## Respects
