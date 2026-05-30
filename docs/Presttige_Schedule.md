@@ -24,9 +24,9 @@ Antonio's order:
    `people_projects` is DONE. C1 step A1 mirror infrastructure is DONE and
    live, with the mirror currently empty by design. C1 step A2 gate
    eligibility fix is DONE and live; the Galina inviter hole is closed. C1
-   branch B code steps B1, B2, B3, B5, and B6 are DONE. Branch B code is
-   complete. Next: controlled test run through the B6 harness, then the
-   permissions area, then the controlled Ambassador test.
+   branch B steps B1, B2, B3, B4, B5, and B6 are DONE. Branch B code and
+   controlled cleanup are complete. Next: the permissions area, then the
+   post-permissions Ambassador test.
 5. Subscribers and users: login, photos, profile.
 6. Form with interests, etc.
 7. Member Cards.
@@ -44,7 +44,8 @@ Roadmap items 1 and 2 are active.
   3. Submission flow and Antonio approval panel, remaining.
   4. Founder welcome email on activation, DONE.
   5. Founder invite email scheduler and test harness, DONE.
-  6. Controlled test run through the B6 harness, remaining.
+  6. Controlled test run through the B6 harness, DONE, with the synthetic
+     Founder eligibility limitation recorded in Technical State.
   7. Real Founder welcome and invite copy plus design review, remaining.
   8. Founder checkout pay button, disabled until Stripe live.
 - Do the Founder process alongside or right after SES.
@@ -96,10 +97,10 @@ Roadmap items 4 and later are future phases.
   7. Branch B step B5, Founder welcome email on activation, DONE.
   8. Branch B step B6, repeatable self-cleaning Founder test harness, DONE.
   9. Branch B step B4, controlled test run with Antonio-controlled addresses
-     only, through the B6 harness.
+     only, through the B6 harness, DONE.
   10. Build the permissions area, Standards per type, permissions plus
      visibility plus dashboard.
-  11. Only then run the controlled Ambassador test.
+  11. Run the post-permissions Ambassador test.
 - Subscribers and users: login, photos, profile.
 - Form with interests, etc.
 - Member Cards.

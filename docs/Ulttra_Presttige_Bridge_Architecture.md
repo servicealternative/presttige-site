@@ -160,15 +160,38 @@ Live B6 state:
 - Production webhook and production scheduler are unchanged. The production
   scheduler still excludes `synthetic_test`.
 
+Branch B step B4, controlled test run, is DONE.
+
+B4 result:
+
+- Test A, internal Ambassador branch, passed.
+- Manuel Fonseca was created as a synthetic Ambassador in Ulttra, added to the
+  Presttige project as pending, activated by Antonio authorization, synced into
+  `presttige-eligible-inviters`, and accepted by
+  `isEligibleFounderInviter()` through `source=ulttra`.
+- Galina's Club record remained rejected as an inviter.
+- Founder welcome Email 1 delivered to `fq@freequenza.net` during the test.
+  The live Founder welcome sender was later changed to `founders@presttige.net`.
+- Test B confirmed monthly-pure, one-at-a-time behavior: one active synthetic
+  Founder invite existed, and an immediate re-run returned
+  `active_invite_already_exists` without issuing a second invite.
+- The synthetic Founder to checkout path did not pass by design. The shared
+  eligibility function correctly blocks `synthetic_test=true` Founders from
+  being treated as genuine Founder inviters. A full Founder-inviter checkout
+  exercise requires a genuine paid active Founder with a bound active invite.
+- Cleanup is done. The synthetic Founder lead, Manuel's Ulttra person and
+  `people_projects` row, the mirror row, and one-off schedules were removed.
+  Post-cleanup mirror count is `0`, real paid active Founders are `0`, and real
+  members remain `1`.
+
 C1 branch B is complete in code:
 
 - Internal branch, A1 plus A2, DONE.
-- Founder branch, B1 plus B2 plus B3 plus B5 plus B6, DONE.
+- Founder branch, B1 plus B2 plus B3 plus B4 plus B5 plus B6, DONE.
 
-Remaining real branch B work:
+Remaining real work:
 
-- Run B4, the controlled test with Antonio-controlled addresses only, through
-  the B6 harness.
+- Build the permissions area, then run the post-permissions Ambassador test.
 
 ## Rewritten Gate Eligibility
 
@@ -220,10 +243,10 @@ For the external Founder branch, `presttige-db` uses:
 8. Build branch B step B6, repeatable self-cleaning Founder test harness,
    DONE.
 9. Run branch B step B4, controlled test with Antonio-controlled addresses
-   only, through the B6 harness.
+   only, through the B6 harness, DONE.
 10. Build the permissions area, Standards per type, permissions, visibility,
    and dashboard.
-11. Only then run the controlled Ambassador test with an Antonio-owned identity
+11. Run the post-permissions Ambassador test with an Antonio-owned identity
    and no real member.
 
 ## Respects

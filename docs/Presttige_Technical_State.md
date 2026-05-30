@@ -471,14 +471,60 @@ Live people schema findings:
     dry-run counts of zero matching test state.
   - Audit backup:
     `audits/c1-branch-b-b6-founder-test-harness-20260530T133204Z/`.
+- C1 branch B step B4, controlled test run and cleanup, is DONE:
+  - Test A, internal Ambassador branch, PASSED.
+  - `people.synthetic_test`, boolean, default `false`, nullable, was added to
+    Ulttra so CRM test people can be explicitly excluded from real counts and
+    analytics.
+  - Manuel Fonseca was created in Ulttra as a synthetic Ambassador test person
+    with `antoniompereira@icloud.com`, added to Presttige as pending with
+    `invite_permission=true`, then activated by Antonio authorization with
+    `validated_by=Antonio`.
+  - The `presttige-eligible-inviters-sync` run mirrored
+    `antoniompereira@icloud.com` as `role=ambassador`,
+    `project=presttige`, and `ulttra_person_id=3`.
+  - `isEligibleFounderInviter("antoniompereira@icloud.com")` returned
+    `eligible=true`, `source=ulttra`.
+  - Galina's Club record remained rejected as an inviter.
+  - Founder welcome Email 1 was delivered to `fq@freequenza.net` with the
+    approved copy during the test run. The live Founder welcome sender was
+    later changed to `founders@presttige.net`.
+  - Test B step B3 PASSED: exactly one active synthetic Founder invite existed
+    for `fdm_founder_test_fq`; re-running the test invite path returned
+    `reason=active_invite_already_exists` and did not issue a second invite.
+    Monthly-pure, one-at-a-time behavior is confirmed.
+  - Test B step B4 did not pass by design: the shared eligibility function
+    correctly blocks `synthetic_test=true` Founders from being treated as
+    genuine Founder inviters, per test-data rules. The live
+    Founder-inviter to checkout path therefore cannot be fully exercised with
+    synthetic Founder data; it remains verified by code inspection and the
+    production path requires a genuine paid active Founder with a bound active
+    invite.
+  - Cleanup is DONE: the synthetic Founder lead `fdm_founder_test_fq`, Manuel
+    Fonseca `people.id=3`, Manuel's `people_projects.id=3`, the
+    `presttige-eligible-inviters` mirror row for
+    `antoniompereira@icloud.com`, and any one-off test schedules were removed.
+  - Post-cleanup verification: mirror count `0`, test schedules `0`, target
+    test records in `presttige-db` `0`, Ulttra people back to Antonio plus
+    Ana only, real paid active Founders `0`, and real members `1`, Galina's
+    Club record.
+  - SES suppression was not touched.
+  - Audit backups:
+    `audits/c1-branch-b-b4-add-people-synthetic-test-20260530T135742Z/`,
+    `audits/c1-branch-b-b4-authorized-manuel-activation-20260530T141241Z/`,
+    `audits/c1-branch-b-b4-test-b-founder-tree-20260530T141900Z/`,
+    `audits/c1-branch-b-b4-test-b-finish-20260530T143540Z/`, and
+    `audits/c1-branch-b-b4-controlled-test-reset-20260530T143859Z/`.
 - C1 branch B is COMPLETE in code:
   - B1 dynamic config and entitlement field contract, DONE.
   - B2 activation stamp and monthly invite scheduler, DONE.
   - B3 shared eligibility wiring and activation resolution, DONE.
+  - B4 controlled test run and cleanup, DONE, with the synthetic Founder
+    checkout limitation recorded above.
   - B5 Founder welcome email on activation, DONE.
   - B6 repeatable self-cleaning Founder test harness, DONE.
-  - Remaining real work: run the controlled test through the harness, then
-    the permissions area, then the controlled Ambassador test.
+  - Remaining real work: the permissions area, then the post-permissions
+    Ambassador test.
   - Open review items: real Founder welcome and invite copy plus design
     review, and the Founder checkout pay button, disabled until Stripe live.
 
@@ -554,17 +600,14 @@ Email test-address finding:
 
 - `freequenza.net` is a verified SES sending identity. DKIM is successful, so
   it can send through SES.
-- `freequenza.net` does not currently receive mail. Its MX points to
-  `inbound-smtp.eu-west-1.amazonaws.com`, SES inbound, but no working
-  receiving rule or mailbox exists.
-- Delivery to `fq@freequenza.net` fails with `550 5.1.1 mailbox unavailable`.
-- `fq@freequenza.net` is on the SES suppression list for `BOUNCE` since
-  2026-04-21.
-- Do not use `fq@freequenza.net` as a test recipient or notification
-  recipient.
-- B4 controlled testing will instead use Antonio-controlled iCloud addresses:
-  `antoniompereira@icloud.com` and an `antoniompereira+...@icloud.com` alias,
-  which receive reliably.
+- Earlier finding: `fq@freequenza.net` had bounced with
+  `550 5.1.1 mailbox unavailable` and had been on the SES suppression list
+  for `BOUNCE` since 2026-04-21.
+- B4 update: Antonio confirmed Founder welcome Email 1 delivered to
+  `fq@freequenza.net` during the controlled test, and the test state was later
+  reset.
+- Future tests must re-check receiving plus SES suppression status before
+  using `fq@freequenza.net` again.
 
 Frozen analytics rule:
 
