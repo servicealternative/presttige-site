@@ -308,8 +308,7 @@ Live people schema findings:
     `presttige-eligible-inviters` passes.
   - Club, Premier, Patron, and plain subscriber records are blocked as
     inviters, even when active or paid in `presttige-db`.
-  - Founder inviter branch is fail-closed for now with a TODO for branch B,
-    the Founder invitation tree.
+  - Founder inviter branch was fail-closed at A2 until branch B was built.
   - Live deployed CodeSha256:
     - `presttige-founder-gate`:
       `syIn2D16odCK/vWSZTDRiwbGgLKEHECdvDDMPwAug1s=`
@@ -384,7 +383,53 @@ Live people schema findings:
     `eligible_count=0`, `issued_count=0`, and `email_count=0`.
   - No email was sent and no test data was left behind.
   - Gate and checkout were not changed by B2. The Founder branch in
-    `isEligibleFounderInviter()` remains fail-closed until B3.
+    `isEligibleFounderInviter()` remained fail-closed until B3.
+- C1 branch B step B3, Founder branch eligibility wiring and resolution, is
+  DONE and live:
+  - Shared Founder inviter eligibility is implemented in
+    `backend/lib/founder-inviter-eligibility.js` and
+    `backend/lib/founder_inviter_eligibility.py`.
+  - Internal inviter branch remains unchanged and is checked first through
+    the `presttige-eligible-inviters` mirror.
+  - Club, Premier, Patron, and plain subscriber records remain blocked as
+    inviters.
+  - Founder inviter branch now allows only a genuine paid active Founder with
+    `founder_invite_status=active`, a present `founder_invite_token`, a
+    non-expired `founder_invite_expires_at`, and a presented invitee that
+    matches `founder_invite_invitee_lead_id`.
+  - Admin invite-create now binds `founder_invite_invitee_lead_id` to the
+    Founder inviter's active invite transactionally.
+  - Activation resolution is live: when the invitee becomes a paid Founder,
+    the inviter invite is marked `consumed`,
+    `founder_invites_converted_count` is incremented, and no extra invite is
+    granted. The next invite remains on the normal monthly cycle.
+  - Live deployed CodeSha256:
+    - `presttige-founder-gate`:
+      `SNFWkqz5LF7XlMscSvO5xUZ3A7JfdtyV0w7lZdYWSD8=`
+    - `presttige-checkout-context`:
+      `lfnjraoX72Iv811dphDlIMjjvLcfE55kfC61UBIy2tY=`
+    - `presttige-create-checkout-session`:
+      `XvCLCloAm35qU051MV7Af5mWOC90n4Ok9U4GS0xvKJY=`
+    - `presttige-founder-admin`:
+      `L7Zfkh0P4gQttlqVf+MXo59DDc01kPoggpbA+JwcJ/s=`
+    - `presttige-stripe-webhook`:
+      `8oYWC0FmSp4d6dpYLViersMDYRDh5mgjAjQRTj5/WPI=`
+  - `presttige-stripe-webhook` kept `stripe-layer:1`.
+  - Verification: Galina's Club record returned `eligible=false`.
+  - Verification: live `/founder-gate` returned neutral `{"valid":false}`.
+  - Verification: Founder with no active invite is rejected.
+  - Verification: internal mirror branch still works.
+  - Verification: real paid active Founders count `0`, active Founder invites
+    count `0`, and mirror count `0`.
+  - No emails were sent and no test data was left behind.
+  - Audit backup:
+    `audits/c1-branch-b-b3-founder-eligibility-20260530T112415Z/`.
+- C1 branch B code is COMPLETE:
+  - B1 dynamic config and entitlement field contract, DONE.
+  - B2 activation stamp and monthly invite scheduler, DONE.
+  - B3 shared eligibility wiring and activation resolution, DONE.
+  - Remaining: B4 controlled test with Antonio-controlled addresses only,
+    then the permissions area, then the controlled Ambassador test.
 
 Seed records:
 
@@ -490,7 +535,9 @@ Founder inviter-eligibility enforcement is now live:
 - Internal inviters must be present in the local
   `presttige-eligible-inviters` mirror.
 - Club, Premier, Patron, and plain subscribers are blocked.
-- Founder inviters remain fail-closed until branch B is built.
+- Founder inviters are eligible only through the completed branch B conditions:
+  genuine paid active Founder, active non-expired invite, token present, and
+  matching bound invitee.
 
 ## Open items
 

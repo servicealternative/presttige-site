@@ -77,7 +77,7 @@ Live A2 state:
   `presttige-eligible-inviters` mirror.
 - Club, Premier, Patron, and plain subscriber records are explicitly blocked
   as inviters, even when active or paid in `presttige-db`.
-- The Founder inviter branch is fail-closed with a TODO for branch B.
+- The Founder inviter branch was fail-closed with a TODO for branch B.
 - With A1 plus A2 complete, the C1 internal inviter branch is complete.
 
 Branch B step B1 is DONE.
@@ -105,13 +105,36 @@ Live B2 state:
   respects the global cap, and excludes `synthetic_test` records.
 - Dry-run verification found zero real paid Founders and issued zero invites,
   with zero emails sent and no test data left behind.
-- Gate and checkout were not changed by B2. The Founder branch remains
+- Gate and checkout were not changed by B2. The Founder branch remained
   fail-closed until B3.
+
+Branch B step B3 is DONE.
+
+Live B3 state:
+
+- The Founder branch is wired into the shared `isEligibleFounderInviter()`
+  implementations in JavaScript and Python.
+- Internal inviter eligibility through the mirror remains unchanged and is
+  checked first.
+- Club, Premier, Patron, and plain subscriber records remain blocked.
+- Founder inviter eligibility requires a genuine paid active Founder,
+  `founder_invite_status=active`, a present token, a non-expired invite, and a
+  presented invitee matching `founder_invite_invitee_lead_id`.
+- Admin invite-create binds `founder_invite_invitee_lead_id` to the Founder
+  inviter's active invite transactionally.
+- Activation resolution marks the inviter invite `consumed`, increments
+  `founder_invites_converted_count`, and grants no extra invite.
+- B3 verification kept zero real paid Founders, zero active Founder invites,
+  and an empty internal mirror. No emails were sent and no test data was left
+  behind.
+
+C1 is complete in code:
+
+- Internal branch, A1 plus A2, DONE.
+- Founder branch, B1 plus B2 plus B3, DONE.
 
 Remaining branch B work:
 
-- B3, wire the Founder branch into the shared eligibility function and resolve
-  invite state when the invitee subscribes.
 - B4, run the controlled test with Antonio-controlled addresses only.
 
 ## Rewritten Gate Eligibility
@@ -125,21 +148,26 @@ Use one shared `isEligibleFounderInviter()` function in:
 An inviter is eligible only if:
 
 - internal inviter is active in the mirror with invite permission, or
-- later branch B says a genuine Founder has `tier=founder`,
-  `founder_lifetime=true`, paid/active status, and meets monthly-entitlement
-  plus previous-invitee-converted conditions
+- a genuine Founder has `tier=founder`, `founder_lifetime=true`, paid and
+  active status, an active non-expired invite token, and a bound invitee match
 
 Explicitly block Club, Premier, Patron, and plain subscriber records, even if active.
 
-Until B3 is built, the Founder inviter branch fails closed.
+B3 is built. The Founder inviter branch is live and gated by the branch B
+conditions above.
 
 ## Founder Monthly Entitlement
 
-For the external Founder branch, later, `presttige-db` needs:
+For the external Founder branch, `presttige-db` uses:
 
-- `founder_invite_entitlement_window`
-- `founder_last_invitee_lead_id`
-- `converted_to_paid`
+- `founder_activated_at`
+- `founder_invite_status`
+- `founder_invite_token`
+- `founder_invite_issued_at`
+- `founder_invite_expires_at`
+- `founder_invite_invitee_lead_id`
+- `founder_invites_issued_count`
+- `founder_invites_converted_count`
 
 ## Build Order
 
@@ -154,7 +182,7 @@ For the external Founder branch, later, `presttige-db` needs:
 5. Build branch B step B2, activation stamp and monthly invite scheduler,
    DONE.
 6. Build branch B step B3, wire the Founder branch into shared eligibility
-   and resolve invite state when the invitee subscribes.
+   and resolve invite state when the invitee subscribes, DONE.
 7. Build branch B step B4, controlled test with Antonio-controlled addresses
    only.
 8. Build the permissions area, Standards per type, permissions, visibility,

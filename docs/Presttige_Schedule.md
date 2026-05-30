@@ -24,8 +24,9 @@ Antonio's order:
    `people_projects` is DONE. C1 step A1 mirror infrastructure is DONE and
    live, with the mirror currently empty by design. C1 step A2 gate
    eligibility fix is DONE and live; the Galina inviter hole is closed. C1
-   branch B steps B1 and B2 are DONE. Next: B3, then B4 controlled test, then
-   the permissions area, then the controlled Ambassador test.
+   branch B steps B1, B2, and B3 are DONE. Branch B code is complete. Next:
+   B4 controlled test, then the permissions area, then the controlled
+   Ambassador test.
 5. Subscribers and users: login, photos, profile.
 6. Form with interests, etc.
 7. Member Cards.
@@ -87,7 +88,7 @@ Roadmap items 4 and later are future phases.
      DONE.
   5. Branch B step B2, activation stamp and monthly invite scheduler, DONE.
   6. Branch B step B3, wire the Founder branch into the shared eligibility
-     function and resolve invite state when the invitee subscribes.
+     function and resolve invite state when the invitee subscribes, DONE.
   7. Branch B step B4, controlled test with Antonio-controlled addresses
      only.
   8. Build the permissions area, Standards per type, permissions plus
