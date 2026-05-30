@@ -499,6 +499,22 @@ Production cleanup completed on 2026-05-29:
   classifies as TEST, but it is not used by the deployed checkout code. This
   remains tracked under scheduled cleanup item 3.
 
+Email test-address finding:
+
+- `freequenza.net` is a verified SES sending identity. DKIM is successful, so
+  it can send through SES.
+- `freequenza.net` does not currently receive mail. Its MX points to
+  `inbound-smtp.eu-west-1.amazonaws.com`, SES inbound, but no working
+  receiving rule or mailbox exists.
+- Delivery to `fq@freequenza.net` fails with `550 5.1.1 mailbox unavailable`.
+- `fq@freequenza.net` is on the SES suppression list for `BOUNCE` since
+  2026-04-21.
+- Do not use `fq@freequenza.net` as a test recipient or notification
+  recipient.
+- B4 controlled testing will instead use Antonio-controlled iCloud addresses:
+  `antoniompereira@icloud.com` and an `antoniompereira+...@icloud.com` alias,
+  which receive reliably.
+
 Frozen analytics rule:
 
 - No test record where `synthetic_test = true` may ever appear in any
@@ -544,6 +560,10 @@ Founder inviter-eligibility enforcement is now live:
 - Galina personal note from Antonio, to disregard the earlier erroneous email,
   remains an open human task.
 - Retire bootstrap admins after MFA is confirmed through clean logout/login.
+- Future separate task, if a working `freequenza.net` mailbox is wanted:
+  finish SES inbound receiving configuration plus a real mailbox, then remove
+  `fq@freequenza.net` from SES suppression only after receive delivery is
+  proven.
 - Build CRM Phase 2: Analytics command centre, connecting Stripe and Google
   Analytics first.
 - Non-home pages still load `brand-fonts.css`; confirm and remove/align as required.
