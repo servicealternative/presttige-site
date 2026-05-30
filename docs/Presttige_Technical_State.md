@@ -338,7 +338,7 @@ Live people schema findings:
   - `/presttige/founder-invite/global-cap = 250`
   - These timings and caps must be read from config by later branch B code,
     never hardcoded, so Antonio can change them at runtime.
-  - No scheduler exists yet and none was changed by B1.
+  - No scheduler was created or changed by B1.
   - No gate, checkout, activation, webhook, subscriber data, or
     `presttige-db` record was changed by B1.
 - Founder-invite entitlement field contract for a Founder's `presttige-db`
@@ -356,6 +356,35 @@ Live people schema findings:
   - `presttige-db` is DynamoDB with primary key `lead_id`, so no schema
     migration or backfill is needed. These fields appear only when later
     branch B steps write them.
+- C1 branch B step B2, Founder monthly invite scheduler and activation stamp,
+  is DONE and live:
+  - Live activation webhook: `presttige-stripe-webhook`.
+  - Live webhook CodeSha256:
+    `upC18iLtrCQMbWR8ZwWoliDw6mfAlwvAr8JAv+wxOJU=`.
+  - Webhook change was surgical: Founder activation stamps
+    `founder_activated_at` from `confirmed_payment_at` using
+    `if_not_exists`, so an existing value is never overwritten.
+  - Payment logic, activation guards, and idempotency logic were not changed.
+  - Audit backup:
+    `audits/c1-branch-b-b2-founder-invite-scheduler-20260530T110559Z/`.
+  - New scheduler Lambda: `presttige-founder-invite-scheduler`, Python 3.12.
+  - Scheduler CodeSha256:
+    `UnbmHIZEbC9CALM2PUzrSGX6AqM49sMWHIlHnpJcJLE=`.
+  - EventBridge rule: `presttige-founder-invite-scheduler-daily`, enabled,
+    `rate(1 day)`.
+  - The scheduler reads `/presttige/founder-invite/*` SSM config at runtime.
+  - Invitation cycle is monthly pure: one active invite at a time, first due
+    at activation plus `initial-delay-hours`, later issues on the monthly
+    anchor, with the anchor day clamped to the target month length.
+  - Scheduler is global-cap aware and excludes `synthetic_test` records.
+  - Scheduler IAM is least privilege for the Founder-invite config
+    parameters, required `presttige-db` scan/update access, SES send from the
+    Presttige identity, and its own CloudWatch logs.
+  - Dry-run verification returned `real_founder_count=0`,
+    `eligible_count=0`, `issued_count=0`, and `email_count=0`.
+  - No email was sent and no test data was left behind.
+  - Gate and checkout were not changed by B2. The Founder branch in
+    `isEligibleFounderInviter()` remains fail-closed until B3.
 
 Seed records:
 

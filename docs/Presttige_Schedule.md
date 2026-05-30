@@ -23,7 +23,9 @@ Antonio's order:
    live for schema/build work. Internal-member structural base on
    `people_projects` is DONE. C1 step A1 mirror infrastructure is DONE and
    live, with the mirror currently empty by design. C1 step A2 gate
-   eligibility fix is DONE and live; the Galina inviter hole is closed.
+   eligibility fix is DONE and live; the Galina inviter hole is closed. C1
+   branch B steps B1 and B2 are DONE. Next: B3, then B4 controlled test, then
+   the permissions area, then the controlled Ambassador test.
 5. Subscribers and users: login, photos, profile.
 6. Form with interests, etc.
 7. Member Cards.
@@ -81,10 +83,16 @@ Roadmap items 4 and later are future phases.
   1. Internal-member structural base on `people_projects`, DONE.
   2. C1 step A1 mirror infrastructure, DONE.
   3. C1 step A2, gate eligibility fix, DONE.
-  4. Build branch B, Founder tree, pending Antonio's two confirmations.
-  5. Build the permissions area, Standards per type, permissions plus
+  4. Branch B step B1, Founder-invite config and entitlement field contract,
+     DONE.
+  5. Branch B step B2, activation stamp and monthly invite scheduler, DONE.
+  6. Branch B step B3, wire the Founder branch into the shared eligibility
+     function and resolve invite state when the invitee subscribes.
+  7. Branch B step B4, controlled test with Antonio-controlled addresses
+     only.
+  8. Build the permissions area, Standards per type, permissions plus
      visibility plus dashboard.
-  6. Only then run the controlled Ambassador test.
+  9. Only then run the controlled Ambassador test.
 - Subscribers and users: login, photos, profile.
 - Form with interests, etc.
 - Member Cards.

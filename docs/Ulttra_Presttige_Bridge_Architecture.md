@@ -80,9 +80,39 @@ Live A2 state:
 - The Founder inviter branch is fail-closed with a TODO for branch B.
 - With A1 plus A2 complete, the C1 internal inviter branch is complete.
 
-Remaining bridge work:
+Branch B step B1 is DONE.
 
-- Branch B, the qualifying-Founder invitation tree.
+Live B1 state:
+
+- Founder-invite timing and cap configuration is stored in SSM Parameter
+  Store under `/presttige/founder-invite/*`.
+- The canonical Founder entitlement field contract is documented for
+  `presttige-db`.
+
+Branch B step B2 is DONE.
+
+Live B2 state:
+
+- `presttige-stripe-webhook` stamps `founder_activated_at` from
+  `confirmed_payment_at` during live Founder activation, using
+  `if_not_exists` so an existing timestamp is never overwritten.
+- `presttige-founder-invite-scheduler` is deployed as a new isolated Lambda.
+- EventBridge rule `presttige-founder-invite-scheduler-daily` is enabled at
+  `rate(1 day)`.
+- The scheduler reads `/presttige/founder-invite/*` at runtime, issues
+  monthly pure one-at-a-time invites, uses the activation anchor plus the
+  configured initial delay, clamps the monthly anchor day to month length,
+  respects the global cap, and excludes `synthetic_test` records.
+- Dry-run verification found zero real paid Founders and issued zero invites,
+  with zero emails sent and no test data left behind.
+- Gate and checkout were not changed by B2. The Founder branch remains
+  fail-closed until B3.
+
+Remaining branch B work:
+
+- B3, wire the Founder branch into the shared eligibility function and resolve
+  invite state when the invitee subscribes.
+- B4, run the controlled test with Antonio-controlled addresses only.
 
 ## Rewritten Gate Eligibility
 
@@ -101,7 +131,7 @@ An inviter is eligible only if:
 
 Explicitly block Club, Premier, Patron, and plain subscriber records, even if active.
 
-Until branch B is built, the Founder inviter branch fails closed.
+Until B3 is built, the Founder inviter branch fails closed.
 
 ## Founder Monthly Entitlement
 
@@ -119,10 +149,17 @@ For the external Founder branch, later, `presttige-db` needs:
 3. Build C1 step A2, wire shared `isEligibleFounderInviter()` into gate,
    admin, and checkout with explicit blocking and fail-closed mirror reads,
    DONE.
-4. Build branch B, the Founder monthly-entitlement tree.
-5. Build the permissions area, Standards per type, permissions, visibility,
+4. Build branch B step B1, dynamic config and entitlement field contract,
+   DONE.
+5. Build branch B step B2, activation stamp and monthly invite scheduler,
+   DONE.
+6. Build branch B step B3, wire the Founder branch into shared eligibility
+   and resolve invite state when the invitee subscribes.
+7. Build branch B step B4, controlled test with Antonio-controlled addresses
+   only.
+8. Build the permissions area, Standards per type, permissions, visibility,
    and dashboard.
-6. Only then run the controlled Ambassador test with an Antonio-owned identity
+9. Only then run the controlled Ambassador test with an Antonio-owned identity
    and no real member.
 
 ## Respects
