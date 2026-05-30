@@ -11,9 +11,9 @@ Antonio's order:
    emails, SES-dependent.
 2. SES emails complete, including the Founder emails.
 3. Cleanups and blockers, including completed legacy Stripe test-key cleanup,
-   `brand-fonts.css` on non-home pages, retire `presttige-founder-validate`,
-   Galyna emails, missing E2 email, retire bootstrap admins after MFA, and
-   Ulttra GitHub remote.
+   completed Directus bootstrap admin retirement, `brand-fonts.css` on
+   non-home pages, retire `presttige-founder-validate`, Galyna emails, missing
+   E2 email, and Ulttra GitHub remote.
 4. CRM Phase 2 plus Admin plus GA, sync the 37 real subscribers by state,
    command panel and funnel analytics, GA connection once Viewer access
    propagates. Frozen: no `synthetic_test` data ever in any analytic. Locked
@@ -65,11 +65,13 @@ Roadmap item 3 is parked until separately approved.
 - Follow-up found during cleanup verification:
   `presttige-checkout-status` invalid-token smoke returns a pre-existing
   `dynamodb:Scan` IAM denial. This is separate from Stripe key cleanup.
+- Directus bootstrap admin retirement, DONE:
+  `bootstrap-admin@ulttra.net` is suspended and has no static token. Antonio's
+  Cognito SSO admin and the dedicated Codex Service admin token remain active.
 - Non-home pages still load `brand-fonts.css`, font fix.
 - Retire redundant `presttige-founder-validate` Lambda.
 - Galyna: welcome-email "Patron for life" copy fix, interest email.
 - Ulttra repo: add GitHub remote, currently local only.
-- Retire bootstrap admins after MFA confirmed via clean logout/login.
 - `/founder` page: design and all copy/content review, technically approved
   only.
 - Missing E2 email.

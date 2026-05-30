@@ -235,8 +235,16 @@ Codex CRM access is restored:
   account.
 - Antonio can rotate or remove his personal Directus token at will.
 
-Bootstrap admins are retained as fallback until clean logout/login with MFA is
-confirmed and Antonio approves retirement.
+Bootstrap Fallback admin is retired:
+
+- Directus user: `bootstrap-admin@ulttra.net`
+- Status: `suspended`
+- Static token: clear, no static token present before or after retirement
+- Retirement date: 2026-05-30
+- Audit backup:
+  `audits/directus-bootstrap-retirement-20260530T164330Z/`
+- Remaining admin access paths: Antonio's Cognito SSO admin and the dedicated
+  Codex Service admin token in encrypted SSM.
 
 CRM Phase 1 is built in Directus.
 
@@ -676,7 +684,6 @@ Founder inviter-eligibility enforcement is now live:
 
 - Galina personal note from Antonio, to disregard the earlier erroneous email,
   remains an open human task.
-- Retire bootstrap admins after MFA is confirmed through clean logout/login.
 - Future separate task, if a working `freequenza.net` mailbox is wanted:
   finish SES inbound receiving configuration plus a real mailbox, then remove
   `fq@freequenza.net` from SES suppression only after receive delivery is
