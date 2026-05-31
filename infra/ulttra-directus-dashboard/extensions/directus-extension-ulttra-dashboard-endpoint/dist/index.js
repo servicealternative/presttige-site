@@ -267,12 +267,12 @@ async function readPresttigeMetrics(thirtyDaysAgo, now) {
 }
 
 async function readStripeMetrics(secretKey, monthStart, realSubscriptionIds, realCustomerIds) {
+  const monthStartEpoch = Math.floor(monthStart.getTime() / 1000);
   const [subscriptions, invoices] = await Promise.all([
     stripeList(secretKey, '/v1/subscriptions', { status: 'active', limit: 100 }),
     stripeList(secretKey, '/v1/invoices', {
       status: 'paid',
       limit: 100,
-      'created[gte]': Math.floor(monthStart.getTime() / 1000),
     }),
   ]);
   const activeSubscriptions = subscriptions.filter((subscription) => {
@@ -283,7 +283,9 @@ async function readStripeMetrics(secretKey, monthStart, realSubscriptionIds, rea
     .filter((invoice) => {
       const customer = normalizeStripeId(invoice.customer);
       const subscription = normalizeStripeId(invoice.subscription);
-      return realSubscriptionIds.has(subscription) || realCustomerIds.has(customer);
+      const paidAt = Number(invoice.status_transitions?.paid_at || 0);
+      return paidAt >= monthStartEpoch
+        && (realSubscriptionIds.has(subscription) || realCustomerIds.has(customer));
     })
     .reduce((sum, invoice) => sum + Number(invoice.amount_paid || 0), 0);
 
