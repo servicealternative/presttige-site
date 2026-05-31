@@ -15,16 +15,19 @@ Antonio's order:
    non-home pages, retire `presttige-founder-validate`, Galyna emails, missing
    E2 email, and Ulttra GitHub remote.
 4. CRM Phase 2 plus Admin plus GA, sync the 37 real subscribers by state,
-   command panel and funnel analytics, GA connection once Viewer access
-   propagates. Frozen: no `synthetic_test` data ever in any analytic. Locked
-   CRM access model is documented. Dedicated Codex Service Directus user is
-   live for schema/build work. Internal-member structural base on
+   command panel and funnel analytics. GA4 read access is working through the
+   installed-app OAuth refresh-token path stored in SSM. The OAuth app is now
+   in production. Frozen: no `synthetic_test` data
+   ever in any analytic. Locked CRM access model is documented. Dedicated
+   Codex Service Directus user is live for schema/build work.
+   Internal-member structural base on
    `people_projects` is DONE. C1 step A1 mirror infrastructure is DONE and
    live, with the mirror currently empty by design. C1 step A2 gate
    eligibility fix is DONE and live; the Galina inviter hole is closed. C1
    branch B steps B1, B2, B3, B4, B5, and B6 are DONE. Branch B code and
-   controlled cleanup are complete. Next: the permissions area, then the
-   post-permissions Ambassador test.
+   controlled cleanup are complete. Basic CRM dashboard v1 for Admin and Team
+   is DONE and live. Next: the permissions area, then the post-permissions
+   Ambassador test.
 5. Subscribers and users: login, photos, profile.
 6. Form with interests, etc.
 7. Member Cards.
@@ -103,7 +106,8 @@ Roadmap items 4 and later are future phases.
      only, through the B6 harness, DONE.
   10. Build the permissions area, Standards per type, permissions plus
      visibility plus dashboard.
-  11. Run the post-permissions Ambassador test.
+  11. Basic CRM dashboard v1 for Admin and Team, DONE.
+  12. Run the post-permissions Ambassador test.
 - Subscribers and users: login, photos, profile.
 - Form with interests, etc.
 - Member Cards.

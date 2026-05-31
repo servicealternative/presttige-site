@@ -219,6 +219,82 @@ Directus is live as the CRM application.
 - Outbound access: NAT Gateway for private subnet egress
 - Auth: Cognito SSO through `presttige-internal`
 
+### Ulttra CRM dashboard v1
+
+The basic Ulttra CRM dashboard is DONE and live for Directus Administrator and
+Team roles.
+
+- Directus module: `ulttra-dashboard`
+- Directus endpoint: `GET /ulttra-dashboard`
+- Founder invite action endpoint:
+  `POST /ulttra-dashboard/founder-invite`
+- ECS task definition: `ulttra-crm-directus:11`
+- ECR repository: `ulttra-crm-directus`
+- Image tag: `dashboard-20260531120924`
+- Metrics table: `ulttra-crm-dashboard-metrics`
+- Metrics sync Lambda: `presttige-dashboard-metrics-sync`
+- Metrics sync CodeSha256: `5I6QlKayhLowpnX0VdZbc2e5ioKhvuVpvUHXeQ+cOs8=`
+- Cache table: `ulttra-crm-dashboard-cache`
+- Cache TTL: 300 seconds
+- Task role policy: `ulttra-crm-dashboard-read-api`
+- Directus `module_bar`: `ulttra-dashboard` is first.
+- Antonio Directus `last_page`: `/ulttra-dashboard`
+
+Dashboard v1 data sources:
+
+- `presttige-db`, through DynamoDB Streams into
+  `ulttra-crm-dashboard-metrics`, for members, tiers, lead days, and active
+  real Stripe linkage.
+- Stripe live API, read-only, with the live secret from SSM.
+- GA4 Data API property `530348665`, through the installed-app OAuth
+  refresh-token path stored in SSM.
+- SSM `/presttige/founder-invite/global-cap`, read-only.
+
+Real-data-only enforcement:
+
+- Subscriber records with `synthetic_test=true` are excluded from every
+  dashboard count and Stripe linkage.
+- Ulttra people with `people.synthetic_test=true` are excluded from internal
+  user safety checks.
+- Test data does not appear in dashboard metrics.
+
+Scale model:
+
+- The dashboard endpoint does not scan `presttige-db` on load.
+- The current aggregate metrics were seeded once from the live table.
+- Future `presttige-db` changes are reflected through DynamoDB Streams using
+  `NEW_AND_OLD_IMAGES`.
+- The runtime endpoint reads the aggregate metrics table, the dashboard cache,
+  Stripe, GA4, SSM config, and the inviter mirror.
+
+Founder Invitation action:
+
+- The form accepts only invitee name and invitee email.
+- The inviter is always the logged-in Directus user.
+- There is no manual inviter email field.
+- The endpoint invokes the existing `presttige-founder-admin` create path and
+  reuses the existing `isEligibleFounderInviter` enforcement.
+- Ineligible users receive a neutral response and no invite is created.
+
+Verified live dashboard numbers on 2026-05-31 at 12:15 UTC:
+
+- Active real members: 1
+- Club: 1
+- Premier: 0
+- Patron: 0
+- Founder: 0
+- Founders: 0 / 250
+- New leads and applications, last 30 days: 5
+- Revenue this month: $144.44
+- Active Stripe subscriptions: 1
+- Website visitors, last 7 days: 6
+
+No payment, activation, checkout, webhook, or subscriber mutation logic was
+changed.
+
+Detailed design and state are recorded in
+`docs/Ulttra_CRM_Dashboard_v1.md`.
+
 Cognito SSO is working for Antonio:
 
 - Cognito user: `apereira@presttige.net`
@@ -659,15 +735,25 @@ Google Analytics progress:
 - GA account: `Presttige`
 - GA account ID: `389155166`
 - Google Cloud project: `ulttra-crm`
-- Service account:
-  `ulttra-ga-reader@ulttra-crm.iam.gserviceaccount.com`
-- JSON key validation: valid service account key
-- OAuth token minting: successful
-- GA4 Data API: reachable
-- Current GA4 Data API status for property `530348665`: `PERMISSION_DENIED`
-- Meaning: the service account needs Viewer access in GA4 Property Access
-  Management, likely propagation or access grant still pending
-- No private key or JSON secret value is stored in this document
+- GA account administrator: `alternativeservice@gmail.com`, personal Google
+  account
+- Service-account route: superseded for this personal-Gmail GA account. The
+  service-account key was valid and could mint OAuth tokens, but GA4 access
+  management rejected the service-account user path for this setup.
+- Active CRM read credential: installed-app OAuth client `Ulttra GA`
+  (`430778007708-uerfhfgt42k4qfbgcobb9f0cpqi6om9e.apps.googleusercontent.com`)
+  with scope `https://www.googleapis.com/auth/analytics.readonly`
+- OAuth client secret: stored encrypted in SSM at
+  `/ulttra/ga/oauth-client-secret`
+- OAuth refresh token: stored encrypted in SSM at
+  `/ulttra/ga/oauth-refresh-token`
+- GA4 Data API: reachable and returning data through the OAuth refresh-token
+  path
+- Verification on 2026-05-31: `runReport` for property `530348665`, last 7
+  days, metric `activeUsers`, returned `6`
+- The OAuth app is now in production.
+- No client secret, refresh token, private key, or JSON secret value is stored
+  in this document
 
 The interim `/admin` Founder tool retires into the CRM later.
 

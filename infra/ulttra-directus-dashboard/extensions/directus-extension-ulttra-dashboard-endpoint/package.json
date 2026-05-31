@@ -1,0 +1,17 @@
+{
+  "name": "directus-extension-ulttra-dashboard-endpoint",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.940.0",
+    "@aws-sdk/client-lambda": "^3.940.0",
+    "@aws-sdk/client-ssm": "^3.940.0",
+    "@aws-sdk/lib-dynamodb": "^3.940.0"
+  },
+  "directus:extension": {
+    "type": "endpoint",
+    "source": "dist/index.js",
+    "path": "dist/index.js",
+    "host": "^11.0.0"
+  }
+}
