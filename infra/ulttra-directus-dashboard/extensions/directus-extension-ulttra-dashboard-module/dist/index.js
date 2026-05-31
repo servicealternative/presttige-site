@@ -1,4 +1,4 @@
-import { defineComponent, h, onMounted, ref } from 'vue';
+import { defineComponent, h, onMounted, ref, resolveComponent } from 'vue';
 import { useApi } from '@directus/extensions-sdk';
 
 const cardStyle = {
@@ -78,6 +78,7 @@ const Dashboard = defineComponent({
     };
   },
   render() {
+    const PrivateView = resolveComponent('private-view');
     const data = this.payload || {};
     const metrics = data.metrics || {};
     const members = metrics.members || {};
@@ -88,7 +89,7 @@ const Dashboard = defineComponent({
     const ga = metrics.website || {};
     const cache = data.cache || {};
 
-    return h('private-view', { title: 'Dashboard' }, {
+    return h(PrivateView, { title: 'Dashboard' }, {
       default: () => h('div', { style: { padding: '32px', maxWidth: '1280px' } }, [
         h('div', {
           style: {
