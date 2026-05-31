@@ -228,9 +228,9 @@ Team roles.
 - Directus endpoint: `GET /ulttra-dashboard`
 - Founder invite action endpoint:
   `POST /ulttra-dashboard/founder-invite`
-- ECS task definition: `ulttra-crm-directus:13`
+- ECS task definition: `ulttra-crm-directus:15`
 - ECR repository: `ulttra-crm-directus`
-- Image tag: `dashboard-standards-v1-20260531T133436Z`
+- Image tag: `dashboard-consultant-access-20260531T154939Z`
 - Metrics table: `ulttra-crm-dashboard-metrics`
 - Metrics sync Lambda: `presttige-dashboard-metrics-sync`
 - Metrics sync CodeSha256: `5I6QlKayhLowpnX0VdZbc2e5ioKhvuVpvUHXeQ+cOs8=`
@@ -276,7 +276,7 @@ Founder Invitation action:
   reuses the existing `isEligibleFounderInviter` enforcement.
 - Ineligible users receive a neutral response and no invite is created.
 
-Dashboard Standards v1 for Admin and Team are DONE and live.
+Dashboard Standards v1 for Admin, Team, and Consultant are DONE and live.
 
 - Standard storage and enforcement:
   server-side config in
@@ -290,12 +290,27 @@ Dashboard Standards v1 for Admin and Team are DONE and live.
   user's own attributed revenue, Founder Invitation present and submitted
   through the existing safe invite path, dashboard read plus the gated Founder
   invite action only.
+- Consultant Standard:
+  same dashboard panel set as Team, revenue scoped to own attribution, app
+  access to the dashboard, and no Admin/data model privileges.
 - Revenue scoping:
   `admin` uses `global`; non-admin users use `own_attributed`.
 - Current Team attributed revenue is `$0.00`, because no Team attribution rows
   exist yet.
+- Current Consultant attributed revenue is `$0.00`, because no Consultant
+  attribution rows exist yet.
 - Ambassador, Business Partner, and Influencer Standards were not built in
   this step. They remain documented stubs.
+
+Ulttra CRM access separation is DONE:
+
+- `admin@ultrattek.com` is the Admin/developer identity in Cognito and
+  Directus.
+- `apereira@presttige.net` is the Consultant/dashboard identity for now.
+- The internal Antonio Admin people record now uses `admin@ultrattek.com`.
+- The eligible-inviters mirror now contains `admin@ultrattek.com` and no longer
+  contains `apereira@presttige.net`.
+- The Directus container `ADMIN_EMAIL` is `admin@ultrattek.com`.
 
 Verified live dashboard numbers on 2026-05-31 after the Standards v1 deploy:
 

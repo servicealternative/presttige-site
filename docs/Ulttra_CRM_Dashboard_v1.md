@@ -18,9 +18,9 @@ yet. That belongs to the later permissions area.
 - Directus endpoint: `GET /ulttra-dashboard`
 - Founder invite endpoint: `POST /ulttra-dashboard/founder-invite`
 - ECS service: `ulttra-crm-directus`
-- ECS task definition: `ulttra-crm-directus:13`
+- ECS task definition: `ulttra-crm-directus:15`
 - ECR repository: `ulttra-crm-directus`
-- Dashboard image tag: `dashboard-standards-v1-20260531T133436Z`
+- Dashboard image tag: `dashboard-consultant-access-20260531T154939Z`
 - Metrics table: `ulttra-crm-dashboard-metrics`
 - Metrics sync Lambda: `presttige-dashboard-metrics-sync`
 - Metrics sync CodeSha256: `5I6QlKayhLowpnX0VdZbc2e5ioKhvuVpvUHXeQ+cOs8=`
@@ -91,8 +91,24 @@ Team Standard:
 - Dashboard permissions: read plus the gated Founder invite action. No other
   dashboard write action exists.
 
+Consultant Standard:
+
+- Type: `consultant`
+- Visibility: same dashboard panel set as Team.
+- Revenue scope: `own_attributed`
+- Current own attributed revenue: `$0.00`, until attribution exists.
+- Founder Invitation: present and submitted through the existing safe path.
+  If the consultant user is not an eligible inviter, no invite is created.
+- Dashboard permissions: app access to the dashboard plus the gated Founder
+  invite action only.
+
 Ambassador, Business Partner, and Influencer Standards were not built in this
 step. They remain `stub_only` in the endpoint config.
+
+Access separation:
+
+- `admin@ultrattek.com` is the Admin/developer identity.
+- `apereira@presttige.net` is the Consultant/dashboard identity for now.
 
 ## Founder Invitation Action
 

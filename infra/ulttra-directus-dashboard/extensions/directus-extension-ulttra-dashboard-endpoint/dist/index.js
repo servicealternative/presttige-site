@@ -38,6 +38,16 @@ const dashboardStandards = Object.freeze({
       other_dashboard_writes: false,
     }),
   }),
+  consultant: Object.freeze({
+    type: 'consultant',
+    revenue_scope: 'own_attributed',
+    panels: Object.freeze(['members', 'tiers', 'founders', 'leads', 'revenue', 'website', 'founder_invitation']),
+    permissions: Object.freeze({
+      dashboard_read: true,
+      founder_invite: true,
+      other_dashboard_writes: false,
+    }),
+  }),
 });
 const dashboardStandardStubs = Object.freeze({
   ambassador: Object.freeze({ status: 'stub_only' }),
@@ -375,18 +385,19 @@ function getDashboardStandard(user) {
   const key = dashboardStandardKey(user);
   const standard = dashboardStandards[key];
   if (!standard) {
-    throw httpError(403, 'Dashboard is available to Admin and Team users.');
+    throw httpError(403, 'Dashboard is available to Admin, Team, and Consultant users.');
   }
   return standard;
 }
 
 function dashboardStandardKey(user) {
-  const personType = normalizeType(user.person?.type);
-  if (personType === 'admin' || personType === 'team') return personType;
-
   const roleName = normalizeType(user.role_name);
   if (roleName === 'administrator' || roleName === 'admin') return 'admin';
   if (roleName === 'team') return 'team';
+  if (roleName === 'consultant') return 'consultant';
+
+  const personType = normalizeType(user.person?.type);
+  if (personType === 'admin' || personType === 'team') return personType;
   return '';
 }
 

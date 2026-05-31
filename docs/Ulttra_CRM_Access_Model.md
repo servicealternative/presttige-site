@@ -58,7 +58,7 @@ Antonio may additionally choose to show extra information to a specific user. Th
 
 ### Dashboard Standards v1
 
-Dashboard Standards v1 are implemented for `admin` and `team` only.
+Dashboard Standards v1 are implemented for `admin`, `team`, and `consultant`.
 
 The Standards are stored and enforced as server-side config inside the Ulttra
 dashboard endpoint:
@@ -81,6 +81,20 @@ Team Standard:
 - Founder Invitation: present, with the logged-in user as inviter and the
   existing eligibility check at submit time
 - permissions: dashboard read plus the gated Founder invite action only
+
+Consultant Standard:
+
+- visibility: same dashboard panel set as Team
+- revenue: own attributed revenue only, currently `$0.00` until attribution
+  exists
+- Founder Invitation: present, with the logged-in user as inviter and the
+  existing eligibility check at submit time
+- permissions: dashboard app access plus the gated Founder invite action only
+
+Current Antonio access separation:
+
+- `admin@ultrattek.com` is the Admin/developer identity.
+- `apereira@presttige.net` is the Consultant/dashboard identity for now.
 
 Ambassador, Business Partner, and Influencer Standards are not built yet. They
 remain stubs until Antonio defines those Standards.
