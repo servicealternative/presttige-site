@@ -18,9 +18,9 @@ yet. That belongs to the later permissions area.
 - Directus endpoint: `GET /ulttra-dashboard`
 - Founder invite endpoint: `POST /ulttra-dashboard/founder-invite`
 - ECS service: `ulttra-crm-directus`
-- ECS task definition: `ulttra-crm-directus:11`
+- ECS task definition: `ulttra-crm-directus:13`
 - ECR repository: `ulttra-crm-directus`
-- Dashboard image tag: `dashboard-20260531120924`
+- Dashboard image tag: `dashboard-standards-v1-20260531T133436Z`
 - Metrics table: `ulttra-crm-dashboard-metrics`
 - Metrics sync Lambda: `presttige-dashboard-metrics-sync`
 - Metrics sync CodeSha256: `5I6QlKayhLowpnX0VdZbc2e5ioKhvuVpvUHXeQ+cOs8=`
@@ -54,10 +54,45 @@ v1 returns and displays:
 - Active members by tier: Club, Premier, Patron, Founder.
 - Founders against the global cap.
 - New leads and applications in the last 30 days.
-- Revenue this month from Stripe paid invoices linked to real active members.
-- Active Stripe subscriptions linked to real active members.
+- Revenue this month from Stripe paid invoices linked to real active members,
+  scoped by the logged-in user's Standard.
+- Active Stripe subscriptions linked to real active members, scoped by the
+  logged-in user's Standard.
 - Website visitors from GA4, active users in the last 7 days.
 - Founder Invitation action.
+
+## Permissions Standards v1
+
+The first dashboard Standard layer is stored in the server-side dashboard
+endpoint config:
+
+`infra/ulttra-directus-dashboard/extensions/directus-extension-ulttra-dashboard-endpoint/dist/index.js`
+
+Admin Standard:
+
+- Type: `admin`
+- Visibility: all v1 panels and all global metrics.
+- Revenue scope: `global`
+- Founder Invitation: present and active through the existing safe path.
+- Dashboard permissions: read plus the gated Founder invite action. No other
+  dashboard write action exists.
+
+Team Standard:
+
+- Type: `team`
+- Visibility: active members, by tier, Founders against cap, leads, website
+  visitors, revenue panel, and Founder Invitation.
+- Revenue scope: `own_attributed`
+- Current own attributed revenue: `$0.00`, because no Team attribution rows
+  exist yet.
+- Founder Invitation: present and submitted through the existing safe path.
+  Eligibility is checked by the existing Founder inviter enforcement at submit
+  time.
+- Dashboard permissions: read plus the gated Founder invite action. No other
+  dashboard write action exists.
+
+Ambassador, Business Partner, and Influencer Standards were not built in this
+step. They remain `stub_only` in the endpoint config.
 
 ## Founder Invitation Action
 
@@ -88,7 +123,7 @@ login.
 
 ## Verified Live Numbers
 
-Verified on 2026-05-31 at 12:15 UTC:
+Verified on 2026-05-31 after the Standards v1 deploy:
 
 - Active real members: 1
 - Club: 1
@@ -97,8 +132,10 @@ Verified on 2026-05-31 at 12:15 UTC:
 - Founder: 0
 - Founders: 0 / 250
 - New leads and applications, last 30 days: 5
-- Revenue this month: $144.44
-- Active Stripe subscriptions: 1
+- Admin revenue this month: $144.44
+- Admin active Stripe subscriptions: 1
+- Team own attributed revenue this month: $0.00
+- Team own attributed active Stripe subscriptions: 0
 - Website visitors, last 7 days: 6
 - Synthetic Presttige records present but excluded: 19
 - Synthetic Ulttra people present but excluded: 0

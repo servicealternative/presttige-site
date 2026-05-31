@@ -56,6 +56,35 @@ The Standard, meaning what each type sees globally, is decided by Antonio and Cl
 
 Antonio may additionally choose to show extra information to a specific user. That per-user extra remains open for later.
 
+### Dashboard Standards v1
+
+Dashboard Standards v1 are implemented for `admin` and `team` only.
+
+The Standards are stored and enforced as server-side config inside the Ulttra
+dashboard endpoint:
+
+`infra/ulttra-directus-dashboard/extensions/directus-extension-ulttra-dashboard-endpoint/dist/index.js`
+
+Admin Standard:
+
+- visibility: all v1 panels and all global metrics
+- revenue: global month-to-date paid revenue
+- Founder Invitation: present and active through the existing safe path
+- permissions: dashboard read plus the gated Founder invite action only
+
+Team Standard:
+
+- visibility: active members, by tier, Founders against cap, leads, website
+  visitors, revenue panel, and Founder Invitation
+- revenue: own attributed revenue only, currently `$0.00` until attribution
+  exists
+- Founder Invitation: present, with the logged-in user as inviter and the
+  existing eligibility check at submit time
+- permissions: dashboard read plus the gated Founder invite action only
+
+Ambassador, Business Partner, and Influencer Standards are not built yet. They
+remain stubs until Antonio defines those Standards.
+
 ## Isolation
 
 Permissions, visibility, and dashboard apply per project.

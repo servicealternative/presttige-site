@@ -16,8 +16,34 @@ const GA_PROPERTY_ID = process.env.GA4_PROPERTY_ID || '530348665';
 const FOUNDER_GLOBAL_CAP_PARAMETER = process.env.FOUNDER_GLOBAL_CAP_PARAMETER || '/presttige/founder-invite/global-cap';
 const FOUNDER_ADMIN_FUNCTION_NAME = process.env.FOUNDER_ADMIN_FUNCTION_NAME || 'presttige-founder-admin';
 
-const dashboardRoles = new Set(['Administrator', 'Team']);
 const memberTiers = ['club', 'premier', 'patron', 'founder'];
+const dashboardStandards = Object.freeze({
+  admin: Object.freeze({
+    type: 'admin',
+    revenue_scope: 'global',
+    panels: Object.freeze(['members', 'tiers', 'founders', 'leads', 'revenue', 'website', 'founder_invitation']),
+    permissions: Object.freeze({
+      dashboard_read: true,
+      founder_invite: true,
+      other_dashboard_writes: false,
+    }),
+  }),
+  team: Object.freeze({
+    type: 'team',
+    revenue_scope: 'own_attributed',
+    panels: Object.freeze(['members', 'tiers', 'founders', 'leads', 'revenue', 'website', 'founder_invitation']),
+    permissions: Object.freeze({
+      dashboard_read: true,
+      founder_invite: true,
+      other_dashboard_writes: false,
+    }),
+  }),
+});
+const dashboardStandardStubs = Object.freeze({
+  ambassador: Object.freeze({ status: 'stub_only' }),
+  business_partner: Object.freeze({ status: 'stub_only' }),
+  influencer: Object.freeze({ status: 'stub_only' }),
+});
 const ddbClient = new DynamoDBClient({ region: REGION });
 const ddb = DynamoDBDocumentClient.from(ddbClient);
 const ssm = new SSMClient({ region: REGION });
@@ -30,7 +56,8 @@ export default {
       try {
         const user = await requireDashboardUser(req, context);
         const forceRefresh = String(req.query?.refresh || '').toLowerCase() === 'true';
-        const dashboard = await getDashboard(forceRefresh);
+        const standard = getDashboardStandard(user);
+        const dashboard = await getDashboard(user, standard, forceRefresh);
         const eligibleInviter = await isInternalInviterEligible(user.email);
         res.json({
           ok: true,
@@ -38,9 +65,11 @@ export default {
             id: user.id,
             email: user.email,
             role: user.role_name,
+            standard: standard.type,
             person_id: user.person?.id || null,
             eligible_inviter: eligibleInviter,
           },
+          standard: standardResponse(standard),
           ...dashboard,
         });
       } catch (error) {
@@ -51,10 +80,15 @@ export default {
     router.post('/founder-invite', async (req, res) => {
       try {
         const user = await requireDashboardUser(req, context);
+        const standard = getDashboardStandard(user);
         const invitedEmail = normalizeEmail(req.body?.invited_email);
         const invitedName = normalizeString(req.body?.invited_name);
         if (!isValidEmail(invitedEmail)) {
           res.status(400).json({ ok: false, message: 'Invitation could not be created.' });
+          return;
+        }
+        if (!standard.permissions.founder_invite) {
+          res.status(200).json({ ok: false, message: 'Invitation could not be created.' });
           return;
         }
         if (!user.person || isSynthetic(user.person.synthetic_test)) {
@@ -103,7 +137,7 @@ async function requireDashboardUser(req, context) {
     .where('directus_users.id', userId)
     .first();
 
-  if (!row || row.status !== 'active' || !dashboardRoles.has(row.role_name)) {
+  if (!row || row.status !== 'active') {
     throw httpError(403, 'Dashboard is available to Admin and Team users.');
   }
 
@@ -112,20 +146,24 @@ async function requireDashboardUser(req, context) {
     .whereRaw('lower(email) = ?', [normalizeEmail(row.email)])
     .first();
 
-  return {
+  const user = {
     id: row.id,
     email: normalizeEmail(row.email),
     role_name: row.role_name,
     person: person || null,
   };
+  getDashboardStandard(user);
+  return user;
 }
 
-async function getDashboard(forceRefresh) {
+async function getDashboard(user, standard, forceRefresh) {
   const nowEpoch = Math.floor(Date.now() / 1000);
+  const revenueScope = getRevenueScope(user, standard);
+  const cacheKey = `${CACHE_KEY}#${revenueScope.cache_key}`;
   if (!forceRefresh) {
     const cached = await ddb.send(new GetCommand({
       TableName: CACHE_TABLE_NAME,
-      Key: { cache_key: CACHE_KEY },
+      Key: { cache_key: cacheKey },
     }));
     const item = cached.Item;
     if (item?.expires_at_epoch && item.expires_at_epoch > nowEpoch && item.payload) {
@@ -139,12 +177,12 @@ async function getDashboard(forceRefresh) {
     }
   }
 
-  const payload = await computeDashboard();
+  const payload = await computeDashboard(user, standard, revenueScope);
   const expiresAt = nowEpoch + CACHE_TTL_SECONDS;
   await ddb.send(new PutCommand({
     TableName: CACHE_TABLE_NAME,
     Item: {
-      cache_key: CACHE_KEY,
+      cache_key: cacheKey,
       payload,
       generated_at: payload.cache.generated_at,
       expires_at_epoch: expiresAt,
@@ -159,12 +197,12 @@ async function getDashboard(forceRefresh) {
   };
 }
 
-async function computeDashboard() {
+async function computeDashboard(user, standard, revenueScope) {
   const now = new Date();
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const [presttigeMetrics, ssmValues] = await Promise.all([
-    readPresttigeMetrics(thirtyDaysAgo, now),
+    readPresttigeMetrics(thirtyDaysAgo, now, revenueScope),
     readParameters([
       STRIPE_SECRET_PARAMETER,
       GA_CLIENT_SECRET_PARAMETER,
@@ -176,8 +214,13 @@ async function computeDashboard() {
     readStripeMetrics(
       ssmValues[STRIPE_SECRET_PARAMETER],
       monthStart,
-      presttigeMetrics.realActiveSubscriptionIds,
-      presttigeMetrics.realActiveCustomerIds,
+      revenueScope.kind === 'global'
+        ? presttigeMetrics.realActiveSubscriptionIds
+        : presttigeMetrics.attributedActiveSubscriptionIds,
+      revenueScope.kind === 'global'
+        ? presttigeMetrics.realActiveCustomerIds
+        : presttigeMetrics.attributedActiveCustomerIds,
+      revenueScope.response_label,
     ),
     readGaMetrics(ssmValues[GA_CLIENT_SECRET_PARAMETER], ssmValues[GA_REFRESH_TOKEN_PARAMETER]),
   ]);
@@ -199,6 +242,7 @@ async function computeDashboard() {
       revenue: stripeMetrics,
       website: gaMetrics,
     },
+    standard: standardResponse(standard),
     cache: {
       generated_at: now.toISOString(),
       ttl_seconds: CACHE_TTL_SECONDS,
@@ -211,12 +255,15 @@ async function computeDashboard() {
   };
 }
 
-async function readPresttigeMetrics(thirtyDaysAgo, now) {
+async function readPresttigeMetrics(thirtyDaysAgo, now, revenueScope = null) {
   const counterKeys = [
     { metric_group: 'counter', metric_key: 'members#active_total' },
     ...memberTiers.map((tier) => ({ metric_group: 'counter', metric_key: `members#tier#${tier}` })),
   ];
-  const [counterResponse, leadsResponse, stripeLinksResponse] = await Promise.all([
+  const attributionGroup = revenueScope?.kind === 'person' && revenueScope.person_id
+    ? `attributed_stripe_subscription#person#${revenueScope.person_id}`
+    : null;
+  const [counterResponse, leadsResponse, stripeLinksResponse, attributedStripeLinksResponse] = await Promise.all([
     ddb.send(new BatchGetCommand({
       RequestItems: {
         [METRICS_TABLE_NAME]: {
@@ -243,6 +290,12 @@ async function readPresttigeMetrics(thirtyDaysAgo, now) {
       ExpressionAttributeValues: { ':group': 'active_stripe_subscription' },
       ProjectionExpression: 'metric_key, customer_id',
     })),
+    attributionGroup ? ddb.send(new QueryCommand({
+      TableName: METRICS_TABLE_NAME,
+      KeyConditionExpression: 'metric_group = :group',
+      ExpressionAttributeValues: { ':group': attributionGroup },
+      ProjectionExpression: 'metric_key, customer_id',
+    })) : Promise.resolve({ Items: [] }),
   ]);
 
   const counters = new Map((counterResponse.Responses?.[METRICS_TABLE_NAME] || [])
@@ -250,11 +303,19 @@ async function readPresttigeMetrics(thirtyDaysAgo, now) {
   const byTier = Object.fromEntries(memberTiers.map((tier) => [tier, counters.get(`members#tier#${tier}`) || 0]));
   const realActiveSubscriptionIds = new Set();
   const realActiveCustomerIds = new Set();
+  const attributedActiveSubscriptionIds = new Set();
+  const attributedActiveCustomerIds = new Set();
   for (const item of stripeLinksResponse.Items || []) {
     const subscriptionId = normalizeString(item.metric_key);
     const customerId = normalizeString(item.customer_id);
     if (subscriptionId) realActiveSubscriptionIds.add(subscriptionId);
     if (customerId) realActiveCustomerIds.add(customerId);
+  }
+  for (const item of attributedStripeLinksResponse.Items || []) {
+    const subscriptionId = normalizeString(item.metric_key);
+    const customerId = normalizeString(item.customer_id);
+    if (subscriptionId) attributedActiveSubscriptionIds.add(subscriptionId);
+    if (customerId) attributedActiveCustomerIds.add(customerId);
   }
 
   return {
@@ -263,10 +324,22 @@ async function readPresttigeMetrics(thirtyDaysAgo, now) {
     leadsLast30Days: (leadsResponse.Items || []).reduce((sum, item) => sum + Number(item.value || 0), 0),
     realActiveSubscriptionIds,
     realActiveCustomerIds,
+    attributedActiveSubscriptionIds,
+    attributedActiveCustomerIds,
   };
 }
 
-async function readStripeMetrics(secretKey, monthStart, realSubscriptionIds, realCustomerIds) {
+async function readStripeMetrics(secretKey, monthStart, realSubscriptionIds, realCustomerIds, revenueScope = 'global') {
+  if (!realSubscriptionIds.size && !realCustomerIds.size) {
+    return {
+      month_to_date_cents: 0,
+      month_to_date_display: formatUsd(0),
+      active_subscriptions: 0,
+      currency: 'USD',
+      revenue_scope: revenueScope,
+    };
+  }
+
   const monthStartEpoch = Math.floor(monthStart.getTime() / 1000);
   const [subscriptions, invoices] = await Promise.all([
     stripeList(secretKey, '/v1/subscriptions', { status: 'active', limit: 100 }),
@@ -294,6 +367,55 @@ async function readStripeMetrics(secretKey, monthStart, realSubscriptionIds, rea
     month_to_date_display: formatUsd(invoiceRevenue),
     active_subscriptions: activeSubscriptions.length,
     currency: 'USD',
+    revenue_scope: revenueScope,
+  };
+}
+
+function getDashboardStandard(user) {
+  const key = dashboardStandardKey(user);
+  const standard = dashboardStandards[key];
+  if (!standard) {
+    throw httpError(403, 'Dashboard is available to Admin and Team users.');
+  }
+  return standard;
+}
+
+function dashboardStandardKey(user) {
+  const personType = normalizeType(user.person?.type);
+  if (personType === 'admin' || personType === 'team') return personType;
+
+  const roleName = normalizeType(user.role_name);
+  if (roleName === 'administrator' || roleName === 'admin') return 'admin';
+  if (roleName === 'team') return 'team';
+  return '';
+}
+
+function getRevenueScope(user, standard) {
+  if (standard.revenue_scope === 'global') {
+    return {
+      kind: 'global',
+      cache_key: 'revenue-global',
+      response_label: 'global',
+      person_id: null,
+    };
+  }
+
+  const personId = user.person?.id ? String(user.person.id) : '';
+  return {
+    kind: 'person',
+    cache_key: `revenue-person-${personId || user.id}`,
+    response_label: 'own_attributed',
+    person_id: personId,
+  };
+}
+
+function standardResponse(standard) {
+  return {
+    type: standard.type,
+    revenue_scope: standard.revenue_scope,
+    panels: [...standard.panels],
+    permissions: { ...standard.permissions },
+    stubs_not_built: { ...dashboardStandardStubs },
   };
 }
 
@@ -426,6 +548,10 @@ function normalizeEmail(value) {
 
 function normalizeTier(value) {
   return normalizeString(value).toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_');
+}
+
+function normalizeType(value) {
+  return normalizeTier(value);
 }
 
 function normalizeStripeId(value) {

@@ -228,9 +228,9 @@ Team roles.
 - Directus endpoint: `GET /ulttra-dashboard`
 - Founder invite action endpoint:
   `POST /ulttra-dashboard/founder-invite`
-- ECS task definition: `ulttra-crm-directus:11`
+- ECS task definition: `ulttra-crm-directus:13`
 - ECR repository: `ulttra-crm-directus`
-- Image tag: `dashboard-20260531120924`
+- Image tag: `dashboard-standards-v1-20260531T133436Z`
 - Metrics table: `ulttra-crm-dashboard-metrics`
 - Metrics sync Lambda: `presttige-dashboard-metrics-sync`
 - Metrics sync CodeSha256: `5I6QlKayhLowpnX0VdZbc2e5ioKhvuVpvUHXeQ+cOs8=`
@@ -276,7 +276,28 @@ Founder Invitation action:
   reuses the existing `isEligibleFounderInviter` enforcement.
 - Ineligible users receive a neutral response and no invite is created.
 
-Verified live dashboard numbers on 2026-05-31 at 12:15 UTC:
+Dashboard Standards v1 for Admin and Team are DONE and live.
+
+- Standard storage and enforcement:
+  server-side config in
+  `infra/ulttra-directus-dashboard/extensions/directus-extension-ulttra-dashboard-endpoint/dist/index.js`.
+- Admin Standard:
+  all v1 panels, global revenue, Founder Invitation present and active through
+  the existing safe invite path, dashboard read plus the gated Founder invite
+  action only.
+- Team Standard:
+  all v1 non-revenue global panels, revenue panel present but scoped to the
+  user's own attributed revenue, Founder Invitation present and submitted
+  through the existing safe invite path, dashboard read plus the gated Founder
+  invite action only.
+- Revenue scoping:
+  `admin` uses `global`; non-admin users use `own_attributed`.
+- Current Team attributed revenue is `$0.00`, because no Team attribution rows
+  exist yet.
+- Ambassador, Business Partner, and Influencer Standards were not built in
+  this step. They remain documented stubs.
+
+Verified live dashboard numbers on 2026-05-31 after the Standards v1 deploy:
 
 - Active real members: 1
 - Club: 1
@@ -285,8 +306,10 @@ Verified live dashboard numbers on 2026-05-31 at 12:15 UTC:
 - Founder: 0
 - Founders: 0 / 250
 - New leads and applications, last 30 days: 5
-- Revenue this month: $144.44
-- Active Stripe subscriptions: 1
+- Admin revenue this month: $144.44
+- Admin active Stripe subscriptions: 1
+- Team own attributed revenue this month: $0.00
+- Team own attributed active Stripe subscriptions: 0
 - Website visitors, last 7 days: 6
 
 No payment, activation, checkout, webhook, or subscriber mutation logic was
