@@ -85,7 +85,7 @@ const Dashboard = defineComponent({
     const ga = metrics.website || {};
     const cache = data.cache || {};
 
-    return h(PrivateView, { title: 'Ulttra dashboard' }, {
+    return h(PrivateView, { title: 'ULTTRA dashboard' }, {
       default: () => h('div', { style: { padding: '32px', maxWidth: '1280px' } }, [
         h('div', {
           style: {
@@ -97,7 +97,7 @@ const Dashboard = defineComponent({
           },
         }, [
           h('div', [
-            h('h1', { style: { margin: '0 0 8px', fontSize: '32px', lineHeight: '38px' } }, 'Ulttra dashboard'),
+            h('h1', { style: { margin: '0 0 8px', fontSize: '32px', lineHeight: '38px' } }, 'ULTTRA dashboard'),
             h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, 'Real data only. Test records are excluded from every count.'),
           ]),
           h('button', {
