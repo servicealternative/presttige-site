@@ -183,13 +183,21 @@ const Dashboard = defineComponent({
           h('div', {
             style: {
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
               gap: '12px',
               alignItems: 'end',
             },
           }, [
-            fieldInput('Invitee name', this.inviteName, (value) => { this.inviteName = value; }, 'text'),
-            fieldInput('Invitee email', this.inviteEmail, (value) => { this.inviteEmail = value; }, 'email'),
+            fieldInput('Invitee name', this.inviteName, (value) => { this.inviteName = value; }, 'text', {
+              name: 'invited_name',
+              autocomplete: 'name',
+              required: true,
+            }),
+            fieldInput('Invitee email', this.inviteEmail, (value) => { this.inviteEmail = value; }, 'email', {
+              name: 'invited_email',
+              autocomplete: 'email',
+              required: true,
+            }),
           ]),
           h('div', {
             style: {
@@ -384,13 +392,15 @@ function metricCard(label, value, detail) {
   ]);
 }
 
-function fieldInput(label, value, update, type) {
+function fieldInput(label, value, update, type, options = {}) {
   return h('label', { style: { display: 'flex', flexDirection: 'column', gap: '6px' } }, [
     h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, label),
     h('input', {
       type,
+      name: options.name,
       value,
-      required: type === 'email',
+      required: options.required === true,
+      autocomplete: options.autocomplete,
       style: {
         height: '44px',
         borderRadius: '6px',
