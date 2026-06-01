@@ -19,7 +19,6 @@ const Dashboard = defineComponent({
     const error = ref('');
     const payload = ref(null);
     const inviteName = ref('');
-    const inviteEmail = ref('');
     const inviteBusy = ref(false);
     const inviteMessage = ref('');
     const inviteSuccess = ref(false);
@@ -46,13 +45,11 @@ const Dashboard = defineComponent({
       try {
         const response = await api.post('/ulttra-dashboard/founder-invite', {
           invited_name: inviteName.value,
-          invited_email: inviteEmail.value,
         });
         inviteSuccess.value = response.data?.ok === true;
         inviteMessage.value = response.data?.message || 'Invitation request processed.';
         if (inviteSuccess.value) {
           inviteName.value = '';
-          inviteEmail.value = '';
         }
       } catch (err) {
         inviteSuccess.value = false;
@@ -69,7 +66,6 @@ const Dashboard = defineComponent({
       error,
       payload,
       inviteName,
-      inviteEmail,
       inviteBusy,
       inviteMessage,
       inviteSuccess,
@@ -89,7 +85,7 @@ const Dashboard = defineComponent({
     const ga = metrics.website || {};
     const cache = data.cache || {};
 
-    return h(PrivateView, { title: 'Dashboard' }, {
+    return h(PrivateView, { title: 'Ulttra dashboard' }, {
       default: () => h('div', { style: { padding: '32px', maxWidth: '1280px' } }, [
         h('div', {
           style: {
@@ -101,7 +97,7 @@ const Dashboard = defineComponent({
           },
         }, [
           h('div', [
-            h('h1', { style: { margin: '0 0 8px', fontSize: '32px', lineHeight: '38px' } }, 'Presttige command dashboard'),
+            h('h1', { style: { margin: '0 0 8px', fontSize: '32px', lineHeight: '38px' } }, 'Ulttra dashboard'),
             h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, 'Real data only. Test records are excluded from every count.'),
           ]),
           h('button', {
@@ -136,7 +132,7 @@ const Dashboard = defineComponent({
           metricCard('Revenue this month', revenue.month_to_date_display || '$0.00', `${revenue.active_subscriptions ?? 0} active subscriptions`),
           metricCard('Website visitors', ga.active_users_7d ?? 0, 'Active users, last 7 days'),
         ]),
-        h('section', {
+        data.current_user?.eligible_inviter ? h('section', {
           style: {
             border: '1px solid var(--theme--border-color)',
             borderRadius: '8px',
@@ -161,14 +157,14 @@ const Dashboard = defineComponent({
             h('span', {
               style: {
                 fontSize: '13px',
-                color: data.current_user?.eligible_inviter ? 'var(--success)' : 'var(--theme--foreground-subdued)',
+                color: 'var(--success)',
               },
-            }, data.current_user?.eligible_inviter ? 'Eligible inviter' : 'Eligibility checked on submit'),
+            }, 'You are eligible to submit an invitation.'),
           ]),
           h('form', {
             style: {
               display: 'grid',
-              gridTemplateColumns: 'minmax(180px, 1fr) minmax(220px, 1fr) auto',
+              gridTemplateColumns: 'minmax(180px, 1fr) auto',
               gap: '12px',
               alignItems: 'end',
             },
@@ -178,8 +174,7 @@ const Dashboard = defineComponent({
             },
           }, [
             fieldInput('Invitee name', this.inviteName, (value) => { this.inviteName = value; }, 'text'),
-            fieldInput('Invitee email', this.inviteEmail, (value) => { this.inviteEmail = value; }, 'email'),
-            h('button', { class: 'button', disabled: this.inviteBusy || !this.inviteEmail }, this.inviteBusy ? 'Creating' : 'Create invite'),
+            h('button', { class: 'button', disabled: this.inviteBusy || !this.inviteName }, this.inviteBusy ? 'Creating' : 'Create invite'),
           ]),
           this.inviteMessage ? h('p', {
             style: {
@@ -187,7 +182,7 @@ const Dashboard = defineComponent({
               color: this.inviteSuccess ? 'var(--success)' : 'var(--theme--foreground-subdued)',
             },
           }, this.inviteMessage) : null,
-        ]),
+        ]) : null,
         h('p', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px', margin: 0 } }, [
           `Last updated ${cache.generated_at || 'not yet'}. Cache ${cache.status || 'unknown'}. `,
           `Data sources: DynamoDB, Stripe, GA4.`,
