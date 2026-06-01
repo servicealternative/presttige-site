@@ -1,19 +1,35 @@
 "use strict";
 
+const path = require("node:path");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+
+function loadFounderInviterEligibilityModule() {
+  const candidates = [
+    path.join(__dirname, "..", "lib", "founder-inviter-eligibility.js"),
+    path.join(__dirname, "lib", "founder-inviter-eligibility.js"),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      return require(candidate);
+    } catch (error) {
+      if (error.code !== "MODULE_NOT_FOUND") {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error("Founder inviter eligibility module not found");
+}
+
+const { isEligibleFounderInviter } = loadFounderInviterEligibilityModule();
 
 const REGION = "us-east-1";
 const TABLE_NAME = process.env.TABLE_NAME || "presttige-db";
 const APP_ORIGIN = process.env.APP_ORIGIN || "https://presttige.net";
 const MAX_EMAIL_LENGTH = 254;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const ACTIVE_PAYMENT_STATUSES = new Set([
-  "paid",
-  "free",
-  "subscription_active",
-  "preview_paid",
-]);
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: REGION }));
 
@@ -43,15 +59,9 @@ exports.handler = async (event) => {
       return invalidResponse();
     }
 
-    const records = await findLeadsByEmails([invitedEmail, inviterEmail]);
-    const invitedRecord = records.find(
-      (record) => normalizeEmail(record.email) === invitedEmail
-    );
-    const inviterRecord = records.find(
-      (record) => normalizeEmail(record.email) === inviterEmail
-    );
+    const invitedRecord = await findLeadByEmail(invitedEmail);
 
-    if (!isFounderGateValid(invitedRecord, inviterRecord, inviterEmail)) {
+    if (!(await isFounderGateValid(invitedRecord, inviterEmail))) {
       return invalidResponse();
     }
 
@@ -127,36 +137,37 @@ function isSupportedEmail(email) {
   );
 }
 
-async function findLeadsByEmails(emails) {
-  const wantedEmails = Array.from(new Set(emails));
-  const found = [];
+async function findLeadByEmail(email) {
   let ExclusiveStartKey;
 
   do {
     const result = await ddb.send(
       new ScanCommand({
         TableName: TABLE_NAME,
-        FilterExpression: "email IN (:email0, :email1)",
+        FilterExpression: "email = :email",
         ExpressionAttributeValues: {
-          ":email0": wantedEmails[0],
-          ":email1": wantedEmails[1],
+          ":email": email,
         },
         ExclusiveStartKey,
       })
     );
 
     if (result.Items?.length) {
-      found.push(...result.Items);
+      return result.Items[0];
     }
 
     ExclusiveStartKey = result.LastEvaluatedKey;
   } while (ExclusiveStartKey);
 
-  return found;
+  return null;
 }
 
-function isFounderGateValid(invitedRecord, inviterRecord, inviterEmail) {
-  if (!invitedRecord || !inviterRecord) {
+async function isFounderGateValid(invitedRecord, inviterEmail) {
+  if (!invitedRecord) {
+    return false;
+  }
+
+  if (normalizeString(invitedRecord.subscriber_type).toLowerCase() !== "founder_invited") {
     return false;
   }
 
@@ -180,27 +191,14 @@ function isFounderGateValid(invitedRecord, inviterRecord, inviterEmail) {
     return false;
   }
 
-  if (normalizeString(invitedRecord.inviter_lead_id) !== normalizeString(inviterRecord.lead_id)) {
-    return false;
-  }
-
-  if (normalizeString(inviterRecord.review_status).toLowerCase() !== "approved") {
-    return false;
-  }
-
-  if (!hasActiveAccountMarker(inviterRecord)) {
-    return false;
-  }
-
-  return true;
-}
-
-function hasActiveAccountMarker(record) {
-  return (
-    isTruthy(record.account_active) ||
-    normalizeString(record.access_status).toLowerCase() === "active" ||
-    ACTIVE_PAYMENT_STATUSES.has(normalizeString(record.payment_status).toLowerCase())
-  );
+  const inviterRecord = await findLeadByEmail(inviterEmail);
+  return isEligibleFounderInviter(inviterEmail, {
+    logger: console,
+    inviterRecord,
+    inviterLeadId: invitedRecord.inviter_lead_id,
+    invitedLeadId: invitedRecord.lead_id,
+    allowLeadIdLookup: false,
+  });
 }
 
 function isTruthy(value) {

@@ -1,5 +1,9 @@
 import os
+import json
 from datetime import datetime, timezone
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import boto3
 from boto3.dynamodb.conditions import Key
@@ -13,6 +17,14 @@ ELIGIBLE_INVITERS_TABLE_NAME = os.environ.get(
 )
 LEADS_TABLE_NAME = os.environ.get("TABLE_NAME") or os.environ.get("LEADS_TABLE_NAME", "presttige-db")
 EMAIL_INDEX_NAME = os.environ.get("EMAIL_INDEX_NAME", "email-index")
+DIRECTUS_BASE_URL = os.environ.get("DIRECTUS_BASE_URL", "https://crm.ulttra.net")
+DIRECTUS_SYNC_TOKEN_PARAMETER = os.environ.get(
+    "DIRECTUS_SYNC_TOKEN_PARAMETER",
+    "/presttige/ulttra-sync/directus-token",
+)
+CHAIRMAN_EMAIL = "apereira@presttige.net"
+CHAIRMAN_PERSON_ID = "4"
+CHAIRMAN_TYPE = "chairman"
 INTERNAL_INVITER_ROLES = {
     "admin",
     "team",
@@ -29,8 +41,10 @@ BLOCKED_SUBSCRIBER_TYPES = {
 MAX_EMAIL_LENGTH = 254
 
 dynamodb = boto3.resource("dynamodb", region_name=REGION)
+ssm_client = boto3.client("ssm", region_name=REGION)
 eligible_inviters_table = dynamodb.Table(ELIGIBLE_INVITERS_TABLE_NAME)
 leads_table = dynamodb.Table(LEADS_TABLE_NAME)
+_cached_directus_sync_token = None
 
 
 def normalize_string(value):
@@ -55,6 +69,60 @@ def is_supported_email(email):
 
 def normalize_role(value):
     return normalize_string(value).lower().replace("-", "_").replace(" ", "_")
+
+
+def load_directus_sync_token():
+    global _cached_directus_sync_token
+    if _cached_directus_sync_token:
+        return _cached_directus_sync_token
+
+    result = ssm_client.get_parameter(
+        Name=DIRECTUS_SYNC_TOKEN_PARAMETER,
+        WithDecryption=True,
+    )
+    token = normalize_string(result.get("Parameter", {}).get("Value"))
+    if not token:
+        raise RuntimeError("Directus sync token is empty.")
+    _cached_directus_sync_token = token
+    return token
+
+
+def read_directus_chairman_person(email):
+    if normalize_email(email) != CHAIRMAN_EMAIL:
+        return None
+
+    base_url = DIRECTUS_BASE_URL.rstrip("/")
+    params = urllib.parse.urlencode({"fields": "id,email,type,status,synthetic_test"})
+    url = f"{base_url}/items/people/{urllib.parse.quote(CHAIRMAN_PERSON_ID)}?{params}"
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Authorization": f"Bearer {load_directus_sync_token()}",
+            "Accept": "application/json",
+        },
+        method="GET",
+    )
+
+    with urllib.request.urlopen(request, timeout=5) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+
+    person = payload.get("data") or {}
+    if (
+        normalize_string(person.get("id")) == CHAIRMAN_PERSON_ID
+        and normalize_email(person.get("email")) == CHAIRMAN_EMAIL
+        and normalize_role(person.get("type")) == CHAIRMAN_TYPE
+        and normalize_string(person.get("status")).lower() == "active"
+        and not is_truthy(person.get("synthetic_test"))
+    ):
+        return person
+    return None
+
+
+def is_chairman_inviter(email):
+    if normalize_email(email) != CHAIRMAN_EMAIL:
+        return False
+
+    return read_directus_chairman_person(email) is not None
 
 
 def is_truthy(value):
@@ -138,6 +206,27 @@ def is_eligible_founder_inviter(
     email = normalize_email(inviter_email)
     if not is_supported_email(email):
         return {"eligible": False, "reason": "invalid_email"}
+
+    if email == CHAIRMAN_EMAIL:
+        try:
+            if is_chairman_inviter(email):
+                return {
+                    "eligible": True,
+                    "source": "chairman",
+                    "email": email,
+                    "role": CHAIRMAN_TYPE,
+                    "project": "presttige",
+                    "ulttra_person_id": CHAIRMAN_PERSON_ID,
+                }
+        except (BotoCoreError, ClientError, urllib.error.URLError, TimeoutError, ValueError) as exc:
+            print(
+                {
+                    "event": "founder_inviter_chairman_lookup_failed",
+                    "name": exc.__class__.__name__,
+                    "message": str(exc),
+                }
+            )
+            return {"eligible": False, "reason": "chairman_lookup_failed"}
 
     try:
         result = eligible_inviters_table.get_item(Key={"email": email})
