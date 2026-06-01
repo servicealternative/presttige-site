@@ -18,6 +18,7 @@ const Dashboard = defineComponent({
     const loading = ref(true);
     const error = ref('');
     const payload = ref(null);
+    const userProfile = ref(null);
     const inviteName = ref('');
     const inviteBusy = ref(false);
     const inviteMessage = ref('');
@@ -36,6 +37,17 @@ const Dashboard = defineComponent({
         error.value = err?.response?.data?.error || 'Dashboard could not be loaded.';
       } finally {
         loading.value = false;
+      }
+    }
+
+    async function loadUserProfile() {
+      try {
+        const response = await api.get('/users/me', {
+          params: { fields: 'first_name,last_name,email' },
+        });
+        userProfile.value = response.data?.data || null;
+      } catch {
+        userProfile.value = null;
       }
     }
 
@@ -60,12 +72,16 @@ const Dashboard = defineComponent({
       }
     }
 
-    onMounted(() => loadDashboard(false));
+    onMounted(() => {
+      loadUserProfile();
+      loadDashboard(false);
+    });
 
     return {
       loading,
       error,
       payload,
+      userProfile,
       inviteName,
       inviteBusy,
       inviteMessage,
@@ -86,22 +102,20 @@ const Dashboard = defineComponent({
     const revenue = metrics.revenue || {};
     const ga = metrics.website || {};
     const cache = data.cache || {};
+    const title = formatDashboardTitle(this.userProfile, data.current_user);
 
-    return h(PrivateView, { title: 'ULTTRA dashboard' }, {
+    return h(PrivateView, { title }, {
       default: () => h('div', { style: { padding: '32px', maxWidth: '1280px' } }, [
         h('div', {
           style: {
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             gap: '16px',
             marginBottom: '28px',
           },
         }, [
-          h('div', [
-            h('h1', { style: { margin: '0 0 8px', fontSize: '32px', lineHeight: '38px' } }, 'ULTTRA dashboard'),
-            h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, 'Real data only. Test records are excluded from every count.'),
-          ]),
+          h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, 'Real data only. Test records are excluded from every count.'),
           h('button', {
             class: 'button',
             disabled: this.loading,
@@ -190,6 +204,14 @@ const Dashboard = defineComponent({
     });
   },
 });
+
+function formatDashboardTitle(profile, currentUser) {
+  const name = [profile?.first_name, profile?.last_name]
+    .map((part) => String(part || '').trim())
+    .filter(Boolean)
+    .join(' ');
+  return `ULTTRA · ${name || currentUser?.email || 'User'}`;
+}
 
 function activeMembersCard(value, tiers, open, toggle) {
   return h('article', {
