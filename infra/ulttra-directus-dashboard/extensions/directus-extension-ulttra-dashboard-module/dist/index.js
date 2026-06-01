@@ -257,15 +257,24 @@ function projectTabList(tabs, selectedProject, selectProject) {
     const selected = tab.key === selectedProject;
     return h('button', {
       type: 'button',
-      class: 'button',
       'aria-pressed': String(selected),
       style: {
-        minHeight: '38px',
-        borderRadius: '999px',
-        border: selected ? '1px solid var(--theme--foreground)' : '1px solid var(--theme--border-color)',
-        background: 'var(--theme--background)',
-        color: 'var(--theme--foreground)',
+        appearance: 'none',
+        border: 0,
+        background: 'transparent',
+        padding: 0,
+        margin: 0,
+        font: 'inherit',
+        cursor: 'pointer',
+        color: selected ? 'var(--theme--foreground-accent)' : 'var(--theme--foreground-subdued)',
         fontWeight: selected ? 700 : 400,
+        lineHeight: '24px',
+      },
+      onMouseenter: (event) => {
+        if (!selected) event.currentTarget.style.color = 'var(--theme--foreground)';
+      },
+      onMouseleave: (event) => {
+        event.currentTarget.style.color = selected ? 'var(--theme--foreground-accent)' : 'var(--theme--foreground-subdued)';
       },
       onClick: () => selectProject(tab.key),
     }, tab.display_name);
