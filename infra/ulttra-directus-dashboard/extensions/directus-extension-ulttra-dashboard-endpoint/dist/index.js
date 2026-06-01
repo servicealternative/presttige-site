@@ -17,9 +17,21 @@ const FOUNDER_GLOBAL_CAP_PARAMETER = process.env.FOUNDER_GLOBAL_CAP_PARAMETER ||
 const FOUNDER_ADMIN_FUNCTION_NAME = process.env.FOUNDER_ADMIN_FUNCTION_NAME || 'presttige-founder-admin';
 const GLOBAL_PROJECT_KEY = 'global';
 const PRESTTIGE_PROJECT_KEY = 'presttige';
+const CHAIRMAN_EMAIL = 'apereira@presttige.net';
+const CHAIRMAN_TYPE = 'chairman';
 
 const memberTiers = ['club', 'premier', 'patron', 'founder'];
 const dashboardStandards = Object.freeze({
+  chairman: Object.freeze({
+    type: 'chairman',
+    revenue_scope: 'global',
+    panels: Object.freeze(['members', 'tiers', 'founders', 'leads', 'revenue', 'website', 'founder_invitation']),
+    permissions: Object.freeze({
+      dashboard_read: true,
+      founder_invite: true,
+      other_dashboard_writes: false,
+    }),
+  }),
   admin: Object.freeze({
     type: 'admin',
     revenue_scope: 'global',
@@ -72,7 +84,8 @@ export default {
         const projects = await readDashboardProjects(context);
         const selectedProjectKey = normalizeProjectKey(req.query?.project || GLOBAL_PROJECT_KEY) || GLOBAL_PROJECT_KEY;
         const dashboard = await getProjectDashboard(user, standard, forceRefresh, selectedProjectKey, projects);
-        const eligibleInviter = await isInternalInviterEligible(user.email);
+        const chairman = isChairman(user);
+        const eligibleInviter = chairman || await isInternalInviterEligible(user.email);
         res.json({
           ok: true,
           project_tabs: projectTabs(projects),
@@ -83,6 +96,7 @@ export default {
             role: user.role_name,
             standard: standard.type,
             person_id: user.person?.id || null,
+            is_chairman: chairman,
             eligible_inviter: eligibleInviter,
           },
           standard: standardResponse(standard),
@@ -591,12 +605,14 @@ function getDashboardStandard(user) {
   const key = dashboardStandardKey(user);
   const standard = dashboardStandards[key];
   if (!standard) {
-    throw httpError(403, 'Dashboard is available to Admin, Team, and Consultant users.');
+    throw httpError(403, 'Dashboard is available to Chairman, Admin, Team, and Consultant users.');
   }
   return standard;
 }
 
 function dashboardStandardKey(user) {
+  if (isChairman(user)) return 'chairman';
+
   const roleName = normalizeType(user.role_name);
   if (roleName === 'administrator' || roleName === 'admin') return 'admin';
   if (roleName === 'team') return 'team';
@@ -605,6 +621,15 @@ function dashboardStandardKey(user) {
   const personType = normalizeType(user.person?.type);
   if (personType === 'admin' || personType === 'team') return personType;
   return '';
+}
+
+function isChairman(user) {
+  const person = user?.person || null;
+  return normalizeEmail(user?.email) === CHAIRMAN_EMAIL
+    && normalizeEmail(person?.email) === CHAIRMAN_EMAIL
+    && normalizeType(person?.type) === CHAIRMAN_TYPE
+    && normalizeString(person?.status).toLowerCase() === 'active'
+    && !isSynthetic(person?.synthetic_test);
 }
 
 function getRevenueScope(user, standard) {
