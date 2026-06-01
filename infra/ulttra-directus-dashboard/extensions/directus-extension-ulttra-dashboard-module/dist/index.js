@@ -20,6 +20,7 @@ const Dashboard = defineComponent({
     const payload = ref(null);
     const userProfile = ref(null);
     const inviteName = ref('');
+    const inviteEmail = ref('');
     const inviteBusy = ref(false);
     const inviteMessage = ref('');
     const inviteSuccess = ref(false);
@@ -62,11 +63,13 @@ const Dashboard = defineComponent({
       try {
         const response = await api.post('/ulttra-dashboard/founder-invite', {
           invited_name: inviteName.value,
+          invited_email: inviteEmail.value,
         });
         inviteSuccess.value = response.data?.ok === true;
         inviteMessage.value = response.data?.message || 'Invitation request processed.';
         if (inviteSuccess.value) {
           inviteName.value = '';
+          inviteEmail.value = '';
         }
       } catch (err) {
         inviteSuccess.value = false;
@@ -94,6 +97,7 @@ const Dashboard = defineComponent({
       payload,
       userProfile,
       inviteName,
+      inviteEmail,
       inviteBusy,
       inviteMessage,
       inviteSuccess,
@@ -169,17 +173,32 @@ const Dashboard = defineComponent({
         h('form', {
           style: {
             display: 'grid',
-            gridTemplateColumns: 'minmax(180px, 1fr) auto',
             gap: '12px',
-            alignItems: 'end',
           },
           onSubmit: (event) => {
             event.preventDefault();
             this.submitInvite();
           },
         }, [
-          fieldInput('Invitee name', this.inviteName, (value) => { this.inviteName = value; }, 'text'),
-          h('button', { class: 'button', disabled: this.inviteBusy || !this.inviteName }, this.inviteBusy ? 'Creating' : 'Create invite'),
+          h('div', {
+            style: {
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '12px',
+              alignItems: 'end',
+            },
+          }, [
+            fieldInput('Invitee name', this.inviteName, (value) => { this.inviteName = value; }, 'text'),
+            fieldInput('Invitee email', this.inviteEmail, (value) => { this.inviteEmail = value; }, 'email'),
+          ]),
+          h('div', {
+            style: {
+              display: 'flex',
+              justifyContent: 'flex-end',
+            },
+          }, [
+            h('button', { class: 'button', disabled: this.inviteBusy || !this.inviteName || !this.inviteEmail }, this.inviteBusy ? 'Creating' : 'Create invite'),
+          ]),
         ]),
         this.inviteMessage ? h('p', {
           style: {
