@@ -609,7 +609,7 @@ def load_directus_sync_token():
 
 def send_founder_invitee_email_if_needed(lead, invited_email, invited_name):
     lead_id = lead.get("lead_id")
-    if lead.get("founder_invite_email_sent_at"):
+    if should_skip_founder_email_already_sent(lead, "founder_invite_email_sent_at"):
         return {"sent": False, "skipped": True, "reason": "already_sent"}
 
     recipient = normalize_email(lead.get("email") or invited_email)
@@ -643,7 +643,7 @@ def send_founder_invitee_email_if_needed(lead, invited_email, invited_name):
 
 def send_founder_inviter_email_if_needed(lead, inviter):
     lead_id = lead.get("lead_id")
-    if lead.get("founder_inviter_email_sent_at"):
+    if should_skip_founder_email_already_sent(lead, "founder_inviter_email_sent_at"):
         return {"sent": False, "skipped": True, "reason": "already_sent"}
 
     inviter_email = normalize_email(lead.get("inviter_email") or (inviter or {}).get("email"))
@@ -685,6 +685,10 @@ def send_founder_inviter_email_if_needed(lead, inviter):
         "sent_at": sent_at,
         "message_id": ses_response.get("MessageId"),
     }
+
+
+def should_skip_founder_email_already_sent(lead, field_name):
+    return bool(lead.get(field_name)) and not is_truthy(lead.get("synthetic_test"))
 
 
 def mark_founder_email_sent(lead_id, field_name, sent_at):
