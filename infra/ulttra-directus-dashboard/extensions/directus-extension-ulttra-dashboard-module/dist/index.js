@@ -1,4 +1,4 @@
-import { defineComponent, h, onMounted, ref, resolveComponent } from 'vue';
+import { defineComponent, h, onMounted, onUnmounted, ref, resolveComponent } from 'vue';
 import { useApi } from '@directus/extensions-sdk';
 
 const cardStyle = {
@@ -24,6 +24,9 @@ const Dashboard = defineComponent({
     const inviteBusy = ref(false);
     const inviteMessage = ref('');
     const inviteSuccess = ref(false);
+    const inviteStatus = ref('');
+    const inviteCooldownRemaining = ref(0);
+    const inviteCooldownTimer = ref(null);
     const tierDetailOpen = ref(false);
     const selectedProject = ref('global');
 
@@ -60,22 +63,49 @@ const Dashboard = defineComponent({
       inviteBusy.value = true;
       inviteMessage.value = '';
       inviteSuccess.value = false;
+      inviteStatus.value = '';
       try {
         const response = await api.post('/ulttra-dashboard/founder-invite', {
           invited_name: inviteName.value,
           invited_email: inviteEmail.value,
         });
-        inviteSuccess.value = response.data?.ok === true;
+        inviteStatus.value = response.data?.status || 'ERROR';
+        inviteSuccess.value = response.data?.status === 'SENT';
         inviteMessage.value = response.data?.message || 'Invitation request processed.';
-        if (inviteSuccess.value) {
+        if (response.data?.status === 'SENT') {
           inviteName.value = '';
           inviteEmail.value = '';
+          startInviteCooldown();
         }
       } catch (err) {
         inviteSuccess.value = false;
+        inviteStatus.value = 'ERROR';
         inviteMessage.value = err?.response?.data?.message || 'Invitation request could not be processed.';
       } finally {
         inviteBusy.value = false;
+      }
+    }
+
+    function startInviteCooldown() {
+      clearInviteCooldown();
+      inviteCooldownRemaining.value = 120;
+      inviteCooldownTimer.value = window.setInterval(() => {
+        inviteCooldownRemaining.value = Math.max(0, inviteCooldownRemaining.value - 1);
+        if (inviteCooldownRemaining.value === 0) {
+          clearInviteCooldown();
+          inviteMessage.value = '';
+          inviteSuccess.value = false;
+          inviteStatus.value = '';
+          inviteName.value = '';
+          inviteEmail.value = '';
+        }
+      }, 1000);
+    }
+
+    function clearInviteCooldown() {
+      if (inviteCooldownTimer.value) {
+        window.clearInterval(inviteCooldownTimer.value);
+        inviteCooldownTimer.value = null;
       }
     }
 
@@ -90,6 +120,9 @@ const Dashboard = defineComponent({
       loadUserProfile();
       loadDashboard(false);
     });
+    onUnmounted(() => {
+      clearInviteCooldown();
+    });
 
     return {
       loading,
@@ -101,6 +134,8 @@ const Dashboard = defineComponent({
       inviteBusy,
       inviteMessage,
       inviteSuccess,
+      inviteStatus,
+      inviteCooldownRemaining,
       tierDetailOpen,
       selectedProject,
       loadDashboard,
@@ -124,6 +159,7 @@ const Dashboard = defineComponent({
     const selectedProject = data.selected_project || this.selectedProject || 'global';
     const project = data.project || {};
     const emptyState = project.empty_state || null;
+    const inviteCooldownActive = this.inviteCooldownRemaining > 0;
     const projectContent = emptyState ? [
       projectEmptyState(emptyState),
     ] : [
@@ -170,7 +206,7 @@ const Dashboard = defineComponent({
             },
           }, 'You are eligible to submit an invitation.'),
         ]),
-        h('form', {
+        inviteCooldownActive ? null : h('form', {
           style: {
             display: 'grid',
             gap: '12px',
@@ -214,6 +250,12 @@ const Dashboard = defineComponent({
             color: this.inviteSuccess ? 'var(--success)' : 'var(--theme--foreground-subdued)',
           },
         }, this.inviteMessage) : null,
+        inviteCooldownActive ? h('p', {
+          style: {
+            margin: '8px 0 0',
+            color: 'var(--theme--foreground-subdued)',
+          },
+        }, `You can create another invitation in ${this.inviteCooldownRemaining} seconds.`) : null,
       ]) : null,
       h('p', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px', margin: 0 } }, [
         `Last updated ${cache.generated_at || 'not yet'}. Cache ${cache.status || 'unknown'}. `,

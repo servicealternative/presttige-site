@@ -133,16 +133,8 @@ export default {
           invitedEmail,
           invitedName,
         });
-        if (!result.ok) {
-          res.status(200).json({ ok: false, message: 'Invitation could not be created.' });
-          return;
-        }
-        res.json({
-          ok: true,
-          message: 'Founder invitation created.',
-          lead_id: result.lead_id,
-          email: result.founder_email,
-        });
+        const outcome = await founderInviteOutcome(result, invitedEmail);
+        res.status(200).json(outcome);
       } catch (error) {
         sendError(res, error);
       }
@@ -778,6 +770,85 @@ async function invokeFounderAdmin({ actorId, actorEmail, inviterEmail, invitedEm
     return { ok: false, statusCode: raw.statusCode, error: body.error };
   }
   return body;
+}
+
+async function founderInviteOutcome(result, invitedEmail) {
+  const inviteeEmail = normalizeEmail(invitedEmail);
+  if (!result.ok) {
+    if (result.error === 'inviter_not_eligible') {
+      return {
+        ok: false,
+        status: 'NOT_ELIGIBLE',
+        invitee_email: inviteeEmail,
+        message: 'Invitation could not be created.',
+      };
+    }
+    return {
+      ok: false,
+      status: 'ERROR',
+      invitee_email: inviteeEmail,
+      message: 'Invitation could not be created.',
+    };
+  }
+
+  const invitee = result.founder_email?.invitee || {};
+  const inviter = result.founder_email?.inviter || {};
+  const sendResults = [invitee, inviter];
+  const sent = sendResults.some((item) => item?.sent === true);
+  const alreadyInvited = sendResults.length > 0 && sendResults.every((item) => (
+    item?.skipped === true && item?.reason === 'already_sent'
+  ));
+
+  if (sent) {
+    return {
+      ok: true,
+      status: 'SENT',
+      invitee_email: inviteeEmail,
+      message: `Founder invitation sent successfully to ${inviteeEmail}.`,
+    };
+  }
+
+  if (alreadyInvited) {
+    const invitedAt = await readFounderInviteSentAt(inviteeEmail);
+    return {
+      ok: false,
+      status: 'ALREADY_INVITED',
+      invitee_email: inviteeEmail,
+      invited_at: invitedAt,
+      message: alreadyInvitedMessage(inviteeEmail, invitedAt),
+    };
+  }
+
+  return {
+    ok: false,
+    status: 'ERROR',
+    invitee_email: inviteeEmail,
+    message: 'Invitation could not be created.',
+  };
+}
+
+async function readFounderInviteSentAt(email) {
+  if (!isValidEmail(email)) return null;
+  try {
+    const response = await ddb.send(new QueryCommand({
+      TableName: process.env.TABLE_NAME || 'presttige-db',
+      IndexName: process.env.EMAIL_INDEX_NAME || 'email-index',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues: {
+        ':email': email,
+      },
+      Limit: 1,
+    }));
+    const lead = response.Items?.[0] || null;
+    return normalizeString(lead?.founder_invite_email_sent_at || lead?.founder_inviter_email_sent_at) || null;
+  } catch {
+    return null;
+  }
+}
+
+function alreadyInvitedMessage(email, invitedAt) {
+  const suffix = invitedAt ? ` It was originally invited on ${invitedAt}.` : '';
+  return `${email} was already invited and cannot be invited again yet.${suffix}`;
 }
 
 function normalizeString(value) {
