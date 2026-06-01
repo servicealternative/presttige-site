@@ -22,6 +22,7 @@ const Dashboard = defineComponent({
     const inviteBusy = ref(false);
     const inviteMessage = ref('');
     const inviteSuccess = ref(false);
+    const tierDetailOpen = ref(false);
 
     async function loadDashboard(force = false) {
       loading.value = true;
@@ -69,6 +70,7 @@ const Dashboard = defineComponent({
       inviteBusy,
       inviteMessage,
       inviteSuccess,
+      tierDetailOpen,
       loadDashboard,
       submitInvite,
     };
@@ -123,10 +125,7 @@ const Dashboard = defineComponent({
             marginBottom: '28px',
           },
         }, [
-          metricCard('Active members', members.active_total ?? '-', 'Club, Premier, Patron, Founder'),
-          metricCard('Club', tiers.club ?? 0, 'Active real members'),
-          metricCard('Premier', tiers.premier ?? 0, 'Active real members'),
-          metricCard('Patron', tiers.patron ?? 0, 'Active real members'),
+          activeMembersCard(members.active_total ?? '-', tiers, this.tierDetailOpen, () => { this.tierDetailOpen = !this.tierDetailOpen; }),
           metricCard('Founders', `${founders.active ?? 0} / ${founders.cap ?? 250}`, 'Global cap'),
           metricCard('New applications', leads.last_30_days ?? 0, 'Last 30 days'),
           metricCard('Revenue this month', revenue.month_to_date_display || '$0.00', `${revenue.active_subscriptions ?? 0} active subscriptions`),
@@ -191,6 +190,66 @@ const Dashboard = defineComponent({
     });
   },
 });
+
+function activeMembersCard(value, tiers, open, toggle) {
+  return h('article', {
+    role: 'button',
+    tabindex: '0',
+    'aria-expanded': String(open),
+    style: {
+      ...cardStyle,
+      cursor: 'pointer',
+    },
+    onClick: toggle,
+    onKeydown: (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggle();
+      }
+    },
+  }, [
+    h('div', {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '12px',
+        alignItems: 'center',
+      },
+    }, [
+      h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, 'Active members'),
+      h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, open ? 'Hide tiers' : 'Show tiers'),
+    ]),
+    h('strong', { style: { fontSize: '30px', lineHeight: '36px' } }, String(value)),
+    h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, 'Club, Premier, Patron, Founder'),
+    open ? h('div', {
+      style: {
+        display: 'grid',
+        gap: '8px',
+        paddingTop: '12px',
+        marginTop: '4px',
+        borderTop: '1px solid var(--theme--border-color)',
+      },
+    }, [
+      tierRow('Club', tiers.club ?? 0),
+      tierRow('Premier', tiers.premier ?? 0),
+      tierRow('Patron', tiers.patron ?? 0),
+    ]) : null,
+  ]);
+}
+
+function tierRow(label, value) {
+  return h('div', {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      gap: '12px',
+      fontSize: '13px',
+    },
+  }, [
+    h('span', { style: { color: 'var(--theme--foreground-subdued)' } }, label),
+    h('strong', null, String(value)),
+  ]);
+}
 
 function metricCard(label, value, detail) {
   return h('article', { style: cardStyle }, [
