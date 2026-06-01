@@ -24,15 +24,19 @@ const Dashboard = defineComponent({
     const inviteMessage = ref('');
     const inviteSuccess = ref(false);
     const tierDetailOpen = ref(false);
+    const selectedProject = ref('global');
 
-    async function loadDashboard(force = false) {
+    async function loadDashboard(force = false, projectKey = selectedProject.value) {
       loading.value = true;
       error.value = '';
       try {
+        const params = { project: projectKey };
+        if (force) params.refresh = 'true';
         const response = await api.get('/ulttra-dashboard', {
-          params: force ? { refresh: 'true' } : undefined,
+          params,
         });
         payload.value = response.data;
+        selectedProject.value = response.data?.selected_project || projectKey;
       } catch (err) {
         error.value = err?.response?.data?.error || 'Dashboard could not be loaded.';
       } finally {
@@ -72,6 +76,13 @@ const Dashboard = defineComponent({
       }
     }
 
+    function selectProject(projectKey) {
+      if (!projectKey || projectKey === selectedProject.value) return;
+      selectedProject.value = projectKey;
+      tierDetailOpen.value = false;
+      loadDashboard(false, projectKey);
+    }
+
     onMounted(() => {
       loadUserProfile();
       loadDashboard(false);
@@ -87,7 +98,9 @@ const Dashboard = defineComponent({
       inviteMessage,
       inviteSuccess,
       tierDetailOpen,
+      selectedProject,
       loadDashboard,
+      selectProject,
       submitInvite,
     };
   },
@@ -103,9 +116,87 @@ const Dashboard = defineComponent({
     const ga = metrics.website || {};
     const cache = data.cache || {};
     const title = formatDashboardTitle(this.userProfile, data.current_user);
+    const tabs = data.project_tabs || defaultProjectTabs();
+    const selectedProject = data.selected_project || this.selectedProject || 'global';
+    const project = data.project || {};
+    const emptyState = project.empty_state || null;
+    const projectContent = emptyState ? [
+      projectEmptyState(emptyState),
+    ] : [
+      h('section', {
+        style: {
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '16px',
+          marginBottom: '28px',
+        },
+      }, [
+        activeMembersCard(members.active_total ?? '-', tiers, this.tierDetailOpen, () => { this.tierDetailOpen = !this.tierDetailOpen; }),
+        metricCard('Founders', `${founders.active ?? 0} / ${founders.cap ?? 250}`, 'Global cap'),
+        metricCard('New applications', leads.last_30_days ?? 0, 'Last 30 days'),
+        metricCard('Revenue this month', revenue.month_to_date_display || '$0.00', `${revenue.active_subscriptions ?? 0} active subscriptions`),
+        metricCard('Website visitors', ga.active_users_7d ?? 0, 'Active users, last 7 days'),
+      ]),
+      data.current_user?.eligible_inviter ? h('section', {
+        style: {
+          border: '1px solid var(--theme--border-color)',
+          borderRadius: '8px',
+          padding: '24px',
+          background: 'var(--theme--background)',
+          marginBottom: '20px',
+        },
+      }, [
+        h('div', {
+          style: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: '16px',
+            alignItems: 'center',
+            marginBottom: '18px',
+          },
+        }, [
+          h('div', [
+            h('h2', { style: { margin: '0 0 6px', fontSize: '22px' } }, 'Founder Invitation'),
+            h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, 'Invitee details only. The inviter is your logged-in Ulttra identity.'),
+          ]),
+          h('span', {
+            style: {
+              fontSize: '13px',
+              color: 'var(--success)',
+            },
+          }, 'You are eligible to submit an invitation.'),
+        ]),
+        h('form', {
+          style: {
+            display: 'grid',
+            gridTemplateColumns: 'minmax(180px, 1fr) auto',
+            gap: '12px',
+            alignItems: 'end',
+          },
+          onSubmit: (event) => {
+            event.preventDefault();
+            this.submitInvite();
+          },
+        }, [
+          fieldInput('Invitee name', this.inviteName, (value) => { this.inviteName = value; }, 'text'),
+          h('button', { class: 'button', disabled: this.inviteBusy || !this.inviteName }, this.inviteBusy ? 'Creating' : 'Create invite'),
+        ]),
+        this.inviteMessage ? h('p', {
+          style: {
+            margin: '14px 0 0',
+            color: this.inviteSuccess ? 'var(--success)' : 'var(--theme--foreground-subdued)',
+          },
+        }, this.inviteMessage) : null,
+      ]) : null,
+      h('p', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px', margin: 0 } }, [
+        `Last updated ${cache.generated_at || 'not yet'}. Cache ${cache.status || 'unknown'}. `,
+        `Data sources: DynamoDB, Stripe, GA4.`,
+      ]),
+    ];
 
     return h(PrivateView, { title }, {
       default: () => h('div', { style: { padding: '32px', maxWidth: '1280px' } }, [
+        projectTabList(tabs, selectedProject, (projectKey) => this.selectProject(projectKey)),
         h('div', {
           style: {
             display: 'flex',
@@ -131,75 +222,7 @@ const Dashboard = defineComponent({
             marginBottom: '20px',
           },
         }, this.error) : null,
-        h('section', {
-          style: {
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '16px',
-            marginBottom: '28px',
-          },
-        }, [
-          activeMembersCard(members.active_total ?? '-', tiers, this.tierDetailOpen, () => { this.tierDetailOpen = !this.tierDetailOpen; }),
-          metricCard('Founders', `${founders.active ?? 0} / ${founders.cap ?? 250}`, 'Global cap'),
-          metricCard('New applications', leads.last_30_days ?? 0, 'Last 30 days'),
-          metricCard('Revenue this month', revenue.month_to_date_display || '$0.00', `${revenue.active_subscriptions ?? 0} active subscriptions`),
-          metricCard('Website visitors', ga.active_users_7d ?? 0, 'Active users, last 7 days'),
-        ]),
-        data.current_user?.eligible_inviter ? h('section', {
-          style: {
-            border: '1px solid var(--theme--border-color)',
-            borderRadius: '8px',
-            padding: '24px',
-            background: 'var(--theme--background)',
-            marginBottom: '20px',
-          },
-        }, [
-          h('div', {
-            style: {
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: '16px',
-              alignItems: 'center',
-              marginBottom: '18px',
-            },
-          }, [
-            h('div', [
-              h('h2', { style: { margin: '0 0 6px', fontSize: '22px' } }, 'Founder Invitation'),
-              h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, 'Invitee details only. The inviter is your logged-in Ulttra identity.'),
-            ]),
-            h('span', {
-              style: {
-                fontSize: '13px',
-                color: 'var(--success)',
-              },
-            }, 'You are eligible to submit an invitation.'),
-          ]),
-          h('form', {
-            style: {
-              display: 'grid',
-              gridTemplateColumns: 'minmax(180px, 1fr) auto',
-              gap: '12px',
-              alignItems: 'end',
-            },
-            onSubmit: (event) => {
-              event.preventDefault();
-              this.submitInvite();
-            },
-          }, [
-            fieldInput('Invitee name', this.inviteName, (value) => { this.inviteName = value; }, 'text'),
-            h('button', { class: 'button', disabled: this.inviteBusy || !this.inviteName }, this.inviteBusy ? 'Creating' : 'Create invite'),
-          ]),
-          this.inviteMessage ? h('p', {
-            style: {
-              margin: '14px 0 0',
-              color: this.inviteSuccess ? 'var(--success)' : 'var(--theme--foreground-subdued)',
-            },
-          }, this.inviteMessage) : null,
-        ]) : null,
-        h('p', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px', margin: 0 } }, [
-          `Last updated ${cache.generated_at || 'not yet'}. Cache ${cache.status || 'unknown'}. `,
-          `Data sources: DynamoDB, Stripe, GA4.`,
-        ]),
+        ...projectContent,
       ]),
     });
   },
@@ -211,6 +234,58 @@ function formatDashboardTitle(profile, currentUser) {
     .filter(Boolean)
     .join(' ');
   return `ULTTRA · ${name || currentUser?.email || 'User'}`;
+}
+
+function defaultProjectTabs() {
+  return [
+    { key: 'global', display_name: 'Global' },
+    { key: 'presttige', display_name: 'Presttige' },
+    { key: 'pets_lab', display_name: 'Pets Lab' },
+  ];
+}
+
+function projectTabList(tabs, selectedProject, selectProject) {
+  return h('nav', {
+    'aria-label': 'Projects',
+    style: {
+      display: 'flex',
+      gap: '8px',
+      flexWrap: 'wrap',
+      marginBottom: '20px',
+    },
+  }, tabs.map((tab) => {
+    const selected = tab.key === selectedProject;
+    return h('button', {
+      type: 'button',
+      class: 'button',
+      'aria-pressed': String(selected),
+      style: {
+        minHeight: '38px',
+        borderRadius: '999px',
+        border: selected ? '1px solid var(--theme--foreground)' : '1px solid var(--theme--border-color)',
+        background: 'var(--theme--background)',
+        color: 'var(--theme--foreground)',
+        fontWeight: selected ? 700 : 400,
+      },
+      onClick: () => selectProject(tab.key),
+    }, tab.display_name);
+  }));
+}
+
+function projectEmptyState(emptyState) {
+  return h('section', {
+    style: {
+      border: '1px solid var(--theme--border-color)',
+      borderRadius: '8px',
+      padding: '28px',
+      background: 'var(--theme--background)',
+      marginBottom: '20px',
+      maxWidth: '620px',
+    },
+  }, [
+    h('h2', { style: { margin: '0 0 8px', fontSize: '22px' } }, emptyState.title || 'No data yet'),
+    h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, emptyState.detail || 'Project registered. Data sources are not configured yet.'),
+  ]);
 }
 
 function activeMembersCard(value, tiers, open, toggle) {

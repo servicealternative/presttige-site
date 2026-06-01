@@ -15,6 +15,8 @@ const GA_CLIENT_ID = process.env.GA4_OAUTH_CLIENT_ID || '430778007708-uerfhfgt42
 const GA_PROPERTY_ID = process.env.GA4_PROPERTY_ID || '530348665';
 const FOUNDER_GLOBAL_CAP_PARAMETER = process.env.FOUNDER_GLOBAL_CAP_PARAMETER || '/presttige/founder-invite/global-cap';
 const FOUNDER_ADMIN_FUNCTION_NAME = process.env.FOUNDER_ADMIN_FUNCTION_NAME || 'presttige-founder-admin';
+const GLOBAL_PROJECT_KEY = 'global';
+const PRESTTIGE_PROJECT_KEY = 'presttige';
 
 const memberTiers = ['club', 'premier', 'patron', 'founder'];
 const dashboardStandards = Object.freeze({
@@ -67,10 +69,14 @@ export default {
         const user = await requireDashboardUser(req, context);
         const forceRefresh = String(req.query?.refresh || '').toLowerCase() === 'true';
         const standard = getDashboardStandard(user);
-        const dashboard = await getDashboard(user, standard, forceRefresh);
+        const projects = await readDashboardProjects(context);
+        const selectedProjectKey = normalizeProjectKey(req.query?.project || GLOBAL_PROJECT_KEY) || GLOBAL_PROJECT_KEY;
+        const dashboard = await getProjectDashboard(user, standard, forceRefresh, selectedProjectKey, projects);
         const eligibleInviter = await isInternalInviterEligible(user.email);
         res.json({
           ok: true,
+          project_tabs: projectTabs(projects),
+          selected_project: dashboard.project?.key || GLOBAL_PROJECT_KEY,
           current_user: {
             id: user.id,
             email: user.email,
@@ -166,10 +172,94 @@ async function requireDashboardUser(req, context) {
   return user;
 }
 
-async function getDashboard(user, standard, forceRefresh) {
+async function readDashboardProjects(context) {
+  const rows = await context.database('projects')
+    .select(
+      'id',
+      'name',
+      'key',
+      'display_name',
+      'active',
+      'ga4_property_id',
+      'stripe_account_or_tag',
+      'status',
+    )
+    .orderBy('id', 'asc');
+
+  return rows
+    .map((row) => {
+      const key = normalizeProjectKey(row.key || row.name);
+      const displayName = normalizeString(row.display_name || row.name);
+      const active = row.active === true || row.active === 1;
+      return {
+        id: row.id,
+        key,
+        display_name: displayName,
+        active,
+        ga4_property_id: normalizeString(row.ga4_property_id) || null,
+        stripe_account_or_tag: normalizeString(row.stripe_account_or_tag) || null,
+        status: normalizeString(row.status),
+        data_status: hasProjectData({ key, active, stripe_account_or_tag: row.stripe_account_or_tag }) ? 'live' : 'not_configured',
+      };
+    })
+    .filter((project) => project.key && project.display_name);
+}
+
+function projectTabs(projects) {
+  return [
+    {
+      key: GLOBAL_PROJECT_KEY,
+      display_name: 'Global',
+      active: true,
+      data_status: 'aggregate',
+    },
+    ...projects.map((project) => ({
+      key: project.key,
+      display_name: project.display_name,
+      active: project.active,
+      data_status: project.data_status,
+    })),
+  ];
+}
+
+async function getProjectDashboard(user, standard, forceRefresh, projectKey, projects) {
+  if (projectKey === GLOBAL_PROJECT_KEY) {
+    const activeProjectsWithData = projects.filter((project) => project.active && hasProjectData(project));
+    if (!activeProjectsWithData.length) {
+      return emptyProjectDashboard({
+        key: GLOBAL_PROJECT_KEY,
+        display_name: 'Global',
+        active: true,
+        data_status: 'aggregate',
+      }, standard, 'No active project data is configured yet.');
+    }
+    const dashboards = await Promise.all(activeProjectsWithData
+      .map((project) => getDashboard(user, standard, forceRefresh, project)));
+    return aggregateProjectDashboards(dashboards, standard, activeProjectsWithData);
+  }
+
+  const project = projects.find((item) => item.key === projectKey);
+  if (!project) {
+    return emptyProjectDashboard({
+      key: projectKey,
+      display_name: 'Project',
+      active: false,
+      data_status: 'not_configured',
+    }, standard, 'Project is not registered yet.');
+  }
+
+  if (!hasProjectData(project)) {
+    return emptyProjectDashboard(project, standard, `${project.display_name} has no data yet.`);
+  }
+
+  return getDashboard(user, standard, forceRefresh, project);
+}
+
+async function getDashboard(user, standard, forceRefresh, project = null) {
   const nowEpoch = Math.floor(Date.now() / 1000);
   const revenueScope = getRevenueScope(user, standard);
-  const cacheKey = `${CACHE_KEY}#${revenueScope.cache_key}`;
+  const projectKey = project?.key || PRESTTIGE_PROJECT_KEY;
+  const cacheKey = `${CACHE_KEY}#project#${projectKey}#${revenueScope.cache_key}`;
   if (!forceRefresh) {
     const cached = await ddb.send(new GetCommand({
       TableName: CACHE_TABLE_NAME,
@@ -179,6 +269,7 @@ async function getDashboard(user, standard, forceRefresh) {
     if (item?.expires_at_epoch && item.expires_at_epoch > nowEpoch && item.payload) {
       return {
         ...item.payload,
+        project: projectResponse(project),
         cache: {
           ...item.payload.cache,
           status: 'hit',
@@ -188,6 +279,7 @@ async function getDashboard(user, standard, forceRefresh) {
   }
 
   const payload = await computeDashboard(user, standard, revenueScope);
+  payload.project = projectResponse(project);
   const expiresAt = nowEpoch + CACHE_TTL_SECONDS;
   await ddb.send(new PutCommand({
     TableName: CACHE_TABLE_NAME,
@@ -205,6 +297,120 @@ async function getDashboard(user, standard, forceRefresh) {
       status: 'refresh',
     },
   };
+}
+
+function aggregateProjectDashboards(dashboards, standard, projects) {
+  const metrics = dashboards.reduce((sum, dashboard) => addDashboardMetrics(sum, dashboard.metrics), null);
+  const generatedAtValues = dashboards
+    .map((dashboard) => dashboard.cache?.generated_at)
+    .filter(Boolean)
+    .sort();
+  return {
+    project: {
+      key: GLOBAL_PROJECT_KEY,
+      display_name: 'Global',
+      active: true,
+      aggregate: true,
+      aggregate_project_keys: projects.map((project) => project.key),
+      data_status: 'aggregate',
+    },
+    metrics,
+    standard: standardResponse(standard),
+    cache: {
+      generated_at: generatedAtValues[generatedAtValues.length - 1] || new Date().toISOString(),
+      ttl_seconds: CACHE_TTL_SECONDS,
+      status: dashboards.some((dashboard) => dashboard.cache?.status === 'refresh') ? 'refresh' : 'hit',
+    },
+    exclusions: {
+      subscriber_synthetic_test: true,
+      ulttra_people_synthetic_test: true,
+    },
+  };
+}
+
+function addDashboardMetrics(current, metrics = {}) {
+  const base = current || {
+    members: {
+      active_total: 0,
+      by_tier: Object.fromEntries(memberTiers.map((tier) => [tier, 0])),
+    },
+    founders: {
+      active: 0,
+      cap: 0,
+    },
+    leads: {
+      last_30_days: 0,
+    },
+    revenue: {
+      month_to_date_cents: 0,
+      active_subscriptions: 0,
+      currency: 'USD',
+      revenue_scope: metrics.revenue?.revenue_scope || 'global',
+    },
+    website: {
+      active_users_7d: 0,
+      property_id: null,
+    },
+  };
+
+  const byTier = metrics.members?.by_tier || {};
+  for (const tier of memberTiers) {
+    base.members.by_tier[tier] += Number(byTier[tier] || 0);
+  }
+  base.members.active_total += Number(metrics.members?.active_total || 0);
+  base.founders.active += Number(metrics.founders?.active || 0);
+  base.founders.cap += Number(metrics.founders?.cap || 0);
+  base.leads.last_30_days += Number(metrics.leads?.last_30_days || 0);
+  base.revenue.month_to_date_cents += Number(metrics.revenue?.month_to_date_cents || 0);
+  base.revenue.active_subscriptions += Number(metrics.revenue?.active_subscriptions || 0);
+  base.revenue.currency = metrics.revenue?.currency || base.revenue.currency;
+  base.revenue.revenue_scope = metrics.revenue?.revenue_scope || base.revenue.revenue_scope;
+  base.revenue.month_to_date_display = formatUsd(base.revenue.month_to_date_cents);
+  base.website.active_users_7d += Number(metrics.website?.active_users_7d || 0);
+  base.website.property_id = metrics.website?.property_id || base.website.property_id;
+  return base;
+}
+
+function emptyProjectDashboard(project, standard, title) {
+  return {
+    project: {
+      ...projectResponse(project),
+      empty_state: {
+        title,
+        detail: 'Project registered. Data sources are not configured yet.',
+      },
+    },
+    metrics: null,
+    standard: standardResponse(standard),
+    cache: {
+      generated_at: new Date().toISOString(),
+      ttl_seconds: CACHE_TTL_SECONDS,
+      status: 'not_configured',
+    },
+    exclusions: {
+      subscriber_synthetic_test: true,
+      ulttra_people_synthetic_test: true,
+    },
+  };
+}
+
+function projectResponse(project = null) {
+  const key = project?.key || PRESTTIGE_PROJECT_KEY;
+  const displayName = project?.display_name || 'Presttige';
+  return {
+    key,
+    display_name: displayName,
+    active: project?.active === true,
+    data_status: project?.data_status || (hasProjectData(project) ? 'live' : 'not_configured'),
+    ga4_property_id: project?.ga4_property_id || null,
+    stripe_account_or_tag: project?.stripe_account_or_tag || null,
+  };
+}
+
+function hasProjectData(project) {
+  if (!project?.active) return false;
+  return project.key === PRESTTIGE_PROJECT_KEY
+    && normalizeProjectKey(project.stripe_account_or_tag) === PRESTTIGE_PROJECT_KEY;
 }
 
 async function computeDashboard(user, standard, revenueScope) {
@@ -563,6 +769,13 @@ function normalizeTier(value) {
 
 function normalizeType(value) {
   return normalizeTier(value);
+}
+
+function normalizeProjectKey(value) {
+  return normalizeString(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
 }
 
 function normalizeStripeId(value) {
