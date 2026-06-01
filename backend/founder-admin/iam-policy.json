@@ -29,6 +29,18 @@
       ]
     },
     {
+      "Sid": "FounderAdminReadEligibleInvitersMirror",
+      "Effect": "Allow",
+      "Action": "dynamodb:GetItem",
+      "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-eligible-inviters"
+    },
+    {
+      "Sid": "ReadDirectusSyncTokenForChairman",
+      "Effect": "Allow",
+      "Action": "ssm:GetParameter",
+      "Resource": "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/ulttra-sync/directus-token"
+    },
+    {
       "Sid": "ReadFounderTokenSecret",
       "Effect": "Allow",
       "Action": "secretsmanager:GetSecretValue",
@@ -43,7 +55,8 @@
       ],
       "Resource": [
         "arn:aws:ses:us-east-1:343218208384:identity/presttige.net",
-        "arn:aws:ses:us-east-1:343218208384:identity/committee@presttige.net"
+        "arn:aws:ses:us-east-1:343218208384:identity/committee@presttige.net",
+        "arn:aws:ses:us-east-1:343218208384:identity/founders@presttige.net"
       ]
     },
     {
