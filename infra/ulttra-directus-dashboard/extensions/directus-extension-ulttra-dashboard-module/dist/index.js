@@ -207,6 +207,7 @@ const Dashboard = defineComponent({
         metricCard('Revenue this month', revenue.month_to_date_display || '$0.00', `${revenue.active_subscriptions ?? 0} active subscriptions`),
         metricCard('Website visitors', ga.active_users_7d ?? 0, 'Active users, last 7 days'),
       ]),
+      analyticsSection(metrics),
       data.current_user?.eligible_inviter ? h('section', {
         style: {
           border: '1px solid var(--theme--border-color)',
@@ -529,6 +530,163 @@ function metricCard(label, value, detail) {
     h('strong', { style: { fontSize: '30px', lineHeight: '36px' } }, String(value)),
     h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, detail),
   ]);
+}
+
+function analyticsSection(metrics) {
+  const website = metrics.website || {};
+  const geography = website.geography || {};
+  const memberGeography = metrics.member_geography || {};
+  const newReturningRows = (website.new_vs_returning?.rows || []).map((row) => ({
+    label: titleCase(row.label),
+    value: row.value,
+    display_value: `${row.value} (${formatPercent(row.percent)})`,
+  }));
+  return h('section', {
+    style: {
+      marginBottom: '28px',
+    },
+  }, [
+    h('div', {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '16px',
+        alignItems: 'flex-end',
+        marginBottom: '14px',
+      },
+    }, [
+      h('div', [
+        h('h2', { style: { margin: '0 0 6px', fontSize: '22px' } }, 'Analytics'),
+        h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, `${website.window_label || 'Last 30 days'}, GA4 and member geography.`),
+      ]),
+    ]),
+    h('div', {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: '16px',
+      },
+    }, [
+      analyticsCard('Total website users', [
+        h('strong', { style: { fontSize: '30px', lineHeight: '36px' } }, String(website.total_users_window ?? 0)),
+        h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, `${website.window_label || 'Last 30 days'}, totalUsers`),
+        h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, `Active users, last 7 days: ${website.active_users_7d ?? 0}`),
+      ]),
+      monthComparisonCard(website.month_comparison),
+      analyticsCard('Website geography', [
+        smallHeading('Countries'),
+        rankedList(geography.countries || [], 'No country data yet'),
+        smallHeading('Cities'),
+        rankedList(geography.cities || [], 'No city data yet'),
+      ]),
+      analyticsCard('Traffic sources', [
+        rankedList(website.traffic_sources || [], 'No source data yet'),
+        h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '12px' } }, 'Dimension: sessionDefaultChannelGroup'),
+      ]),
+      analyticsCard('New vs returning', [
+        rankedList(newReturningRows, 'No visitor type data yet'),
+        h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '12px' } }, 'Dimension: newVsReturning'),
+      ]),
+      analyticsCard('Member geography', [
+        smallHeading('Countries'),
+        rankedList(memberGeography.countries || [], 'No member country data yet'),
+        smallHeading('Cities'),
+        rankedList(memberGeography.cities || [], 'No member city data yet'),
+      ]),
+    ]),
+  ]);
+}
+
+function analyticsCard(title, children) {
+  return h('article', {
+    style: {
+      ...cardStyle,
+      minHeight: 'auto',
+    },
+  }, [
+    h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, title),
+    ...children,
+  ]);
+}
+
+function monthComparisonCard(comparison) {
+  if (!comparison) {
+    return analyticsCard('Current vs last month', [
+      h('strong', { style: { fontSize: '30px', lineHeight: '36px' } }, '0'),
+      h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, 'No month comparison yet'),
+    ]);
+  }
+  const current = comparison.current || {};
+  const previous = comparison.previous || {};
+  const delta = Number(comparison.delta || 0);
+  const direction = comparison.direction || 'flat';
+  const deltaText = `${delta > 0 ? '+' : ''}${delta}`;
+  const percentText = comparison.delta_percent === null || comparison.delta_percent === undefined
+    ? ''
+    : `, ${comparison.delta_percent > 0 ? '+' : ''}${comparison.delta_percent}%`;
+  return analyticsCard('Current vs last month', [
+    h('strong', { style: { fontSize: '30px', lineHeight: '36px' } }, String(current.users ?? 0)),
+    h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, `Current month, activeUsers. Last month: ${previous.users ?? 0}.`),
+    h('span', {
+      style: {
+        color: direction === 'up' ? 'var(--success)' : direction === 'down' ? 'var(--danger)' : 'var(--theme--foreground-subdued)',
+        fontSize: '13px',
+      },
+    }, `${directionLabel(direction)} ${deltaText}${percentText}`),
+  ]);
+}
+
+function smallHeading(label) {
+  return h('span', {
+    style: {
+      color: 'var(--theme--foreground)',
+      fontSize: '12px',
+      fontWeight: 700,
+      marginTop: '4px',
+    },
+  }, label);
+}
+
+function rankedList(rows, emptyText) {
+  if (!rows.length) {
+    return h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, emptyText);
+  }
+  return h('ol', {
+    style: {
+      display: 'grid',
+      gap: '6px',
+      margin: 0,
+      paddingLeft: '18px',
+      color: 'var(--theme--foreground-subdued)',
+      fontSize: '13px',
+    },
+  }, rows.map((row) => h('li', {
+    style: {
+      paddingLeft: '2px',
+    },
+  }, [
+    h('span', null, row.label),
+    h('strong', { style: { color: 'var(--theme--foreground)', float: 'right', marginLeft: '12px' } }, String(row.display_value ?? row.value)),
+  ])));
+}
+
+function titleCase(value) {
+  return String(value || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function formatPercent(value) {
+  const numeric = Number(value || 0);
+  return `${numeric.toFixed(numeric % 1 === 0 ? 0 : 1)}%`;
+}
+
+function directionLabel(direction) {
+  if (direction === 'up') return 'Up';
+  if (direction === 'down') return 'Down';
+  return 'Flat';
 }
 
 function fieldInput(label, value, update, type, options = {}) {

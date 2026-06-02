@@ -48,6 +48,13 @@ def contributions(item):
                 "customer_id": normalize_string(item.get("stripe_customer_id")),
             }
 
+        country = normalize_geo(item.get("country") or item.get("member_country"))
+        city = normalize_geo(item.get("city") or item.get("member_city"))
+        if country:
+            output[("member_geo_country", country)] = 1
+        if city:
+            output[("member_geo_city", city)] = 1
+
     created_at = parse_date(item.get("created_at"))
     if created_at:
         output[("lead_day", created_at.date().isoformat())] = 1
@@ -137,6 +144,15 @@ def normalize_string(value):
 
 def normalize_tier(value):
     return normalize_string(value).lower().replace(" ", "_").replace("-", "_")
+
+
+def normalize_geo(value):
+    raw = normalize_string(value)
+    if not raw:
+        return ""
+    if raw.lower() in {"unknown", "not set", "(not set)", "n/a", "na"}:
+        return ""
+    return " ".join(raw.split())
 
 
 def is_synthetic(value):

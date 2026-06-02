@@ -18,12 +18,12 @@ yet. That belongs to the later permissions area.
 - Directus endpoint: `GET /ulttra-dashboard`
 - Founder invite endpoint: `POST /ulttra-dashboard/founder-invite`
 - ECS service: `ulttra-crm-directus`
-- ECS task definition: `ulttra-crm-directus:15`
+- ECS task definition: `ulttra-crm-directus:56`
 - ECR repository: `ulttra-crm-directus`
-- Dashboard image tag: `dashboard-consultant-access-20260531T154939Z`
+- Dashboard image tag: `dashboard-analytics-block1-20260602T105622Z`
 - Metrics table: `ulttra-crm-dashboard-metrics`
 - Metrics sync Lambda: `presttige-dashboard-metrics-sync`
-- Metrics sync CodeSha256: `5I6QlKayhLowpnX0VdZbc2e5ioKhvuVpvUHXeQ+cOs8=`
+- Metrics sync CodeSha256: `IZd53rYFHWWazm9CrkMdSw2B/8OhzJAzER9Rhs+Pisg=`
 - Cache table: `ulttra-crm-dashboard-cache`
 - Cache TTL: 300 seconds
 - Runtime IAM policy: `ulttra-crm-dashboard-read-api` on
@@ -59,6 +59,18 @@ v1 returns and displays:
 - Active Stripe subscriptions linked to real active members, scoped by the
   logged-in user's Standard.
 - Website visitors from GA4, active users in the last 7 days.
+- Analytics block 1:
+  - Total website users from GA4 `totalUsers`, last 30 days.
+  - Website geography from GA4 `activeUsers` ranked by `country` and `city`,
+    last 30 days.
+  - Current calendar month vs last calendar month from GA4 `activeUsers`, UTC
+    calendar boundaries.
+  - Traffic sources from GA4 `activeUsers` ranked by
+    `sessionDefaultChannelGroup`, last 30 days.
+  - New vs returning users from GA4 `activeUsers` by `newVsReturning`, last 30
+    days.
+  - Member geography from `presttige-db` active real member `country` and
+    `city`, through `ulttra-crm-dashboard-metrics`.
 - Founder Invitation action.
 
 ## Permissions Standards v1
@@ -156,6 +168,26 @@ Verified on 2026-05-31 after the Standards v1 deploy:
 - Synthetic Presttige records present but excluded: 19
 - Synthetic Ulttra people present but excluded: 0
 
+Verified analytics block 1 on 2026-06-02 after the dashboard analytics deploy:
+
+- Served assets:
+  - `index.ulttra-dashboard-20260602T105622Z.entry.js`
+  - `v-form-ulttra-dashboard-20260602T105622Z.js`
+  - `ulttra-dashboard-source-20260602T105622Z.js`
+- Total website users, last 30 days: 23.
+- Active users, last 7 days: 6.
+- Website countries, last 30 days: United Arab Emirates 12, Brazil 2,
+  Portugal 2, Germany 1, India 1.
+- Website cities, last 30 days: Dubai 11, Sharjah 5, Abu Dhabi 4,
+  Aparecida de Goiania 1, Colombo 1.
+- Current month vs last month, GA4 `activeUsers`: 2 for 2026-06-01 to
+  2026-06-02, 22 for 2026-05-01 to 2026-05-31, delta -20, -90.9%.
+- Traffic sources, `sessionDefaultChannelGroup`: Direct 12, Unassigned 8,
+  Organic Social 2, Organic Search 1, Organic Shopping 1.
+- New vs returning, `newVsReturning`: returning 14, 51.9%, new 13, 48.1%.
+- Member geography: United Arab Emirates 1, Dubai 1.
+- WebKit render verified on the live `/admin/ulttra-dashboard` route.
+
 ## Safety Notes
 
 - No payment, activation, checkout, webhook, or subscriber mutation logic was
@@ -172,7 +204,12 @@ Verified on 2026-05-31 after the Standards v1 deploy:
 
 The one-time seed scanned the current table to create aggregate counters. From
 there, `presttige-dashboard-metrics-sync` keeps the counters current from the
-`presttige-db` DynamoDB Stream using `NEW_AND_OLD_IMAGES`.
+`presttige-db` DynamoDB Stream using `NEW_AND_OLD_IMAGES`, including active
+real member country and city counters.
 
 The dashboard endpoint reads only the aggregate metrics table, Stripe, GA4,
 SSM config, the inviter mirror, and the dashboard cache.
+
+Dashboard responses are cached in `ulttra-crm-dashboard-cache` for 300 seconds.
+The analytics block uses the same cache, so GA4 and Stripe values can be up to
+five minutes stale unless the dashboard is refreshed with `refresh=true`.

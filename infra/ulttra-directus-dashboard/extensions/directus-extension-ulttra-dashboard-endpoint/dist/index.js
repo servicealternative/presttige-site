@@ -15,6 +15,8 @@ const GA_CLIENT_SECRET_PARAMETER = process.env.GA4_OAUTH_CLIENT_SECRET_PARAMETER
 const GA_REFRESH_TOKEN_PARAMETER = process.env.GA4_OAUTH_REFRESH_TOKEN_PARAMETER || '/ulttra/ga/oauth-refresh-token';
 const GA_CLIENT_ID = process.env.GA4_OAUTH_CLIENT_ID || '430778007708-uerfhfgt42k4qfbgcobb9f0cpqi6om9e.apps.googleusercontent.com';
 const GA_PROPERTY_ID = process.env.GA4_PROPERTY_ID || '530348665';
+const GA_ANALYTICS_WINDOW_DAYS = Number(process.env.GA4_ANALYTICS_WINDOW_DAYS || 30);
+const GA_RANK_LIMIT = Number(process.env.GA4_RANK_LIMIT || 5);
 const FOUNDER_GLOBAL_CAP_PARAMETER = process.env.FOUNDER_GLOBAL_CAP_PARAMETER || '/presttige/founder-invite/global-cap';
 const FOUNDER_ADMIN_FUNCTION_NAME = process.env.FOUNDER_ADMIN_FUNCTION_NAME || 'presttige-founder-admin';
 const COMMITTEE_EMAIL_FROM = process.env.COMMITTEE_EMAIL_FROM || 'committee@presttige.net';
@@ -399,7 +401,30 @@ function addDashboardMetrics(current, metrics = {}) {
     },
     website: {
       active_users_7d: 0,
+      total_users_window: 0,
+      window_label: `${GA_ANALYTICS_WINDOW_DAYS} days`,
+      window_start: `${GA_ANALYTICS_WINDOW_DAYS}daysAgo`,
+      window_end: 'today',
+      geography: {
+        countries: [],
+        cities: [],
+        metric: 'activeUsers',
+        dimension_countries: 'country',
+        dimension_cities: 'city',
+      },
+      month_comparison: null,
+      traffic_sources: [],
+      traffic_source_dimension: 'sessionDefaultChannelGroup',
+      new_vs_returning: {
+        dimension: 'newVsReturning',
+        rows: [],
+        total_active_users: 0,
+      },
       property_id: null,
+    },
+    member_geography: {
+      countries: [],
+      cities: [],
     },
   };
 
@@ -417,7 +442,26 @@ function addDashboardMetrics(current, metrics = {}) {
   base.revenue.revenue_scope = metrics.revenue?.revenue_scope || base.revenue.revenue_scope;
   base.revenue.month_to_date_display = formatUsd(base.revenue.month_to_date_cents);
   base.website.active_users_7d += Number(metrics.website?.active_users_7d || 0);
+  base.website.total_users_window += Number(metrics.website?.total_users_window || 0);
+  base.website.window_label = metrics.website?.window_label || base.website.window_label;
+  base.website.window_start = metrics.website?.window_start || base.website.window_start;
+  base.website.window_end = metrics.website?.window_end || base.website.window_end;
+  base.website.geography = {
+    countries: mergeRankedRows(base.website.geography.countries, metrics.website?.geography?.countries || []),
+    cities: mergeRankedRows(base.website.geography.cities, metrics.website?.geography?.cities || []),
+    metric: metrics.website?.geography?.metric || base.website.geography.metric,
+    dimension_countries: metrics.website?.geography?.dimension_countries || base.website.geography.dimension_countries,
+    dimension_cities: metrics.website?.geography?.dimension_cities || base.website.geography.dimension_cities,
+  };
+  base.website.traffic_sources = mergeRankedRows(base.website.traffic_sources, metrics.website?.traffic_sources || []);
+  base.website.traffic_source_dimension = metrics.website?.traffic_source_dimension || base.website.traffic_source_dimension;
+  base.website.new_vs_returning = mergeNewReturning(base.website.new_vs_returning, metrics.website?.new_vs_returning);
+  base.website.month_comparison = mergeMonthComparison(base.website.month_comparison, metrics.website?.month_comparison);
   base.website.property_id = metrics.website?.property_id || base.website.property_id;
+  base.member_geography = {
+    countries: mergeRankedRows(base.member_geography.countries, metrics.member_geography?.countries || []),
+    cities: mergeRankedRows(base.member_geography.cities, metrics.member_geography?.cities || []),
+  };
   return base;
 }
 
@@ -507,6 +551,7 @@ async function computeDashboard(user, standard, revenueScope) {
       },
       revenue: stripeMetrics,
       website: gaMetrics,
+      member_geography: presttigeMetrics.memberGeography,
     },
     standard: standardResponse(standard),
     cache: {
@@ -529,7 +574,7 @@ async function readPresttigeMetrics(thirtyDaysAgo, now, revenueScope = null) {
   const attributionGroup = revenueScope?.kind === 'person' && revenueScope.person_id
     ? `attributed_stripe_subscription#person#${revenueScope.person_id}`
     : null;
-  const [counterResponse, leadsResponse, stripeLinksResponse, attributedStripeLinksResponse] = await Promise.all([
+  const [counterResponse, leadsResponse, stripeLinksResponse, attributedStripeLinksResponse, memberCountryResponse, memberCityResponse] = await Promise.all([
     ddb.send(new BatchGetCommand({
       RequestItems: {
         [METRICS_TABLE_NAME]: {
@@ -562,6 +607,20 @@ async function readPresttigeMetrics(thirtyDaysAgo, now, revenueScope = null) {
       ExpressionAttributeValues: { ':group': attributionGroup },
       ProjectionExpression: 'metric_key, customer_id',
     })) : Promise.resolve({ Items: [] }),
+    ddb.send(new QueryCommand({
+      TableName: METRICS_TABLE_NAME,
+      KeyConditionExpression: 'metric_group = :group',
+      ExpressionAttributeValues: { ':group': 'member_geo_country' },
+      ProjectionExpression: 'metric_key, #value',
+      ExpressionAttributeNames: { '#value': 'value' },
+    })),
+    ddb.send(new QueryCommand({
+      TableName: METRICS_TABLE_NAME,
+      KeyConditionExpression: 'metric_group = :group',
+      ExpressionAttributeValues: { ':group': 'member_geo_city' },
+      ProjectionExpression: 'metric_key, #value',
+      ExpressionAttributeNames: { '#value': 'value' },
+    })),
   ]);
 
   const counters = new Map((counterResponse.Responses?.[METRICS_TABLE_NAME] || [])
@@ -592,6 +651,10 @@ async function readPresttigeMetrics(thirtyDaysAgo, now, revenueScope = null) {
     realActiveCustomerIds,
     attributedActiveSubscriptionIds,
     attributedActiveCustomerIds,
+    memberGeography: {
+      countries: rankedMetricRows(memberCountryResponse.Items || []),
+      cities: rankedMetricRows(memberCityResponse.Items || []),
+    },
   };
 }
 
@@ -719,6 +782,115 @@ async function stripeList(secretKey, path, params) {
 }
 
 async function readGaMetrics(clientSecret, refreshToken) {
+  const accessToken = await getGaAccessToken(clientSecret, refreshToken);
+  const monthWindow = gaMonthWindows(new Date());
+  const analyticsWindow = {
+    startDate: `${GA_ANALYTICS_WINDOW_DAYS}daysAgo`,
+    endDate: 'today',
+  };
+  const [
+    activeUsers7dReport,
+    totalUsersWindowReport,
+    countryReport,
+    cityReport,
+    currentMonthReport,
+    lastMonthReport,
+    trafficSourceReport,
+    newReturningReport,
+  ] = await Promise.all([
+    gaRunReport(accessToken, {
+      dateRanges: [{ startDate: '7daysAgo', endDate: 'today' }],
+      metrics: [{ name: 'activeUsers' }],
+    }),
+    gaRunReport(accessToken, {
+      dateRanges: [analyticsWindow],
+      metrics: [{ name: 'totalUsers' }],
+    }),
+    gaRunReport(accessToken, {
+      dateRanges: [analyticsWindow],
+      dimensions: [{ name: 'country' }],
+      metrics: [{ name: 'activeUsers' }],
+      orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+      limit: GA_RANK_LIMIT,
+    }),
+    gaRunReport(accessToken, {
+      dateRanges: [analyticsWindow],
+      dimensions: [{ name: 'city' }],
+      metrics: [{ name: 'activeUsers' }],
+      orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+      limit: GA_RANK_LIMIT + 3,
+    }),
+    gaRunReport(accessToken, {
+      dateRanges: [{ startDate: monthWindow.current.start_date, endDate: monthWindow.current.end_date }],
+      metrics: [{ name: 'activeUsers' }],
+    }),
+    gaRunReport(accessToken, {
+      dateRanges: [{ startDate: monthWindow.previous.start_date, endDate: monthWindow.previous.end_date }],
+      metrics: [{ name: 'activeUsers' }],
+    }),
+    gaRunReport(accessToken, {
+      dateRanges: [analyticsWindow],
+      dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+      metrics: [{ name: 'activeUsers' }],
+      orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+      limit: GA_RANK_LIMIT,
+    }),
+    gaRunReport(accessToken, {
+      dateRanges: [analyticsWindow],
+      dimensions: [{ name: 'newVsReturning' }],
+      metrics: [{ name: 'activeUsers' }],
+      orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+      limit: 5,
+    }),
+  ]);
+  const activeUsers7d = firstMetricValue(activeUsers7dReport);
+  const totalUsersWindow = firstMetricValue(totalUsersWindowReport);
+  const currentMonthUsers = firstMetricValue(currentMonthReport);
+  const lastMonthUsers = firstMetricValue(lastMonthReport);
+  const newReturningRows = rankedGaRows(newReturningReport);
+  const newReturningTotal = newReturningRows.reduce((sum, row) => sum + row.value, 0);
+  return {
+    active_users_7d: activeUsers7d,
+    total_users_window: totalUsersWindow,
+    window_label: `Last ${GA_ANALYTICS_WINDOW_DAYS} days`,
+    window_start: analyticsWindow.startDate,
+    window_end: analyticsWindow.endDate,
+    geography: {
+      countries: rankedGaRows(countryReport),
+      cities: rankedGaRows(cityReport, 0, 0, GA_RANK_LIMIT + 3).filter((row) => !isUnsetDimension(row.label)).slice(0, GA_RANK_LIMIT),
+      metric: 'activeUsers',
+      dimension_countries: 'country',
+      dimension_cities: 'city',
+    },
+    month_comparison: {
+      metric: 'activeUsers',
+      current: {
+        ...monthWindow.current,
+        users: currentMonthUsers,
+      },
+      previous: {
+        ...monthWindow.previous,
+        users: lastMonthUsers,
+      },
+      delta: currentMonthUsers - lastMonthUsers,
+      direction: currentMonthUsers > lastMonthUsers ? 'up' : currentMonthUsers < lastMonthUsers ? 'down' : 'flat',
+      delta_percent: lastMonthUsers > 0 ? Math.round(((currentMonthUsers - lastMonthUsers) / lastMonthUsers) * 1000) / 10 : null,
+    },
+    traffic_sources: rankedGaRows(trafficSourceReport),
+    traffic_source_dimension: 'sessionDefaultChannelGroup',
+    new_vs_returning: {
+      dimension: 'newVsReturning',
+      rows: newReturningRows.map((row) => ({
+        ...row,
+        percent: newReturningTotal > 0 ? Math.round((row.value / newReturningTotal) * 1000) / 10 : 0,
+      })),
+      total_active_users: newReturningTotal,
+    },
+    property_id: GA_PROPERTY_ID,
+  };
+}
+
+async function getGaAccessToken(clientSecret, refreshToken) {
   const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -733,25 +905,123 @@ async function readGaMetrics(clientSecret, refreshToken) {
     throw new Error(`GA token refresh failed: ${tokenResponse.status}`);
   }
   const tokenPayload = await tokenResponse.json();
+  return tokenPayload.access_token;
+}
+
+async function gaRunReport(accessToken, body) {
   const reportResponse = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${GA_PROPERTY_ID}:runReport`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${tokenPayload.access_token}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      dateRanges: [{ startDate: '7daysAgo', endDate: 'today' }],
-      metrics: [{ name: 'activeUsers' }],
-    }),
+    body: JSON.stringify(body),
   });
   if (!reportResponse.ok) {
-    throw new Error(`GA4 read failed: ${reportResponse.status}`);
+    const detail = await reportResponse.text();
+    throw new Error(`GA4 read failed: ${reportResponse.status} ${detail}`);
   }
-  const report = await reportResponse.json();
+  return reportResponse.json();
+}
+
+function firstMetricValue(report, metricIndex = 0) {
+  return Number(report?.rows?.[0]?.metricValues?.[metricIndex]?.value || 0);
+}
+
+function rankedGaRows(report, dimensionIndex = 0, metricIndex = 0, limit = GA_RANK_LIMIT) {
+  return (report?.rows || [])
+    .map((row) => ({
+      label: normalizeString(row.dimensionValues?.[dimensionIndex]?.value),
+      value: Number(row.metricValues?.[metricIndex]?.value || 0),
+    }))
+    .filter((row) => row.label && row.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, limit);
+}
+
+function rankedMetricRows(items) {
+  return items
+    .map((item) => ({
+      label: normalizeString(item.metric_key),
+      value: Number(item.value || 0),
+    }))
+    .filter((row) => row.label && row.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, GA_RANK_LIMIT);
+}
+
+function mergeRankedRows(left = [], right = []) {
+  const totals = new Map();
+  for (const row of [...left, ...right]) {
+    const label = normalizeString(row.label);
+    if (!label) continue;
+    totals.set(label, (totals.get(label) || 0) + Number(row.value || 0));
+  }
+  return [...totals.entries()]
+    .map(([label, value]) => ({ label, value }))
+    .filter((row) => row.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, GA_RANK_LIMIT);
+}
+
+function mergeNewReturning(left = null, right = null) {
+  const rows = mergeRankedRows(left?.rows || [], right?.rows || []);
+  const total = rows.reduce((sum, row) => sum + row.value, 0);
   return {
-    active_users_7d: Number(report.rows?.[0]?.metricValues?.[0]?.value || 0),
-    property_id: GA_PROPERTY_ID,
+    dimension: 'newVsReturning',
+    rows: rows.map((row) => ({
+      ...row,
+      percent: total > 0 ? Math.round((row.value / total) * 1000) / 10 : 0,
+    })),
+    total_active_users: total,
   };
+}
+
+function mergeMonthComparison(left = null, right = null) {
+  if (!left && !right) return null;
+  const currentUsers = Number(left?.current?.users || 0) + Number(right?.current?.users || 0);
+  const previousUsers = Number(left?.previous?.users || 0) + Number(right?.previous?.users || 0);
+  const sample = right || left;
+  return {
+    metric: 'activeUsers',
+    current: {
+      ...(sample?.current || {}),
+      users: currentUsers,
+    },
+    previous: {
+      ...(sample?.previous || {}),
+      users: previousUsers,
+    },
+    delta: currentUsers - previousUsers,
+    direction: currentUsers > previousUsers ? 'up' : currentUsers < previousUsers ? 'down' : 'flat',
+    delta_percent: previousUsers > 0 ? Math.round(((currentUsers - previousUsers) / previousUsers) * 1000) / 10 : null,
+  };
+}
+
+function gaMonthWindows(now) {
+  const currentStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const previousStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+  const previousEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));
+  return {
+    current: {
+      label: 'Current month',
+      start_date: toDateOnly(currentStart),
+      end_date: toDateOnly(now),
+    },
+    previous: {
+      label: 'Last month',
+      start_date: toDateOnly(previousStart),
+      end_date: toDateOnly(previousEnd),
+    },
+  };
+}
+
+function toDateOnly(value) {
+  return value.toISOString().slice(0, 10);
+}
+
+function isUnsetDimension(value) {
+  return ['(not set)', 'not set', 'unknown', ''].includes(normalizeString(value).toLowerCase());
 }
 
 async function readParameters(names) {

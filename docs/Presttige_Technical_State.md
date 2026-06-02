@@ -228,12 +228,12 @@ Team roles.
 - Directus endpoint: `GET /ulttra-dashboard`
 - Founder invite action endpoint:
   `POST /ulttra-dashboard/founder-invite`
-- ECS task definition: `ulttra-crm-directus:15`
+- ECS task definition: `ulttra-crm-directus:56`
 - ECR repository: `ulttra-crm-directus`
-- Image tag: `dashboard-consultant-access-20260531T154939Z`
+- Image tag: `dashboard-analytics-block1-20260602T105622Z`
 - Metrics table: `ulttra-crm-dashboard-metrics`
 - Metrics sync Lambda: `presttige-dashboard-metrics-sync`
-- Metrics sync CodeSha256: `5I6QlKayhLowpnX0VdZbc2e5ioKhvuVpvUHXeQ+cOs8=`
+- Metrics sync CodeSha256: `IZd53rYFHWWazm9CrkMdSw2B/8OhzJAzER9Rhs+Pisg=`
 - Cache table: `ulttra-crm-dashboard-cache`
 - Cache TTL: 300 seconds
 - Task role policy: `ulttra-crm-dashboard-read-api`
@@ -250,6 +250,31 @@ Dashboard v1 data sources:
   refresh-token path stored in SSM.
 - SSM `/presttige/founder-invite/global-cap`, read-only.
 
+Analytics block 1:
+
+- GA4 total website users, last 30 days, metric `totalUsers`.
+- GA4 website geography, countries and cities ranked by `activeUsers`, last 30
+  days, dimensions `country` and `city`.
+- GA4 current calendar month vs last calendar month, metric `activeUsers`, UTC
+  calendar boundaries.
+- GA4 traffic sources ranked by `activeUsers`, dimension
+  `sessionDefaultChannelGroup`, last 30 days.
+- GA4 new vs returning users, dimension `newVsReturning`, last 30 days.
+- Member geography from `presttige-db` active real member `country` and `city`,
+  stored as aggregate counters in `ulttra-crm-dashboard-metrics`.
+- Live verified on 2026-06-02:
+  - total website users, last 30 days: 23
+  - active users, last 7 days: 6
+  - website countries: United Arab Emirates 12, Brazil 2, Portugal 2,
+    Germany 1, India 1
+  - website cities: Dubai 11, Sharjah 5, Abu Dhabi 4,
+    Aparecida de Goiania 1, Colombo 1
+  - current month vs last month: 2 vs 22, delta -20, -90.9%
+  - traffic sources: Direct 12, Unassigned 8, Organic Social 2,
+    Organic Search 1, Organic Shopping 1
+  - new vs returning: returning 14, 51.9%, new 13, 48.1%
+  - member geography: United Arab Emirates 1, Dubai 1
+
 Real-data-only enforcement:
 
 - Subscriber records with `synthetic_test=true` are excluded from every
@@ -263,7 +288,7 @@ Scale model:
 - The dashboard endpoint does not scan `presttige-db` on load.
 - The current aggregate metrics were seeded once from the live table.
 - Future `presttige-db` changes are reflected through DynamoDB Streams using
-  `NEW_AND_OLD_IMAGES`.
+  `NEW_AND_OLD_IMAGES`, including active real member country and city.
 - The runtime endpoint reads the aggregate metrics table, the dashboard cache,
   Stripe, GA4, SSM config, and the inviter mirror.
 
