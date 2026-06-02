@@ -34,6 +34,11 @@ const Dashboard = defineComponent({
     const tierDetailOpen = ref(false);
     const selectedPriorityMemberId = ref('');
     const selectedProject = ref('global');
+    const financeMonth = ref('');
+    const financeBusy = ref(false);
+    const financeMessage = ref('');
+    const newCostName = ref('');
+    const newCostAmount = ref('');
 
     async function loadDashboard(force = false, projectKey = selectedProject.value) {
       loading.value = true;
@@ -41,11 +46,13 @@ const Dashboard = defineComponent({
       try {
         const params = { project: projectKey };
         if (force) params.refresh = 'true';
+        if (financeMonth.value) params.finance_month = financeMonth.value;
         const response = await api.get('/ulttra-dashboard', {
           params,
         });
-        payload.value = response.data;
+        payload.value = prepareDashboardPayload(response.data);
         selectedProject.value = response.data?.selected_project || projectKey;
+        financeMonth.value = response.data?.metrics?.manual_finance?.month_key || financeMonth.value;
       } catch (err) {
         error.value = err?.response?.data?.error || 'Dashboard could not be loaded.';
       } finally {
@@ -143,6 +150,88 @@ const Dashboard = defineComponent({
       loadDashboard(false, projectKey);
     }
 
+    async function changeFinanceMonth(monthKey) {
+      financeMonth.value = monthKey;
+      await loadDashboard(true);
+    }
+
+    async function createCostCategory() {
+      await runFinanceAction(async () => {
+        const finance = payload.value?.metrics?.manual_finance || {};
+        await api.post('/ulttra-dashboard/finance/categories', {
+          project_key: finance.project_key || selectedProject.value,
+          month_key: finance.month_key || financeMonth.value,
+          name: newCostName.value,
+          amount: newCostAmount.value,
+        });
+        newCostName.value = '';
+        newCostAmount.value = '';
+      });
+    }
+
+    async function saveCostCategory(category) {
+      await runFinanceAction(async () => {
+        const finance = payload.value?.metrics?.manual_finance || {};
+        await api.patch(`/ulttra-dashboard/finance/categories/${category.id}`, {
+          project_key: finance.project_key || selectedProject.value,
+          month_key: finance.month_key || financeMonth.value,
+          name: category.draft_name,
+        });
+      });
+    }
+
+    async function saveCostAmount(category) {
+      await runFinanceAction(async () => {
+        const finance = payload.value?.metrics?.manual_finance || {};
+        await api.put('/ulttra-dashboard/finance/costs', {
+          project_key: finance.project_key || selectedProject.value,
+          month_key: finance.month_key || financeMonth.value,
+          category_id: category.id,
+          amount: category.draft_amount,
+        });
+      });
+    }
+
+    async function removeCostCategory(category) {
+      await runFinanceAction(async () => {
+        const finance = payload.value?.metrics?.manual_finance || {};
+        await api.delete(`/ulttra-dashboard/finance/categories/${category.id}`, {
+          params: {
+            project_key: finance.project_key || selectedProject.value,
+            month_key: finance.month_key || financeMonth.value,
+          },
+        });
+      });
+    }
+
+    async function saveRevenueGoal(periodType) {
+      await runFinanceAction(async () => {
+        const finance = payload.value?.metrics?.manual_finance || {};
+        const goal = finance.goals?.[periodType] || {};
+        await api.put('/ulttra-dashboard/finance/goals', {
+          project_key: finance.project_key || selectedProject.value,
+          month_key: finance.month_key || financeMonth.value,
+          period_type: periodType,
+          period_key: goal.period_key,
+          amount: goal.draft_amount,
+        });
+      });
+    }
+
+    async function runFinanceAction(action) {
+      financeBusy.value = true;
+      financeMessage.value = '';
+      try {
+        await action();
+        await loadDashboard(true);
+        financeMessage.value = 'Financial values saved.';
+      } catch (err) {
+        financeMessage.value = err?.response?.data?.error || err?.response?.data?.message || 'Financial values could not be saved.';
+      } finally {
+        financeBusy.value = false;
+      }
+    }
+
     onMounted(() => {
       loadUserProfile();
       loadDashboard(false);
@@ -170,10 +259,21 @@ const Dashboard = defineComponent({
       tierDetailOpen,
       selectedPriorityMemberId,
       selectedProject,
+      financeMonth,
+      financeBusy,
+      financeMessage,
+      newCostName,
+      newCostAmount,
       loadDashboard,
       selectProject,
       submitInvite,
       submitPresttigeInvitation,
+      changeFinanceMonth,
+      createCostCategory,
+      saveCostCategory,
+      saveCostAmount,
+      removeCostCategory,
+      saveRevenueGoal,
     };
   },
   render() {
@@ -210,6 +310,21 @@ const Dashboard = defineComponent({
         metricCard('Revenue this month', revenue.month_to_date_display || '$0.00', `${revenue.active_subscriptions ?? 0} active subscriptions`),
         metricCard('Website visitors', ga.active_users_7d ?? 0, 'Active users, last 7 days'),
       ]),
+      data.current_user?.is_chairman && metrics.manual_finance ? manualFinanceSection({
+        finance: metrics.manual_finance,
+        busy: this.financeBusy,
+        message: this.financeMessage,
+        newCostName: this.newCostName,
+        newCostAmount: this.newCostAmount,
+        updateNewCostName: (value) => { this.newCostName = value; },
+        updateNewCostAmount: (value) => { this.newCostAmount = value; },
+        changeMonth: (value) => this.changeFinanceMonth(value),
+        createCategory: () => this.createCostCategory(),
+        saveCategory: (category) => this.saveCostCategory(category),
+        saveAmount: (category) => this.saveCostAmount(category),
+        removeCategory: (category) => this.removeCostCategory(category),
+        saveGoal: (periodType) => this.saveRevenueGoal(periodType),
+      }) : null,
       analyticsSection(metrics),
       founderPatronMembersSection(metrics.priority_members || [], this.selectedPriorityMemberId, (memberId) => {
         this.selectedPriorityMemberId = this.selectedPriorityMemberId === memberId ? '' : memberId;
@@ -348,6 +463,27 @@ function formatDashboardTitle(profile, currentUser) {
     .filter(Boolean)
     .join(' ');
   return `ULTTRA · ${name || currentUser?.email || 'User'}`;
+}
+
+function prepareDashboardPayload(data) {
+  const finance = data?.metrics?.manual_finance;
+  if (!finance) return data;
+  finance.categories = (finance.categories || []).map((category) => ({
+    ...category,
+    draft_name: category.draft_name ?? category.name ?? '',
+    draft_amount: category.draft_amount ?? centsToAmountInput(category.amount_cents),
+  }));
+  finance.goals = finance.goals || {};
+  for (const key of ['month', 'year']) {
+    if (finance.goals[key]) {
+      finance.goals[key].draft_amount = finance.goals[key].draft_amount ?? centsToAmountInput(finance.goals[key].amount_cents);
+    }
+  }
+  return data;
+}
+
+function centsToAmountInput(cents) {
+  return (Number(cents || 0) / 100).toFixed(2);
 }
 
 function defaultProjectTabs() {
@@ -535,6 +671,273 @@ function metricCard(label, value, detail) {
     h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, label),
     h('strong', { style: { fontSize: '30px', lineHeight: '36px' } }, String(value)),
     h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, detail),
+  ]);
+}
+
+function manualFinanceSection({
+  finance,
+  busy,
+  message,
+  newCostName,
+  newCostAmount,
+  updateNewCostName,
+  updateNewCostAmount,
+  changeMonth,
+  createCategory,
+  saveCategory,
+  saveAmount,
+  removeCategory,
+  saveGoal,
+}) {
+  return h('section', {
+    style: {
+      border: '1px solid var(--theme--border-color)',
+      borderRadius: '8px',
+      padding: '24px',
+      background: 'var(--theme--background)',
+      marginBottom: '28px',
+    },
+  }, [
+    h('div', {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '16px',
+        alignItems: 'flex-end',
+        marginBottom: '18px',
+      },
+    }, [
+      h('div', [
+        h('h2', { style: { margin: '0 0 6px', fontSize: '22px' } }, 'Costs, goals, profit'),
+        h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, finance.scope_note || 'Manual financial values for this dashboard tab.'),
+      ]),
+      h('label', {
+        style: {
+          display: 'grid',
+          gap: '6px',
+          minWidth: '160px',
+        },
+      }, [
+        h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '12px' } }, 'Month'),
+        h('input', {
+          type: 'month',
+          value: finance.month_key,
+          disabled: busy,
+          style: inputStyle(),
+          onChange: (event) => changeMonth(event.target.value),
+        }),
+      ]),
+    ]),
+    h('div', {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '16px',
+        marginBottom: '20px',
+      },
+    }, [
+      financeSummaryCard('Revenue', finance.revenue_month_display || '$0.00', `Existing dashboard revenue, ${finance.month_key}`),
+      financeSummaryCard('Costs', finance.total_costs_display || '$0.00', 'AWS automatic plus manual categories'),
+      financeSummaryCard('Profit', finance.profit_month_display || '$0.00', 'Revenue minus costs', Number(finance.profit_month_cents || 0)),
+      goalCard('Month goal', finance.goals?.month, () => saveGoal('month'), busy),
+      goalCard('Year goal', finance.goals?.year, () => saveGoal('year'), busy),
+    ]),
+    h('div', {
+      style: {
+        display: 'grid',
+        gap: '12px',
+      },
+    }, [
+      h('div', {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gap: '12px',
+        alignItems: 'end',
+      },
+      }, [
+        fieldInput('New cost category', newCostName, updateNewCostName, 'text', {
+          name: 'new_cost_category',
+          autocomplete: 'off',
+        }),
+        amountField('Monthly value', newCostAmount, updateNewCostAmount, busy),
+        h('button', {
+          class: 'button',
+          type: 'button',
+          disabled: busy || !newCostName,
+          style: {
+            minHeight: '44px',
+            whiteSpace: 'nowrap',
+          },
+          onClick: createCategory,
+        }, busy ? 'Saving' : 'Add cost'),
+      ]),
+      autoAwsCostRow(finance.aws_cost),
+      finance.categories?.length ? h('div', {
+        style: {
+          display: 'grid',
+          gap: '8px',
+        },
+      }, finance.categories.map((category) => costCategoryRow({
+        category,
+        busy,
+        saveCategory,
+        saveAmount,
+        removeCategory,
+      }))) : h('div', {
+        style: {
+          border: '1px solid var(--theme--border-color)',
+          borderRadius: '8px',
+          padding: '18px',
+          color: 'var(--theme--foreground-subdued)',
+        },
+      }, 'No cost categories yet'),
+    ]),
+    message ? h('p', {
+      style: {
+        margin: '14px 0 0',
+        color: message.includes('could not') ? 'var(--danger)' : 'var(--success)',
+      },
+    }, message) : null,
+  ]);
+}
+
+function financeSummaryCard(label, value, detail, signedValue = null) {
+  const color = signedValue == null
+    ? 'var(--theme--foreground)'
+    : signedValue < 0
+      ? 'var(--danger)'
+      : 'var(--success)';
+  return h('article', { style: { ...cardStyle, minHeight: '112px' } }, [
+    h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, label),
+    h('strong', { style: { fontSize: '30px', lineHeight: '36px', color } }, value),
+    h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, detail),
+  ]);
+}
+
+function autoAwsCostRow(awsCost) {
+  if (!awsCost) return null;
+  return h('div', {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'minmax(180px, 1fr) minmax(140px, 180px) minmax(220px, 1fr)',
+      gap: '10px',
+      alignItems: 'center',
+      border: '1px solid var(--theme--border-color)',
+      borderRadius: '8px',
+      padding: '12px',
+      background: 'var(--theme--background-subdued, var(--theme--background))',
+    },
+  }, [
+    h('div', [
+      h('span', { style: { display: 'block', color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, 'Automatic cost'),
+      h('strong', { style: { fontSize: '16px' } }, awsCost.name || 'AWS'),
+    ]),
+    h('div', [
+      h('span', { style: { display: 'block', color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, 'Month-to-date'),
+      h('strong', { style: { fontSize: '16px' } }, awsCost.amount_display || '$0.00'),
+    ]),
+    h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, `${awsCost.period_start || ''} to ${awsCost.period_end || ''}${awsCost.estimated ? ', estimated' : ''}`),
+  ]);
+}
+
+function goalCard(label, goal, save, busy) {
+  const progress = Number(goal?.progress_percent || 0);
+  return h('article', { style: { ...cardStyle, minHeight: '112px' } }, [
+    h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, label),
+    h('div', {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: '1fr auto',
+        gap: '10px',
+        alignItems: 'end',
+      },
+    }, [
+      amountField('Revenue goal', goal?.draft_amount || '0.00', (value) => { goal.draft_amount = value; }, busy),
+      h('button', {
+        class: 'button',
+        type: 'button',
+        disabled: busy,
+        style: {
+          minHeight: '44px',
+        },
+        onClick: save,
+      }, 'Save'),
+    ]),
+    h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, `${goal?.actual_display || '$0.00'} actual, ${progress}%`),
+    h('div', {
+      style: {
+        height: '6px',
+        borderRadius: '999px',
+        background: 'var(--theme--background-subdued, var(--theme--border-color))',
+        overflow: 'hidden',
+      },
+    }, [
+      h('div', {
+        style: {
+          width: `${Math.max(0, Math.min(progress, 100))}%`,
+          height: '100%',
+          background: 'var(--theme--foreground-accent)',
+        },
+      }),
+    ]),
+  ]);
+}
+
+function costCategoryRow({ category, busy, saveCategory, saveAmount, removeCategory }) {
+  return h('div', {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+      gap: '10px',
+      alignItems: 'end',
+      border: '1px solid var(--theme--border-color)',
+      borderRadius: '8px',
+      padding: '12px',
+    },
+  }, [
+    fieldInput('Category', category.draft_name, (value) => { category.draft_name = value; }, 'text', {
+      name: `cost_category_${category.id}`,
+      autocomplete: 'off',
+      required: true,
+    }),
+    amountField('Monthly cost', category.draft_amount, (value) => { category.draft_amount = value; }, busy),
+    h('button', {
+      class: 'button',
+      type: 'button',
+      disabled: busy || !category.draft_name,
+      style: { minHeight: '44px' },
+      onClick: () => saveCategory(category),
+    }, 'Rename'),
+    h('button', {
+      class: 'button',
+      type: 'button',
+      disabled: busy,
+      style: { minHeight: '44px' },
+      onClick: () => saveAmount(category),
+    }, 'Save value'),
+    h('button', {
+      class: 'button',
+      type: 'button',
+      disabled: busy,
+      style: { minHeight: '44px' },
+      onClick: () => removeCategory(category),
+    }, 'Remove'),
+  ]);
+}
+
+function amountField(label, value, update, disabled) {
+  return h('label', { style: { display: 'flex', flexDirection: 'column', gap: '6px' } }, [
+    h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, label),
+    h('input', {
+      type: 'number',
+      min: '0',
+      step: '0.01',
+      value,
+      disabled,
+      style: inputStyle(),
+      onInput: (event) => update(event.target.value),
+    }),
   ]);
 }
 
@@ -832,17 +1235,21 @@ function fieldInput(label, value, update, type, options = {}) {
       value,
       required: options.required === true,
       autocomplete: options.autocomplete,
-      style: {
-        height: '44px',
-        borderRadius: '6px',
-        border: '1px solid var(--theme--border-color)',
-        padding: '0 12px',
-        background: 'var(--theme--form--field--input--background)',
-        color: 'var(--theme--foreground)',
-      },
+      style: inputStyle(),
       onInput: (event) => update(event.target.value),
     }),
   ]);
+}
+
+function inputStyle() {
+  return {
+    height: '44px',
+    borderRadius: '6px',
+    border: '1px solid var(--theme--border-color)',
+    padding: '0 12px',
+    background: 'var(--theme--form--field--input--background)',
+    color: 'var(--theme--foreground)',
+  };
 }
 
 export default {

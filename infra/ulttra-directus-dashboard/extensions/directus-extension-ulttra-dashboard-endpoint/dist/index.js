@@ -5,6 +5,7 @@ import { GetParameterCommand, GetParametersCommand, SSMClient } from '@aws-sdk/c
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 
 const REGION = process.env.AWS_REGION || 'us-east-1';
+const COST_EXPLORER_REGION = process.env.AWS_COST_EXPLORER_REGION || 'us-east-1';
 const CACHE_TABLE_NAME = process.env.DASHBOARD_CACHE_TABLE_NAME || 'ulttra-crm-dashboard-cache';
 const METRICS_TABLE_NAME = process.env.DASHBOARD_METRICS_TABLE_NAME || 'ulttra-crm-dashboard-metrics';
 const AUDIT_TABLE_NAME = process.env.AUDIT_TABLE_NAME || 'presttige-review-audit';
@@ -21,6 +22,9 @@ const FOUNDER_GLOBAL_CAP_PARAMETER = process.env.FOUNDER_GLOBAL_CAP_PARAMETER ||
 const FOUNDER_ADMIN_FUNCTION_NAME = process.env.FOUNDER_ADMIN_FUNCTION_NAME || 'presttige-founder-admin';
 const COMMITTEE_EMAIL_FROM = process.env.COMMITTEE_EMAIL_FROM || 'committee@presttige.net';
 const EXPRESS_INTEREST_URL = process.env.EXPRESS_INTEREST_URL || 'https://presttige.net/?presttige_invited=1#express-interest';
+const COST_CATEGORIES_COLLECTION = 'ulttra_dashboard_cost_categories';
+const COST_VALUES_COLLECTION = 'ulttra_dashboard_cost_monthly_values';
+const REVENUE_GOALS_COLLECTION = 'ulttra_dashboard_revenue_goals';
 const GLOBAL_PROJECT_KEY = 'global';
 const PRESTTIGE_PROJECT_KEY = 'presttige';
 const CHAIRMAN_EMAIL = 'apereira@presttige.net';
@@ -94,6 +98,15 @@ export default {
         const dashboard = await getProjectDashboard(user, standard, forceRefresh, selectedProjectKey, projects);
         const chairman = isChairman(user);
         const eligibleInviter = chairman || await isInternalInviterEligible(user.email);
+        if (chairman && dashboard.metrics) {
+          const financeMonth = normalizeMonthKey(req.query?.finance_month) || currentMonthKey(new Date());
+          dashboard.metrics.manual_finance = await readManualFinance(
+            context,
+            dashboard.project?.key || selectedProjectKey,
+            financeMonth,
+            dashboard.metrics.revenue,
+          );
+        }
         res.json({
           ok: true,
           project_tabs: projectTabs(projects),
@@ -182,6 +195,129 @@ export default {
           message_id: emailResult.MessageId || null,
           invitation_id: auditItem.invitation_id,
         });
+      } catch (error) {
+        sendError(res, error);
+      }
+    });
+
+    router.post('/finance/categories', async (req, res) => {
+      try {
+        const user = await requireDashboardUser(req, context);
+        requireChairman(user);
+        const projectKey = normalizeProjectKey(req.body?.project_key || GLOBAL_PROJECT_KEY) || GLOBAL_PROJECT_KEY;
+        const monthKey = normalizeMonthKey(req.body?.month_key) || currentMonthKey(new Date());
+        const name = normalizeString(req.body?.name);
+        const amountCents = parseAmountCents(req.body?.amount_cents ?? req.body?.amount);
+        if (!name) throw httpError(400, 'Cost category name is required.');
+        const timestamp = new Date().toISOString();
+        const [category] = await context.database(COST_CATEGORIES_COLLECTION)
+          .insert({
+            project_key: projectKey,
+            name,
+            active: true,
+            sort_order: null,
+            created_at: timestamp,
+            updated_at: timestamp,
+          })
+          .returning(['id']);
+        const categoryId = Number(category?.id || category);
+        await upsertCostValue(context, {
+          categoryId,
+          projectKey,
+          monthKey,
+          amountCents,
+        });
+        const finance = await readManualFinance(context, projectKey, monthKey, req.body?.revenue || null);
+        res.status(200).json({ ok: true, finance });
+      } catch (error) {
+        sendError(res, error);
+      }
+    });
+
+    router.patch('/finance/categories/:id', async (req, res) => {
+      try {
+        const user = await requireDashboardUser(req, context);
+        requireChairman(user);
+        const categoryId = Number(req.params.id || 0);
+        const projectKey = normalizeProjectKey(req.body?.project_key || GLOBAL_PROJECT_KEY) || GLOBAL_PROJECT_KEY;
+        const monthKey = normalizeMonthKey(req.body?.month_key) || currentMonthKey(new Date());
+        const name = normalizeString(req.body?.name);
+        if (!categoryId || !name) throw httpError(400, 'Cost category could not be updated.');
+        await context.database(COST_CATEGORIES_COLLECTION)
+          .where({ id: categoryId, project_key: projectKey, active: true })
+          .update({ name, updated_at: new Date().toISOString() });
+        const finance = await readManualFinance(context, projectKey, monthKey, req.body?.revenue || null);
+        res.status(200).json({ ok: true, finance });
+      } catch (error) {
+        sendError(res, error);
+      }
+    });
+
+    router.delete('/finance/categories/:id', async (req, res) => {
+      try {
+        const user = await requireDashboardUser(req, context);
+        requireChairman(user);
+        const categoryId = Number(req.params.id || 0);
+        const projectKey = normalizeProjectKey(req.query?.project_key || req.body?.project_key || GLOBAL_PROJECT_KEY) || GLOBAL_PROJECT_KEY;
+        const monthKey = normalizeMonthKey(req.query?.month_key || req.body?.month_key) || currentMonthKey(new Date());
+        if (!categoryId) throw httpError(400, 'Cost category could not be removed.');
+        await context.database(COST_CATEGORIES_COLLECTION)
+          .where({ id: categoryId, project_key: projectKey })
+          .update({ active: false, updated_at: new Date().toISOString() });
+        const finance = await readManualFinance(context, projectKey, monthKey, null);
+        res.status(200).json({ ok: true, finance });
+      } catch (error) {
+        sendError(res, error);
+      }
+    });
+
+    router.put('/finance/costs', async (req, res) => {
+      try {
+        const user = await requireDashboardUser(req, context);
+        requireChairman(user);
+        const categoryId = Number(req.body?.category_id || 0);
+        const projectKey = normalizeProjectKey(req.body?.project_key || GLOBAL_PROJECT_KEY) || GLOBAL_PROJECT_KEY;
+        const monthKey = normalizeMonthKey(req.body?.month_key) || currentMonthKey(new Date());
+        const amountCents = parseAmountCents(req.body?.amount_cents ?? req.body?.amount);
+        if (!categoryId) throw httpError(400, 'Cost value could not be saved.');
+        const category = await context.database(COST_CATEGORIES_COLLECTION)
+          .select('id')
+          .where({ id: categoryId, project_key: projectKey, active: true })
+          .first();
+        if (!category) throw httpError(404, 'Cost category was not found.');
+        await upsertCostValue(context, {
+          categoryId,
+          projectKey,
+          monthKey,
+          amountCents,
+        });
+        const finance = await readManualFinance(context, projectKey, monthKey, req.body?.revenue || null);
+        res.status(200).json({ ok: true, finance });
+      } catch (error) {
+        sendError(res, error);
+      }
+    });
+
+    router.put('/finance/goals', async (req, res) => {
+      try {
+        const user = await requireDashboardUser(req, context);
+        requireChairman(user);
+        const projectKey = normalizeProjectKey(req.body?.project_key || GLOBAL_PROJECT_KEY) || GLOBAL_PROJECT_KEY;
+        const periodType = normalizeString(req.body?.period_type).toLowerCase();
+        const periodKey = normalizeString(req.body?.period_key);
+        const monthKey = normalizeMonthKey(req.body?.month_key) || currentMonthKey(new Date());
+        const amountCents = parseAmountCents(req.body?.amount_cents ?? req.body?.amount);
+        if (!['month', 'year'].includes(periodType) || !periodKey) {
+          throw httpError(400, 'Goal could not be saved.');
+        }
+        await upsertRevenueGoal(context, {
+          projectKey,
+          periodType,
+          periodKey,
+          amountCents,
+        });
+        const finance = await readManualFinance(context, projectKey, monthKey, req.body?.revenue || null);
+        res.status(200).json({ ok: true, finance });
       } catch (error) {
         sendError(res, error);
       }
@@ -396,6 +532,7 @@ function addDashboardMetrics(current, metrics = {}) {
     },
     revenue: {
       month_to_date_cents: 0,
+      year_to_date_cents: 0,
       active_subscriptions: 0,
       currency: 'USD',
       revenue_scope: metrics.revenue?.revenue_scope || 'global',
@@ -439,10 +576,12 @@ function addDashboardMetrics(current, metrics = {}) {
   base.founders.cap += Number(metrics.founders?.cap || 0);
   base.leads.last_30_days += Number(metrics.leads?.last_30_days || 0);
   base.revenue.month_to_date_cents += Number(metrics.revenue?.month_to_date_cents || 0);
+  base.revenue.year_to_date_cents += Number(metrics.revenue?.year_to_date_cents || 0);
   base.revenue.active_subscriptions += Number(metrics.revenue?.active_subscriptions || 0);
   base.revenue.currency = metrics.revenue?.currency || base.revenue.currency;
   base.revenue.revenue_scope = metrics.revenue?.revenue_scope || base.revenue.revenue_scope;
   base.revenue.month_to_date_display = formatUsd(base.revenue.month_to_date_cents);
+  base.revenue.year_to_date_display = formatUsd(base.revenue.year_to_date_cents);
   base.website.active_users_7d += Number(metrics.website?.active_users_7d || 0);
   base.website.total_users_window += Number(metrics.website?.total_users_window || 0);
   base.website.window_label = metrics.website?.window_label || base.website.window_label;
@@ -675,6 +814,8 @@ async function readStripeMetrics(secretKey, monthStart, realSubscriptionIds, rea
     return {
       month_to_date_cents: 0,
       month_to_date_display: formatUsd(0),
+      year_to_date_cents: 0,
+      year_to_date_display: formatUsd(0),
       active_subscriptions: 0,
       currency: 'USD',
       revenue_scope: revenueScope,
@@ -682,6 +823,8 @@ async function readStripeMetrics(secretKey, monthStart, realSubscriptionIds, rea
   }
 
   const monthStartEpoch = Math.floor(monthStart.getTime() / 1000);
+  const yearStart = new Date(Date.UTC(monthStart.getUTCFullYear(), 0, 1, 0, 0, 0));
+  const yearStartEpoch = Math.floor(yearStart.getTime() / 1000);
   const [subscriptions, invoices] = await Promise.all([
     stripeList(secretKey, '/v1/subscriptions', { status: 'active', limit: 100 }),
     stripeList(secretKey, '/v1/invoices', {
@@ -693,19 +836,27 @@ async function readStripeMetrics(secretKey, monthStart, realSubscriptionIds, rea
     const customer = normalizeStripeId(subscription.customer);
     return realSubscriptionIds.has(subscription.id) || realCustomerIds.has(customer);
   });
-  const invoiceRevenue = invoices
+  const linkedPaidInvoices = invoices
     .filter((invoice) => {
       const customer = normalizeStripeId(invoice.customer);
       const subscription = normalizeStripeId(invoice.subscription);
+      return realSubscriptionIds.has(subscription) || realCustomerIds.has(customer);
+    });
+  const invoiceRevenue = linkedPaidInvoices
+    .filter((invoice) => {
       const paidAt = Number(invoice.status_transitions?.paid_at || 0);
-      return paidAt >= monthStartEpoch
-        && (realSubscriptionIds.has(subscription) || realCustomerIds.has(customer));
+      return paidAt >= monthStartEpoch;
     })
+    .reduce((sum, invoice) => sum + Number(invoice.amount_paid || 0), 0);
+  const yearRevenue = linkedPaidInvoices
+    .filter((invoice) => Number(invoice.status_transitions?.paid_at || 0) >= yearStartEpoch)
     .reduce((sum, invoice) => sum + Number(invoice.amount_paid || 0), 0);
 
   return {
     month_to_date_cents: invoiceRevenue,
     month_to_date_display: formatUsd(invoiceRevenue),
+    year_to_date_cents: yearRevenue,
+    year_to_date_display: formatUsd(yearRevenue),
     active_subscriptions: activeSubscriptions.length,
     currency: 'USD',
     revenue_scope: revenueScope,
@@ -743,6 +894,12 @@ function isChairman(user) {
     && !isSynthetic(person?.synthetic_test);
 }
 
+function requireChairman(user) {
+  if (!isChairman(user)) {
+    throw httpError(403, 'Dashboard action is not available.');
+  }
+}
+
 function getRevenueScope(user, standard) {
   if (standard.revenue_scope === 'global') {
     return {
@@ -770,6 +927,221 @@ function standardResponse(standard) {
     permissions: { ...standard.permissions },
     stubs_not_built: { ...dashboardStandardStubs },
   };
+}
+
+async function readManualFinance(context, projectKey, monthKey, revenue = null) {
+  const normalizedProjectKey = normalizeProjectKey(projectKey || GLOBAL_PROJECT_KEY) || GLOBAL_PROJECT_KEY;
+  const normalizedMonthKey = normalizeMonthKey(monthKey) || currentMonthKey(new Date());
+  const yearKey = normalizedMonthKey.slice(0, 4);
+  const [categoryRows, valueRows, goalRows, awsCost] = await Promise.all([
+    context.database(COST_CATEGORIES_COLLECTION)
+      .select('id', 'project_key', 'name', 'active', 'sort_order')
+      .where({ project_key: normalizedProjectKey, active: true })
+      .orderBy('sort_order', 'asc')
+      .orderBy('id', 'asc'),
+    context.database(COST_VALUES_COLLECTION)
+      .select('id', 'category_id', 'amount_cents', 'currency')
+      .where({ project_key: normalizedProjectKey, month_key: normalizedMonthKey }),
+    context.database(REVENUE_GOALS_COLLECTION)
+      .select('id', 'period_type', 'period_key', 'amount_cents', 'currency')
+      .where({ project_key: normalizedProjectKey })
+      .whereIn('period_key', [normalizedMonthKey, yearKey]),
+    readAwsCostForMonth(normalizedMonthKey),
+  ]);
+  const valuesByCategoryId = new Map(valueRows.map((row) => [Number(row.category_id), row]));
+  const categories = categoryRows.map((row) => {
+    const value = valuesByCategoryId.get(Number(row.id)) || {};
+    const amountCents = Number(value.amount_cents || 0);
+    return {
+      id: Number(row.id),
+      project_key: normalizedProjectKey,
+      name: normalizeString(row.name),
+      amount_cents: amountCents,
+      amount_display: formatUsd(amountCents),
+      currency: normalizeString(value.currency || 'USD') || 'USD',
+    };
+  });
+  const manualCostsCents = categories.reduce((sum, category) => sum + Number(category.amount_cents || 0), 0);
+  const totalCostsCents = manualCostsCents + Number(awsCost.amount_cents || 0);
+  const monthlyRevenueCents = Number(revenue?.month_to_date_cents || 0);
+  const yearlyRevenueCents = Number(revenue?.year_to_date_cents || monthlyRevenueCents || 0);
+  const monthGoal = goalRows.find((row) => row.period_type === 'month' && row.period_key === normalizedMonthKey) || null;
+  const yearGoal = goalRows.find((row) => row.period_type === 'year' && row.period_key === yearKey) || null;
+  return {
+    project_key: normalizedProjectKey,
+    month_key: normalizedMonthKey,
+    year_key: yearKey,
+    currency: 'USD',
+    aws_cost: awsCost,
+    categories,
+    manual_costs_cents: manualCostsCents,
+    manual_costs_display: formatUsd(manualCostsCents),
+    total_costs_cents: totalCostsCents,
+    total_costs_display: formatUsd(totalCostsCents),
+    revenue_month_cents: monthlyRevenueCents,
+    revenue_month_display: formatUsd(monthlyRevenueCents),
+    profit_month_cents: monthlyRevenueCents - totalCostsCents,
+    profit_month_display: formatUsd(monthlyRevenueCents - totalCostsCents),
+    goals: {
+      month: goalResponse(monthGoal, 'month', normalizedMonthKey, monthlyRevenueCents),
+      year: goalResponse(yearGoal, 'year', yearKey, yearlyRevenueCents),
+    },
+    scope_note: normalizedProjectKey === GLOBAL_PROJECT_KEY
+      ? 'Manual finance values are scoped to the Global dashboard tab.'
+      : `Manual finance values are scoped to the ${normalizedProjectKey} dashboard tab.`,
+  };
+}
+
+async function readAwsCostForMonth(monthKey) {
+  const period = awsCostPeriod(monthKey);
+  const credentials = await getAwsCredentials();
+  const body = JSON.stringify({
+    TimePeriod: {
+      Start: period.start_date,
+      End: period.end_date,
+    },
+    Granularity: 'MONTHLY',
+    Metrics: ['UnblendedCost'],
+  });
+  const endpoint = `https://ce.${COST_EXPLORER_REGION}.amazonaws.com/`;
+  const headers = signAwsRequest({
+    method: 'POST',
+    url: endpoint,
+    region: COST_EXPLORER_REGION,
+    service: 'ce',
+    body,
+    credentials,
+    headers: {
+      'content-type': 'application/x-amz-json-1.1',
+      'x-amz-target': 'AWSInsightsIndexService.GetCostAndUsage',
+    },
+  });
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body,
+  });
+  const responseText = await response.text();
+  if (!response.ok) {
+    throw new Error(`AWS Cost Explorer read failed: ${response.status} ${responseText}`);
+  }
+  const data = JSON.parse(responseText || '{}');
+  const result = data.ResultsByTime?.[0] || {};
+  const rawAmount = Number(result.Total?.UnblendedCost?.Amount || 0);
+  const amountCents = Math.round(rawAmount * 100);
+  return {
+    name: 'AWS',
+    source: 'aws_cost_explorer',
+    automatic: true,
+    editable: false,
+    amount_cents: amountCents,
+    amount_display: formatUsd(amountCents),
+    raw_amount: rawAmount,
+    unit: result.Total?.UnblendedCost?.Unit || 'USD',
+    period_start: period.start_date,
+    period_end: period.end_date,
+    period_label: period.label,
+    estimated: result.Estimated === true,
+  };
+}
+
+function awsCostPeriod(monthKey) {
+  const [yearText, monthText] = normalizeMonthKey(monthKey).split('-');
+  const year = Number(yearText);
+  const monthIndex = Number(monthText) - 1;
+  const start = new Date(Date.UTC(year, monthIndex, 1, 0, 0, 0));
+  const nextMonth = new Date(Date.UTC(year, monthIndex + 1, 1, 0, 0, 0));
+  const now = new Date();
+  const tomorrowUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+  const isCurrentMonth = start.getUTCFullYear() === now.getUTCFullYear()
+    && start.getUTCMonth() === now.getUTCMonth();
+  const end = isCurrentMonth ? tomorrowUtc : nextMonth;
+  return {
+    start_date: toDateOnly(start),
+    end_date: toDateOnly(end),
+    label: isCurrentMonth ? 'current month-to-date' : `${toDateOnly(start)} to ${toDateOnly(end)}`,
+  };
+}
+
+function goalResponse(row, periodType, periodKey, actualCents) {
+  const amountCents = Number(row?.amount_cents || 0);
+  return {
+    id: row?.id ? Number(row.id) : null,
+    period_type: periodType,
+    period_key: periodKey,
+    amount_cents: amountCents,
+    amount_display: formatUsd(amountCents),
+    actual_cents: Number(actualCents || 0),
+    actual_display: formatUsd(actualCents || 0),
+    progress_percent: amountCents > 0 ? Math.round((Number(actualCents || 0) / amountCents) * 1000) / 10 : 0,
+    currency: normalizeString(row?.currency || 'USD') || 'USD',
+  };
+}
+
+async function upsertCostValue(context, { categoryId, projectKey, monthKey, amountCents }) {
+  const timestamp = new Date().toISOString();
+  const existing = await context.database(COST_VALUES_COLLECTION)
+    .select('id')
+    .where({
+      category_id: categoryId,
+      project_key: projectKey,
+      month_key: monthKey,
+    })
+    .first();
+  if (existing?.id) {
+    await context.database(COST_VALUES_COLLECTION)
+      .where({ id: existing.id })
+      .update({
+        amount_cents: amountCents,
+        currency: 'USD',
+        updated_at: timestamp,
+      });
+    return existing.id;
+  }
+  const [row] = await context.database(COST_VALUES_COLLECTION)
+    .insert({
+      category_id: categoryId,
+      project_key: projectKey,
+      month_key: monthKey,
+      amount_cents: amountCents,
+      currency: 'USD',
+      updated_at: timestamp,
+    })
+    .returning(['id']);
+  return Number(row?.id || row || 0);
+}
+
+async function upsertRevenueGoal(context, { projectKey, periodType, periodKey, amountCents }) {
+  const timestamp = new Date().toISOString();
+  const existing = await context.database(REVENUE_GOALS_COLLECTION)
+    .select('id')
+    .where({
+      project_key: projectKey,
+      period_type: periodType,
+      period_key: periodKey,
+    })
+    .first();
+  if (existing?.id) {
+    await context.database(REVENUE_GOALS_COLLECTION)
+      .where({ id: existing.id })
+      .update({
+        amount_cents: amountCents,
+        currency: 'USD',
+        updated_at: timestamp,
+      });
+    return existing.id;
+  }
+  const [row] = await context.database(REVENUE_GOALS_COLLECTION)
+    .insert({
+      project_key: projectKey,
+      period_type: periodType,
+      period_key: periodKey,
+      amount_cents: amountCents,
+      currency: 'USD',
+      updated_at: timestamp,
+    })
+    .returning(['id']);
+  return Number(row?.id || row || 0);
 }
 
 async function stripeList(secretKey, path, params) {
@@ -1591,6 +1963,30 @@ function normalizeProjectKey(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
+}
+
+function normalizeMonthKey(value) {
+  const normalized = normalizeString(value);
+  return /^\d{4}-\d{2}$/.test(normalized) ? normalized : '';
+}
+
+function currentMonthKey(now) {
+  return now.toISOString().slice(0, 7);
+}
+
+function parseAmountCents(value) {
+  if (value == null || value === '') return 0;
+  if (typeof value === 'number') return Math.max(0, Math.round(value));
+  const normalized = normalizeString(value).replace(/[$,\s]/g, '');
+  if (!normalized) return 0;
+  const decimal = Number(normalized);
+  if (!Number.isFinite(decimal) || decimal < 0) {
+    throw httpError(400, 'Amount must be a positive number.');
+  }
+  if (/^\d+$/.test(normalized) && normalized.length > 5) {
+    return Math.round(decimal);
+  }
+  return Math.round(decimal * 100);
 }
 
 function normalizeStripeId(value) {

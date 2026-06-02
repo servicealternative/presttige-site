@@ -18,9 +18,9 @@ yet. That belongs to the later permissions area.
 - Directus endpoint: `GET /ulttra-dashboard`
 - Founder invite endpoint: `POST /ulttra-dashboard/founder-invite`
 - ECS service: `ulttra-crm-directus`
-- ECS task definition: `ulttra-crm-directus:57`
+- ECS task definition: `ulttra-crm-directus:58`
 - ECR repository: `ulttra-crm-directus`
-- Dashboard image tag: `dashboard-analytics-block2-20260602T113718Z`
+- Dashboard image tag: `dashboard-finance-block3-20260602T161208Z`
 - Metrics table: `ulttra-crm-dashboard-metrics`
 - Metrics sync Lambda: `presttige-dashboard-metrics-sync`
 - Metrics sync CodeSha256: `3SyVutz+wcq3QyIejynLVYpayBA8t7GZOxcPpZDJBVA=`
@@ -41,6 +41,8 @@ The read API returns server-side dashboard numbers.
 - GA4 Data API property `530348665`, using the installed-app OAuth refresh
   token in SSM.
 - SSM `/presttige/founder-invite/global-cap`, read-only, for the Founder cap.
+- AWS Cost Explorer, read-only `ce:GetCostAndUsage`, for the automatic AWS
+  monthly cost line.
 
 All subscriber metrics exclude `synthetic_test=true`.
 
@@ -78,6 +80,19 @@ v1 returns and displays:
     `patron`.
   - List fields are Country, City, Name, and a small tier indicator.
   - Rows open detail in place inside the dashboard.
+- Financial block 3, Chairman view:
+  - Manual finance is stored in Directus collections
+    `ulttra_dashboard_cost_categories`,
+    `ulttra_dashboard_cost_monthly_values`, and
+    `ulttra_dashboard_revenue_goals`.
+  - Automatic AWS cost line comes from AWS Cost Explorer
+    `GetCostAndUsage`, metric `UnblendedCost`.
+  - Manual cost categories are Antonio-managed in place: create, rename,
+    remove, and set monthly values.
+  - Revenue goals are Antonio-managed in place for the selected month and
+    year.
+  - Month profit is computed as existing dashboard current-month revenue,
+    paid-date basis, minus AWS automatic cost and manual category costs.
 - Founder Invitation action.
 
 ## Permissions Standards v1
@@ -216,6 +231,37 @@ deploy:
   Founders or Patrons.
 - Empty state: `No Founders or Patrons yet`.
 - WebKit render verified on the live `/admin/ulttra-dashboard` route.
+
+Verified financial block 3 on 2026-06-02 after the costs, goals, and profit
+deploy:
+
+- Served assets:
+  - `index.ulttra-dashboard-20260602T161208Z.entry.js`
+  - `v-form-ulttra-dashboard-20260602T161208Z.js`
+  - `ulttra-dashboard-source-20260602T161208Z.js`
+- Directus collections:
+  - `ulttra_dashboard_cost_categories`: `id`, `project_key`, `name`,
+    `active`, `sort_order`, `created_at`, `updated_at`.
+  - `ulttra_dashboard_cost_monthly_values`: `id`, `category_id`,
+    `project_key`, `month_key`, `amount_cents`, `currency`, `updated_at`.
+  - `ulttra_dashboard_revenue_goals`: `id`, `project_key`, `period_type`,
+    `period_key`, `amount_cents`, `currency`, `updated_at`.
+- AWS automatic cost:
+  - Permission added to `ulttra-crm-directus-task-role` inline policy
+    `ulttra-crm-dashboard-read-api`: `ce:GetCostAndUsage` on `*`.
+  - Current month-to-date Cost Explorer value checked before deploy:
+    `$10.7637000546` USD for `2026-06-01` to `2026-06-03`, estimated.
+- Scope:
+  - Manual finance values are keyed by the current dashboard project tab,
+    `global` or `presttige`.
+  - Pets Lab remains a registered project with no configured data.
+- Live served assets contain `Costs, goals, profit`, `manual_finance`,
+  `AWS automatic plus manual categories`, `Founder Invitation`, and
+  `Presttige Invitation`.
+- WebKit note: Safari was available but not authenticated as Chairman during
+  verification, and AppleScript DOM access was disabled. The served live bundle
+  and ECS deployment were verified, but an authenticated Chairman Safari render
+  still needs Antonio's active login session.
 
 ## Safety Notes
 

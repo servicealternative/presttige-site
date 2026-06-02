@@ -228,9 +228,9 @@ Team roles.
 - Directus endpoint: `GET /ulttra-dashboard`
 - Founder invite action endpoint:
   `POST /ulttra-dashboard/founder-invite`
-- ECS task definition: `ulttra-crm-directus:57`
+- ECS task definition: `ulttra-crm-directus:58`
 - ECR repository: `ulttra-crm-directus`
-- Image tag: `dashboard-analytics-block2-20260602T113718Z`
+- Image tag: `dashboard-finance-block3-20260602T161208Z`
 - Metrics table: `ulttra-crm-dashboard-metrics`
 - Metrics sync Lambda: `presttige-dashboard-metrics-sync`
 - Metrics sync CodeSha256: `3SyVutz+wcq3QyIejynLVYpayBA8t7GZOxcPpZDJBVA=`
@@ -249,6 +249,8 @@ Dashboard v1 data sources:
 - GA4 Data API property `530348665`, through the installed-app OAuth
   refresh-token path stored in SSM.
 - SSM `/presttige/founder-invite/global-cap`, read-only.
+- AWS Cost Explorer, read-only `ce:GetCostAndUsage`, for the automatic AWS
+  monthly cost line in the Chairman financial block.
 
 Analytics block 1:
 
@@ -298,6 +300,38 @@ Analytics block 2:
     Founders or Patrons today
   - empty state: `No Founders or Patrons yet`
   - WebKit render verified on the live `/admin/ulttra-dashboard` route
+
+Financial block 3:
+
+- Chairman-only section inside the same dashboard.
+- Automatic AWS cost line:
+  - Source: AWS Cost Explorer `GetCostAndUsage`, metric `UnblendedCost`.
+  - Period: selected month. For the current month, the period is month-to-date.
+  - Current month-to-date value checked before deploy: `$10.7637000546` USD
+    for `2026-06-01` to `2026-06-03`, estimated.
+  - Permission added to `ulttra-crm-directus-task-role` inline policy
+    `ulttra-crm-dashboard-read-api`: `ce:GetCostAndUsage` on `*`.
+- Manual costs and goals:
+  - `ulttra_dashboard_cost_categories`, fields `id`, `project_key`, `name`,
+    `active`, `sort_order`, `created_at`, `updated_at`.
+  - `ulttra_dashboard_cost_monthly_values`, fields `id`, `category_id`,
+    `project_key`, `month_key`, `amount_cents`, `currency`, `updated_at`.
+  - `ulttra_dashboard_revenue_goals`, fields `id`, `project_key`,
+    `period_type`, `period_key`, `amount_cents`, `currency`, `updated_at`.
+- Antonio can create, rename, and remove manual cost categories, set monthly
+  category values, and edit month and year revenue goals in place.
+- Profit formula: existing current-month dashboard revenue, paid-date basis,
+  minus automatic AWS cost and manual monthly costs.
+- Scope: manual finance rows are keyed by the current dashboard project tab,
+  currently `global` or `presttige`; Pets Lab remains not configured.
+- Live served assets:
+  - `index.ulttra-dashboard-20260602T161208Z.entry.js`
+  - `v-form-ulttra-dashboard-20260602T161208Z.js`
+  - `ulttra-dashboard-source-20260602T161208Z.js`
+- WebKit note: Safari was at the login page during verification and
+  AppleScript DOM access was disabled. Served live assets and ECS deployment
+  were verified, but an authenticated Chairman Safari render still needs
+  Antonio's active login session.
 
 Real-data-only enforcement:
 
