@@ -26,8 +26,10 @@ Antonio's order:
    eligibility fix is DONE and live; the Galina inviter hole is closed. C1
    branch B steps B1, B2, B3, B4, B5, and B6 are DONE. Branch B code and
    controlled cleanup are complete. Basic CRM dashboard v1 for Admin and Team
-   is DONE and live. Next: the permissions area, then the post-permissions
-   Ambassador test.
+   is DONE and live. The 2026-06-02 cockpit additions are DONE and live:
+   analytics block, member geography, Founders plus Patrons list, costs,
+   goals, and profit. Next: align Chairman-invited Founder checkout, then the
+   permissions area, then the post-permissions Ambassador test.
 5. Subscribers and users: login, photos, profile.
 6. Form with interests, etc.
 7. Member Cards.
@@ -50,10 +52,28 @@ Roadmap items 1 and 2 are active.
   7. Real Founder email sender, copy, and design review, remaining, including
      the founder-admin inviter thank-you plus invitee invitation sender
      decision.
-  8. Founder checkout pay button, disabled until Stripe live.
+  8. Founder page split into Step 1 presentation and Step 2 price, consent,
+     and payment, DONE. Payment logic unchanged.
+  9. Open blocker: `checkout-context` rejects Chairman-invited Founders with
+     `founder_gate_not_confirmed`, because Chairman has
+     `inviter_lead_id = NULL`. Align this fourth eligibility layer before a
+     Chairman-invited Founder can pay.
 - Do the Founder process alongside or right after SES.
 - SES: resolve email deliverability for the controlled Founder test sends and
   all email automation. Run in parallel with the Founder build.
+
+Decided, not built:
+
+- Cognito is the single central identity for the Presttige site, App, and CRM.
+- One login per person is created after payment.
+- Ulttra CRM requires MFA for everyone, always.
+- Presttige Club, Premier, and Patron members use email plus password plus SMS
+  or email verification, without authenticator by default.
+- Founders may add TOTP authenticator labelled `Presttige . Founder`.
+- Chairman invite path A: already-registered people go straight to Founder
+  Step 1, Step 2, and payment, with no data recollection.
+- New invitee path B: refined fill form plus double opt-in, no committee
+  review, login created after payment.
 
 ## Scheduled / Parked
 
@@ -107,7 +127,10 @@ Roadmap items 4 and later are future phases.
   10. Build the permissions area, Standards per type, permissions plus
      visibility plus dashboard.
   11. Basic CRM dashboard v1 for Admin and Team, DONE.
-  12. Run the post-permissions Ambassador test.
+  12. Cockpit additions, analytics, member geography, Founders plus Patrons
+      list, costs, goals, and profit, DONE.
+  13. Align Chairman-invited Founder checkout.
+  14. Run the post-permissions Ambassador test.
 - Subscribers and users: login, photos, profile.
 - Form with interests, etc.
 - Member Cards.

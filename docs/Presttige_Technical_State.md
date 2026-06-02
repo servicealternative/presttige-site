@@ -69,6 +69,52 @@ Founder stays entirely in Presttige.
 
 Ulttra holds only the admin commands and real-time analytics for Antonio.
 
+### 2026-06-02 Founder page and invite state
+
+Founder page split is DONE and live:
+
+- Step 1 is the Founder presentation page. It shows no price.
+- Step 1 CTA is `Become a Founder`.
+- Step 2 contains the Founder price, required consent, and payment entry.
+- Payment logic is unchanged. Existing Founder checkout, consent, Stripe price,
+  and activation rules still apply.
+
+Presttige Invitation from the Ulttra dashboard is live:
+
+- Chairman can send Presttige Invitation through `committee@presttige.net`.
+- Founder invite end-to-end path is working.
+- The synthetic test exception for `fq@freequenza.net` remains restricted to
+  Antonio-controlled testing.
+
+Open blocker:
+
+- `presttige-checkout-context` still rejects Chairman-invited Founder checkout
+  with `founder_gate_not_confirmed`.
+- Cause: the checkout context requires `inviter_lead_id` in `presttige-db`.
+- Chairman is an Ulttra/Directus identity, not a Presttige lead, so the
+  Chairman invite path has `inviter_lead_id = NULL`.
+- This is the fourth eligibility layer to align before a Chairman-invited
+  Founder can pay.
+
+Decided identity architecture, not built:
+
+- Cognito becomes the single central identity for site, App, and CRM.
+- One person has one login across the Presttige site, Presttige App, and
+  Ulttra CRM.
+- Login is created after payment.
+- Ulttra CRM requires MFA for everyone, always.
+- Presttige Club, Premier, and Patron members use email plus password plus
+  SMS or email verification, without authenticator by default.
+- Founders may add TOTP authenticator. The authenticator label is
+  `Presttige . Founder`.
+
+Decided Founder invite paths, not fully built:
+
+- Path A: Chairman invites an already-registered person. The person goes
+  directly to Founder Step 1, Step 2, and payment. No data is recollected.
+- Path B: a new invitee receives a refined fill form plus double opt-in. There
+  is no committee review. Login is created only after payment.
+
 `/founder` is live on the Presttige site.
 
 - Live URL: `https://presttige.net/founder/`

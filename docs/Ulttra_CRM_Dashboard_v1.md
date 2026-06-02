@@ -95,6 +95,30 @@ v1 returns and displays:
     paid-date basis, minus AWS automatic cost and manual category costs.
 - Founder Invitation action.
 
+## 2026-06-02 Cockpit Completion
+
+The dashboard cockpit built on 2026-06-02 is live inside the single
+`ulttra-dashboard` surface.
+
+Built cockpit scope:
+
+- Analytics block: GA4 geography, cities, countries, total users,
+  month-vs-month, traffic sources, and new vs returning users.
+- Member geography: active real member country and city from Presttige member
+  data.
+- Founders plus Patrons list: one combined in-dashboard panel, active paying
+  real members only.
+- Costs, goals, and profit: AWS automatic cost from Cost Explorer, dynamic
+  manual cost categories, monthly cost values, and revenue goals.
+- Multi-project aware: finance rows and cockpit scope use the selected project
+  tab where relevant.
+- Synthetic exclusion: `synthetic_test=true` subscriber records and
+  `people.synthetic_test=true` internal records are excluded.
+- Cache-busted assets were deployed for the analytics, Founders plus Patrons,
+  and finance blocks.
+
+The cockpit remains one dashboard, not separate pages.
+
 ## Permissions Standards v1
 
 The first dashboard Standard layer is stored in the server-side dashboard

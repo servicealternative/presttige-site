@@ -40,6 +40,22 @@ Target infrastructure:
 - HTTPS through ACM and ALB
 - Cognito SSO for internal access
 
+## 2.1 Identity Decision, 2026-06-02
+
+Decided, not fully built:
+
+- Cognito is the single central identity layer for Presttige site, Presttige
+  App, and Ulttra CRM.
+- One person has one login across all surfaces.
+- The login is created after payment.
+- Ulttra CRM requires MFA for everyone, always.
+- Presttige Club, Premier, and Patron members use email plus password plus SMS
+  or email verification. They do not use authenticator by default.
+- Founders may add TOTP authenticator. The authenticator label is
+  `Presttige . Founder`.
+- Directus remains the CRM application layer. Cognito remains the identity
+  layer.
+
 ## 3. Projects
 
 Initial projects:
@@ -142,6 +158,21 @@ Campaign records include:
 
 Live tracking is wired in a later phase.
 
+## 8.1 Founder Invite Paths, 2026-06-02
+
+Decided, not fully built:
+
+- Path A: Chairman invites an already-registered person. The person goes
+  straight to Founder Step 1, Founder Step 2, and payment. No data is
+  recollected.
+- Path B: a new invitee receives a refined fill form plus double opt-in. There
+  is no committee review. Login is created after payment.
+- The current open implementation blocker is in `presttige-checkout-context`:
+  Chairman-invited Founders can be rejected with `founder_gate_not_confirmed`
+  because Chairman is an Ulttra/Directus identity with
+  `inviter_lead_id = NULL`, while checkout still expects a Presttige lead
+  inviter.
+
 ## 9. Finance
 
 Finance starts with ledger structure.
@@ -234,6 +265,11 @@ Management analytics:
 - The CRM queries the GA4 API periodically.
 - This is not real-time.
 - This is sufficient for Antonio's management view.
+- GA4 reads use the installed-app OAuth credential owned by Antonio, with the
+  client secret and refresh token stored encrypted in SSM. The service-account
+  route is superseded for the personal-Gmail-administered GA property.
+- Follow-up: move the Google OAuth app from Testing to In production to avoid
+  periodic re-consent.
 
 Active campaigns:
 

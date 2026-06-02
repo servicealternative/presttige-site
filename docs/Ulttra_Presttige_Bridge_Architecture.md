@@ -12,6 +12,19 @@ Ulttra CRM is PostgreSQL through Directus. It is the source of truth for interna
 
 Both systems live in the same AWS account and region, but they use different technology and must not be merged.
 
+## Identity Decision, 2026-06-02
+
+Cognito is the decided central identity layer for Presttige site, Presttige
+App, and Ulttra CRM.
+
+- One person has one login across all surfaces.
+- Login is created after payment.
+- Ulttra CRM requires MFA for everyone, always.
+- Presttige Club, Premier, and Patron members use email plus password plus SMS
+  or email verification, without authenticator by default.
+- Founders may add TOTP authenticator labelled `Presttige . Founder`.
+- Directus remains the CRM application and operating data layer.
+
 ## Internal Member Model In Ulttra
 
 The Ulttra `people` collection gains:
@@ -191,7 +204,32 @@ C1 branch B is complete in code:
 
 Remaining real work:
 
+- Align the Chairman-invited Founder checkout path.
 - Build the permissions area, then run the post-permissions Ambassador test.
+
+## Chairman Founder Invite Blocker, 2026-06-02
+
+Presttige Invitation from the Ulttra dashboard is live for Chairman and uses
+`committee@presttige.net`.
+
+Founder invite end-to-end is working, including the restricted synthetic test
+exception for `fq@freequenza.net`.
+
+Open blocker:
+
+- `presttige-checkout-context` still rejects Chairman-invited Founders with
+  `founder_gate_not_confirmed`.
+- Cause: checkout still requires `inviter_lead_id` in `presttige-db`.
+- Chairman is an Ulttra/Directus identity with `inviter_lead_id = NULL`.
+- This is the fourth eligibility layer to align before a Chairman-invited
+  Founder can pay.
+
+Decided Founder invite paths:
+
+- Path A: Chairman invites an already-registered person. The person goes
+  directly to Founder Step 1, Step 2, and payment. No data is recollected.
+- Path B: a new invitee receives a refined fill form plus double opt-in. There
+  is no committee review. Login is created after payment.
 
 ## Rewritten Gate Eligibility
 
