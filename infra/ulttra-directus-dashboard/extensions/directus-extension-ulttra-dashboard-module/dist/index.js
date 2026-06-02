@@ -32,6 +32,7 @@ const Dashboard = defineComponent({
     const presttigeInviteMessage = ref('');
     const presttigeInviteSuccess = ref(false);
     const tierDetailOpen = ref(false);
+    const selectedPriorityMemberId = ref('');
     const selectedProject = ref('global');
 
     async function loadDashboard(force = false, projectKey = selectedProject.value) {
@@ -138,6 +139,7 @@ const Dashboard = defineComponent({
       if (!projectKey || projectKey === selectedProject.value) return;
       selectedProject.value = projectKey;
       tierDetailOpen.value = false;
+      selectedPriorityMemberId.value = '';
       loadDashboard(false, projectKey);
     }
 
@@ -166,6 +168,7 @@ const Dashboard = defineComponent({
       presttigeInviteMessage,
       presttigeInviteSuccess,
       tierDetailOpen,
+      selectedPriorityMemberId,
       selectedProject,
       loadDashboard,
       selectProject,
@@ -208,6 +211,9 @@ const Dashboard = defineComponent({
         metricCard('Website visitors', ga.active_users_7d ?? 0, 'Active users, last 7 days'),
       ]),
       analyticsSection(metrics),
+      founderPatronMembersSection(metrics.priority_members || [], this.selectedPriorityMemberId, (memberId) => {
+        this.selectedPriorityMemberId = this.selectedPriorityMemberId === memberId ? '' : memberId;
+      }),
       data.current_user?.eligible_inviter ? h('section', {
         style: {
           border: '1px solid var(--theme--border-color)',
@@ -606,6 +612,134 @@ function analyticsCard(title, children) {
   }, [
     h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, title),
     ...children,
+  ]);
+}
+
+function founderPatronMembersSection(members, selectedMemberId, selectMember) {
+  return h('section', {
+    style: {
+      border: '1px solid var(--theme--border-color)',
+      borderRadius: '8px',
+      padding: '24px',
+      background: 'var(--theme--background)',
+      marginBottom: '20px',
+    },
+  }, [
+    h('div', {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '16px',
+        alignItems: 'flex-end',
+        marginBottom: '18px',
+      },
+    }, [
+      h('div', [
+        h('h2', { style: { margin: '0 0 6px', fontSize: '22px' } }, 'Founders and Patrons'),
+        h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, 'Active paying Founder and Patron members only.'),
+      ]),
+      h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, `${members.length} listed`),
+    ]),
+    members.length ? h('div', {
+      style: {
+        display: 'grid',
+        gap: '8px',
+      },
+    }, [
+      h('div', {
+        style: {
+          display: 'grid',
+          gridTemplateColumns: 'minmax(120px, 1fr) minmax(120px, 1fr) minmax(160px, 1.4fr) auto',
+          gap: '12px',
+          color: 'var(--theme--foreground-subdued)',
+          fontSize: '12px',
+          fontWeight: 700,
+          padding: '0 12px',
+        },
+      }, [
+        h('span', null, 'Country'),
+        h('span', null, 'City'),
+        h('span', null, 'Name'),
+        h('span', null, 'Tier'),
+      ]),
+      ...members.map((member) => h('div', { key: member.id }, [
+        h('button', {
+          type: 'button',
+          style: {
+            width: '100%',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(120px, 1fr) minmax(120px, 1fr) minmax(160px, 1.4fr) auto',
+            gap: '12px',
+            alignItems: 'center',
+            textAlign: 'left',
+            border: '1px solid var(--theme--border-color)',
+            borderRadius: '8px',
+            padding: '12px',
+            background: selectedMemberId === member.id ? 'var(--theme--background-subdued, var(--theme--background))' : 'var(--theme--background)',
+            color: 'var(--theme--foreground)',
+            cursor: 'pointer',
+          },
+          onClick: () => selectMember(member.id),
+        }, [
+          h('span', null, member.country || 'Not set'),
+          h('span', null, member.city || 'Not set'),
+          h('strong', null, member.name || 'Unnamed member'),
+          tierChip(member.tier),
+        ]),
+        selectedMemberId === member.id ? priorityMemberDetail(member) : null,
+      ])),
+    ]) : h('div', {
+      style: {
+        border: '1px solid var(--theme--border-color)',
+        borderRadius: '8px',
+        padding: '18px',
+        color: 'var(--theme--foreground-subdued)',
+      },
+    }, 'No Founders or Patrons yet'),
+  ]);
+}
+
+function tierChip(tier) {
+  const label = titleCase(tier);
+  return h('span', {
+    style: {
+      display: 'inline-flex',
+      justifyContent: 'center',
+      border: '1px solid var(--theme--border-color)',
+      borderRadius: '999px',
+      padding: '4px 9px',
+      color: 'var(--theme--foreground)',
+      fontSize: '12px',
+      whiteSpace: 'nowrap',
+    },
+  }, label);
+}
+
+function priorityMemberDetail(member) {
+  return h('div', {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+      gap: '12px',
+      border: '1px solid var(--theme--border-color)',
+      borderTop: 0,
+      borderRadius: '0 0 8px 8px',
+      padding: '14px 12px',
+      color: 'var(--theme--foreground-subdued)',
+      fontSize: '13px',
+    },
+  }, [
+    detailItem('Country', member.country || 'Not set'),
+    detailItem('City', member.city || 'Not set'),
+    detailItem('Name', member.name || 'Unnamed member'),
+    detailItem('Tier', titleCase(member.tier)),
+  ]);
+}
+
+function detailItem(label, value) {
+  return h('div', { style: { display: 'grid', gap: '4px' } }, [
+    h('span', { style: { fontSize: '12px' } }, label),
+    h('strong', { style: { color: 'var(--theme--foreground)' } }, value),
   ]);
 }
 

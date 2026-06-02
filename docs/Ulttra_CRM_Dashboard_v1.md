@@ -18,12 +18,12 @@ yet. That belongs to the later permissions area.
 - Directus endpoint: `GET /ulttra-dashboard`
 - Founder invite endpoint: `POST /ulttra-dashboard/founder-invite`
 - ECS service: `ulttra-crm-directus`
-- ECS task definition: `ulttra-crm-directus:56`
+- ECS task definition: `ulttra-crm-directus:57`
 - ECR repository: `ulttra-crm-directus`
-- Dashboard image tag: `dashboard-analytics-block1-20260602T105622Z`
+- Dashboard image tag: `dashboard-analytics-block2-20260602T113718Z`
 - Metrics table: `ulttra-crm-dashboard-metrics`
 - Metrics sync Lambda: `presttige-dashboard-metrics-sync`
-- Metrics sync CodeSha256: `IZd53rYFHWWazm9CrkMdSw2B/8OhzJAzER9Rhs+Pisg=`
+- Metrics sync CodeSha256: `3SyVutz+wcq3QyIejynLVYpayBA8t7GZOxcPpZDJBVA=`
 - Cache table: `ulttra-crm-dashboard-cache`
 - Cache TTL: 300 seconds
 - Runtime IAM policy: `ulttra-crm-dashboard-read-api` on
@@ -71,6 +71,13 @@ v1 returns and displays:
     days.
   - Member geography from `presttige-db` active real member `country` and
     `city`, through `ulttra-crm-dashboard-metrics`.
+- Analytics block 2:
+  - Combined Founders and Patrons list from `presttige-db`, through
+    `ulttra-crm-dashboard-metrics` group `member_list_founder_patron`.
+  - Includes only active paying real members where tier is `founder` or
+    `patron`.
+  - List fields are Country, City, Name, and a small tier indicator.
+  - Rows open detail in place inside the dashboard.
 - Founder Invitation action.
 
 ## Permissions Standards v1
@@ -188,6 +195,28 @@ Verified analytics block 1 on 2026-06-02 after the dashboard analytics deploy:
 - Member geography: United Arab Emirates 1, Dubai 1.
 - WebKit render verified on the live `/admin/ulttra-dashboard` route.
 
+Verified analytics block 2 on 2026-06-02 after the Founders and Patrons list
+deploy:
+
+- Served assets:
+  - `index.ulttra-dashboard-20260602T113718Z.entry.js`
+  - `v-form-ulttra-dashboard-20260602T113718Z.js`
+  - `ulttra-dashboard-source-20260602T113718Z.js`
+- List source fields:
+  - Tier: `tier`, falling back to `selected_tier`, then `subscriber_type`.
+  - Paying active status: `access_status = active` and `payment_status` in
+    `subscription_active`, `paid`.
+  - Name: `name`, falling back to `full_name`.
+  - Country: `country`, falling back to `member_country`.
+  - City: `city`, falling back to `member_city`.
+  - Synthetic exclusion: `synthetic_test=true` records are skipped before any
+    contribution is written.
+- Sort order: tier first, Founder before Patron, then name ascending.
+- Live result: `0` rows, because there are currently no active paying real
+  Founders or Patrons.
+- Empty state: `No Founders or Patrons yet`.
+- WebKit render verified on the live `/admin/ulttra-dashboard` route.
+
 ## Safety Notes
 
 - No payment, activation, checkout, webhook, or subscriber mutation logic was
@@ -205,7 +234,8 @@ Verified analytics block 1 on 2026-06-02 after the dashboard analytics deploy:
 The one-time seed scanned the current table to create aggregate counters. From
 there, `presttige-dashboard-metrics-sync` keeps the counters current from the
 `presttige-db` DynamoDB Stream using `NEW_AND_OLD_IMAGES`, including active
-real member country and city counters.
+real member country and city counters, plus the active paying Founder and
+Patron list.
 
 The dashboard endpoint reads only the aggregate metrics table, Stripe, GA4,
 SSM config, the inviter mirror, and the dashboard cache.

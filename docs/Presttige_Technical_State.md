@@ -228,12 +228,12 @@ Team roles.
 - Directus endpoint: `GET /ulttra-dashboard`
 - Founder invite action endpoint:
   `POST /ulttra-dashboard/founder-invite`
-- ECS task definition: `ulttra-crm-directus:56`
+- ECS task definition: `ulttra-crm-directus:57`
 - ECR repository: `ulttra-crm-directus`
-- Image tag: `dashboard-analytics-block1-20260602T105622Z`
+- Image tag: `dashboard-analytics-block2-20260602T113718Z`
 - Metrics table: `ulttra-crm-dashboard-metrics`
 - Metrics sync Lambda: `presttige-dashboard-metrics-sync`
-- Metrics sync CodeSha256: `IZd53rYFHWWazm9CrkMdSw2B/8OhzJAzER9Rhs+Pisg=`
+- Metrics sync CodeSha256: `3SyVutz+wcq3QyIejynLVYpayBA8t7GZOxcPpZDJBVA=`
 - Cache table: `ulttra-crm-dashboard-cache`
 - Cache TTL: 300 seconds
 - Task role policy: `ulttra-crm-dashboard-read-api`
@@ -274,6 +274,30 @@ Analytics block 1:
     Organic Search 1, Organic Shopping 1
   - new vs returning: returning 14, 51.9%, new 13, 48.1%
   - member geography: United Arab Emirates 1, Dubai 1
+
+Analytics block 2:
+
+- Founders and Patrons list, one combined panel inside the dashboard.
+- Source: `presttige-db`, through `ulttra-crm-dashboard-metrics` group
+  `member_list_founder_patron`.
+- Include predicate: real member only, tier in `founder`, `patron`,
+  `access_status = active`, and `payment_status` in `subscription_active`,
+  `paid`.
+- Tier source fields: `tier`, falling back to `selected_tier`, then
+  `subscriber_type`.
+- Display fields: Country from `country` or `member_country`, City from `city`
+  or `member_city`, Name from `name` or `full_name`, plus tier indicator.
+- Synthetic exclusion: `synthetic_test=true` is skipped before any metric or
+  list contribution is written.
+- Sort order: Founder before Patron, then name ascending.
+- Live verified on 2026-06-02:
+  - served assets: `index.ulttra-dashboard-20260602T113718Z.entry.js`,
+    `v-form-ulttra-dashboard-20260602T113718Z.js`,
+    `ulttra-dashboard-source-20260602T113718Z.js`
+  - current result: `0` rows, expected because there are no active paying real
+    Founders or Patrons today
+  - empty state: `No Founders or Patrons yet`
+  - WebKit render verified on the live `/admin/ulttra-dashboard` route
 
 Real-data-only enforcement:
 

@@ -9,6 +9,7 @@ dynamodb = boto3.resource("dynamodb")
 metrics_table = dynamodb.Table(METRICS_TABLE_NAME)
 
 MEMBER_TIERS = {"club", "premier", "patron", "founder"}
+PRIORITY_MEMBER_TIERS = {"founder", "patron"}
 ACTIVE_PAYMENT_STATUSES = {"subscription_active", "paid"}
 
 
@@ -54,6 +55,16 @@ def contributions(item):
             output[("member_geo_country", country)] = 1
         if city:
             output[("member_geo_city", city)] = 1
+
+        if tier in PRIORITY_MEMBER_TIERS:
+            lead_id = normalize_string(item.get("lead_id") or item.get("id"))
+            if lead_id:
+                output[("member_list_founder_patron", lead_id)] = {
+                    "tier": tier,
+                    "name": normalize_string(item.get("name") or item.get("full_name")),
+                    "country": country,
+                    "city": city,
+                }
 
     created_at = parse_date(item.get("created_at"))
     if created_at:

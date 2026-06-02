@@ -27,6 +27,7 @@ const CHAIRMAN_EMAIL = 'apereira@presttige.net';
 const CHAIRMAN_TYPE = 'chairman';
 
 const memberTiers = ['club', 'premier', 'patron', 'founder'];
+const priorityMemberTiers = ['founder', 'patron'];
 const dashboardStandards = Object.freeze({
   chairman: Object.freeze({
     type: 'chairman',
@@ -426,6 +427,7 @@ function addDashboardMetrics(current, metrics = {}) {
       countries: [],
       cities: [],
     },
+    priority_members: [],
   };
 
   const byTier = metrics.members?.by_tier || {};
@@ -462,6 +464,7 @@ function addDashboardMetrics(current, metrics = {}) {
     countries: mergeRankedRows(base.member_geography.countries, metrics.member_geography?.countries || []),
     cities: mergeRankedRows(base.member_geography.cities, metrics.member_geography?.cities || []),
   };
+  base.priority_members = mergePriorityMembers(base.priority_members, metrics.priority_members || []);
   return base;
 }
 
@@ -552,6 +555,7 @@ async function computeDashboard(user, standard, revenueScope) {
       revenue: stripeMetrics,
       website: gaMetrics,
       member_geography: presttigeMetrics.memberGeography,
+      priority_members: presttigeMetrics.priorityMembers,
     },
     standard: standardResponse(standard),
     cache: {
@@ -574,7 +578,7 @@ async function readPresttigeMetrics(thirtyDaysAgo, now, revenueScope = null) {
   const attributionGroup = revenueScope?.kind === 'person' && revenueScope.person_id
     ? `attributed_stripe_subscription#person#${revenueScope.person_id}`
     : null;
-  const [counterResponse, leadsResponse, stripeLinksResponse, attributedStripeLinksResponse, memberCountryResponse, memberCityResponse] = await Promise.all([
+  const [counterResponse, leadsResponse, stripeLinksResponse, attributedStripeLinksResponse, memberCountryResponse, memberCityResponse, priorityMembersResponse] = await Promise.all([
     ddb.send(new BatchGetCommand({
       RequestItems: {
         [METRICS_TABLE_NAME]: {
@@ -621,6 +625,13 @@ async function readPresttigeMetrics(thirtyDaysAgo, now, revenueScope = null) {
       ProjectionExpression: 'metric_key, #value',
       ExpressionAttributeNames: { '#value': 'value' },
     })),
+    ddb.send(new QueryCommand({
+      TableName: METRICS_TABLE_NAME,
+      KeyConditionExpression: 'metric_group = :group',
+      ExpressionAttributeValues: { ':group': 'member_list_founder_patron' },
+      ProjectionExpression: 'metric_key, tier, #name, country, city',
+      ExpressionAttributeNames: { '#name': 'name' },
+    })),
   ]);
 
   const counters = new Map((counterResponse.Responses?.[METRICS_TABLE_NAME] || [])
@@ -655,6 +666,7 @@ async function readPresttigeMetrics(thirtyDaysAgo, now, revenueScope = null) {
       countries: rankedMetricRows(memberCountryResponse.Items || []),
       cities: rankedMetricRows(memberCityResponse.Items || []),
     },
+    priorityMembers: priorityMemberRows(priorityMembersResponse.Items || []),
   };
 }
 
@@ -950,6 +962,18 @@ function rankedMetricRows(items) {
     .slice(0, GA_RANK_LIMIT);
 }
 
+function priorityMemberRows(items) {
+  return sortPriorityMembers(items
+    .map((item) => ({
+      id: normalizeString(item.metric_key),
+      tier: normalizeType(item.tier),
+      name: normalizeString(item.name),
+      country: normalizeString(item.country),
+      city: normalizeString(item.city),
+    }))
+    .filter((item) => item.id && priorityMemberTiers.includes(item.tier)));
+}
+
 function mergeRankedRows(left = [], right = []) {
   const totals = new Map();
   for (const row of [...left, ...right]) {
@@ -962,6 +986,25 @@ function mergeRankedRows(left = [], right = []) {
     .filter((row) => row.value > 0)
     .sort((a, b) => b.value - a.value)
     .slice(0, GA_RANK_LIMIT);
+}
+
+function mergePriorityMembers(left = [], right = []) {
+  const byId = new Map();
+  for (const item of [...left, ...right]) {
+    if (!item?.id) continue;
+    byId.set(item.id, item);
+  }
+  return sortPriorityMembers([...byId.values()]);
+}
+
+function sortPriorityMembers(items) {
+  const tierOrder = new Map(priorityMemberTiers.map((tier, index) => [tier, index]));
+  return [...items].sort((left, right) => {
+    const leftTier = tierOrder.get(normalizeType(left.tier)) ?? 99;
+    const rightTier = tierOrder.get(normalizeType(right.tier)) ?? 99;
+    if (leftTier !== rightTier) return leftTier - rightTier;
+    return normalizeString(left.name).localeCompare(normalizeString(right.name), 'en');
+  });
 }
 
 function mergeNewReturning(left = null, right = null) {
