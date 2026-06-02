@@ -23,10 +23,11 @@
             "Invitations to events, workshops, and programming as the platform grows.",
             "A direct path into the private Founder payment and activation flow.",
           ]),
+          '<button class="founder-step-button" type="button" data-founder-step-next>Become a Founder</button>',
         '</article>',
-        '<aside class="detail-card">',
+        '<aside class="detail-card" data-founder-payment-step hidden>',
           '<h2>Founder tier</h2>',
-          '<p class="price">$9,999</p>',
+          '<p class="price">9,999 USD</p>',
           '<p class="note">One-time lifetime payment. Consent is required before the private payment step opens.</p>',
           '<p class="next-step">Next step, consent and payment</p>',
           '<p class="note">Verified email: ' + escapeHtml(context.email || "") + '</p>',
@@ -42,7 +43,23 @@
       '</div>',
     ].join("");
 
+    bindFounderStep(root);
     bindFounderConsent(root, context);
+  }
+
+  function bindFounderStep(root) {
+    var nextButton = root.querySelector("[data-founder-step-next]");
+    var paymentStep = root.querySelector("[data-founder-payment-step]");
+
+    if (!nextButton || !paymentStep) {
+      return;
+    }
+
+    nextButton.addEventListener("click", function () {
+      paymentStep.hidden = false;
+      nextButton.hidden = true;
+      paymentStep.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   function bindFounderConsent(root, context) {
