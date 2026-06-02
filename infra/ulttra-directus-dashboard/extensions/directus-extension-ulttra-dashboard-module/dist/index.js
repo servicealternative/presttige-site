@@ -27,6 +27,10 @@ const Dashboard = defineComponent({
     const inviteStatus = ref('');
     const inviteCooldownRemaining = ref(0);
     const inviteCooldownTimer = ref(null);
+    const presttigeInviteEmail = ref('');
+    const presttigeInviteBusy = ref(false);
+    const presttigeInviteMessage = ref('');
+    const presttigeInviteSuccess = ref(false);
     const tierDetailOpen = ref(false);
     const selectedProject = ref('global');
 
@@ -109,6 +113,27 @@ const Dashboard = defineComponent({
       }
     }
 
+    async function submitPresttigeInvitation() {
+      presttigeInviteBusy.value = true;
+      presttigeInviteMessage.value = '';
+      presttigeInviteSuccess.value = false;
+      try {
+        const response = await api.post('/ulttra-dashboard/presttige-invite', {
+          invited_email: presttigeInviteEmail.value,
+        });
+        presttigeInviteSuccess.value = response.data?.status === 'SENT';
+        presttigeInviteMessage.value = response.data?.message || 'Presttige invitation request processed.';
+        if (response.data?.status === 'SENT') {
+          presttigeInviteEmail.value = '';
+        }
+      } catch (err) {
+        presttigeInviteSuccess.value = false;
+        presttigeInviteMessage.value = err?.response?.data?.message || 'Presttige invitation could not be sent.';
+      } finally {
+        presttigeInviteBusy.value = false;
+      }
+    }
+
     function selectProject(projectKey) {
       if (!projectKey || projectKey === selectedProject.value) return;
       selectedProject.value = projectKey;
@@ -136,11 +161,16 @@ const Dashboard = defineComponent({
       inviteSuccess,
       inviteStatus,
       inviteCooldownRemaining,
+      presttigeInviteEmail,
+      presttigeInviteBusy,
+      presttigeInviteMessage,
+      presttigeInviteSuccess,
       tierDetailOpen,
       selectedProject,
       loadDashboard,
       selectProject,
       submitInvite,
+      submitPresttigeInvitation,
     };
   },
   render() {
@@ -257,6 +287,14 @@ const Dashboard = defineComponent({
           },
         }, `You can create another invitation in ${this.inviteCooldownRemaining} seconds.`) : null,
       ]) : null,
+      data.current_user?.is_chairman ? chairmanPresttigeInvitationSection({
+        email: this.presttigeInviteEmail,
+        busy: this.presttigeInviteBusy,
+        message: this.presttigeInviteMessage,
+        success: this.presttigeInviteSuccess,
+        updateEmail: (value) => { this.presttigeInviteEmail = value; },
+        submit: () => this.submitPresttigeInvitation(),
+      }) : null,
       h('p', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px', margin: 0 } }, [
         `Last updated ${cache.generated_at || 'not yet'}. Cache ${cache.status || 'unknown'}. `,
         `Data sources: DynamoDB, Stripe, GA4.`,
@@ -363,6 +401,65 @@ function projectEmptyState(emptyState) {
   }, [
     h('h2', { style: { margin: '0 0 8px', fontSize: '22px' } }, emptyState.title || 'No data yet'),
     h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, emptyState.detail || 'Project registered. Data sources are not configured yet.'),
+  ]);
+}
+
+function chairmanPresttigeInvitationSection({ email, busy, message, success, updateEmail, submit }) {
+  return h('section', {
+    style: {
+      border: '1px solid var(--theme--border-color)',
+      borderRadius: '8px',
+      padding: '24px',
+      background: 'var(--theme--background)',
+      marginBottom: '20px',
+    },
+  }, [
+    h('div', {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '16px',
+        alignItems: 'center',
+        marginBottom: '18px',
+      },
+    }, [
+      h('div', [
+        h('h2', { style: { margin: '0 0 6px', fontSize: '22px' } }, 'Presttige Invitation'),
+        h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, 'Committee invitation into the standard Express Interest flow.'),
+      ]),
+    ]),
+    h('form', {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: 'minmax(260px, 1fr) auto',
+        gap: '12px',
+        alignItems: 'end',
+      },
+      onSubmit: (event) => {
+        event.preventDefault();
+        submit();
+      },
+    }, [
+      fieldInput('Invitee email', email, updateEmail, 'email', {
+        name: 'presttige_invited_email',
+        autocomplete: 'email',
+        required: true,
+      }),
+      h('button', {
+        class: 'button',
+        disabled: busy || !email,
+        style: {
+          minHeight: '44px',
+          whiteSpace: 'nowrap',
+        },
+      }, busy ? 'Sending' : 'Send Presttige invitation'),
+    ]),
+    message ? h('p', {
+      style: {
+        margin: '14px 0 0',
+        color: success ? 'var(--success)' : 'var(--theme--foreground-subdued)',
+      },
+    }, message) : null,
   ]);
 }
 

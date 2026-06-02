@@ -2,10 +2,12 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { BatchGetCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { GetParameterCommand, GetParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
+import { createHash, createHmac, randomUUID } from 'node:crypto';
 
 const REGION = process.env.AWS_REGION || 'us-east-1';
 const CACHE_TABLE_NAME = process.env.DASHBOARD_CACHE_TABLE_NAME || 'ulttra-crm-dashboard-cache';
 const METRICS_TABLE_NAME = process.env.DASHBOARD_METRICS_TABLE_NAME || 'ulttra-crm-dashboard-metrics';
+const AUDIT_TABLE_NAME = process.env.AUDIT_TABLE_NAME || 'presttige-review-audit';
 const CACHE_KEY = process.env.DASHBOARD_CACHE_KEY || 'presttige-dashboard-v1';
 const CACHE_TTL_SECONDS = Number(process.env.DASHBOARD_CACHE_TTL_SECONDS || 300);
 const STRIPE_SECRET_PARAMETER = process.env.STRIPE_SECRET_PARAMETER || '/presttige/stripe/secret-key';
@@ -15,6 +17,8 @@ const GA_CLIENT_ID = process.env.GA4_OAUTH_CLIENT_ID || '430778007708-uerfhfgt42
 const GA_PROPERTY_ID = process.env.GA4_PROPERTY_ID || '530348665';
 const FOUNDER_GLOBAL_CAP_PARAMETER = process.env.FOUNDER_GLOBAL_CAP_PARAMETER || '/presttige/founder-invite/global-cap';
 const FOUNDER_ADMIN_FUNCTION_NAME = process.env.FOUNDER_ADMIN_FUNCTION_NAME || 'presttige-founder-admin';
+const COMMITTEE_EMAIL_FROM = process.env.COMMITTEE_EMAIL_FROM || 'committee@presttige.net';
+const EXPRESS_INTEREST_URL = process.env.EXPRESS_INTEREST_URL || 'https://presttige.net/?presttige_invited=1#express-interest';
 const GLOBAL_PROJECT_KEY = 'global';
 const PRESTTIGE_PROJECT_KEY = 'presttige';
 const CHAIRMAN_EMAIL = 'apereira@presttige.net';
@@ -72,6 +76,7 @@ const ddbClient = new DynamoDBClient({ region: REGION });
 const ddb = DynamoDBDocumentClient.from(ddbClient);
 const ssm = new SSMClient({ region: REGION });
 const lambda = new LambdaClient({ region: REGION });
+let cachedAwsCredentials = null;
 
 export default {
   id: 'ulttra-dashboard',
@@ -135,6 +140,45 @@ export default {
         });
         const outcome = await founderInviteOutcome(result, invitedEmail);
         res.status(200).json(outcome);
+      } catch (error) {
+        sendError(res, error);
+      }
+    });
+
+    router.post('/presttige-invite', async (req, res) => {
+      try {
+        const user = await requireDashboardUser(req, context);
+        const invitedEmail = normalizeEmail(req.body?.invited_email);
+        if (!isChairman(user) || !isValidEmail(invitedEmail)) {
+          res.status(200).json({
+            ok: false,
+            status: 'ERROR',
+            message: 'Presttige invitation could not be sent.',
+          });
+          return;
+        }
+
+        const timestamp = new Date().toISOString();
+        const auditItem = buildPresttigeInvitationAuditItem({
+          user,
+          invitedEmail,
+          timestamp,
+        });
+        await ddb.send(new PutCommand({
+          TableName: AUDIT_TABLE_NAME,
+          Item: auditItem,
+          ConditionExpression: 'attribute_not_exists(audit_id)',
+        }));
+
+        const emailResult = await sendPresttigeInvitationEmail(invitedEmail);
+        res.status(200).json({
+          ok: true,
+          status: 'SENT',
+          invitee_email: invitedEmail,
+          message: `Presttige invitation sent to ${invitedEmail}.`,
+          message_id: emailResult.MessageId || null,
+          invitation_id: auditItem.invitation_id,
+        });
       } catch (error) {
         sendError(res, error);
       }
@@ -849,6 +893,368 @@ async function readFounderInviteSentAt(email) {
 function alreadyInvitedMessage(email, invitedAt) {
   const suffix = invitedAt ? ` It was originally invited on ${invitedAt}.` : '';
   return `${email} was already invited and cannot be invited again yet.${suffix}`;
+}
+
+function buildPresttigeInvitationAuditItem({ user, invitedEmail, timestamp }) {
+  const invitationId = `presttige_invitation_${randomUUID()}`;
+  return {
+    audit_id: randomUUID(),
+    timestamp,
+    lead_id: `standard_invitation#${invitedEmail}`,
+    target_email: invitedEmail,
+    action: 'chairman_presttige_invitation_send',
+    actor_id: `directus:${user.id}`,
+    actor_email: user.email,
+    reviewer_id: `directus:${user.id}`,
+    invitation_id: invitationId,
+    previous_state: {},
+    new_state: {
+      invitation_type: 'presttige_standard_express_interest',
+      invitee_email: invitedEmail,
+      generated_by_email: user.email,
+      generated_by_person_id: user.person?.id || null,
+      cta_url: EXPRESS_INTEREST_URL,
+      sender: COMMITTEE_EMAIL_FROM,
+      tier: null,
+    },
+    metadata: {
+      component: 'directus-extension-ulttra-dashboard-endpoint',
+      source: 'chairman_dashboard',
+      visible_inviter: false,
+      journey: 'standard_express_interest',
+    },
+    is_test: isAntonioControlledTestEmail(invitedEmail),
+    synthetic_test: isAntonioControlledTestEmail(invitedEmail),
+  };
+}
+
+async function sendPresttigeInvitationEmail(invitedEmail) {
+  const subject = 'An invitation to Presttige';
+  const html = renderPresttigeInvitationHtml();
+  const text = renderPresttigeInvitationText();
+  return sendSesEmail({
+    source: COMMITTEE_EMAIL_FROM,
+    to: invitedEmail,
+    subject,
+    html,
+    text,
+  });
+}
+
+async function sendSesEmail({ source, to, subject, html, text }) {
+  const credentials = await getAwsCredentials();
+  const body = new URLSearchParams({
+    Action: 'SendEmail',
+    Version: '2010-12-01',
+    Source: source,
+    'ReplyToAddresses.member.1': source,
+    'Destination.ToAddresses.member.1': to,
+    'Message.Subject.Data': subject,
+    'Message.Body.Html.Data': html,
+    'Message.Body.Text.Data': text,
+  }).toString();
+  const endpoint = `https://email.${REGION}.amazonaws.com/`;
+  const headers = signAwsRequest({
+    method: 'POST',
+    url: endpoint,
+    region: REGION,
+    service: 'ses',
+    body,
+    credentials,
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
+    },
+  });
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body,
+  });
+  const responseText = await response.text();
+  if (!response.ok) {
+    throw new Error(`SES SendEmail failed: ${response.status} ${responseText}`);
+  }
+  return {
+    MessageId: extractXmlValue(responseText, 'MessageId'),
+  };
+}
+
+async function getAwsCredentials() {
+  if (cachedAwsCredentials && cachedAwsCredentials.expiresAt > Date.now() + 300000) {
+    return cachedAwsCredentials;
+  }
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    cachedAwsCredentials = {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      sessionToken: process.env.AWS_SESSION_TOKEN || '',
+      expiresAt: Date.now() + 3600000,
+    };
+    return cachedAwsCredentials;
+  }
+  const credentialsUri = process.env.AWS_CONTAINER_CREDENTIALS_FULL_URI
+    || (process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
+      ? `http://169.254.170.2${process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI}`
+      : '');
+  if (!credentialsUri) {
+    throw new Error('AWS credentials are not available for SES send.');
+  }
+  const headers = {};
+  if (process.env.AWS_CONTAINER_AUTHORIZATION_TOKEN) {
+    headers.Authorization = process.env.AWS_CONTAINER_AUTHORIZATION_TOKEN;
+  }
+  const response = await fetch(credentialsUri, { headers });
+  if (!response.ok) {
+    throw new Error(`AWS credential metadata failed: ${response.status}`);
+  }
+  const data = await response.json();
+  cachedAwsCredentials = {
+    accessKeyId: data.AccessKeyId,
+    secretAccessKey: data.SecretAccessKey,
+    sessionToken: data.Token || '',
+    expiresAt: data.Expiration ? new Date(data.Expiration).getTime() : Date.now() + 3600000,
+  };
+  return cachedAwsCredentials;
+}
+
+function signAwsRequest({ method, url, region, service, body, credentials, headers }) {
+  const parsedUrl = new URL(url);
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, '');
+  const dateStamp = amzDate.slice(0, 8);
+  const requestHeaders = {
+    ...headers,
+    host: parsedUrl.host,
+    'x-amz-date': amzDate,
+  };
+  if (credentials.sessionToken) {
+    requestHeaders['x-amz-security-token'] = credentials.sessionToken;
+  }
+  const sortedHeaderNames = Object.keys(requestHeaders).map((name) => name.toLowerCase()).sort();
+  const canonicalHeaders = sortedHeaderNames
+    .map((name) => `${name}:${requestHeaders[name] || requestHeaders[Object.keys(requestHeaders).find((key) => key.toLowerCase() === name)]}\n`)
+    .join('');
+  const signedHeaders = sortedHeaderNames.join(';');
+  const payloadHash = sha256Hex(body);
+  const canonicalRequest = [
+    method,
+    parsedUrl.pathname || '/',
+    parsedUrl.search ? parsedUrl.search.slice(1) : '',
+    canonicalHeaders,
+    signedHeaders,
+    payloadHash,
+  ].join('\n');
+  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+  const stringToSign = [
+    'AWS4-HMAC-SHA256',
+    amzDate,
+    credentialScope,
+    sha256Hex(canonicalRequest),
+  ].join('\n');
+  const signingKey = getSignatureKey(credentials.secretAccessKey, dateStamp, region, service);
+  const signature = hmacHex(signingKey, stringToSign);
+  return {
+    ...requestHeaders,
+    Authorization: `AWS4-HMAC-SHA256 Credential=${credentials.accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+  };
+}
+
+function getSignatureKey(secretAccessKey, dateStamp, region, service) {
+  const kDate = hmacBuffer(`AWS4${secretAccessKey}`, dateStamp);
+  const kRegion = hmacBuffer(kDate, region);
+  const kService = hmacBuffer(kRegion, service);
+  return hmacBuffer(kService, 'aws4_request');
+}
+
+function sha256Hex(value) {
+  return createHash('sha256').update(value, 'utf8').digest('hex');
+}
+
+function hmacBuffer(key, value) {
+  return createHmac('sha256', key).update(value, 'utf8').digest();
+}
+
+function hmacHex(key, value) {
+  return createHmac('sha256', key).update(value, 'utf8').digest('hex');
+}
+
+function extractXmlValue(xml, tagName) {
+  const match = xml.match(new RegExp(`<${tagName}>([^<]+)</${tagName}>`));
+  return match ? match[1] : null;
+}
+
+function renderPresttigeInvitationHtml() {
+  const bodyHtml = [
+    'The Committee is pleased to extend you an invitation to Presttige, following the recommendation of one of our members.',
+    'Presttige is a private, curated network for business and lifestyle, a circle of accomplished individuals who value discretion, quality, and meaningful connection. Membership is by invitation only.',
+    'You have been suggested as someone who belongs among them.',
+    'To begin, simply express your interest below. From there, we will guide you through the next steps.',
+  ].map((paragraph) => `<p style="margin:0 0 18px 0;">${escapeHtml(paragraph)}</p>`).join('');
+
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
+  <title>An invitation to Presttige</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <!--[if mso]>
+  <style type="text/css">
+    body, table, td, a, p, span, h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif !important; }
+  </style>
+  <![endif]-->
+  <style type="text/css">
+    body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #F5F2ED; }
+    table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+    a { text-decoration: none; }
+    [data-ogsc] body, [data-ogsb] body { background-color: #F5F2ED !important; }
+    [data-ogsc] .paper, [data-ogsb] .paper { background-color: #FBF9F4 !important; }
+    [data-ogsc] .ink, [data-ogsb] .ink { color: #0A0A0A !important; }
+    [data-ogsc] .muted, [data-ogsb] .muted { color: #4A4A4A !important; }
+    [data-ogsc] .gold, [data-ogsb] .gold { color: #8C7040 !important; }
+    @media only screen and (max-width: 620px) {
+      .container { width: 100% !important; }
+      .px { padding-left: 28px !important; padding-right: 28px !important; }
+      .title { font-size: 28px !important; line-height: 36px !important; }
+      .body-pad { padding-top: 36px !important; padding-bottom: 32px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#F5F2ED;font-family:'Source Serif Pro',Georgia,serif;color:#0A0A0A;">
+  <div style="display:none;font-size:1px;color:#F5F2ED;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
+    A private invitation to express your interest in Presttige.
+  </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F2ED;">
+    <tr>
+      <td align="center" style="padding: 0 16px;">
+        <table role="presentation" class="container paper" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background-color:#FBF9F4;">
+          <tr>
+            <td align="center" style="background-color:#000000;padding: 36px 56px 28px 56px;margin:0;">
+              <!--[if mso]>
+              <p style="font-family:Georgia,serif;font-size:24px;color:#8C7040;letter-spacing:0.05em;margin:0 0 14px 0;">PRESTTIGE</p>
+              <![endif]-->
+              <!--[if !mso]><!-- -->
+              <img src="https://presttige.net/assets/images/presttige-p-lettering.png?v=4" alt="Presttige" width="220" height="49" style="display:block;margin:0 auto 14px auto;border:0;outline:none;text-decoration:none;max-width:220px;">
+              <!--<![endif]-->
+              <p style="margin:0;font-family:'Source Serif Pro',Georgia,serif;font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#8C7040;">Private &middot; Selective &middot; Prestigious</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="px body-pad" style="padding: 48px 56px 40px 56px;">
+              <p class="gold" style="margin:0 0 24px 0;font-family:'Source Serif Pro',Georgia,serif;font-size:11px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#8C7040;">Invitation</p>
+              <h1 class="title ink" style="margin:0 0 28px 0;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:500;font-size:34px;line-height:42px;color:#0A0A0A;">An invitation to Presttige</h1>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 32px 0;">
+                <tr><td style="width:38px;border-top:1px solid #8C7040;font-size:0;line-height:0;height:1px;">&nbsp;</td></tr>
+              </table>
+              <p class="ink" style="margin:0 0 20px 0;font-family:'Source Serif Pro',Georgia,serif;font-size:16px;line-height:26px;color:#0A0A0A;">Dear Guest,</p>
+              <div class="muted" style="margin:0 0 36px 0;font-family:'Source Serif Pro',Georgia,serif;font-size:16px;line-height:26px;color:#4A4A4A;">
+                ${bodyHtml}
+              </div>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 36px 0;">
+                <tr>
+                  <td>
+                    <!--[if mso]>
+                    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeHtml(EXPRESS_INTEREST_URL)}" style="height:46px;v-text-anchor:middle;width:220px;" stroke="t" strokecolor="#8C7040" strokeweight="1px" fillcolor="#FBF9F4">
+                      <w:anchorlock/>
+                      <center style="color:#8C7040;font-family:Georgia,serif;font-size:12px;font-weight:600;letter-spacing:2.4px;">Express Interest</center>
+                    </v:rect>
+                    <![endif]-->
+                    <!--[if !mso]><!-- -->
+                    <a href="${escapeHtml(EXPRESS_INTEREST_URL)}" class="gold" style="display:inline-block;padding:14px 36px;border:1px solid #8C7040;color:#8C7040;font-family:'Source Serif Pro',Georgia,serif;font-size:12px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;text-decoration:none;background-color:transparent;mso-padding-alt:0;">Express Interest</a>
+                    <!--<![endif]-->
+                  </td>
+                </tr>
+              </table>
+              <p class="muted" style="margin:0 0 18px 0;font-family:'Source Serif Pro',Georgia,serif;font-size:16px;line-height:26px;color:#4A4A4A;">Should you prefer, you are also welcome to visit presttige.net at your leisure.</p>
+              <p class="muted" style="margin:0;font-family:'Source Serif Pro',Georgia,serif;font-size:16px;line-height:26px;color:#4A4A4A;">With our regards,</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="px" style="padding: 0 56px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="border-top:1px solid #D9D2C5;font-size:0;line-height:0;height:1px;">&nbsp;</td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td class="px" style="padding: 28px 56px 44px 56px;">
+              <p class="ink" style="margin:0 0 4px 0;font-family:'Source Serif Pro',Georgia,serif;font-size:14px;font-weight:600;color:#0A0A0A;">The Committee</p>
+              <p class="gold" style="margin:0;font-family:'Source Serif Pro',Georgia,serif;font-size:11px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#8C7040;">PRESTTIGE</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="px" align="center" style="background-color:#000000;padding: 36px 56px 36px 56px;">
+              <!--[if mso]>
+              <p style="margin:0 0 16px 0;font-family:Georgia,serif;font-size:18px;font-weight:600;letter-spacing:0.12em;color:#8C7040;">PRESTTIGE</p>
+              <![endif]-->
+              <!--[if !mso]><!-- -->
+              <img src="https://presttige.net/assets/images/presttige-p-ring.png" alt="Presttige" width="64" height="64" style="display:block;margin:0 auto 16px auto;border:0;outline:none;text-decoration:none;">
+              <!--<![endif]-->
+              <p style="margin:0 0 12px 0;font-family:'Source Serif Pro',Georgia,serif;font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#8C7040;">New York &middot; London &middot; Dubai</p>
+              <p style="margin:0;font-family:'Source Serif Pro',Georgia,serif;font-size:12px;color:#D9D2C5;">
+                <a href="https://presttige.net" style="color:#D9D2C5;text-decoration:none;">www.presttige.net</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function renderPresttigeInvitationText() {
+  return [
+    'PRESTTIGE',
+    'Private · Selective · Prestigious',
+    '',
+    'Invitation',
+    '',
+    'An invitation to Presttige',
+    '',
+    'Dear Guest,',
+    '',
+    'The Committee is pleased to extend you an invitation to Presttige, following the recommendation of one of our members.',
+    '',
+    'Presttige is a private, curated network for business and lifestyle, a circle of accomplished individuals who value discretion, quality, and meaningful connection. Membership is by invitation only.',
+    '',
+    'You have been suggested as someone who belongs among them.',
+    '',
+    'To begin, simply express your interest below. From there, we will guide you through the next steps.',
+    '',
+    `Express Interest: ${EXPRESS_INTEREST_URL}`,
+    '',
+    'Should you prefer, you are also welcome to visit presttige.net at your leisure.',
+    '',
+    'With our regards,',
+    'The Committee',
+    'Presttige',
+  ].join('\n');
+}
+
+function escapeHtml(value) {
+  return normalizeString(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function isAntonioControlledTestEmail(email) {
+  return [
+    'fq@freequenza.net',
+    'antoniompereira@icloud.com',
+    'antoniompereira@me.com',
+    'alternativeservice@gmail.com',
+  ].includes(normalizeEmail(email));
 }
 
 function normalizeString(value) {

@@ -11,8 +11,8 @@ if (!moduleEntryPath || !outputPath) {
 
 const replacements = [
   [
-    "import { defineComponent, h, onMounted, ref, resolveComponent } from 'vue';",
-    "import { defineComponent, h, onMounted, ref, resolveComponent } from '/admin/assets/vue.C7rYGRBh.entry.js';",
+    "import { defineComponent, h, onMounted, onUnmounted, ref, resolveComponent } from 'vue';",
+    "import { defineComponent, h, onMounted, onUnmounted, ref, resolveComponent } from '/admin/assets/vue.C7rYGRBh.entry.js';",
   ],
   [
     "import { useApi } from '@directus/extensions-sdk';",

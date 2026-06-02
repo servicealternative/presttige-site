@@ -1,6 +1,6 @@
 {
   "name": "directus-extension-ulttra-dashboard-endpoint",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.940.0",
