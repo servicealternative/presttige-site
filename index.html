@@ -1250,6 +1250,17 @@
 
     populateApplyCountrySelect();
 
+    function shouldOpenApplyFromUrl() {
+      const params = new URLSearchParams(window.location.search || '');
+      return window.location.hash === '#express-interest' || params.get('presttige_invited') === '1';
+    }
+
+    if (shouldOpenApplyFromUrl()) {
+      setTimeout(function () {
+        openApply('committee_invitation');
+      }, 80);
+    }
+
     let scroll90Tracked = false;
 
     window.addEventListener('scroll', function () {
