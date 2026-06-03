@@ -31,6 +31,9 @@ const Dashboard = defineComponent({
     const presttigeInviteBusy = ref(false);
     const presttigeInviteMessage = ref('');
     const presttigeInviteSuccess = ref(false);
+    const registeredInviteBusyLeadId = ref('');
+    const registeredInviteMessage = ref('');
+    const registeredInviteSuccess = ref(false);
     const tierDetailOpen = ref(false);
     const selectedPriorityMemberId = ref('');
     const selectedProject = ref('global');
@@ -139,6 +142,26 @@ const Dashboard = defineComponent({
         presttigeInviteMessage.value = err?.response?.data?.message || 'Presttige invitation could not be sent.';
       } finally {
         presttigeInviteBusy.value = false;
+      }
+    }
+
+    async function submitRegisteredFounderInvite(candidate) {
+      if (!candidate?.id || candidate.already_invited) return;
+      registeredInviteBusyLeadId.value = candidate.id;
+      registeredInviteMessage.value = '';
+      registeredInviteSuccess.value = false;
+      try {
+        const response = await api.post('/ulttra-dashboard/registered-founder-invite', {
+          lead_id: candidate.id,
+        });
+        registeredInviteSuccess.value = response.data?.status === 'SENT';
+        registeredInviteMessage.value = response.data?.message || 'Founder invitation request processed.';
+        await loadDashboard(true);
+      } catch (err) {
+        registeredInviteSuccess.value = false;
+        registeredInviteMessage.value = err?.response?.data?.message || 'Founder invitation could not be created.';
+      } finally {
+        registeredInviteBusyLeadId.value = '';
       }
     }
 
@@ -256,6 +279,9 @@ const Dashboard = defineComponent({
       presttigeInviteBusy,
       presttigeInviteMessage,
       presttigeInviteSuccess,
+      registeredInviteBusyLeadId,
+      registeredInviteMessage,
+      registeredInviteSuccess,
       tierDetailOpen,
       selectedPriorityMemberId,
       selectedProject,
@@ -268,6 +294,7 @@ const Dashboard = defineComponent({
       selectProject,
       submitInvite,
       submitPresttigeInvitation,
+      submitRegisteredFounderInvite,
       changeFinanceMonth,
       createCostCategory,
       saveCostCategory,
@@ -329,6 +356,13 @@ const Dashboard = defineComponent({
       founderPatronMembersSection(metrics.priority_members || [], this.selectedPriorityMemberId, (memberId) => {
         this.selectedPriorityMemberId = this.selectedPriorityMemberId === memberId ? '' : memberId;
       }),
+      data.current_user?.is_chairman ? registeredFounderInviteSection({
+        candidates: metrics.registered_founder_candidates || [],
+        busyLeadId: this.registeredInviteBusyLeadId,
+        message: this.registeredInviteMessage,
+        success: this.registeredInviteSuccess,
+        submit: (candidate) => this.submitRegisteredFounderInvite(candidate),
+      }) : null,
       data.current_user?.eligible_inviter ? h('section', {
         style: {
           border: '1px solid var(--theme--border-color)',
@@ -545,6 +579,127 @@ function projectEmptyState(emptyState) {
     h('h2', { style: { margin: '0 0 8px', fontSize: '22px' } }, emptyState.title || 'No data yet'),
     h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, emptyState.detail || 'Project registered. Data sources are not configured yet.'),
   ]);
+}
+
+function registeredFounderInviteSection({ candidates, busyLeadId, message, success, submit }) {
+  const rows = Array.isArray(candidates) ? candidates : [];
+  return h('section', {
+    style: {
+      border: '1px solid var(--theme--border-color)',
+      borderRadius: '8px',
+      padding: '24px',
+      background: 'var(--theme--background)',
+      marginBottom: '20px',
+    },
+  }, [
+    h('div', {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '16px',
+        alignItems: 'center',
+        marginBottom: '18px',
+      },
+    }, [
+      h('div', [
+        h('h2', { style: { margin: '0 0 6px', fontSize: '22px' } }, 'Become a Founder'),
+        h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, 'Invite registered Presttige people from the list.'),
+      ]),
+      h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px', whiteSpace: 'nowrap' } }, `${rows.length} listed`),
+    ]),
+    rows.length ? h('div', {
+      style: {
+        overflowX: 'auto',
+        overflowY: 'auto',
+        maxHeight: '292px',
+        border: '1px solid var(--theme--border-color)',
+        borderRadius: '8px',
+      },
+    }, [
+      h('table', {
+        style: {
+          width: '100%',
+          minWidth: '860px',
+          borderCollapse: 'collapse',
+        },
+      }, [
+        h('thead', null, [
+          h('tr', null, [
+            founderCandidateHeader('Name'),
+            founderCandidateHeader('Email'),
+            founderCandidateHeader('Location'),
+            founderCandidateHeader('Tier Status'),
+            founderCandidateHeader(''),
+          ]),
+        ]),
+        h('tbody', null, rows.map((candidate) => {
+          const busy = busyLeadId === candidate.id;
+          const disabled = busy || candidate.already_invited;
+          return h('tr', { key: candidate.id }, [
+            founderCandidateCell(h('strong', { style: { color: 'var(--theme--foreground)', fontWeight: 600 } }, candidate.name || 'Unnamed')),
+            founderCandidateCell(candidate.email || ''),
+            founderCandidateCell(candidate.location || [candidate.city, candidate.country].filter(Boolean).join(', ')),
+            founderCandidateCell(tierLabel(candidate.tier || 'free')),
+            founderCandidateCell(h('button', {
+              type: 'button',
+              class: 'button',
+              disabled,
+              style: {
+                minHeight: '36px',
+                whiteSpace: 'nowrap',
+              },
+              onClick: () => submit(candidate),
+            }, candidate.already_invited ? 'Already invited' : busy ? 'Sending' : 'Invite Founder'), 'right'),
+          ]);
+        })),
+      ]),
+    ]) : h('p', {
+      style: {
+        margin: 0,
+        color: 'var(--theme--foreground-subdued)',
+      },
+    }, 'No registered people currently match the invite criteria.'),
+    message ? h('p', {
+      style: {
+        margin: '14px 0 0',
+        color: success ? 'var(--success)' : 'var(--theme--foreground-subdued)',
+      },
+    }, message) : null,
+  ]);
+}
+
+function founderCandidateHeader(label) {
+  return h('th', {
+    style: {
+      textAlign: label ? 'left' : 'right',
+      padding: '11px 12px',
+      borderBottom: '1px solid var(--theme--border-color)',
+      color: 'var(--theme--foreground-subdued)',
+      fontSize: '12px',
+      fontWeight: 700,
+    },
+  }, label);
+}
+
+function founderCandidateCell(content, align = 'left') {
+  return h('td', {
+    style: {
+      textAlign: align,
+      padding: '12px',
+      borderBottom: '1px solid var(--theme--border-color)',
+      color: 'var(--theme--foreground-subdued)',
+      fontSize: '13px',
+      verticalAlign: 'middle',
+    },
+  }, content);
+}
+
+function tierLabel(tier) {
+  const value = String(tier || 'free').toLowerCase();
+  if (value === 'club') return 'Club';
+  if (value === 'premier') return 'Premier';
+  if (value === 'patron') return 'Patron';
+  return 'free';
 }
 
 function chairmanPresttigeInvitationSection({ email, busy, message, success, updateEmail, submit }) {
