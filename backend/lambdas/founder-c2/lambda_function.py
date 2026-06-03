@@ -141,6 +141,45 @@ def verify_email(event):
     return redirect(f"{BASE_URL}/founder-c2.html?token={token}")
 
 
+def verify_email_with_address(event):
+    body = parse_body(event)
+    token = as_text(body.get("token"))
+    email = as_lower(body.get("email") or body.get("invited_email"))
+    if not token:
+        return response(400, {"error": "missing_token"})
+    if not email:
+        return response(400, {"error": "missing_email"})
+
+    lead = find_invited_lead(token)
+    if not is_founder_c2_candidate(lead):
+        return response(404, {"error": "invalid_founder_invitation"})
+    if as_lower(lead.get("email")) != email:
+        return response(403, {"error": "email_mismatch"})
+
+    lead_id = as_text(lead.get("lead_id"))
+    if not lead_id:
+        return response(404, {"error": "invalid_lead"})
+
+    now = utc_now_iso()
+    table.update_item(
+        Key={"lead_id": lead_id},
+        UpdateExpression=(
+            "SET email_status = :verified, "
+            "founder_c2_email_verified_at = if_not_exists(founder_c2_email_verified_at, :now), "
+            "updated_at = :now"
+        ),
+        ExpressionAttributeValues={":verified": "verified", ":now": now},
+    )
+
+    return response(
+        200,
+        {
+            "valid": True,
+            "redirect_url": f"{BASE_URL}/founder-c2.html?token={token}",
+        },
+    )
+
+
 def get_context(event):
     token = as_text(query_params(event).get("token"))
     lead = find_invited_lead(token)
@@ -312,6 +351,8 @@ def lambda_handler(event, context):
             return verify_email(event)
         if method(event) == "GET":
             return get_context(event)
+        if method(event) == "POST" and action == "verify-email":
+            return verify_email_with_address(event)
         if method(event) == "POST" and action == "gate":
             return verify_founder_gate(event)
         if method(event) == "POST":
