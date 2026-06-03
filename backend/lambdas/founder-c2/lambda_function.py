@@ -259,7 +259,7 @@ def submit_form(event):
         return response(400, {"error": "INVALID_CONSENT_TIMESTAMP"})
 
     profile_fields = {
-        "country": as_text(lead.get("country") or body.get("country")),
+        "country": as_text(body.get("country") or lead.get("country")),
         "phone_country": as_text(body.get("phone_country")),
         "phone": as_text(body.get("phone")),
         "age": as_text(body.get("age")),
