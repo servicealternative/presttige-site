@@ -151,6 +151,30 @@ def get_context(event):
     return response(200, {"lead": public_context(lead)})
 
 
+def verify_founder_gate(event):
+    body = parse_body(event)
+    token = as_text(body.get("token"))
+    email = as_lower(body.get("email") or body.get("invited_email"))
+    lead = find_invited_lead(token)
+
+    if not is_founder_c2_candidate(lead):
+        return response(404, {"error": "invalid_founder_invitation"})
+    if as_lower(lead.get("email_status")) != "verified":
+        return response(403, {"error": "email_not_verified"})
+    if as_lower(lead.get("email")) != email:
+        return response(403, {"error": "email_mismatch"})
+
+    return response(
+        200,
+        {
+            "valid": True,
+            "tier": "founder",
+            "email": as_lower(lead.get("email")),
+            "inviter_email": as_lower(lead.get("inviter_email")),
+        },
+    )
+
+
 def parse_iso_timestamp(value):
     timestamp = as_text(value)
     if not timestamp:
@@ -264,7 +288,7 @@ def submit_form(event):
     params = urlencode(
         {
             "invited_email": as_lower(lead.get("email")),
-            "inviter_email": as_lower(lead.get("inviter_email")),
+            "token": token,
             "from": "c2",
         }
     )
@@ -288,6 +312,8 @@ def lambda_handler(event, context):
             return verify_email(event)
         if method(event) == "GET":
             return get_context(event)
+        if method(event) == "POST" and action == "gate":
+            return verify_founder_gate(event)
         if method(event) == "POST":
             return submit_form(event)
         return response(405, {"error": "method_not_allowed"})
