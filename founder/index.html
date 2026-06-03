@@ -481,16 +481,12 @@
       <section id="gate" class="gate-shell" aria-labelledby="gate-title">
         <p class="eyebrow">Private verification</p>
         <h1 id="gate-title">Verify your invitation.</h1>
-        <p class="lede">Enter the two email addresses requested in your invitation. If they match our records, the next page will open here.</p>
+        <p class="lede">Confirm your email to continue. If it matches our records, the next page will open here.</p>
 
         <form id="gate-form" class="gate-panel" novalidate>
           <div class="field">
             <label for="invitee-email">Your email address</label>
             <input id="invitee-email" name="invitee-email" type="email" autocomplete="email" inputmode="email" required>
-          </div>
-          <div class="field">
-            <label for="inviter-email">Inviter email address</label>
-            <input id="inviter-email" name="inviter-email" type="email" autocomplete="email" inputmode="email" required>
           </div>
           <button id="gate-submit" class="submit" type="submit">Continue</button>
           <div id="gate-message" class="message" role="status" aria-live="polite"></div>
@@ -513,14 +509,12 @@
       var message = document.getElementById("gate-message");
       var params = new URLSearchParams(window.location.search);
       var invitedFromQuery = normalizeEmail(params.get("invited_email"));
-      var inviterFromQuery = normalizeEmail(params.get("inviter_email"));
+      var founderToken = String(params.get("token") || "").trim();
+      var fromC2 = normalizeEmail(params.get("from")) === "c2" || Boolean(founderToken);
 
       form.addEventListener("submit", onSubmit);
       if (isEmail(invitedFromQuery)) {
         document.getElementById("invitee-email").value = invitedFromQuery;
-      }
-      if (isEmail(inviterFromQuery)) {
-        document.getElementById("inviter-email").value = inviterFromQuery;
       }
 
       async function onSubmit(event) {
@@ -528,9 +522,8 @@
         setMessage("");
 
         var inviteeEmail = normalizeEmail(document.getElementById("invitee-email").value);
-        var inviterEmail = normalizeEmail(document.getElementById("inviter-email").value);
 
-        if (!isEmail(inviteeEmail) || !isEmail(inviterEmail)) {
+        if (!isEmail(inviteeEmail)) {
           showFailure();
           return;
         }
@@ -539,17 +532,21 @@
         submit.textContent = "Checking";
 
         try {
-          var result = await postJson(API_BASE + "/founder-gate", {
-            invited_email: inviteeEmail,
-            inviter_email: inviterEmail
-          });
+          var result = fromC2
+            ? await postJson(API_BASE + "/founder-c2?action=gate", {
+                email: inviteeEmail,
+                token: founderToken
+              })
+            : await postJson(API_BASE + "/founder-gate", {
+                invited_email: inviteeEmail
+              });
 
-          if (!result || result.valid !== true) {
+          if (!result || result.valid !== true || !isEmail(result.inviter_email)) {
             showFailure();
             return;
           }
 
-          await revealDetail(inviteeEmail, inviterEmail);
+          await revealDetail(inviteeEmail, normalizeEmail(result.inviter_email));
         } catch (_error) {
           showFailure();
         } finally {

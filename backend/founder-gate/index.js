@@ -53,13 +53,17 @@ exports.handler = async (event) => {
     const invitedEmail = normalizeEmail(
       body.invited_email || body.founder_email || body.email
     );
-    const inviterEmail = normalizeEmail(body.inviter_email);
 
-    if (!isSupportedEmail(invitedEmail) || !isSupportedEmail(inviterEmail)) {
+    if (!isSupportedEmail(invitedEmail)) {
       return invalidResponse();
     }
 
     const invitedRecord = await findLeadByEmail(invitedEmail);
+    const inviterEmail = normalizeEmail(invitedRecord?.inviter_email);
+
+    if (!isSupportedEmail(inviterEmail)) {
+      return invalidResponse();
+    }
 
     if (!(await isFounderGateValid(invitedRecord, inviterEmail))) {
       return invalidResponse();
@@ -68,6 +72,7 @@ exports.handler = async (event) => {
     return response(200, {
       valid: true,
       tier: "founder",
+      inviter_email: inviterEmail,
     });
   } catch (error) {
     console.error("founder-gate error", {
