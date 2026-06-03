@@ -111,6 +111,7 @@
               '<input id="founder-consent-checkbox" type="checkbox" data-founder-consent-checkbox required>',
               '<span>I confirm that I am accepting the Founder lifetime invitation and consent to proceed to the USD 9,999 Founder payment step.</span>',
             '</label>',
+            '<p class="founder-consent__legal-note">Founding membership is a one-time lifetime payment. By proceeding, you acknowledge that, once access is granted, this payment is non-refundable, and you expressly request immediate access, waiving the statutory withdrawal period (Article 16(m)).</p>',
             '<button class="founder-consent__button" type="submit" data-founder-consent-button disabled>Proceed to payment</button>',
             '<p class="founder-consent__message" data-founder-consent-message role="status" aria-live="polite"></p>',
           '</form>',
