@@ -503,8 +503,17 @@
       var form = document.getElementById("gate-form");
       var submit = document.getElementById("gate-submit");
       var message = document.getElementById("gate-message");
+      var params = new URLSearchParams(window.location.search);
+      var invitedFromQuery = normalizeEmail(params.get("invited_email"));
+      var inviterFromQuery = normalizeEmail(params.get("inviter_email"));
 
       form.addEventListener("submit", onSubmit);
+      if (isEmail(invitedFromQuery)) {
+        document.getElementById("invitee-email").value = invitedFromQuery;
+      }
+      if (isEmail(inviterFromQuery)) {
+        document.getElementById("inviter-email").value = inviterFromQuery;
+      }
 
       async function onSubmit(event) {
         event.preventDefault();

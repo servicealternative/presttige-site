@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.11.14/bundle/libphonenumber-max.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#F5F2ED" />
+  <meta name="robots" content="noindex" />
+  <title>Presttige, Founder Details</title>
+  <meta name="description" content="Complete your Presttige Founder details." />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Source+Serif+Pro:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <style>
+    :root {
+      --primary: #0A0A0A;
+      --background: #F5F2ED;
+      --paper: #FBF9F4;
+      --accent: #8C7040;
+      --accent-border: rgba(140, 112, 64, 0.4);
+      --muted: #4A4A4A;
+      --hairline: #D9D2C5;
+      --danger: #8F4D47;
+      --max: 740px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      background: var(--background);
+      color: var(--primary);
+      font-family: "Source Serif Pro", Georgia, serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "liga" 1, "kern" 1;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      font: inherit;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 64px 24px 56px;
+      background: var(--background);
+    }
+
+    .panel {
+      width: min(100%, var(--max));
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+    }
+
+    .eyebrow {
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.36em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(2.6rem, 6vw, 4.25rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+      color: var(--primary);
+      margin-bottom: 22px;
+    }
+
+    .title-divider {
+      width: 38px;
+      height: 0.5px;
+      background: var(--accent);
+      border: none;
+      margin: 0 0 22px 0;
+    }
+
+    .intro {
+      color: var(--muted);
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-style: italic;
+      line-height: 1.65;
+      font-size: 10.5pt;
+      max-width: 580px;
+    }
+
+    .form {
+      margin-top: 42px;
+    }
+
+    .form-section {
+      border-top: 1px solid var(--hairline);
+      padding-top: 28px;
+      margin-top: 32px;
+    }
+
+    .section-heading {
+      color: var(--accent);
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .grid-2.single-column {
+      grid-template-columns: 1fr;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+
+    label {
+      color: var(--primary);
+      font-size: 8pt;
+      font-weight: 500;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--accent-border);
+      border-radius: 0;
+      background: var(--paper);
+      color: var(--primary);
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 132px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+
+    .single-line-field {
+      min-height: 48px;
+      height: 48px;
+      resize: none;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--accent);
+      background: #fffaf0;
+    }
+
+    .locked-field select,
+    .locked-field input {
+      color: var(--muted);
+      background: rgba(251, 249, 244, 0.65);
+    }
+
+    small,
+    .locked-note {
+      color: var(--muted-soft);
+      font-size: 9pt;
+      line-height: 1.45;
+    }
+
+    .phone-row {
+      display: grid;
+      grid-template-columns: minmax(190px, 0.9fr) minmax(0, 1.1fr);
+      gap: 10px;
+    }
+
+    .phone-input-wrap {
+      position: relative;
+    }
+
+    .phone-prefix {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 10pt;
+      pointer-events: none;
+    }
+
+    .phone-input-wrap textarea {
+      padding-left: 54px;
+    }
+
+    .inline-options {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .inline-option {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--accent-border);
+      background: var(--paper);
+      padding: 0 14px;
+      letter-spacing: 0;
+      text-transform: none;
+      font-size: 10pt;
+    }
+
+    .inline-option input,
+    .consent-control {
+      width: 16px;
+      min-height: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .required-mark,
+    .optional-mark {
+      color: var(--accent);
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .consent-fieldset {
+      border: 1px solid var(--hairline);
+      padding: 20px;
+      margin-top: 32px;
+    }
+
+    .consent-row {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+
+    .consent-copy,
+    .consent-copy label {
+      color: var(--muted);
+      font-size: 10pt;
+      line-height: 1.55;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .consent-copy a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .consent-error,
+    .field-error-note {
+      color: var(--danger);
+      font-size: 9pt;
+      line-height: 1.45;
+    }
+
+    .consent-error {
+      display: none;
+    }
+
+    .has-error .consent-error {
+      display: block;
+    }
+
+    .has-error input,
+    .has-error textarea,
+    .has-error select {
+      border-color: var(--danger);
+    }
+
+    .submit-shell {
+      margin-top: 34px;
+    }
+
+    .submit-divider {
+      width: 100%;
+      height: 1px;
+      background: var(--hairline);
+      margin-bottom: 22px;
+    }
+
+    .submit-note {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 10pt;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      min-height: 48px;
+      border: 1px solid var(--accent);
+      border-radius: 0;
+      padding: 0 20px;
+      cursor: pointer;
+      font-size: 8pt;
+      font-weight: 500;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--paper);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      color: var(--primary);
+      background: transparent;
+    }
+
+    .btn-primary:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .message {
+      min-height: 22px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 10pt;
+      line-height: 1.5;
+    }
+
+    .message.error {
+      color: var(--danger);
+    }
+
+    @media (max-width: 680px) {
+      .page {
+        padding: 48px 18px 44px;
+      }
+
+      .grid-2,
+      .phone-row {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <main class="panel" id="applicationPanel">
+      <div class="eyebrow">Founder Invitation</div>
+      <h1>Complete your details.</h1>
+      <hr class="title-divider" />
+      <p class="intro">Your email has been verified. Complete the details below, then continue to your Founder invitation.</p>
+
+      <form class="form" id="founderC2Form" novalidate autocomplete="off" data-form-type="other">
+        <div class="form-section">
+          <div class="section-heading">Contact</div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="phone">Phone <span class="required-mark">*</span></label>
+              <div class="phone-row">
+                <select id="phoneCountry" required autocomplete="off" data-form-type="other"></select>
+                <div class="phone-input-wrap">
+                  <span class="phone-prefix" id="phoneDialCode">+1</span>
+                  <textarea id="phone" class="single-line-field" rows="1" wrap="off" maxlength="32" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="numeric" data-form-type="other" required></textarea>
+                </div>
+              </div>
+              <small id="phoneCountryHint">Selected country: United States</small>
+            </div>
+
+            <div class="field">
+              <label for="age">Age <span class="required-mark">*</span></label>
+              <input id="age" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-heading">Location</div>
+          <div class="grid-2">
+            <div class="field locked-field">
+              <label for="country">Country <span class="required-mark">*</span></label>
+              <input id="country" type="text" disabled required />
+              <small class="locked-note">Confirmed from your invitation.</small>
+            </div>
+
+            <div class="field">
+              <label for="citySelect">City <span class="required-mark">*</span></label>
+              <select id="citySelect" required autocomplete="off" data-form-type="other"></select>
+              <div class="subfield hidden" id="cityOtherWrap">
+                <input id="cityOther" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" placeholder="Enter your city" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-heading">Profile</div>
+          <div class="grid-2" id="linkedinRow">
+            <div class="field">
+              <label>Do you have a LinkedIn profile? <span class="required-mark">*</span></label>
+              <div class="inline-options" role="radiogroup" aria-label="Do you have a LinkedIn profile?">
+                <label class="inline-option">
+                  <input type="radio" name="hasLinkedin" value="yes" />
+                  <span>Yes</span>
+                </label>
+                <label class="inline-option">
+                  <input type="radio" name="hasLinkedin" value="no" />
+                  <span>No</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="field hidden" id="linkedinField">
+              <label for="linkedin">LinkedIn <span class="required-mark" id="linkedinRequiredMark">*</span></label>
+              <input id="linkedin" type="text" placeholder="https://www.linkedin.com/in/yourname" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" />
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="instagram">Instagram <span class="required-mark">*</span></label>
+              <input id="instagram" type="text" placeholder="@username or full URL" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" required />
+            </div>
+
+            <div class="field">
+              <label for="tiktok">TikTok <span class="optional-mark">(optional)</span></label>
+              <input id="tiktok" type="text" placeholder="@username or full URL" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="occupationFull">Occupation <span class="optional-mark">(optional)</span></label>
+            <input id="occupationFull" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" />
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="company">Company <span class="optional-mark">(optional)</span></label>
+              <input id="company" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" />
+            </div>
+
+            <div class="field">
+              <label for="website">Website <span class="optional-mark">(optional)</span></label>
+              <input id="website" type="url" placeholder="https://..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="bio">Short Introduction <span class="required-mark">*</span></label>
+            <textarea id="bio" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-form-type="other" required></textarea>
+          </div>
+        </div>
+
+        <fieldset class="consent-fieldset" id="consentFieldset" aria-describedby="consentError">
+          <div class="consent-row">
+            <input class="consent-control" id="termsAccepted" name="terms_accepted" type="checkbox" />
+            <div class="consent-copy">
+              <span class="consent-copy-text">
+                <label for="termsAccepted"><strong>I have read and accept the</strong></label>
+                <a href="/terms/" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+                and
+                <a href="/privacy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a>. <span class="optional-mark">(required)</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="consent-row">
+            <input class="consent-control" id="marketingConsent" name="marketing_consent" type="checkbox" />
+            <label class="consent-copy" for="marketingConsent">
+              <span class="consent-copy-text">
+                I agree to receive occasional Presttige updates by email. You may withdraw this consent at any time. <span class="optional-mark">(optional)</span>
+              </span>
+            </label>
+          </div>
+
+          <input type="hidden" id="termsAcceptedAt" value="" />
+          <input type="hidden" id="marketingConsentAt" value="" />
+          <div id="consentError" class="consent-error">Please accept the Terms of Service and Privacy Policy to continue.</div>
+        </fieldset>
+
+        <div class="submit-shell">
+          <div class="submit-divider"></div>
+          <p class="submit-note">After this step, you continue to your Founder invitation.</p>
+          <div class="actions">
+            <button id="submitBtn" class="btn-primary" type="submit" disabled>Continue</button>
+            <a class="btn-secondary" href="/">Return to Presttige</a>
+          </div>
+        </div>
+
+        <div id="formMessage" class="message" role="status" aria-live="polite"></div>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      var params = new URLSearchParams(window.location.search);
+      var token = params.get("token") || "";
+      var leadContext = null;
+      var isSubmitting = false;
+      var MIN_LONG_TEXT_LENGTH = 50;
+      var COUNTRIES = [
+        { name: "United States of America", dial: "+1", region: "US" },
+        { name: "United Kingdom", dial: "+44", region: "GB" },
+        { name: "United Arab Emirates", dial: "+971", region: "AE" },
+        { name: "Portugal", dial: "+351", region: "PT" },
+        { name: "Spain", dial: "+34", region: "ES" },
+        { name: "France", dial: "+33", region: "FR" },
+        { name: "Italy", dial: "+39", region: "IT" },
+        { name: "Germany", dial: "+49", region: "DE" },
+        { name: "Switzerland", dial: "+41", region: "CH" },
+        { name: "Brazil", dial: "+55", region: "BR" },
+        { name: "Canada", dial: "+1", region: "CA" },
+        { name: "Mexico", dial: "+52", region: "MX" },
+        { name: "Saudi Arabia", dial: "+966", region: "SA" },
+        { name: "Qatar", dial: "+974", region: "QA" },
+        { name: "Kuwait", dial: "+965", region: "KW" },
+        { name: "Bahrain", dial: "+973", region: "BH" },
+        { name: "Oman", dial: "+968", region: "OM" },
+        { name: "Singapore", dial: "+65", region: "SG" },
+        { name: "Hong Kong", dial: "+852", region: "HK" },
+        { name: "Australia", dial: "+61", region: "AU" }
+      ];
+      var CITY_SUGGESTIONS = {
+        "United States of America": ["New York", "Los Angeles", "Miami", "Chicago", "San Francisco", "Other"],
+        "United Kingdom": ["London", "Manchester", "Birmingham", "Edinburgh", "Liverpool", "Other"],
+        "United Arab Emirates": ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Other"],
+        "Portugal": ["Lisbon", "Porto", "Braga", "Faro", "Other"],
+        "Spain": ["Madrid", "Barcelona", "Valencia", "Seville", "Other"],
+        "France": ["Paris", "Lyon", "Marseille", "Nice", "Other"],
+        "Italy": ["Milan", "Rome", "Florence", "Naples", "Other"],
+        "Germany": ["Berlin", "Munich", "Hamburg", "Frankfurt", "Other"],
+        "Switzerland": ["Zurich", "Geneva", "Basel", "Lausanne", "Other"],
+        "Brazil": ["Sao Paulo", "Rio de Janeiro", "Brasilia", "Belo Horizonte", "Other"],
+        "Canada": ["Toronto", "Vancouver", "Montreal", "Calgary", "Other"],
+        "Mexico": ["Mexico City", "Guadalajara", "Monterrey", "Cancun", "Other"],
+        "Saudi Arabia": ["Riyadh", "Jeddah", "Dammam", "Mecca", "Medina", "Other"],
+        "Qatar": ["Doha", "Al Rayyan", "Al Wakrah", "Lusail", "Other"],
+        "Kuwait": ["Kuwait City", "Hawalli", "Salmiya", "Farwaniya", "Other"],
+        "Bahrain": ["Manama", "Muharraq", "Riffa", "Isa Town", "Other"],
+        "Oman": ["Muscat", "Salalah", "Sohar", "Nizwa", "Other"],
+        "Singapore": ["Singapore", "Other"],
+        "Hong Kong": ["Hong Kong", "Kowloon", "New Territories", "Other"],
+        "Australia": ["Sydney", "Melbourne", "Brisbane", "Perth", "Other"]
+      };
+
+      var form = document.getElementById("founderC2Form");
+      var submitBtn = document.getElementById("submitBtn");
+      var phoneCountrySelect = document.getElementById("phoneCountry");
+      var phoneDialCode = document.getElementById("phoneDialCode");
+      var phoneCountryHint = document.getElementById("phoneCountryHint");
+      var citySelect = document.getElementById("citySelect");
+      var cityOtherWrap = document.getElementById("cityOtherWrap");
+      var cityOtherInput = document.getElementById("cityOther");
+      var linkedinField = document.getElementById("linkedinField");
+      var linkedinInput = document.getElementById("linkedin");
+      var linkedinRequiredMark = document.getElementById("linkedinRequiredMark");
+      var linkedinRadios = document.querySelectorAll("input[name='hasLinkedin']");
+      var linkedinRow = document.getElementById("linkedinRow");
+      var termsCheckbox = document.getElementById("termsAccepted");
+      var marketingCheckbox = document.getElementById("marketingConsent");
+      var termsAcceptedAtInput = document.getElementById("termsAcceptedAt");
+      var marketingConsentAtInput = document.getElementById("marketingConsentAt");
+      var consentFieldset = document.getElementById("consentFieldset");
+      var consentError = document.getElementById("consentError");
+
+      enforceSingleLineTextarea(document.getElementById("phone"));
+      hydrate();
+
+      function hydrate() {
+        if (!token) {
+          setMessage("Invalid or missing invitation reference.", "error");
+          return;
+        }
+
+        fetch(API_BASE + "/founder-c2?token=" + encodeURIComponent(token), {
+          method: "GET",
+          headers: { "Accept": "application/json" }
+        })
+          .then(function (response) {
+            return response.json().then(function (body) {
+              if (!response.ok) {
+                throw new Error(body && body.error ? body.error : "Invitation could not be loaded.");
+              }
+              return body;
+            });
+          })
+          .then(function (body) {
+            leadContext = body.lead || {};
+            applyLeadContext();
+            bindForm();
+            setMessage("", "");
+          })
+          .catch(function () {
+            setMessage("We could not load this Founder invitation. Please use the verification link again.", "error");
+          });
+      }
+
+      function applyLeadContext() {
+        var country = leadContext.country || "United States of America";
+        ensureCountryOption(country);
+        document.getElementById("country").value = country;
+        populatePhoneCountrySelect();
+        setPhoneCountrySelection(country);
+        updatePhoneDialCode();
+        populateCitySelect(country);
+        syncSubmitAvailability();
+      }
+
+      function bindForm() {
+        linkedinRadios.forEach(function (radio) {
+          radio.addEventListener("change", function () {
+            updateLinkedinVisibility();
+            clearFieldError(radio);
+          });
+        });
+        updateLinkedinVisibility();
+
+        phoneCountrySelect.addEventListener("change", function () {
+          updatePhoneDialCode();
+          clearFieldError("phone");
+        });
+
+        citySelect.addEventListener("change", function () {
+          updateCityFieldVisibility();
+          clearFieldError("citySelect");
+          clearFieldError("cityOther");
+        });
+
+        ["phoneCountry", "phone", "age", "instagram", "linkedin", "occupationFull", "company", "website", "tiktok", "bio", "cityOther"].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.addEventListener("input", function () {
+            clearFieldError(el);
+          });
+          el.addEventListener("change", function () {
+            clearFieldError(el);
+          });
+        });
+
+        [termsCheckbox, marketingCheckbox].forEach(function (checkbox) {
+          checkbox.addEventListener("change", function () {
+            syncConsentTimestamps(false);
+            clearConsentError();
+            syncSubmitAvailability();
+          });
+        });
+
+        form.addEventListener("submit", onSubmit);
+      }
+
+      function ensureCountryOption(countryName) {
+        if (!countryName || getCountryByName(countryName)) {
+          return;
+        }
+        COUNTRIES.push({ name: countryName, dial: "+", region: "" });
+      }
+
+      function populatePhoneCountrySelect() {
+        phoneCountrySelect.innerHTML = "";
+        COUNTRIES.forEach(function (country) {
+          var option = document.createElement("option");
+          option.value = country.dial;
+          option.textContent = country.name + " (" + country.dial + ")";
+          option.dataset.countryName = country.name;
+          option.dataset.region = country.region || "";
+          phoneCountrySelect.appendChild(option);
+        });
+      }
+
+      function getCountryByName(name) {
+        return COUNTRIES.find(function (country) {
+          return country.name === name;
+        }) || null;
+      }
+
+      function setPhoneCountrySelection(countryName) {
+        var option = Array.from(phoneCountrySelect.options).find(function (candidate) {
+          return candidate.dataset.countryName === countryName;
+        }) || phoneCountrySelect.options[0] || null;
+        if (option) {
+          option.selected = true;
+        }
+      }
+
+      function getPhoneCountrySelection() {
+        var option = phoneCountrySelect.options[phoneCountrySelect.selectedIndex] || null;
+        if (!option) return null;
+        return {
+          countryName: option.dataset.countryName || "",
+          dial: option.value || "",
+          region: option.dataset.region || ""
+        };
+      }
+
+      function updatePhoneDialCode() {
+        var selection = getPhoneCountrySelection();
+        phoneDialCode.textContent = selection && selection.dial ? selection.dial : "+";
+        phoneCountryHint.textContent = selection && selection.countryName ? "Selected country: " + selection.countryName : "Select your country code, then enter only the phone number.";
+      }
+
+      function populateCitySelect(countryName) {
+        var options = CITY_SUGGESTIONS[countryName] || ["Other"];
+        citySelect.innerHTML = "";
+        var placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "Select your city";
+        citySelect.appendChild(placeholder);
+        options.forEach(function (city) {
+          var option = document.createElement("option");
+          option.value = city;
+          option.textContent = city;
+          citySelect.appendChild(option);
+        });
+        updateCityFieldVisibility();
+      }
+
+      function updateCityFieldVisibility() {
+        var requiresManualCity = citySelect.value === "Other";
+        cityOtherWrap.classList.toggle("hidden", !requiresManualCity);
+        cityOtherInput.required = requiresManualCity;
+        if (!requiresManualCity) {
+          cityOtherInput.value = "";
+        }
+      }
+
+      function getLinkedinChoice() {
+        var selected = document.querySelector("input[name='hasLinkedin']:checked");
+        return selected ? selected.value : "";
+      }
+
+      function updateLinkedinVisibility() {
+        var hasLinkedin = getLinkedinChoice() === "yes";
+        linkedinField.classList.toggle("hidden", !hasLinkedin);
+        linkedinRow.classList.toggle("single-column", !hasLinkedin);
+        linkedinInput.required = hasLinkedin;
+        linkedinRequiredMark.style.display = hasLinkedin ? "inline" : "none";
+        if (!hasLinkedin) {
+          linkedinInput.value = "";
+        }
+      }
+
+      function enforceSingleLineTextarea(element) {
+        if (!element) return;
+        element.addEventListener("keydown", function (event) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+          }
+        });
+        element.addEventListener("input", function () {
+          var clean = element.value.replace(/[\r\n]+/g, " ");
+          if (clean !== element.value) {
+            element.value = clean;
+          }
+        });
+      }
+
+      function normalizePhoneForValidation(rawPhone, dial) {
+        var digits = String(rawPhone || "").replace(/\D/g, "");
+        var dialDigits = String(dial || "").replace(/\D/g, "");
+        if (dialDigits && digits.indexOf(dialDigits) === 0) {
+          digits = digits.slice(dialDigits.length);
+        }
+        return digits;
+      }
+
+      function validatePhoneForCountry(rawPhone) {
+        var phoneLib = window.libphonenumber;
+        var selection = getPhoneCountrySelection();
+        var digits = normalizePhoneForValidation(rawPhone, selection ? selection.dial : "");
+        if (!digits) {
+          return { valid: false, message: "Phone number is required." };
+        }
+        if (!phoneLib || typeof phoneLib.parsePhoneNumberFromString !== "function") {
+          return { valid: false, message: "Phone validation is temporarily unavailable. Please refresh and try again." };
+        }
+        try {
+          var fullNumber = String(selection.dial || "") + digits;
+          var parsed = phoneLib.parsePhoneNumberFromString(fullNumber, selection.region || undefined);
+          if (!parsed || !parsed.isValid()) {
+            return { valid: false, message: "Phone number length is not valid for " + selection.countryName + "." };
+          }
+          return { valid: true, message: "" };
+        } catch (error) {
+          return { valid: false, message: "Phone number length is not valid for " + selection.countryName + "." };
+        }
+      }
+
+      function isValidInstagram(value) {
+        var normalized = String(value || "").trim();
+        if (/^@?[A-Za-z0-9._]{1,30}$/.test(normalized)) {
+          return true;
+        }
+        try {
+          var url = normalized.indexOf("http") === 0 ? new URL(normalized) : new URL("https://" + normalized);
+          return url.hostname.replace(/^www\./, "") === "instagram.com";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function isValidLinkedin(value) {
+        var normalized = String(value || "").trim();
+        if (!normalized) {
+          return false;
+        }
+        if (normalized.indexOf("linkedin.com/") === 0 || normalized.indexOf("www.linkedin.com/") === 0) {
+          return true;
+        }
+        try {
+          var url = normalized.indexOf("http") === 0 ? new URL(normalized) : new URL("https://" + normalized);
+          return url.hostname.replace(/^www\./, "") === "linkedin.com";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function isValidTikTok(value) {
+        var normalized = String(value || "").trim();
+        if (!normalized) {
+          return true;
+        }
+        if (/^@?[A-Za-z0-9._]{2,24}$/.test(normalized)) {
+          return true;
+        }
+        try {
+          var url = normalized.indexOf("http") === 0 ? new URL(normalized) : new URL("https://" + normalized);
+          return url.hostname.replace(/^www\./, "") === "tiktok.com";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function isValidAbsoluteUrl(value) {
+        if (!value) {
+          return true;
+        }
+        try {
+          var url = new URL(value);
+          return url.protocol === "http:" || url.protocol === "https:";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function currentConsentTimestamp() {
+        return new Date().toISOString();
+      }
+
+      function syncConsentTimestamps(refreshCheckedValues) {
+        if (termsCheckbox.checked) {
+          if (refreshCheckedValues || !termsAcceptedAtInput.value) {
+            termsAcceptedAtInput.value = currentConsentTimestamp();
+          }
+        } else {
+          termsAcceptedAtInput.value = "";
+        }
+
+        if (marketingCheckbox.checked) {
+          if (refreshCheckedValues || !marketingConsentAtInput.value) {
+            marketingConsentAtInput.value = currentConsentTimestamp();
+          }
+        } else {
+          marketingConsentAtInput.value = "";
+        }
+      }
+
+      function syncSubmitAvailability() {
+        submitBtn.disabled = isSubmitting || !leadContext || !termsCheckbox.checked;
+      }
+
+      function setMessage(text, type) {
+        var el = document.getElementById("formMessage");
+        el.textContent = text || "";
+        el.className = "message" + (type ? " " + type : "");
+      }
+
+      function setFieldError(target, message) {
+        var element = typeof target === "string" ? document.getElementById(target) : target;
+        if (!element) return;
+        var field = element.closest(".field");
+        if (!field) return;
+        field.classList.add("has-error");
+        var note = field.querySelector(".field-error-note");
+        if (!note) {
+          note = document.createElement("div");
+          note.className = "field-error-note";
+          field.appendChild(note);
+        }
+        note.textContent = message;
+      }
+
+      function clearFieldError(target) {
+        var element = typeof target === "string" ? document.getElementById(target) : target;
+        if (!element) return;
+        var field = element.closest(".field");
+        if (!field) return;
+        field.classList.remove("has-error");
+      }
+
+      function clearAllFieldErrors() {
+        document.querySelectorAll(".field").forEach(function (field) {
+          field.classList.remove("has-error");
+        });
+      }
+
+      function clearConsentError() {
+        consentFieldset.classList.remove("has-error");
+        consentError.textContent = "Please accept the Terms of Service and Privacy Policy to continue.";
+      }
+
+      function setConsentError(message) {
+        consentFieldset.classList.add("has-error");
+        consentError.textContent = message;
+      }
+
+      async function onSubmit(event) {
+        event.preventDefault();
+        if (!leadContext || isSubmitting) {
+          return;
+        }
+
+        clearAllFieldErrors();
+        clearConsentError();
+        setMessage("", "");
+
+        if (!termsCheckbox.checked) {
+          setConsentError("Please accept the Terms of Service and Privacy Policy to continue.");
+          consentFieldset.scrollIntoView({ behavior: "smooth", block: "center" });
+          termsCheckbox.focus();
+          syncSubmitAvailability();
+          return;
+        }
+
+        syncConsentTimestamps(true);
+        var payload = {
+          token: token,
+          country: document.getElementById("country").value.trim(),
+          phone_country: phoneCountrySelect.value.trim(),
+          phone: document.getElementById("phone").value.trim(),
+          age: document.getElementById("age").value.trim(),
+          city: citySelect.value === "Other" ? cityOtherInput.value.trim() : citySelect.value.trim(),
+          instagram: document.getElementById("instagram").value.trim(),
+          linkedin: linkedinInput.value.trim(),
+          occupation: document.getElementById("occupationFull").value.trim(),
+          company: document.getElementById("company").value.trim(),
+          website: document.getElementById("website").value.trim(),
+          tiktok: document.getElementById("tiktok").value.trim(),
+          bio: document.getElementById("bio").value.trim(),
+          terms_accepted: termsCheckbox.checked ? "true" : "false",
+          terms_accepted_at: termsAcceptedAtInput.value,
+          marketing_consent: marketingCheckbox.checked ? "true" : "false",
+          marketing_consent_at: marketingCheckbox.checked ? marketingConsentAtInput.value : ""
+        };
+
+        if (!payload.country || !payload.phone_country || !payload.phone || !payload.age || !payload.city || !payload.instagram || !payload.bio) {
+          setMessage("Please complete the required fields.", "error");
+          if (!payload.phone_country || !payload.phone) setFieldError("phone", "Phone and country code are required.");
+          if (!payload.age) setFieldError("age", "Age is required.");
+          if (!payload.city) setFieldError(citySelect.value === "Other" ? "cityOther" : "citySelect", "City is required.");
+          if (!payload.instagram) setFieldError("instagram", "Instagram is required.");
+          if (!payload.bio) setFieldError("bio", "Short introduction is required.");
+          return;
+        }
+
+        var phoneValidation = validatePhoneForCountry(payload.phone);
+        if (!phoneValidation.valid) {
+          setFieldError("phone", phoneValidation.message);
+          return;
+        }
+
+        if (!isValidInstagram(payload.instagram)) {
+          setFieldError("instagram", "Please provide a valid Instagram handle or URL.");
+          return;
+        }
+
+        if (!getLinkedinChoice()) {
+          setFieldError(document.querySelector("input[name='hasLinkedin']"), "Please choose Yes or No.");
+          return;
+        }
+
+        if (getLinkedinChoice() === "yes" && !isValidLinkedin(payload.linkedin)) {
+          setFieldError("linkedin", "Please enter a valid LinkedIn profile URL.");
+          return;
+        }
+
+        if (!isValidAbsoluteUrl(payload.website)) {
+          setFieldError("website", "Please provide a valid website URL.");
+          return;
+        }
+
+        if (!isValidTikTok(payload.tiktok)) {
+          setFieldError("tiktok", "Please provide a valid TikTok handle or URL.");
+          return;
+        }
+
+        if (payload.bio.length < MIN_LONG_TEXT_LENGTH) {
+          setFieldError("bio", "Please enter at least 50 characters.");
+          return;
+        }
+
+        try {
+          isSubmitting = true;
+          syncSubmitAvailability();
+          submitBtn.textContent = "Continuing";
+          setMessage("Saving details...", "");
+
+          var response = await fetch(API_BASE + "/founder-c2", {
+            method: "POST",
+            mode: "cors",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+          var parsed = await response.json().catch(function () {
+            return {};
+          });
+          if (!response.ok) {
+            throw new Error(parsed && parsed.error ? parsed.error : "Request failed.");
+          }
+          window.location.replace(parsed.redirect_url || "/founder/");
+        } catch (error) {
+          setMessage(error && error.message ? error.message : "Submission failed.", "error");
+        } finally {
+          isSubmitting = false;
+          syncSubmitAvailability();
+          submitBtn.textContent = "Continue";
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
