@@ -457,10 +457,9 @@
         <div class="form-section">
           <div class="section-heading">Location</div>
           <div class="grid-2">
-            <div class="field locked-field">
+            <div class="field">
               <label for="country">Country <span class="required-mark">*</span></label>
-              <input id="country" type="text" disabled required />
-              <small class="locked-note">Confirmed from your invitation.</small>
+              <select id="country" required autocomplete="off" data-form-type="other"></select>
             </div>
 
             <div class="field">
@@ -632,6 +631,7 @@
       var phoneCountrySelect = document.getElementById("phoneCountry");
       var phoneDialCode = document.getElementById("phoneDialCode");
       var phoneCountryHint = document.getElementById("phoneCountryHint");
+      var countrySelect = document.getElementById("country");
       var citySelect = document.getElementById("citySelect");
       var cityOtherWrap = document.getElementById("cityOtherWrap");
       var cityOtherInput = document.getElementById("cityOther");
@@ -680,13 +680,10 @@
       }
 
       function applyLeadContext() {
-        var country = leadContext.country || "United States of America";
-        ensureCountryOption(country);
-        document.getElementById("country").value = country;
+        populateCountrySelect();
         populatePhoneCountrySelect();
-        setPhoneCountrySelection(country);
         updatePhoneDialCode();
-        populateCitySelect(country);
+        populateCitySelect("");
         syncSubmitAvailability();
       }
 
@@ -702,6 +699,15 @@
         phoneCountrySelect.addEventListener("change", function () {
           updatePhoneDialCode();
           clearFieldError("phone");
+        });
+
+        countrySelect.addEventListener("change", function () {
+          populateCitySelect(countrySelect.value);
+          setPhoneCountrySelection(countrySelect.value);
+          updatePhoneDialCode();
+          clearFieldError("country");
+          clearFieldError("citySelect");
+          clearFieldError("cityOther");
         });
 
         citySelect.addEventListener("change", function () {
@@ -737,6 +743,22 @@
           return;
         }
         COUNTRIES.push({ name: countryName, dial: "+", region: "" });
+      }
+
+      function populateCountrySelect() {
+        countrySelect.innerHTML = "";
+        var placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "Select your country";
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        countrySelect.appendChild(placeholder);
+        COUNTRIES.forEach(function (country) {
+          var option = document.createElement("option");
+          option.value = country.name;
+          option.textContent = country.name;
+          countrySelect.appendChild(option);
+        });
       }
 
       function populatePhoneCountrySelect() {
@@ -783,11 +805,13 @@
       }
 
       function populateCitySelect(countryName) {
-        var options = CITY_SUGGESTIONS[countryName] || ["Other"];
+        var options = countryName ? CITY_SUGGESTIONS[countryName] || ["Other"] : [];
         citySelect.innerHTML = "";
         var placeholder = document.createElement("option");
         placeholder.value = "";
         placeholder.textContent = "Select your city";
+        placeholder.disabled = true;
+        placeholder.selected = true;
         citySelect.appendChild(placeholder);
         options.forEach(function (city) {
           var option = document.createElement("option");
@@ -1018,7 +1042,7 @@
         syncConsentTimestamps(true);
         var payload = {
           token: token,
-          country: document.getElementById("country").value.trim(),
+          country: countrySelect.value.trim(),
           phone_country: phoneCountrySelect.value.trim(),
           phone: document.getElementById("phone").value.trim(),
           age: document.getElementById("age").value.trim(),
@@ -1040,6 +1064,7 @@
           setMessage("Please complete the required fields.", "error");
           if (!payload.phone_country || !payload.phone) setFieldError("phone", "Phone and country code are required.");
           if (!payload.age) setFieldError("age", "Age is required.");
+          if (!payload.country) setFieldError("country", "Country is required.");
           if (!payload.city) setFieldError(citySelect.value === "Other" ? "cityOther" : "citySelect", "City is required.");
           if (!payload.instagram) setFieldError("instagram", "Instagram is required.");
           if (!payload.bio) setFieldError("bio", "Short introduction is required.");
