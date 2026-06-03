@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { BatchGetCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { BatchGetCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { GetParameterCommand, GetParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
 import { createHash, createHmac, randomUUID } from 'node:crypto';
@@ -22,6 +22,7 @@ const FOUNDER_GLOBAL_CAP_PARAMETER = process.env.FOUNDER_GLOBAL_CAP_PARAMETER ||
 const FOUNDER_ADMIN_FUNCTION_NAME = process.env.FOUNDER_ADMIN_FUNCTION_NAME || 'presttige-founder-admin';
 const COMMITTEE_EMAIL_FROM = process.env.COMMITTEE_EMAIL_FROM || 'committee@presttige.net';
 const EXPRESS_INTEREST_URL = process.env.EXPRESS_INTEREST_URL || 'https://presttige.net/?presttige_invited=1#express-interest';
+const TABLE_NAME = process.env.TABLE_NAME || 'presttige-db';
 const COST_CATEGORIES_COLLECTION = 'ulttra_dashboard_cost_categories';
 const COST_VALUES_COLLECTION = 'ulttra_dashboard_cost_monthly_values';
 const REVENUE_GOALS_COLLECTION = 'ulttra_dashboard_revenue_goals';
@@ -100,12 +101,17 @@ export default {
         const eligibleInviter = chairman || await isInternalInviterEligible(user.email);
         if (chairman && dashboard.metrics) {
           const financeMonth = normalizeMonthKey(req.query?.finance_month) || currentMonthKey(new Date());
-          dashboard.metrics.manual_finance = await readManualFinance(
-            context,
-            dashboard.project?.key || selectedProjectKey,
-            financeMonth,
-            dashboard.metrics.revenue,
-          );
+          const [manualFinance, registeredFounderCandidates] = await Promise.all([
+            readManualFinance(
+              context,
+              dashboard.project?.key || selectedProjectKey,
+              financeMonth,
+              dashboard.metrics.revenue,
+            ),
+            readRegisteredFounderCandidates(),
+          ]);
+          dashboard.metrics.manual_finance = manualFinance;
+          dashboard.metrics.registered_founder_candidates = registeredFounderCandidates;
         }
         res.json({
           ok: true,
@@ -153,6 +159,7 @@ export default {
           inviterEmail: user.email,
           invitedEmail,
           invitedName,
+          inviteFlow: 'c2',
         });
         const outcome = await founderInviteOutcome(result, invitedEmail);
         res.status(200).json(outcome);
@@ -195,6 +202,51 @@ export default {
           message_id: emailResult.MessageId || null,
           invitation_id: auditItem.invitation_id,
         });
+      } catch (error) {
+        sendError(res, error);
+      }
+    });
+
+    router.post('/registered-founder-invite', async (req, res) => {
+      try {
+        const user = await requireDashboardUser(req, context);
+        requireChairman(user);
+        const leadId = normalizeString(req.body?.lead_id);
+        if (!leadId) {
+          res.status(400).json({ ok: false, status: 'ERROR', message: 'Founder invitation could not be created.' });
+          return;
+        }
+
+        const lead = await readLeadById(leadId);
+        const candidate = registeredFounderCandidateFromLead(lead);
+        if (!candidate) {
+          res.status(200).json({
+            ok: false,
+            status: 'NOT_ELIGIBLE',
+            message: 'This person is not eligible for a Founder invitation from this list.',
+          });
+          return;
+        }
+        if (candidate.already_invited) {
+          res.status(200).json({
+            ok: false,
+            status: 'ALREADY_INVITED',
+            invitee_email: candidate.email,
+            invited_at: candidate.invited_at,
+            message: alreadyInvitedMessage(candidate.email, candidate.invited_at),
+          });
+          return;
+        }
+
+        const result = await invokeFounderAdmin({
+          actorId: `directus:${user.id}`,
+          actorEmail: user.email,
+          inviterEmail: user.email,
+          invitedEmail: candidate.email,
+          invitedName: candidate.name,
+        });
+        const outcome = await founderInviteOutcome(result, candidate.email, candidate.name);
+        res.status(200).json(outcome);
       } catch (error) {
         sendError(res, error);
       }
@@ -1346,6 +1398,124 @@ function priorityMemberRows(items) {
     .filter((item) => item.id && priorityMemberTiers.includes(item.tier)));
 }
 
+async function readRegisteredFounderCandidates() {
+  const items = [];
+  let ExclusiveStartKey = null;
+  do {
+    const scanInput = {
+      TableName: TABLE_NAME,
+      ProjectionExpression: [
+        'lead_id',
+        'email',
+        '#name',
+        'full_name',
+        'first_name',
+        'last_name',
+        'country',
+        'city',
+        'member_country',
+        'member_city',
+        '#tier',
+        'selected_tier',
+        'effective_tier',
+        'subscriber_type',
+        'payment_status',
+        'access_status',
+        'review_status',
+        'synthetic_test',
+        'founder_lifetime',
+        'founder_token_status',
+        'founder_gate_status',
+        'founder_invite_email_sent_at',
+        'founder_inviter_email_sent_at',
+        'updated_at',
+      ].join(', '),
+      ExpressionAttributeNames: {
+        '#name': 'name',
+        '#tier': 'tier',
+      },
+    };
+    if (ExclusiveStartKey) scanInput.ExclusiveStartKey = ExclusiveStartKey;
+    const response = await ddb.send(new ScanCommand(scanInput));
+    items.push(...(response.Items || []));
+    ExclusiveStartKey = response.LastEvaluatedKey || null;
+  } while (ExclusiveStartKey);
+  return sortRegisteredFounderCandidates(items
+    .map(registeredFounderCandidateFromLead)
+    .filter(Boolean));
+}
+
+async function readLeadById(leadId) {
+  if (!leadId) return null;
+  const response = await ddb.send(new GetCommand({
+    TableName: TABLE_NAME,
+    Key: { lead_id: leadId },
+  }));
+  return response.Item || null;
+}
+
+function registeredFounderCandidateFromLead(lead) {
+  if (!lead || isSynthetic(lead.synthetic_test)) return null;
+  const id = normalizeString(lead.lead_id);
+  const email = normalizeEmail(lead.email);
+  const name = normalizeString(lead.name || lead.full_name || [lead.first_name, lead.last_name].filter(Boolean).join(' '));
+  const country = normalizeString(lead.country || lead.member_country);
+  const city = normalizeString(lead.city || lead.member_city);
+  if (!id || !isValidEmail(email) || !name || !country || !city) return null;
+  if (normalizeString(lead.review_status).toLowerCase() !== 'approved') return null;
+  if (isFounderLead(lead)) return null;
+
+  const alreadyInvited = isAlreadyFounderInvited(lead);
+  return {
+    id,
+    email,
+    name,
+    country,
+    city,
+    location: [city, country].filter(Boolean).join(', '),
+    tier: founderCandidateTier(lead),
+    already_invited: alreadyInvited,
+    invited_at: alreadyInvited ? normalizeString(lead.founder_invite_email_sent_at || lead.founder_inviter_email_sent_at) || null : null,
+  };
+}
+
+function founderCandidateTier(lead) {
+  const tier = normalizeType(lead.tier || lead.selected_tier || lead.effective_tier);
+  if (['club', 'premier', 'patron'].includes(tier)) return tier;
+  return 'free';
+}
+
+function isFounderLead(lead) {
+  const values = [
+    normalizeType(lead.subscriber_type),
+    normalizeType(lead.tier),
+    normalizeType(lead.selected_tier),
+    normalizeType(lead.effective_tier),
+  ];
+  return values.includes('founder') || isSynthetic(lead.founder_lifetime);
+}
+
+function isAlreadyFounderInvited(lead) {
+  return normalizeType(lead.subscriber_type) === 'founder_invited'
+    || normalizeType(lead.founder_token_status) === 'active'
+    || normalizeType(lead.founder_gate_status) === 'confirmed';
+}
+
+function sortRegisteredFounderCandidates(items) {
+  const tierOrder = new Map([
+    ['patron', 0],
+    ['premier', 1],
+    ['club', 2],
+    ['free', 3],
+  ]);
+  return [...items].sort((left, right) => {
+    const leftTier = tierOrder.get(normalizeType(left.tier)) ?? 99;
+    const rightTier = tierOrder.get(normalizeType(right.tier)) ?? 99;
+    if (leftTier !== rightTier) return leftTier - rightTier;
+    return normalizeString(left.name).localeCompare(normalizeString(right.name), 'en');
+  });
+}
+
 function mergeRankedRows(left = [], right = []) {
   const totals = new Map();
   for (const row of [...left, ...right]) {
@@ -1464,7 +1634,7 @@ async function isInternalInviterEligible(email) {
   return Boolean(response.Item?.email);
 }
 
-async function invokeFounderAdmin({ actorId, actorEmail, inviterEmail, invitedEmail, invitedName }) {
+async function invokeFounderAdmin({ actorId, actorEmail, inviterEmail, invitedEmail, invitedName, inviteFlow = '' }) {
   const event = {
     version: '2.0',
     routeKey: 'POST /admin/founder-invite',
@@ -1486,6 +1656,7 @@ async function invokeFounderAdmin({ actorId, actorEmail, inviterEmail, invitedEm
       inviter_email: inviterEmail,
       invited_email: invitedEmail,
       invited_name: invitedName,
+      invite_flow: inviteFlow,
     }),
   };
   const response = await lambda.send(new InvokeCommand({
@@ -1501,8 +1672,9 @@ async function invokeFounderAdmin({ actorId, actorEmail, inviterEmail, invitedEm
   return body;
 }
 
-async function founderInviteOutcome(result, invitedEmail) {
+async function founderInviteOutcome(result, invitedEmail, invitedName = '') {
   const inviteeEmail = normalizeEmail(invitedEmail);
+  const inviteeName = normalizeString(invitedName);
   if (!result.ok) {
     if (result.error === 'inviter_not_eligible') {
       return {
@@ -1533,7 +1705,7 @@ async function founderInviteOutcome(result, invitedEmail) {
       ok: true,
       status: 'SENT',
       invitee_email: inviteeEmail,
-      message: `Founder invitation sent successfully to ${inviteeEmail}.`,
+      message: `Founder invitation sent to ${inviteeName || inviteeEmail}.`,
     };
   }
 
@@ -1560,7 +1732,7 @@ async function readFounderInviteSentAt(email) {
   if (!isValidEmail(email)) return null;
   try {
     const response = await ddb.send(new QueryCommand({
-      TableName: process.env.TABLE_NAME || 'presttige-db',
+      TableName: TABLE_NAME,
       IndexName: process.env.EMAIL_INDEX_NAME || 'email-index',
       KeyConditionExpression: 'email = :email',
       ExpressionAttributeValues: {

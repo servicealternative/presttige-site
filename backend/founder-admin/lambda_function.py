@@ -33,6 +33,10 @@ FOUNDER_TOKEN_SECRET_ID = os.environ.get(
 )
 APP_ORIGIN = os.environ.get("APP_ORIGIN", "https://presttige.net")
 FOUNDER_URL = os.environ.get("FOUNDER_URL", "https://presttige.net/founder")
+FOUNDER_C2_VERIFY_URL = os.environ.get(
+    "FOUNDER_C2_VERIFY_URL",
+    "https://presttige.net/founder-c2-verify.html",
+)
 FOUNDER_EMAIL_FROM = "founders@presttige.net"
 DIRECTUS_BASE_URL = os.environ.get("DIRECTUS_BASE_URL", "https://crm.ulttra.net")
 DIRECTUS_SYNC_TOKEN_PARAMETER = os.environ.get(
@@ -123,6 +127,7 @@ def create_founder_invite(payload, actor_id, actor_email=None):
     inviter_email = normalize_email(payload.get("inviter_email"))
     invited_email = normalize_email(payload.get("invited_email"))
     invited_name = normalize_string(payload.get("invited_name") or payload.get("name"))
+    invite_flow = normalize_string(payload.get("invite_flow") or payload.get("flow")).lower()
     controlled_test_invite = optional_bool(payload, "controlled_test_invite")
     test_invite_reason = optional_string(payload, "test_invite_reason", max_length=500)
 
@@ -198,6 +203,7 @@ def create_founder_invite(payload, actor_id, actor_email=None):
         "founder_token_status": "active",
         "founder_token_version": token_version,
         "founder_token_generated_at": now,
+        "founder_invite_flow": invite_flow or "direct_founder",
         "consent_basis": "admin_invited_legitimate_interest",
         "consent_timestamp": now,
         "created_by_admin": True,
@@ -225,6 +231,7 @@ def create_founder_invite(payload, actor_id, actor_email=None):
         "founder_token_version = :founder_token_version",
         "founder_token_nonce = :founder_token_nonce",
         "founder_token_generated_at = :founder_token_generated_at",
+        "founder_invite_flow = :founder_invite_flow",
         "consent_basis = :consent_basis",
         "consent_timestamp = :consent_timestamp",
         "created_by_admin = :created_by_admin",
@@ -250,6 +257,7 @@ def create_founder_invite(payload, actor_id, actor_email=None):
         ":founder_token_version": token_version,
         ":founder_token_nonce": token_nonce,
         ":founder_token_generated_at": now,
+        ":founder_invite_flow": invite_flow or "direct_founder",
         ":consent_basis": "admin_invited_legitimate_interest",
         ":consent_timestamp": now,
         ":created_by_admin": True,
@@ -297,6 +305,7 @@ def create_founder_invite(payload, actor_id, actor_email=None):
         invited_email=invited_email,
         invited_name=invited_name,
         inviter=inviter,
+        invite_flow=invite_flow,
     )
 
     return {
@@ -492,10 +501,15 @@ def build_founder_inviter_bind_update(
     }
 
 
-def send_founder_invite_emails(lead_id, invited_email, invited_name, inviter):
+def send_founder_invite_emails(lead_id, invited_email, invited_name, inviter, invite_flow=""):
     lead = table.get_item(Key={"lead_id": lead_id}).get("Item") or {}
     result = {
-        "invitee": send_founder_invitee_email_if_needed(lead, invited_email, invited_name),
+        "invitee": send_founder_invitee_email_if_needed(
+            lead,
+            invited_email,
+            invited_name,
+            invite_flow=invite_flow,
+        ),
         "inviter": send_founder_inviter_email_if_needed(lead, inviter),
     }
     print(
@@ -607,7 +621,7 @@ def load_directus_sync_token():
     return token
 
 
-def send_founder_invitee_email_if_needed(lead, invited_email, invited_name):
+def send_founder_invitee_email_if_needed(lead, invited_email, invited_name, invite_flow=""):
     lead_id = lead.get("lead_id")
     if should_skip_founder_email_already_sent(lead, "founder_invite_email_sent_at"):
         return {"sent": False, "skipped": True, "reason": "already_sent"}
@@ -617,14 +631,15 @@ def send_founder_invitee_email_if_needed(lead, invited_email, invited_name):
         raise AdminError(409, "invite_email_missing", "Founder invite record has no valid email.")
 
     first_name = first_name_for_email(invited_name or lead.get("name"), recipient)
-    html_body = founder_invitee_html(first_name, FOUNDER_URL)
-    text_body = founder_invitee_text(first_name, FOUNDER_URL)
+    founder_url = founder_invitee_link(lead, invite_flow)
+    html_body = founder_invitee_html(first_name, founder_url)
+    text_body = founder_invitee_text(first_name, founder_url)
     ses_response = ses_client.send_email(
         Source=FOUNDER_EMAIL_FROM,
         ReplyToAddresses=[FOUNDER_EMAIL_FROM],
         Destination={"ToAddresses": [recipient]},
         Message={
-            "Subject": {"Data": "Your invitation to Presttige", "Charset": "UTF-8"},
+            "Subject": {"Data": "An invitation to Presttige", "Charset": "UTF-8"},
             "Body": {
                 "Text": {"Data": text_body, "Charset": "UTF-8"},
                 "Html": {"Data": html_body, "Charset": "UTF-8"},
@@ -638,11 +653,33 @@ def send_founder_invitee_email_if_needed(lead, invited_email, invited_name):
         "skipped": False,
         "sent_at": sent_at,
         "message_id": ses_response.get("MessageId"),
+        "link_target": founder_url,
     }
+
+
+def founder_invitee_link(lead, invite_flow=""):
+    flow = normalize_string(invite_flow or lead.get("founder_invite_flow")).lower()
+    if flow == "c2":
+        token = normalize_string(lead.get("founder_token"))
+        if token:
+            return f"{FOUNDER_C2_VERIFY_URL}?token={urllib.parse.quote(token, safe='')}"
+    return FOUNDER_URL
 
 
 def send_founder_inviter_email_if_needed(lead, inviter):
     lead_id = lead.get("lead_id")
+    if is_chairman_inviter(lead, inviter):
+        print(
+            json.dumps(
+                {
+                    "event": "founder_inviter_email_skipped",
+                    "lead_id": lead_id,
+                    "reason": "chairman_inviter",
+                }
+            )
+        )
+        return {"sent": False, "skipped": True, "reason": "chairman_inviter"}
+
     if should_skip_founder_email_already_sent(lead, "founder_inviter_email_sent_at"):
         return {"sent": False, "skipped": True, "reason": "already_sent"}
 
@@ -702,6 +739,14 @@ def mark_founder_email_sent(lead_id, field_name, sent_at):
     )
 
 
+def is_chairman_inviter(lead, inviter):
+    inviter = inviter or {}
+    source = normalize_string(lead.get("inviter_source") or inviter.get("source")).lower()
+    role = normalize_string(lead.get("inviter_role") or inviter.get("role")).lower()
+    email = normalize_email(lead.get("inviter_email") or inviter.get("email"))
+    return source == "chairman" or role == CHAIRMAN_TYPE or email == CHAIRMAN_EMAIL
+
+
 def first_name_for_email(name, email):
     cleaned_name = normalize_string(name)
     if cleaned_name:
@@ -715,13 +760,14 @@ def founder_invitee_text(first_name, founder_url):
     return "\n\n".join(
         [
             f"Dear {first_name},",
-            "You have been personally put forward for Founding membership of Presttige.",
-            "This is not an application. Someone whose judgment we trust has invited you directly, and your place has been prepared.",
-            "To continue, visit the link below and confirm your details. You will be asked for your own email and the email of the person who invited you, a simple step that keeps this private and confirms the introduction.",
-            f"Begin, {founder_url}",
-            "Once confirmed, you will see everything Founding membership holds, and how to take your place.",
-            "Should you have any question at any point, the person who invited you will be glad to accompany you, or you may reply to this message directly.",
-            "With warm regards,\nThe Presttige Committee",
+            "You have been chosen to join the Founding circle of Presttige, a rare privilege of restricted access.",
+            "Presttige is a private network bringing together business, lifestyle and curated experiences, a space reserved for a deliberately limited number of people. Membership is by invitation only, and yours was prepared personally.",
+            "This is not an application. Your place is already reserved.",
+            "To continue, simply confirm your email at the link below.",
+            f"Become a Founder -> {founder_url}",
+            "Once confirmed, you will discover all that Founding membership holds, and how to take your place.",
+            "Should you have any question, you may reply directly to this message.",
+            "With our regards,\nThe Founders' House",
         ]
     )
 
@@ -731,9 +777,9 @@ def founder_inviter_text(first_name):
         [
             f"Dear {first_name},",
             "Thank you. The person you put forward for Founding membership has now been contacted, and we are in conversation with them.",
-            "As the one who opened this door, you are best placed to accompany them through it. A quiet word, an answered question, a reassurance at the right moment, these make all the difference, and they are part of what Presttige membership means: people looked after by people they trust.",
-            "There is nothing you need to do unless they reach out. We simply wanted you to know the introduction has landed, so you can be there if they have questions as they take the next steps.",
-            "With our thanks,\nThe Presttige Committee",
+            "As the one who opened this door, you are best placed to accompany them through it. A discreet word, a question answered, a reassurance at the right moment, these make all the difference, and they are part of what Presttige membership means: people looked after by people they trust.",
+            "There is nothing you need to do unless they reach out. We simply wanted you to know the introduction has landed, so you can be there should they have questions in the next steps.",
+            "With our thanks,\nThe Founders' House",
         ]
     )
 
@@ -741,20 +787,21 @@ def founder_inviter_text(first_name):
 def founder_invitee_html(first_name, founder_url):
     paragraphs = [
         f"Dear {html.escape(first_name)},",
-        "You have been personally put forward for Founding membership of Presttige.",
-        "This is not an application. Someone whose judgment we trust has invited you directly, and your place has been prepared.",
-        "To continue, visit the link below and confirm your details. You will be asked for your own email and the email of the person who invited you, a simple step that keeps this private and confirms the introduction.",
-        "Once confirmed, you will see everything Founding membership holds, and how to take your place.",
-        "Should you have any question at any point, the person who invited you will be glad to accompany you, or you may reply to this message directly.",
-        "With warm regards,<br>The Presttige Committee",
+        "You have been chosen to join the Founding circle of Presttige, a rare privilege of restricted access.",
+        "Presttige is a private network bringing together business, lifestyle and curated experiences, a space reserved for a deliberately limited number of people. Membership is by invitation only, and yours was prepared personally.",
+        "This is not an application. Your place is already reserved.",
+        "To continue, simply confirm your email at the link below.",
+        "Once confirmed, you will discover all that Founding membership holds, and how to take your place.",
+        "Should you have any question, you may reply directly to this message.",
+        "With our regards,<br>The Founders' House",
     ]
     return founder_email_shell(
-        subject="Your invitation to Presttige",
-        preheader="You have been personally put forward for Founding membership of Presttige.",
+        subject="An invitation to Presttige",
+        preheader="You have been chosen to join the Founding circle of Presttige.",
         eyebrow="Founder invitation",
-        headline="Your invitation to Presttige",
+        headline="An invitation to Presttige",
         paragraphs=paragraphs,
-        cta_label="Begin",
+        cta_label="Become a Founder",
         cta_url=founder_url,
     )
 
@@ -763,9 +810,9 @@ def founder_inviter_html(first_name):
     paragraphs = [
         f"Dear {html.escape(first_name)},",
         "Thank you. The person you put forward for Founding membership has now been contacted, and we are in conversation with them.",
-        "As the one who opened this door, you are best placed to accompany them through it. A quiet word, an answered question, a reassurance at the right moment, these make all the difference, and they are part of what Presttige membership means: people looked after by people they trust.",
-        "There is nothing you need to do unless they reach out. We simply wanted you to know the introduction has landed, so you can be there if they have questions as they take the next steps.",
-        "With our thanks,<br>The Presttige Committee",
+        "As the one who opened this door, you are best placed to accompany them through it. A discreet word, a question answered, a reassurance at the right moment, these make all the difference, and they are part of what Presttige membership means: people looked after by people they trust.",
+        "There is nothing you need to do unless they reach out. We simply wanted you to know the introduction has landed, so you can be there should they have questions in the next steps.",
+        "With our thanks,<br>The Founders' House",
     ]
     return founder_email_shell(
         subject="Thank you, your introduction has been made",
