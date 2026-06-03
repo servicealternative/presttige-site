@@ -764,7 +764,7 @@ def founder_invitee_text(first_name, founder_url):
             "Presttige is a private network bringing together business, lifestyle and curated experiences, a space reserved for a deliberately limited number of people. Membership is by invitation only, and yours was prepared personally.",
             "This is not an application. Your place is already reserved.",
             "To continue, simply confirm your email at the link below.",
-            f"Become a Founder -> {founder_url}",
+            "Become a Founder",
             "Once confirmed, you will discover all that Founding membership holds, and how to take your place.",
             "Should you have any question, you may reply directly to this message.",
             "With our regards,\nThe Founders' House",
@@ -834,11 +834,10 @@ def founder_email_shell(subject, preheader, eyebrow, headline, paragraphs, cta_l
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 30px 0;">
                 <tr>
                   <td align="center">
-                    <a href="{html.escape(cta_url)}" style="display:inline-block;padding:16px 28px;background:#0A0A0A;color:#FBF9F4;font-family:'Source Serif Pro',Georgia,serif;font-size:12px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;">{html.escape(cta_label)}</a>
+                    <a href="{html.escape(cta_url)}" class="founder-email-cta" style="display:inline-block;padding:16px 28px;background:#0A0A0A;color:#FBF9F4;font-family:'Source Serif Pro',Georgia,serif;font-size:12px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;text-decoration:none;cursor:pointer;">{html.escape(cta_label)}</a>
                   </td>
                 </tr>
               </table>
-              <p style="margin:0 0 28px 0;font-family:'Source Serif Pro',Georgia,serif;font-size:14px;line-height:22px;color:#4A4A4A;"><a href="{html.escape(cta_url)}" style="color:#8C7040;text-decoration:none;">{html.escape(cta_url)}</a></p>
         """
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -848,6 +847,14 @@ def founder_email_shell(subject, preheader, eyebrow, headline, paragraphs, cta_l
   <meta name="color-scheme" content="light only">
   <meta name="supported-color-schemes" content="light only">
   <title>{html.escape(subject)}</title>
+  <style type="text/css">
+    .founder-email-cta:hover {{
+      background-color:#8C7040 !important;
+      color:#F5F2ED !important;
+      cursor:pointer !important;
+      text-decoration:none !important;
+    }}
+  </style>
 </head>
 <body style="margin:0;padding:0;background-color:#F5F2ED;font-family:'Source Serif Pro',Georgia,serif;color:#0A0A0A;">
   <div style="display:none;font-size:1px;color:#F5F2ED;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{html.escape(preheader)}</div>
