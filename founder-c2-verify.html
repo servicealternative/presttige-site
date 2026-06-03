@@ -4,30 +4,266 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#F5F2ED" />
   <title>Founder Verification | PRESTTIGE</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Source+Serif+Pro:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #0A0A0A;
+      --background: #F5F2ED;
+      --paper: #FBF9F4;
+      --accent: #8C7040;
+      --accent-border: rgba(140, 112, 64, 0.42);
+      --muted: #4A4A4A;
+      --hairline: #D9D2C5;
+      --danger: #8F4D47;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--primary);
+      font-family: "Source Serif Pro", Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    input,
+    button {
+      font: inherit;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 22px;
+    }
+
+    .gate {
+      width: min(100%, 560px);
+    }
+
+    .eyebrow {
+      margin-bottom: 20px;
+      color: var(--accent);
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin-bottom: 22px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(2.5rem, 7vw, 4.1rem);
+      font-style: italic;
+      font-weight: 400;
+      line-height: 1.08;
+    }
+
+    .divider {
+      width: 38px;
+      height: 1px;
+      margin: 0 0 24px;
+      border: 0;
+      background: var(--accent);
+    }
+
+    .lede {
+      max-width: 470px;
+      margin-bottom: 34px;
+      color: var(--muted);
+      font-size: 10.5pt;
+      font-style: italic;
+      line-height: 1.65;
+    }
+
+    .gate-panel {
+      display: grid;
+      gap: 18px;
+      padding-top: 26px;
+      border-top: 1px solid var(--hairline);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 7.5pt;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 0.5px solid var(--accent-border);
+      border-radius: 0;
+      background: transparent;
+      color: var(--primary);
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-size: 11pt;
+      line-height: 1.35;
+      outline: none;
+      box-shadow: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      background: var(--paper);
+    }
+
+    .submit {
+      width: fit-content;
+      min-height: 46px;
+      margin-top: 4px;
+      padding: 0 22px;
+      border: 1px solid var(--accent);
+      border-radius: 0;
+      background: var(--primary);
+      color: var(--paper);
+      cursor: pointer;
+      font-size: 8pt;
+      font-weight: 500;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+    }
+
+    .submit:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .message {
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 10pt;
+      line-height: 1.5;
+    }
+
+    .message.error {
+      color: var(--danger);
+    }
+
+    @media (max-width: 600px) {
+      .page {
+        align-items: flex-start;
+        padding: 48px 20px 40px;
+      }
+
+      .submit {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
+  <main class="page">
+    <section class="gate" aria-labelledby="gate-title">
+      <p class="eyebrow">Private verification</p>
+      <h1 id="gate-title">Verify your invitation.</h1>
+      <hr class="divider" />
+      <p class="lede">Confirm your email to continue. If it matches our records, the next page will open here.</p>
+
+      <form id="verifyForm" class="gate-panel" novalidate>
+        <div class="field">
+          <label for="inviteeEmail">Your email address</label>
+          <input id="inviteeEmail" name="inviteeEmail" type="email" autocomplete="email" inputmode="email" required />
+        </div>
+        <button id="submitBtn" class="submit" type="submit">Continue</button>
+        <div id="message" class="message" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+
   <script>
     (function () {
       "use strict";
 
+      var API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
       var params = new URLSearchParams(window.location.search);
-      var token = params.get("token") || "";
+      var token = String(params.get("token") || "").trim();
+      var form = document.getElementById("verifyForm");
+      var emailInput = document.getElementById("inviteeEmail");
+      var submitBtn = document.getElementById("submitBtn");
+      var message = document.getElementById("message");
 
       if (!token) {
-        window.location.replace("/check-email.html?error=missing_token");
-        return;
+        setMessage("This invitation link is missing its secure reference. Please use the link from your email.", "error");
+        submitBtn.disabled = true;
       }
 
-      window.location.replace(
-        "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/founder-c2?action=verify&token=" +
-        encodeURIComponent(token)
-      );
+      form.addEventListener("submit", onSubmit);
+
+      async function onSubmit(event) {
+        event.preventDefault();
+        setMessage("");
+
+        var email = normalizeEmail(emailInput.value);
+        if (!isEmail(email) || !token) {
+          setMessage("We could not verify this invitation. Please check your email address and use the link from your invitation.", "error");
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Checking";
+
+        try {
+          var response = await fetch(API_BASE + "/founder-c2?action=verify-email", {
+            method: "POST",
+            mode: "cors",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify({
+              email: email,
+              token: token
+            })
+          });
+          var result = await response.json().catch(function () {
+            return {};
+          });
+          if (!response.ok || !result || result.valid !== true || !result.redirect_url) {
+            throw new Error("invalid");
+          }
+          window.location.replace(result.redirect_url);
+        } catch (_error) {
+          setMessage("We could not verify this invitation. Please check your email address and use the link from your invitation.", "error");
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Continue";
+        }
+      }
+
+      function setMessage(text, type) {
+        message.textContent = text || "";
+        message.className = "message" + (type ? " " + type : "");
+      }
+
+      function normalizeEmail(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function isEmail(value) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254;
+      }
     })();
   </script>
 </body>
