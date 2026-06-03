@@ -11,30 +11,105 @@
         '<article class="detail-copy">',
           '<span class="detail-kicker">Invitation confirmed</span>',
           '<h1 class="detail-title">Founder</h1>',
-          '<p class="detail-lede">Founder is a permanent lifetime position within Presttige, reserved for invited candidates whose referral and review path has been confirmed.</p>',
-          renderSection("Position", [
-            "Invitation-only access through a qualifying referral and committee review.",
-            "A lifetime Founder tier in the Presttige network.",
-            "Recognition as part of the founding class of the programme.",
+          renderParagraphs([
+            "You could be one of our Founders. To be a Founder is to belong to the origin of Presttige.",
+            "This is a lifetime and permanent position, reserved for those who were invited and whose path has been confirmed. It is not bought, not requested, not advertised. It is received.",
+            "Those who enter at this early stage hold, forever, a combination of privileges that can never be replicated. It is a private tier, by invitation only, limited in time and in the number of Founders. When it closes, it closes for good.",
           ]),
-          renderSection("Includes", [
-            "Full network communications.",
-            "Permanent Founder communications and welcome materials.",
-            "Invitations to events, workshops, and programming as the platform grows.",
-            "A direct path into the private Founder payment and activation flow.",
-          ]),
+          '<section class="detail-section">',
+            '<h3>The privileges of those who arrive first</h3>',
+            '<p class="note"><em>These privileges will never be within reach of those who come later.</em></p>',
+            renderFeatureList([
+              {
+                title: "Founder Council",
+                body: "A voice at the heart of Presttige, reserved for Founders.",
+              },
+              {
+                title: "Annual retreat",
+                body: "An exclusive gathering of Founders, once a year. Not in any ordinary destination, but in places that were never within your horizon, opened to you for the first time.",
+              },
+              {
+                title: "Business at the highest level",
+                body: "A seat at exclusive business gatherings, with direct access to those who decide. Doors that do not open from the outside.",
+              },
+              {
+                title: "Your dedicated Premium Concierge",
+                body: "A human line that is yours alone, 24 hours a day, wherever you are in the world. From the table that can no longer be reserved to the access no one else can secure, your concierge opens what is closed and gives you back your rarest possession, your time. The word dedicated belongs, at Presttige, to the Founder alone.",
+              },
+              {
+                title: "Presttige in your city",
+                body: "The opportunity to personally host private Presttige events where you live, as well as invitations in other cities.",
+              },
+              {
+                title: "Founder artefact",
+                body: "An annual physical object, numbered and personalised, a book, a design piece or a curated artefact, exclusive to the Founders who enter from the very beginning. Reserved for those who maintain an active presence at Presttige.",
+              },
+              {
+                title: "A voice in what comes next",
+                body: "The first shape the decisions. Those who come later find a world already built.",
+              },
+            ]),
+          '</section>',
           '<button class="founder-step-button" type="button" data-founder-step-next>Become a Founder</button>',
         '</article>',
         '<aside class="detail-card" data-founder-payment-step hidden>',
-          '<h2>Founder tier</h2>',
-          '<p class="price">9,999 USD</p>',
-          '<p class="note">One-time lifetime payment. Consent is required before the private payment step opens.</p>',
+          '<h2>Your Founding membership</h2>',
+          renderParagraphs([
+            "To become a Founder is a lifetime commitment, and everything it holds was designed to match it. Here is what you receive.",
+          ]),
+          renderFeatureList([
+            {
+              title: "Your Premium Concierge, without hours and without borders",
+              body: [
+                "A human line that is yours alone, 24 hours a day, 365 days a year, wherever you are in the world.",
+                "It is not a support service. It is someone who knows your name and your tastes, and who makes possible what seemed beyond reach: the table that no longer has reservations at a Michelin starred restaurant, the front row at a Formula 1 Grand Prix, reserved access to Art Basel or to fashion week, the jet that departs when you need it, the door that opens only to those who are introduced.",
+                "Your concierge opens what is closed, and gives you back your rarest possession, your time. The word dedicated belongs, at Presttige, to the Founder alone.",
+              ],
+            },
+            {
+              title: "Business, within the network and beyond",
+              body: "Access to exclusive business gatherings, workshops and real opportunities, created both within Presttige and outside it. You sit at the table with those who decide, where the right conversations happen before they reach the world.",
+            },
+            {
+              title: "To see without being seen",
+              body: "The privilege of observing the network without exposing your presence, and of making direct contact, without restriction, with whomever you choose. The discretion is yours, and so is the initiative.",
+            },
+            {
+              title: "The directory, fully within your reach",
+              body: "Unlimited connection requests and advanced filters that no one else holds. The entire network, navigable on your terms.",
+            },
+            {
+              title: "Every benefit, brought together",
+              body: "Founding membership brings together, in one place, all that the other tiers offer, and adds what only the Founder holds.",
+            },
+            {
+              title: "Founder Circles",
+              body: "Private circles, reserved for Founders, where they meet among peers.",
+            },
+            {
+              title: "Private dinners",
+              body: "Closed tables, in an intimate setting, in the right company.",
+            },
+            {
+              title: "Your Founder mark",
+              body: "The Founding Member inscription, permanent, yours forever, even if one day you step away and return.",
+            },
+            {
+              title: "The right to present a Founder",
+              body: "As a Founder, you may put forward someone you judge worthy of joining this circle. Your introduction is not one suggestion among many, it carries your name, and with it the trust that brought you here. Your introductions receive priority review, and your word weighs in the approval.",
+            },
+          ]),
+          '<section class="detail-section">',
+            '<h3>Founder</h3>',
+            '<p class="price">USD 9,999</p>',
+            '<p class="note">One time payment. Lifetime access.</p>',
+          '</section>',
           '<p class="next-step">Next step, consent and payment</p>',
           '<p class="note">Verified email: ' + escapeHtml(context.email || "") + '</p>',
           '<form class="founder-consent" data-founder-consent-form novalidate>',
             '<label class="founder-consent__label" for="founder-consent-checkbox">',
               '<input id="founder-consent-checkbox" type="checkbox" data-founder-consent-checkbox required>',
-              '<span>I confirm that I am accepting the Founder lifetime invitation and consent to proceed to the $9,999 Founder payment step.</span>',
+              '<span>I confirm that I am accepting the Founder lifetime invitation and consent to proceed to the USD 9,999 Founder payment step.</span>',
             '</label>',
             '<button class="founder-consent__button" type="submit" data-founder-consent-button disabled>Proceed to payment</button>',
             '<p class="founder-consent__message" data-founder-consent-message role="status" aria-live="polite"></p>',
@@ -144,6 +219,30 @@
           }).join(""),
         '</ul>',
       '</section>',
+    ].join("");
+  }
+
+  function renderParagraphs(paragraphs) {
+    return paragraphs.map(function (paragraph) {
+      return '<p>' + escapeHtml(paragraph) + '</p>';
+    }).join("");
+  }
+
+  function renderFeatureList(items) {
+    return [
+      '<ul class="detail-list">',
+        items.map(function (item) {
+          var body = Array.isArray(item.body) ? item.body : [item.body];
+          return [
+            '<li>',
+              '<strong>' + escapeHtml(item.title) + '</strong>',
+              body.map(function (paragraph) {
+                return '<span> ' + escapeHtml(paragraph) + '</span>';
+              }).join(""),
+            '</li>',
+          ].join("");
+        }).join(""),
+      '</ul>',
     ].join("");
   }
 
