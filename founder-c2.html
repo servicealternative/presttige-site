@@ -111,31 +111,38 @@
       line-height: 1.65;
       font-size: 10.5pt;
       max-width: 580px;
+      margin-bottom: 30px;
     }
 
     .form {
+      display: grid;
+      gap: 24px;
       margin-top: 42px;
     }
 
     .form-section {
-      border-top: 1px solid var(--hairline);
-      padding-top: 28px;
-      margin-top: 32px;
+      display: grid;
+      gap: 18px;
     }
 
     .section-heading {
       color: var(--accent);
       font-size: 7.5pt;
       font-weight: 500;
-      letter-spacing: 0.34em;
+      letter-spacing: 0.28em;
       text-transform: uppercase;
-      margin-bottom: 18px;
+      padding-bottom: 8px;
+      border-bottom: 0.5px solid rgba(140, 112, 64, 0.22);
     }
 
     .grid-2 {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 22px;
+      gap: 16px;
+    }
+
+    .contact-grid {
+      grid-template-columns: minmax(0, 1.35fr) minmax(120px, 0.65fr);
     }
 
     .grid-2.single-column {
@@ -143,16 +150,16 @@
     }
 
     .field {
-      display: grid;
-      gap: 8px;
-      margin-bottom: 22px;
+      display: block;
     }
 
     label {
-      color: var(--primary);
-      font-size: 8pt;
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 7.5pt;
       font-weight: 500;
-      letter-spacing: 0.26em;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
     }
 
@@ -160,27 +167,51 @@
     textarea,
     select {
       width: 100%;
-      min-height: 48px;
-      border: 1px solid var(--accent-border);
+      min-height: 44px;
+      border: 0.5px solid var(--accent-border);
       border-radius: 0;
-      background: var(--paper);
+      background: transparent;
       color: var(--primary);
-      padding: 12px 14px;
+      padding: 10px 12px;
       outline: none;
+      font-family: "Source Serif Pro", Georgia, serif;
+      font-size: 11pt;
+      line-height: 1.35;
+      box-shadow: none;
+    }
+
+    select {
+      -webkit-appearance: none;
+      appearance: none;
+      display: block;
+      min-height: 44px;
+      height: 44px;
+      line-height: 1.2;
+      padding-right: 38px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7' fill='none'%3E%3Cpath d='M1 1.5L5.5 5.5L10 1.5' stroke='%238C7040' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 13px center;
+      background-size: 11px 7px;
     }
 
     textarea {
-      min-height: 132px;
-      line-height: 1.5;
+      min-height: 120px;
+      line-height: 1.55;
       resize: vertical;
+      padding-top: 12px;
     }
 
     .single-line-field {
-      min-height: 48px;
-      height: 48px;
+      display: block;
+      box-sizing: border-box;
+      min-height: 44px;
+      height: 44px;
+      padding: 12px 12px 8px;
       resize: none;
-      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: hidden;
       white-space: nowrap;
+      line-height: 1.35;
     }
 
     input:focus,
@@ -205,8 +236,8 @@
 
     .phone-row {
       display: grid;
-      grid-template-columns: minmax(190px, 0.9fr) minmax(0, 1.1fr);
-      gap: 10px;
+      grid-template-columns: minmax(220px, 1fr) minmax(180px, 1fr);
+      gap: 12px;
     }
 
     .phone-input-wrap {
@@ -214,17 +245,11 @@
     }
 
     .phone-prefix {
-      position: absolute;
-      left: 13px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      font-size: 10pt;
-      pointer-events: none;
+      display: none;
     }
 
     .phone-input-wrap textarea {
-      padding-left: 54px;
+      padding-left: 12px;
     }
 
     .inline-options {
@@ -409,7 +434,7 @@
       <form class="form" id="founderC2Form" novalidate autocomplete="off" data-form-type="other">
         <div class="form-section">
           <div class="section-heading">Contact</div>
-          <div class="grid-2">
+          <div class="grid-2 contact-grid">
             <div class="field">
               <label for="phone">Phone <span class="required-mark">*</span></label>
               <div class="phone-row">
@@ -1042,12 +1067,12 @@
           return;
         }
 
-        if (!isValidAbsoluteUrl(payload.website)) {
+        if (payload.website && !isValidAbsoluteUrl(payload.website)) {
           setFieldError("website", "Please provide a valid website URL.");
           return;
         }
 
-        if (!isValidTikTok(payload.tiktok)) {
+        if (payload.tiktok && !isValidTikTok(payload.tiktok)) {
           setFieldError("tiktok", "Please provide a valid TikTok handle or URL.");
           return;
         }
