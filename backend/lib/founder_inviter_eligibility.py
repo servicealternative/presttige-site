@@ -22,15 +22,19 @@ DIRECTUS_SYNC_TOKEN_PARAMETER = os.environ.get(
     "DIRECTUS_SYNC_TOKEN_PARAMETER",
     "/presttige/ulttra-sync/directus-token",
 )
-CHAIRMAN_EMAIL = "apereira@presttige.net"
-CHAIRMAN_PERSON_ID = "4"
-CHAIRMAN_TYPE = "chairman"
 INTERNAL_INVITER_ROLES = {
     "admin",
     "team",
     "ambassador",
     "business_partner",
     "influencer",
+}
+ULTTRA_INVITER_ROLES = {
+    "chairman",
+    "crew",
+    "accredited_partner",
+    "accredited_partners",
+    *INTERNAL_INVITER_ROLES,
 }
 BLOCKED_SUBSCRIBER_TYPES = {
     "subscriber",
@@ -87,13 +91,20 @@ def load_directus_sync_token():
     return token
 
 
-def read_directus_chairman_person(email):
-    if normalize_email(email) != CHAIRMAN_EMAIL:
+def read_directus_eligible_inviter_person(email):
+    normalized_email = normalize_email(email)
+    if not is_supported_email(normalized_email):
         return None
 
     base_url = DIRECTUS_BASE_URL.rstrip("/")
-    params = urllib.parse.urlencode({"fields": "id,email,type,status,synthetic_test"})
-    url = f"{base_url}/items/people/{urllib.parse.quote(CHAIRMAN_PERSON_ID)}?{params}"
+    params = urllib.parse.urlencode(
+        {
+            "filter[email][_eq]": normalized_email,
+            "fields": "id,email,type,status,synthetic_test",
+            "limit": "1",
+        }
+    )
+    url = f"{base_url}/items/people?{params}"
     request = urllib.request.Request(
         url,
         headers={
@@ -106,11 +117,11 @@ def read_directus_chairman_person(email):
     with urllib.request.urlopen(request, timeout=5) as response:
         payload = json.loads(response.read().decode("utf-8"))
 
-    person = payload.get("data") or {}
+    people = payload.get("data") or []
+    person = people[0] if people else {}
     if (
-        normalize_string(person.get("id")) == CHAIRMAN_PERSON_ID
-        and normalize_email(person.get("email")) == CHAIRMAN_EMAIL
-        and normalize_role(person.get("type")) == CHAIRMAN_TYPE
+        normalize_email(person.get("email")) == normalized_email
+        and normalize_role(person.get("type")) in ULTTRA_INVITER_ROLES
         and normalize_string(person.get("status")).lower() == "active"
         and not is_truthy(person.get("synthetic_test"))
     ):
@@ -118,11 +129,8 @@ def read_directus_chairman_person(email):
     return None
 
 
-def is_chairman_inviter(email):
-    if normalize_email(email) != CHAIRMAN_EMAIL:
-        return False
-
-    return read_directus_chairman_person(email) is not None
+def is_ulttra_inviter(email):
+    return read_directus_eligible_inviter_person(email) is not None
 
 
 def is_truthy(value):
@@ -207,26 +215,26 @@ def is_eligible_founder_inviter(
     if not is_supported_email(email):
         return {"eligible": False, "reason": "invalid_email"}
 
-    if email == CHAIRMAN_EMAIL:
-        try:
-            if is_chairman_inviter(email):
-                return {
-                    "eligible": True,
-                    "source": "chairman",
-                    "email": email,
-                    "role": CHAIRMAN_TYPE,
-                    "project": "presttige",
-                    "ulttra_person_id": CHAIRMAN_PERSON_ID,
-                }
-        except (BotoCoreError, ClientError, urllib.error.URLError, TimeoutError, ValueError) as exc:
-            print(
-                {
-                    "event": "founder_inviter_chairman_lookup_failed",
-                    "name": exc.__class__.__name__,
-                    "message": str(exc),
-                }
-            )
-            return {"eligible": False, "reason": "chairman_lookup_failed"}
+    try:
+        person = read_directus_eligible_inviter_person(email)
+        if person:
+            role = normalize_role(person.get("type"))
+            return {
+                "eligible": True,
+                "source": "ulttra",
+                "email": email,
+                "role": role,
+                "project": "presttige",
+                "ulttra_person_id": normalize_string(person.get("id")),
+            }
+    except (BotoCoreError, ClientError, urllib.error.URLError, TimeoutError, ValueError) as exc:
+        print(
+            {
+                "event": "founder_inviter_ulttra_lookup_failed",
+                "name": exc.__class__.__name__,
+                "message": str(exc),
+            }
+        )
 
     try:
         result = eligible_inviters_table.get_item(Key={"email": email})

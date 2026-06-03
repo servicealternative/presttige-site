@@ -16,9 +16,6 @@ const ELIGIBLE_INVITERS_TABLE_NAME =
 const DIRECTUS_BASE_URL = process.env.DIRECTUS_BASE_URL || "https://crm.ulttra.net";
 const DIRECTUS_SYNC_TOKEN_PARAMETER =
   process.env.DIRECTUS_SYNC_TOKEN_PARAMETER || "/presttige/ulttra-sync/directus-token";
-const CHAIRMAN_EMAIL = normalizeEmail(process.env.CHAIRMAN_EMAIL || "apereira@presttige.net");
-const CHAIRMAN_PERSON_ID = normalizeString(process.env.CHAIRMAN_PERSON_ID || "4");
-const CHAIRMAN_TYPE = "chairman";
 const MAX_EMAIL_LENGTH = 254;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INTERNAL_INVITER_ROLES = new Set([
@@ -27,6 +24,13 @@ const INTERNAL_INVITER_ROLES = new Set([
   "ambassador",
   "business_partner",
   "influencer",
+]);
+const ULTTRA_INVITER_ROLES = new Set([
+  "chairman",
+  "crew",
+  "accredited_partner",
+  "accredited_partners",
+  ...INTERNAL_INVITER_ROLES,
 ]);
 const BLOCKED_SUBSCRIBER_TYPES = new Set([
   "subscriber",
@@ -124,16 +128,18 @@ async function loadDirectusSyncToken(options = {}) {
   return token;
 }
 
-async function readDirectusChairmanPerson(email, options = {}) {
-  const expectedEmail = normalizeEmail(email);
-  if (expectedEmail !== CHAIRMAN_EMAIL) {
+async function readDirectusEligibleInviterPerson(email, options = {}) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!isSupportedEmail(normalizedEmail)) {
     return null;
   }
 
   const directusBaseUrl = normalizeString(options.directusBaseUrl || DIRECTUS_BASE_URL)
     .replace(/\/+$/, "");
-  const url = new URL(`${directusBaseUrl}/items/people/${encodeURIComponent(CHAIRMAN_PERSON_ID)}`);
+  const url = new URL(`${directusBaseUrl}/items/people`);
+  url.searchParams.set("filter[email][_eq]", normalizedEmail);
   url.searchParams.set("fields", "id,email,type,status,synthetic_test");
+  url.searchParams.set("limit", "1");
 
   const response = await fetch(url, {
     method: "GET",
@@ -144,15 +150,14 @@ async function readDirectusChairmanPerson(email, options = {}) {
   });
 
   if (!response.ok) {
-    throw new Error(`Directus Chairman lookup failed: ${response.status}`);
+    throw new Error(`Directus inviter lookup failed: ${response.status}`);
   }
 
   const payload = await response.json();
-  const person = payload?.data || null;
+  const person = Array.isArray(payload?.data) ? payload.data[0] : null;
   if (
-    normalizeString(person?.id) === CHAIRMAN_PERSON_ID &&
-    normalizeEmail(person?.email) === CHAIRMAN_EMAIL &&
-    normalizeRole(person?.type) === CHAIRMAN_TYPE &&
+    normalizeEmail(person?.email) === normalizedEmail &&
+    ULTTRA_INVITER_ROLES.has(normalizeRole(person?.type)) &&
     normalizeString(person?.status).toLowerCase() === "active" &&
     !isTruthy(person?.synthetic_test)
   ) {
@@ -162,12 +167,8 @@ async function readDirectusChairmanPerson(email, options = {}) {
   return null;
 }
 
-async function isChairmanInviter(email, options = {}) {
-  if (email !== CHAIRMAN_EMAIL) {
-    return false;
-  }
-
-  const person = options.chairmanPerson || await readDirectusChairmanPerson(email, options);
+async function isUlttraInviter(email, options = {}) {
+  const person = options.ulttraPerson || await readDirectusEligibleInviterPerson(email, options);
   return Boolean(person);
 }
 
@@ -270,17 +271,16 @@ async function isEligibleFounderInviter(inviterEmail, options = {}) {
     return false;
   }
 
-  if (email === CHAIRMAN_EMAIL) {
-    try {
-      return await isChairmanInviter(email, options);
-    } catch (error) {
-      if (options.logger && typeof options.logger.error === "function") {
-        options.logger.error("founder_inviter_chairman_lookup_failed", {
-          name: error?.name || "Error",
-          message: error?.message || "Unknown error",
-        });
-      }
-      return false;
+  try {
+    if (await isUlttraInviter(email, options)) {
+      return true;
+    }
+  } catch (error) {
+    if (options.logger && typeof options.logger.error === "function") {
+      options.logger.error("founder_inviter_ulttra_lookup_failed", {
+        name: error?.name || "Error",
+        message: error?.message || "Unknown error",
+      });
     }
   }
 
@@ -320,9 +320,10 @@ async function isEligibleFounderInviter(inviterEmail, options = {}) {
 
 module.exports = {
   INTERNAL_INVITER_ROLES,
+  ULTTRA_INVITER_ROLES,
   BLOCKED_SUBSCRIBER_TYPES,
   isEligibleFounderInviter,
-  isChairmanInviter,
+  isUlttraInviter,
   normalizeEmail,
   normalizeRole,
 };

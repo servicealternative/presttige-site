@@ -29,14 +29,35 @@ function loadTierContractModule() {
   throw new Error("Stripe tier contract module not found");
 }
 
+function loadFounderInviterEligibilityModule() {
+  const candidates = [
+    path.join(__dirname, "..", "lib", "founder-inviter-eligibility.js"),
+    path.join(__dirname, "lib", "founder-inviter-eligibility.js"),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      return require(candidate);
+    } catch (error) {
+      if (error.code !== "MODULE_NOT_FOUND") {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error("Founder inviter eligibility module not found");
+}
+
 const {
   CHECKOUT_TOKEN_INDEX_NAME,
   LEAD_PAYMENT_FIELDS,
   getTierContract,
 } = loadTierContractModule();
+const { isEligibleFounderInviter } = loadFounderInviterEligibilityModule();
 
 const REGION = "us-east-1";
 const TABLE_NAME = "presttige-db";
+const EMAIL_INDEX_NAME = "email-index";
 const APP_ORIGIN = "https://presttige.net";
 const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
 const ACTIVE_MEMBERSHIP_STATES = new Set([
@@ -46,6 +67,8 @@ const ACTIVE_MEMBERSHIP_STATES = new Set([
   "renewal_failed_retrying",
   "subscription_past_due",
 ]);
+const MAX_EMAIL_LENGTH = 254;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ddb = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: REGION })
@@ -83,6 +106,18 @@ function normalizeString(value) {
     return "";
   }
   return String(value).trim();
+}
+
+function normalizeEmail(value) {
+  return normalizeString(value).toLowerCase();
+}
+
+function isSupportedEmail(email) {
+  return (
+    email.length > 0 &&
+    email.length <= MAX_EMAIL_LENGTH &&
+    EMAIL_PATTERN.test(email)
+  );
 }
 
 function isTruthy(value) {
@@ -154,6 +189,27 @@ async function findLeadByLeadId(leadId) {
   return result.Item || null;
 }
 
+async function findLeadByEmail(email) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) {
+    return null;
+  }
+
+  const result = await ddb.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      IndexName: EMAIL_INDEX_NAME,
+      KeyConditionExpression: "email = :email",
+      ExpressionAttributeValues: {
+        ":email": normalizedEmail,
+      },
+      Limit: 1,
+    })
+  );
+
+  return result.Items?.[0] || null;
+}
+
 async function findLeadByAnyToken(token) {
   const byCheckoutToken = await findLeadByCheckoutToken(token);
   if (byCheckoutToken) {
@@ -218,6 +274,44 @@ function isFounderOnlyLead(lead) {
     tierIntent === "founder" &&
     reviewStatus === "approved"
   );
+}
+
+async function isFounderGateValid(invitedRecord, inviterEmail) {
+  if (!invitedRecord) {
+    return false;
+  }
+
+  if (normalizeString(invitedRecord.subscriber_type).toLowerCase() !== "founder_invited") {
+    return false;
+  }
+
+  if (normalizeString(invitedRecord.founder_token_status).toLowerCase() !== "active") {
+    return false;
+  }
+
+  if (!isTruthy(invitedRecord[LEAD_PAYMENT_FIELDS.founderEligible])) {
+    return false;
+  }
+
+  if (normalizeString(invitedRecord[LEAD_PAYMENT_FIELDS.founderGateStatus]).toLowerCase() !== "confirmed") {
+    return false;
+  }
+
+  if (normalizeString(invitedRecord[LEAD_PAYMENT_FIELDS.tierIntent]).toLowerCase() !== "founder") {
+    return false;
+  }
+
+  if (normalizeEmail(invitedRecord.inviter_email) !== inviterEmail) {
+    return false;
+  }
+
+  const inviterRecord = await findLeadByEmail(inviterEmail);
+  return isEligibleFounderInviter(inviterEmail, {
+    logger: console,
+    inviterRecord,
+    inviterLeadId: invitedRecord.inviter_lead_id,
+    invitedLeadId: invitedRecord.lead_id,
+  });
 }
 
 function buildBillingChoice(contractKey) {
@@ -556,6 +650,59 @@ async function mintCheckoutToken(lead) {
   return payload;
 }
 
+async function mintFounderCheckoutToken(lead, inviterEmail) {
+  const payload = issueCheckoutTokenPayload(lead);
+  const consentAt = payload.checkoutTokenIssuedAt;
+
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        lead_id: lead.lead_id,
+      },
+      ConditionExpression: [
+        "review_status = :approved",
+        "subscriber_type = :founder_invited",
+        "founder_eligible = :founder_eligible",
+        "founder_gate_status = :founder_gate_status",
+        "tier_intent = :tier_intent",
+        "founder_token_status = :founder_token_status",
+        "inviter_email = :inviter_email",
+      ].join(" AND "),
+      UpdateExpression: [
+        `SET ${LEAD_PAYMENT_FIELDS.checkoutToken} = :checkout_token`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenStatus} = :checkout_token_status`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenVersion} = :checkout_token_version`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenIssuedAt} = :checkout_token_issued_at`,
+        `${LEAD_PAYMENT_FIELDS.checkoutTokenExpiresAt} = :checkout_token_expires_at`,
+        "checkbox_consent_at = :checkbox_consent_at",
+        "updated_at = :updated_at",
+      ].join(", "),
+      ExpressionAttributeValues: {
+        ":approved": "approved",
+        ":founder_invited": "founder_invited",
+        ":founder_eligible": true,
+        ":founder_gate_status": "confirmed",
+        ":tier_intent": "founder",
+        ":founder_token_status": "active",
+        ":inviter_email": inviterEmail,
+        ":checkout_token": payload.checkoutToken,
+        ":checkout_token_status": payload.checkoutTokenStatus,
+        ":checkout_token_version": payload.checkoutTokenVersion,
+        ":checkout_token_issued_at": payload.checkoutTokenIssuedAt,
+        ":checkout_token_expires_at": payload.checkoutTokenExpiresAt,
+        ":checkbox_consent_at": consentAt,
+        ":updated_at": payload.updatedAt,
+      },
+    })
+  );
+
+  return {
+    ...payload,
+    checkboxConsentAt: consentAt,
+  };
+}
+
 function parseRequestBody(event) {
   if (!event?.body) {
     return {};
@@ -581,6 +728,10 @@ async function handleMintRequest(event) {
   const contractKey =
     normalizeString(body.contractKey) ||
     normalizeString(body.contract_key);
+
+  if (contractKey === "founder_lifetime") {
+    return handleFounderConsentCheckoutRequest(body);
+  }
 
   if (!leadId) {
     return errorResponse(400, "missing_lead_id", "Missing lead_id.");
@@ -628,6 +779,46 @@ async function handleMintRequest(event) {
     checkoutTokenVersion: payload.checkoutTokenVersion,
     checkoutTokenIssuedAt: payload.checkoutTokenIssuedAt,
     checkoutTokenExpiresAt: payload.checkoutTokenExpiresAt,
+  });
+}
+
+async function handleFounderConsentCheckoutRequest(body) {
+  const invitedEmail = normalizeEmail(
+    body.invited_email || body.founder_email || body.email
+  );
+  const inviterEmail = normalizeEmail(body.inviter_email);
+  const consentAccepted = isTruthy(
+    body.checkbox_consent_accepted || body.consent_accepted || body.consent
+  );
+
+  if (!isSupportedEmail(invitedEmail) || !isSupportedEmail(inviterEmail)) {
+    return errorResponse(400, "invalid_founder_emails", "Founder invitation details are invalid.");
+  }
+
+  if (invitedEmail === inviterEmail) {
+    return errorResponse(400, "invalid_founder_emails", "Founder invitation details are invalid.");
+  }
+
+  if (!consentAccepted) {
+    return errorResponse(400, "consent_required", "Founder consent is required before checkout.");
+  }
+
+  const invitedRecord = await findLeadByEmail(invitedEmail);
+
+  if (!(await isFounderGateValid(invitedRecord, inviterEmail))) {
+    return errorResponse(403, "founder_gate_not_confirmed", "Founder invitation could not be confirmed.");
+  }
+
+  const payload = await mintFounderCheckoutToken(invitedRecord, inviterEmail);
+  return response(200, {
+    checkoutToken: payload.checkoutToken,
+    checkoutTokenStatus: payload.checkoutTokenStatus,
+    checkoutTokenVersion: payload.checkoutTokenVersion,
+    checkoutTokenIssuedAt: payload.checkoutTokenIssuedAt,
+    checkoutTokenExpiresAt: payload.checkoutTokenExpiresAt,
+    checkboxConsentAt: payload.checkboxConsentAt,
+    contractKey: "founder_lifetime",
+    tier: "founder",
   });
 }
 
