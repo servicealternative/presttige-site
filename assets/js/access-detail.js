@@ -68,7 +68,7 @@
             "This is a lifetime and permanent position, reserved for those who were invited and whose path has been confirmed. It is not bought, not requested, not advertised. It is received.",
             "Those who enter at this early stage hold, forever, a combination of privileges that can never be replicated. It is a private tier, by invitation only, limited in time and in the number of Founders. When it closes, it closes for good.",
           ]),
-          '<section class="detail-section">',
+          '<section class="detail-section detail-section--first-privileges">',
             '<h3>The privileges of those who arrive first</h3>',
             '<p class="note"><em>These privileges will never be within reach of those who come later.</em></p>',
             renderFeatureList([

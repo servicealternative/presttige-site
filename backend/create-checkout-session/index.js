@@ -32,12 +32,32 @@ function loadTierContractModule() {
   throw new Error("Stripe tier contract module not found");
 }
 
+function loadFounderInviterEligibilityModule() {
+  const candidates = [
+    path.join(__dirname, "..", "lib", "founder-inviter-eligibility.js"),
+    path.join(__dirname, "lib", "founder-inviter-eligibility.js"),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      return require(candidate);
+    } catch (error) {
+      if (error.code !== "MODULE_NOT_FOUND") {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error("Founder inviter eligibility module not found");
+}
+
 const {
   CHECKOUT_TOKEN_INDEX_NAME,
   LEAD_PAYMENT_FIELDS,
   getTierContract,
   mustGetTierContract,
 } = loadTierContractModule();
+const { isEligibleFounderInviter } = loadFounderInviterEligibilityModule();
 
 const REGION = "us-east-1";
 const TABLE_NAME = "presttige-db";
@@ -155,7 +175,7 @@ function buildIdempotencyKey(lead, contract) {
     String(lead[LEAD_PAYMENT_FIELDS.checkoutTokenVersion] || 1),
     contract.checkoutMode,
     contract.contractKey === "founder_lifetime"
-      ? "founder_wallets_per_device_v1"
+      ? "founder_wallets_per_device_v2"
       : "default_wallets_v1",
   ].join("|");
 
@@ -421,7 +441,7 @@ function extractIntentIdFromClientSecret(clientSecret) {
   return secret.split("_secret_")[0] || null;
 }
 
-function validateLeadForContract(lead, contract) {
+async function validateLeadForContract(lead, contract) {
   const tokenStatus = normalizeString(
     lead[LEAD_PAYMENT_FIELDS.checkoutTokenStatus]
   ).toLowerCase();
@@ -471,6 +491,29 @@ function validateLeadForContract(lead, contract) {
       403,
       "founder_referral_required",
       "Founder checkout requires founder-eligible referral attribution."
+    );
+  }
+
+  if (contract.contractKey === "founder_lifetime" && !normalizeString(lead.checkbox_consent_at)) {
+    return errorResponse(
+      403,
+      "founder_consent_required",
+      "Founder consent is required before checkout."
+    );
+  }
+
+  if (
+    contract.contractKey === "founder_lifetime" &&
+    !(await isEligibleFounderInviter(lead.inviter_email, {
+      logger: console,
+      inviterLeadId: lead.inviter_lead_id,
+      invitedLeadId: lead.lead_id,
+    }))
+  ) {
+    return errorResponse(
+      403,
+      "founder_inviter_not_eligible",
+      "Founder checkout requires eligible inviter attribution."
     );
   }
 
@@ -579,7 +622,13 @@ async function createPaymentModeBootstrap({
         : {
             payment_method_types: ["card"],
           }),
-      metadata: buildStripeMetadata(lead, contract),
+      metadata: {
+        ...buildStripeMetadata(lead, contract),
+        stripe_price_id: priceId,
+        ...(contract.stripeProductId
+          ? { stripe_product_id: contract.stripeProductId }
+          : {}),
+      },
       description: `Presttige ${formatTierLabel(contract.tier)} checkout`,
     },
   });
@@ -593,6 +642,7 @@ async function createPaymentModeBootstrap({
     amount: paymentIntent.amount,
     currency: normalizeString(paymentIntent.currency).toUpperCase(),
     intentKind: "payment",
+    paymentMethodConfiguration: founderPaymentMethodConfiguration || null,
     stripeObjectIds: {
       customerId,
       paymentIntentId: paymentIntent.id,
@@ -657,6 +707,7 @@ async function createSubscriptionModeBootstrap({
     amount: contract.initialChargeUsdCents,
     currency: STANDARD_CURRENCY.toUpperCase(),
     intentKind: "payment",
+    paymentMethodConfiguration: null,
     stripeObjectIds: {
       customerId,
       paymentIntentId:
@@ -774,6 +825,7 @@ function buildBootstrapResponse({
   currency,
   clientSecret,
   intentKind,
+  paymentMethodConfiguration,
 }) {
   return {
     publishableKey: credentials.publishableKey,
@@ -785,6 +837,7 @@ function buildBootstrapResponse({
     currency,
     customerEmail: normalizeString(lead.email) || null,
     intentKind,
+    paymentMethodConfiguration: paymentMethodConfiguration || null,
   };
 }
 
@@ -850,7 +903,7 @@ exports.handler = async (event) => {
       );
     }
 
-    const validationError = validateLeadForContract(lead, contract);
+    const validationError = await validateLeadForContract(lead, contract);
     if (validationError) {
       return validationError;
     }
@@ -915,6 +968,7 @@ exports.handler = async (event) => {
         currency: bootstrap.currency,
         clientSecret: bootstrap.clientSecret,
         intentKind: bootstrap.intentKind,
+        paymentMethodConfiguration: bootstrap.paymentMethodConfiguration,
       })
     );
   } catch (error) {
