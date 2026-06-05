@@ -7,7 +7,6 @@ const {
   DynamoDBDocumentClient,
   GetCommand,
   QueryCommand,
-  ScanCommand,
   UpdateCommand,
 } = require("@aws-sdk/lib-dynamodb");
 
@@ -30,14 +29,35 @@ function loadTierContractModule() {
   throw new Error("Stripe tier contract module not found");
 }
 
+function loadFounderInviterEligibilityModule() {
+  const candidates = [
+    path.join(__dirname, "..", "lib", "founder-inviter-eligibility.js"),
+    path.join(__dirname, "lib", "founder-inviter-eligibility.js"),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      return require(candidate);
+    } catch (error) {
+      if (error.code !== "MODULE_NOT_FOUND") {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error("Founder inviter eligibility module not found");
+}
+
 const {
   CHECKOUT_TOKEN_INDEX_NAME,
   LEAD_PAYMENT_FIELDS,
   getTierContract,
 } = loadTierContractModule();
+const { isEligibleFounderInviter } = loadFounderInviterEligibilityModule();
 
 const REGION = "us-east-1";
 const TABLE_NAME = "presttige-db";
+const EMAIL_INDEX_NAME = "email-index";
 const APP_ORIGIN = "https://presttige.net";
 const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
 const ACTIVE_MEMBERSHIP_STATES = new Set([
@@ -46,12 +66,6 @@ const ACTIVE_MEMBERSHIP_STATES = new Set([
   "subscription_cancel_at_period_end",
   "renewal_failed_retrying",
   "subscription_past_due",
-]);
-const FOUNDER_ACTIVE_PAYMENT_STATUSES = new Set([
-  "paid",
-  "free",
-  "subscription_active",
-  "preview_paid",
 ]);
 const MAX_EMAIL_LENGTH = 254;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -175,32 +189,25 @@ async function findLeadByLeadId(leadId) {
   return result.Item || null;
 }
 
-async function findLeadsByEmails(emails) {
-  const wantedEmails = Array.from(new Set(emails.map(normalizeEmail)));
-  const found = [];
-  let ExclusiveStartKey;
+async function findLeadByEmail(email) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) {
+    return null;
+  }
 
-  do {
-    const result = await ddb.send(
-      new ScanCommand({
-        TableName: TABLE_NAME,
-        FilterExpression: "email IN (:email0, :email1)",
-        ExpressionAttributeValues: {
-          ":email0": wantedEmails[0],
-          ":email1": wantedEmails[1],
-        },
-        ExclusiveStartKey,
-      })
-    );
+  const result = await ddb.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      IndexName: EMAIL_INDEX_NAME,
+      KeyConditionExpression: "email = :email",
+      ExpressionAttributeValues: {
+        ":email": normalizedEmail,
+      },
+      Limit: 1,
+    })
+  );
 
-    if (result.Items?.length) {
-      found.push(...result.Items);
-    }
-
-    ExclusiveStartKey = result.LastEvaluatedKey;
-  } while (ExclusiveStartKey);
-
-  return found;
+  return result.Items?.[0] || null;
 }
 
 async function findLeadByAnyToken(token) {
@@ -269,17 +276,8 @@ function isFounderOnlyLead(lead) {
   );
 }
 
-function hasFounderActiveAccountMarker(record) {
-  const paymentStatus = normalizeString(record?.payment_status).toLowerCase();
-  return (
-    isTruthy(record?.account_active) ||
-    normalizeString(record?.access_status).toLowerCase() === "active" ||
-    FOUNDER_ACTIVE_PAYMENT_STATUSES.has(paymentStatus)
-  );
-}
-
-function isFounderGateValid(invitedRecord, inviterRecord, inviterEmail) {
-  if (!invitedRecord || !inviterRecord) {
+async function isFounderGateValid(invitedRecord, inviterEmail) {
+  if (!invitedRecord) {
     return false;
   }
 
@@ -307,15 +305,13 @@ function isFounderGateValid(invitedRecord, inviterRecord, inviterEmail) {
     return false;
   }
 
-  if (normalizeString(invitedRecord.inviter_lead_id) !== normalizeString(inviterRecord.lead_id)) {
-    return false;
-  }
-
-  if (normalizeString(inviterRecord.review_status).toLowerCase() !== "approved") {
-    return false;
-  }
-
-  return hasFounderActiveAccountMarker(inviterRecord);
+  const inviterRecord = await findLeadByEmail(inviterEmail);
+  return isEligibleFounderInviter(inviterEmail, {
+    logger: console,
+    inviterRecord,
+    inviterLeadId: invitedRecord.inviter_lead_id,
+    invitedLeadId: invitedRecord.lead_id,
+  });
 }
 
 function buildBillingChoice(contractKey) {
@@ -654,7 +650,7 @@ async function mintCheckoutToken(lead) {
   return payload;
 }
 
-async function mintFounderCheckoutToken(lead) {
+async function mintFounderCheckoutToken(lead, inviterEmail) {
   const payload = issueCheckoutTokenPayload(lead);
   const consentAt = payload.checkoutTokenIssuedAt;
 
@@ -671,6 +667,7 @@ async function mintFounderCheckoutToken(lead) {
         "founder_gate_status = :founder_gate_status",
         "tier_intent = :tier_intent",
         "founder_token_status = :founder_token_status",
+        "inviter_email = :inviter_email",
       ].join(" AND "),
       UpdateExpression: [
         `SET ${LEAD_PAYMENT_FIELDS.checkoutToken} = :checkout_token`,
@@ -688,6 +685,7 @@ async function mintFounderCheckoutToken(lead) {
         ":founder_gate_status": "confirmed",
         ":tier_intent": "founder",
         ":founder_token_status": "active",
+        ":inviter_email": inviterEmail,
         ":checkout_token": payload.checkoutToken,
         ":checkout_token_status": payload.checkoutTokenStatus,
         ":checkout_token_version": payload.checkoutTokenVersion,
@@ -805,19 +803,13 @@ async function handleFounderConsentCheckoutRequest(body) {
     return errorResponse(400, "consent_required", "Founder consent is required before checkout.");
   }
 
-  const records = await findLeadsByEmails([invitedEmail, inviterEmail]);
-  const invitedRecord = records.find(
-    (record) => normalizeEmail(record.email) === invitedEmail
-  );
-  const inviterRecord = records.find(
-    (record) => normalizeEmail(record.email) === inviterEmail
-  );
+  const invitedRecord = await findLeadByEmail(invitedEmail);
 
-  if (!isFounderGateValid(invitedRecord, inviterRecord, inviterEmail)) {
+  if (!(await isFounderGateValid(invitedRecord, inviterEmail))) {
     return errorResponse(403, "founder_gate_not_confirmed", "Founder invitation could not be confirmed.");
   }
 
-  const payload = await mintFounderCheckoutToken(invitedRecord);
+  const payload = await mintFounderCheckoutToken(invitedRecord, inviterEmail);
   return response(200, {
     checkoutToken: payload.checkoutToken,
     checkoutTokenStatus: payload.checkoutTokenStatus,
