@@ -725,6 +725,9 @@
           },
         };
         if (state.bootstrap.paymentMethodConfiguration) {
+          elementsOptions.mode = state.bootstrap.checkoutMode === "payment" ? "payment" : "subscription";
+          elementsOptions.amount = Number(state.bootstrap.amount || 0);
+          elementsOptions.currency = String(state.bootstrap.currency || "usd").toLowerCase();
           elementsOptions.paymentMethodConfiguration = state.bootstrap.paymentMethodConfiguration;
         }
         state.elements = state.stripe.elements(elementsOptions);
