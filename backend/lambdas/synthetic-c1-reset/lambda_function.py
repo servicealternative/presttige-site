@@ -61,6 +61,9 @@ RESET_REMOVE_FIELDS = [
     "checkbox_consent_at",
     "consent_basis",
     "consent_timestamp",
+    "c1_founder_excluded",
+    "c1_founder_excluded_at",
+    "c1_founder_excluded_by",
 ]
 
 
