@@ -30,6 +30,8 @@ const GLOBAL_PROJECT_KEY = 'global';
 const PRESTTIGE_PROJECT_KEY = 'presttige';
 const CHAIRMAN_EMAIL = 'apereira@presttige.net';
 const CHAIRMAN_TYPE = 'chairman';
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_IN_TEXT_PATTERN = /[^\s@]+@[^\s@]+\.[^\s@]+/;
 
 const memberTiers = ['club', 'premier', 'patron', 'founder'];
 const priorityMemberTiers = ['founder', 'patron'];
@@ -141,7 +143,11 @@ export default {
         const invitedEmail = normalizeEmail(req.body?.invited_email);
         const invitedName = normalizeString(req.body?.invited_name);
         if (!isValidEmail(invitedEmail)) {
-          res.status(400).json({ ok: false, message: 'Invitation could not be created.' });
+          res.status(400).json({ ok: false, message: 'Enter a valid invitee email address.' });
+          return;
+        }
+        if (looksLikeEmail(invitedName)) {
+          res.status(400).json({ ok: false, message: 'Invitee name must be a name, not an email address.' });
           return;
         }
         if (!standard.permissions.founder_invite) {
@@ -2174,7 +2180,11 @@ function isSynthetic(value) {
 }
 
 function isValidEmail(email) {
-  return Boolean(email && email.length <= 254 && email.includes('@') && email.split('@').pop().includes('.') && !/\s/.test(email));
+  return Boolean(email && email.length <= 254 && EMAIL_PATTERN.test(email));
+}
+
+function looksLikeEmail(value) {
+  return EMAIL_IN_TEXT_PATTERN.test(normalizeString(value));
 }
 
 function toDayKey(value) {

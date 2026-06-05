@@ -4,6 +4,7 @@ import hmac
 import html
 import json
 import os
+import re
 import secrets
 import sys
 import urllib.error
@@ -38,6 +39,8 @@ FOUNDER_C2_VERIFY_URL = os.environ.get(
     "https://presttige.net/founder-c2-verify.html",
 )
 FOUNDER_EMAIL_FROM = "founders@presttige.net"
+EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+EMAIL_IN_TEXT_PATTERN = re.compile(r"[^\s@]+@[^\s@]+\.[^\s@]+")
 DIRECTUS_BASE_URL = os.environ.get("DIRECTUS_BASE_URL", "https://crm.ulttra.net")
 DIRECTUS_SYNC_TOKEN_PARAMETER = os.environ.get(
     "DIRECTUS_SYNC_TOKEN_PARAMETER",
@@ -135,6 +138,12 @@ def create_founder_invite(payload, actor_id, actor_email=None):
         raise AdminError(400, "invalid_inviter_email", "Inviter email is invalid.")
     if not is_valid_email(invited_email):
         raise AdminError(400, "invalid_invited_email", "Invited email is invalid.")
+    if looks_like_email(invited_name):
+        raise AdminError(
+            400,
+            "invalid_invited_name",
+            "Invitee name must be a name, not an email address.",
+        )
     if inviter_email == invited_email:
         raise AdminError(
             400,
@@ -632,8 +641,8 @@ def send_founder_invitee_email_if_needed(lead, invited_email, invited_name, invi
 
     first_name = first_name_for_email(invited_name or lead.get("name"), recipient)
     founder_url = founder_invitee_link(lead, invite_flow)
-    html_body = founder_invitee_html(first_name, founder_url)
-    text_body = founder_invitee_text(first_name, founder_url)
+    html_body = founder_invitee_html(first_name, founder_url, invite_flow)
+    text_body = founder_invitee_text(first_name, founder_url, invite_flow)
     ses_response = ses_client.send_email(
         Source=FOUNDER_EMAIL_FROM,
         ReplyToAddresses=[FOUNDER_EMAIL_FROM],
@@ -756,7 +765,11 @@ def first_name_for_email(name, email):
     return local_part.split()[0].title() if local_part else "there"
 
 
-def founder_invitee_text(first_name, founder_url):
+def founder_invitee_cta_label(invite_flow=""):
+    return "Founder Invitation" if normalize_string(invite_flow).lower() == "c2" else "Become a Founder"
+
+
+def founder_invitee_text(first_name, founder_url, invite_flow=""):
     return "\n\n".join(
         [
             f"Dear {first_name},",
@@ -764,7 +777,7 @@ def founder_invitee_text(first_name, founder_url):
             "Presttige is a private network bringing together business, lifestyle and curated experiences, a space reserved for a deliberately limited number of people. Membership is by invitation only, and yours was prepared personally.",
             "This is not an application. Your place is already reserved.",
             "To continue, simply confirm your email at the link below.",
-            "Become a Founder",
+            founder_invitee_cta_label(invite_flow),
             "Once confirmed, you will discover all that Founding membership holds, and how to take your place.",
             "Should you have any question, you may reply directly to this message.",
             "With our regards,\nThe Founders' House",
@@ -784,7 +797,7 @@ def founder_inviter_text(first_name):
     )
 
 
-def founder_invitee_html(first_name, founder_url):
+def founder_invitee_html(first_name, founder_url, invite_flow=""):
     paragraphs = [
         f"Dear {html.escape(first_name)},",
         "You have been chosen to join the Founding circle of Presttige, a rare privilege of restricted access.",
@@ -801,7 +814,7 @@ def founder_invitee_html(first_name, founder_url):
         eyebrow="Founder invitation",
         headline="An invitation to Presttige",
         paragraphs=paragraphs,
-        cta_label="Become a Founder",
+        cta_label=founder_invitee_cta_label(invite_flow),
         cta_url=founder_url,
     )
 
@@ -1077,13 +1090,11 @@ def normalize_email(value):
 
 
 def is_valid_email(email):
-    return (
-        bool(email)
-        and len(email) <= 254
-        and "@" in email
-        and "." in email.rsplit("@", 1)[-1]
-        and not any(char.isspace() for char in email)
-    )
+    return bool(email and len(email) <= 254 and EMAIL_PATTERN.fullmatch(email))
+
+
+def looks_like_email(value):
+    return bool(EMAIL_IN_TEXT_PATTERN.search(normalize_string(value)))
 
 
 def is_truthy(value):

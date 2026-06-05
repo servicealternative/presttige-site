@@ -1,6 +1,9 @@
 import { defineComponent, h, onMounted, onUnmounted, ref, resolveComponent } from 'vue';
 import { useApi } from '@directus/extensions-sdk';
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailInTextPattern = /[^\s@]+@[^\s@]+\.[^\s@]+/;
+
 const cardStyle = {
   border: '1px solid var(--theme--border-color)',
   borderRadius: '8px',
@@ -75,14 +78,26 @@ const Dashboard = defineComponent({
     }
 
     async function submitInvite() {
-      inviteBusy.value = true;
       inviteMessage.value = '';
       inviteSuccess.value = false;
       inviteStatus.value = '';
+      const cleanedName = String(inviteName.value || '').trim();
+      const cleanedEmail = String(inviteEmail.value || '').trim().toLowerCase();
+      if (emailInTextPattern.test(cleanedName)) {
+        inviteStatus.value = 'ERROR';
+        inviteMessage.value = 'Invitee name must be a name, not an email address.';
+        return;
+      }
+      if (!emailPattern.test(cleanedEmail)) {
+        inviteStatus.value = 'ERROR';
+        inviteMessage.value = 'Enter a valid invitee email address.';
+        return;
+      }
+      inviteBusy.value = true;
       try {
         const response = await api.post('/ulttra-dashboard/founder-invite', {
-          invited_name: inviteName.value,
-          invited_email: inviteEmail.value,
+          invited_name: cleanedName,
+          invited_email: cleanedEmail,
         });
         inviteStatus.value = response.data?.status || 'ERROR';
         inviteSuccess.value = response.data?.status === 'SENT';
@@ -418,6 +433,7 @@ const Dashboard = defineComponent({
             fieldInput('Invitee email', this.inviteEmail, (value) => { this.inviteEmail = value; }, 'email', {
               name: 'invited_email',
               autocomplete: 'email',
+              pattern: '[^\\s@]+@[^\\s@]+\\.[^\\s@]+',
               required: true,
             }),
           ]),
@@ -1390,6 +1406,7 @@ function fieldInput(label, value, update, type, options = {}) {
       value,
       required: options.required === true,
       autocomplete: options.autocomplete,
+      pattern: options.pattern,
       style: inputStyle(),
       onInput: (event) => update(event.target.value),
     }),
