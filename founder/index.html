@@ -599,6 +599,36 @@
       if (isEmail(invitedFromQuery)) {
         document.getElementById("invitee-email").value = invitedFromQuery;
       }
+      if (fromC2 && founderToken && isEmail(invitedFromQuery)) {
+        verifyC2Automatically(invitedFromQuery);
+      }
+
+      async function verifyC2Automatically(inviteeEmail) {
+        gate.hidden = true;
+        submit.disabled = true;
+        submit.textContent = "Checking";
+
+        try {
+          var result = await postJson(API_BASE + "/founder-c2?action=gate", {
+            email: inviteeEmail,
+            token: founderToken
+          });
+
+          if (!result || result.valid !== true || !isEmail(result.inviter_email)) {
+            gate.hidden = false;
+            showFailure();
+            return;
+          }
+
+          await revealDetail(inviteeEmail, normalizeEmail(result.inviter_email));
+        } catch (_error) {
+          gate.hidden = false;
+          showFailure();
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Continue";
+        }
+      }
 
       async function onSubmit(event) {
         event.preventDefault();
