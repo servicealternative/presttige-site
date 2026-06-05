@@ -5,6 +5,7 @@ rm -rf lib
 mkdir -p lib
 cp ../lib/stripe-tier-contract.js lib/stripe-tier-contract.js
 cp ../lib/founder-inviter-eligibility.js lib/founder-inviter-eligibility.js
+cp ../lib/founder-inviter-eligibility.js lib/founder-inviter-eligibility.js
 trap 'rm -rf lib' EXIT
 rm -f dist.zip
 zip -r dist.zip index.js package.json lib
