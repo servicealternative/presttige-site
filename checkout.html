@@ -98,37 +98,6 @@
       letter-spacing: 0.16em;
     }
 
-    .stamp {
-      position: absolute;
-      top: 24px;
-      right: 24px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 60px;
-      padding: 12px 24px 10px;
-      border: 2px solid var(--pp-gold);
-      box-shadow: inset 0 0 0 1px rgba(140, 112, 64, 0.22);
-      background: linear-gradient(180deg, rgba(140, 112, 64, 0.06), rgba(140, 112, 64, 0.02));
-      color: var(--pp-gold);
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: clamp(18px, 2vw, 24px);
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      white-space: nowrap;
-      transform: rotate(8deg);
-      max-width: calc(100% - 48px);
-    }
-
-    .stamp::after {
-      content: "";
-      position: absolute;
-      inset: 5px;
-      border: 1px solid rgba(140, 112, 64, 0.7);
-      pointer-events: none;
-    }
-
     .eyebrow {
       margin: 0 0 12px;
       color: var(--pp-gold);
@@ -197,7 +166,7 @@
 
     .summary--founder .section ul {
       display: grid;
-      gap: 10px;
+      gap: 18px;
       padding-left: 0;
       list-style: none;
       color: var(--pp-black);
@@ -217,11 +186,38 @@
       content: "";
       position: absolute;
       left: 0;
-      top: 0.68em;
+      top: 0.58em;
       width: 6px;
       height: 6px;
       border: 1px solid var(--pp-gold);
       transform: rotate(45deg);
+    }
+
+    .summary--founder .section h2 {
+      margin-bottom: 18px;
+    }
+
+    .topic-title {
+      display: block;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--pp-black);
+    }
+
+    .topic-copy {
+      display: block;
+      margin-top: 5px;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.62;
+    }
+
+    .express-shell {
+      min-height: 44px;
+    }
+
+    .express-shell:empty {
+      display: none;
     }
 
     .payment {
@@ -406,15 +402,6 @@
         padding: 24px 20px 22px;
       }
 
-      .stamp {
-        top: 18px;
-        right: 18px;
-        min-height: 48px;
-        padding: 9px 16px 8px;
-        font-size: 15px;
-        transform: rotate(4deg);
-      }
-
       .summary__top {
         flex-direction: column;
         align-items: flex-start;
@@ -442,6 +429,7 @@
         bootstrap: null,
         stripe: null,
         elements: null,
+        expressElement: null,
         paymentElement: null,
         busy: false,
       };
@@ -451,15 +439,42 @@
       }
 
       const FOUNDER_CHECKOUT_TOPICS = [
-        "Dedicated Premium Concierge",
-        "Business at the highest level",
-        "To see without being seen",
-        "Full directory access",
-        "Every benefit, brought together",
-        "Founder Circles",
-        "Private dinners",
-        "Founder mark",
-        "The right to present a Founder",
+        {
+          title: "Dedicated Premium Concierge",
+          copy: "A human line that is yours alone, around the clock, wherever you are. Access to what is closed to others, and the gift of time.",
+        },
+        {
+          title: "Business at the highest level",
+          copy: "A seat at private gatherings with those who decide. Doors that do not open from the outside.",
+        },
+        {
+          title: "To see without being seen",
+          copy: "Observe the network without exposing your presence. The discretion is yours, and so is the initiative.",
+        },
+        {
+          title: "Full directory access",
+          copy: "Unlimited connection requests and advanced filters held by no one else. The entire network, on your terms.",
+        },
+        {
+          title: "Every benefit, brought together",
+          copy: "All that the other levels offer, in one place. And what only the Founder holds.",
+        },
+        {
+          title: "Founder Circles",
+          copy: "Private circles reserved for Founders. Where you meet among peers.",
+        },
+        {
+          title: "Private dinners",
+          copy: "Closed tables, in an intimate setting, in the right company.",
+        },
+        {
+          title: "Founder mark",
+          copy: "The Founding Member inscription, permanent and yours. Even if one day you step away and return.",
+        },
+        {
+          title: "The right to present a Founder",
+          copy: "Put forward someone worthy of this circle. Your introduction carries your name, with priority review.",
+        },
       ];
 
       const TIER_COPY = {
@@ -624,15 +639,16 @@
         app.innerHTML = `
           <section class="layout" data-contract-key="${escapeHtml(route.contractKey)}" data-checkout-mode="${escapeHtml(state.bootstrap.checkoutMode || "")}">
             <article class="panel summary ${founder ? "summary--founder" : ""}">
-              ${founder ? '<div class="stamp" aria-label="Become a founder, Founder tier">BECOME A FOUNDER</div>' : ""}
-              <div class="summary__top">
-                <a class="summary__back" href="/tier-select/${encodeURIComponent(backToken)}">Back to membership selection</a>
-                <div class="summary__tier">${escapeHtml(titleCase(tier))}</div>
-              </div>
-              <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
-              <h1 class="title">${escapeHtml(titleCase(tier))}</h1>
-              <p class="price">${escapeHtml(displayPrice)}</p>
-              <p class="copy">${escapeHtml(copy.lead)}</p>
+              ${founder ? "" : `
+                <div class="summary__top">
+                  <a class="summary__back" href="/tier-select/${encodeURIComponent(backToken)}">Back to membership selection</a>
+                  <div class="summary__tier">${escapeHtml(titleCase(tier))}</div>
+                </div>
+                <p class="eyebrow">${escapeHtml(copy.eyebrow)}</p>
+                <h1 class="title">${escapeHtml(titleCase(tier))}</h1>
+                <p class="price">${escapeHtml(displayPrice)}</p>
+                <p class="copy">${escapeHtml(copy.lead)}</p>
+              `}
               <div class="sections">
                 ${copy.sections.map(renderSection).join("")}
               </div>
@@ -647,13 +663,14 @@
                   <label for="cardholder-name">Cardholder name</label>
                   <input id="cardholder-name" type="text" value="${escapeHtml(state.context.profile?.name || "")}" autocomplete="cc-name">
                 </div>
-                <div class="element-shell" id="payment-shell" data-wallets="apple_pay,google_pay">
+                <div class="element-shell express-shell" id="express-checkout-element"></div>
+                <div class="element-shell" id="payment-shell" data-wallets="apple_pay">
                   <div id="payment-element"></div>
                 </div>
                 <div id="error-box" class="error-box" hidden></div>
                 <div class="wallet-options" aria-label="Supported wallet options">
                   <span class="wallet-options__apple">Apple Pay</span>
-                  <span>G Pay</span>
+                  <span>Card</span>
                 </div>
                 <p class="compliance-copy">By providing your card information, you allow PRESTTIGE to charge your card for future payments in accordance with their terms.</p>
                 <button id="submit-button" class="button" type="button">Pay ${escapeHtml(displayPrice)}</button>
@@ -667,7 +684,7 @@
       }
 
       async function mountStripe() {
-        const walletOrder = ["apple_pay", "google_pay"];
+        const walletOrder = ["apple_pay", "card"];
         window.__PRESTTIGE_CHECKOUT__ = {
           wallets: walletOrder.slice(),
           contractKey: route.contractKey,
@@ -691,6 +708,31 @@
           },
         });
 
+        state.expressElement = state.elements.create("expressCheckout", {
+          buttonType: {
+            applePay: "buy",
+          },
+          buttonTheme: {
+            applePay: "black",
+          },
+          buttonHeight: 44,
+          layout: {
+            maxColumns: 1,
+            maxRows: 1,
+            overflow: "never",
+          },
+          paymentMethods: {
+            applePay: "auto",
+            googlePay: "never",
+            link: "never",
+            paypal: "never",
+            amazonPay: "never",
+            klarna: "never",
+          },
+        });
+        state.expressElement.mount("#express-checkout-element");
+        state.expressElement.on("confirm", () => confirmPayment({ requireTypedName: false }));
+
         state.paymentElement = state.elements.create("payment", {
           layout: {
             type: "accordion",
@@ -698,10 +740,11 @@
             radios: "always",
             spacedAccordionItems: false,
           },
-          paymentMethodOrder: walletOrder.concat(["card"]),
+          paymentMethodOrder: ["card"],
           wallets: {
-            applePay: "auto",
-            googlePay: "auto",
+            applePay: "never",
+            googlePay: "never",
+            link: "never",
           },
           fields: {
             billingDetails: {
@@ -726,19 +769,20 @@
         state.paymentElement.mount("#payment-element");
       }
 
-      async function confirmPayment() {
+      async function confirmPayment(options = {}) {
+        const { requireTypedName = true } = options;
         if (state.busy) {
           return;
         }
 
-        const name = document.getElementById("cardholder-name").value.trim();
+        const name = document.getElementById("cardholder-name").value.trim() || state.context.profile?.name || "";
         const country = normalizeCountry(state.context.profile?.country);
         const button = document.getElementById("submit-button");
         const errorBox = document.getElementById("error-box");
 
         hideError();
 
-        if (!name) {
+        if (requireTypedName && !name) {
           showError("Cardholder name is required.");
           return;
         }
@@ -876,10 +920,22 @@
           <section class="section">
             <h2>${escapeHtml(section.title)}</h2>
             <ul>
-              ${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+              ${section.items.map(renderSectionItem).join("")}
             </ul>
           </section>
         `;
+      }
+
+      function renderSectionItem(item) {
+        if (item && typeof item === "object") {
+          return `
+            <li>
+              <span class="topic-title">${escapeHtml(item.title)}</span>
+              <span class="topic-copy">${escapeHtml(item.copy)}</span>
+            </li>
+          `;
+        }
+        return `<li>${escapeHtml(item)}</li>`;
       }
 
       function renderCountryOptions(selectedValue) {

@@ -43,6 +43,8 @@ const REGION = "us-east-1";
 const TABLE_NAME = "presttige-db";
 const STRIPE_SECRET_KEY_PARAMETER = "/presttige/stripe/secret-key";
 const STRIPE_PUBLISHABLE_KEY_PARAMETER = "/presttige/stripe/publishable-key";
+const FOUNDER_PAYMENT_METHOD_CONFIGURATION_PARAMETER =
+  "/presttige/stripe/founder-payment-method-configuration-id";
 const STRIPE_ACCOUNT_ID = "acct_1TJdzqDmiQXcrE5N";
 const APP_ORIGIN = "https://presttige.net";
 const STANDARD_CURRENCY = "usd";
@@ -67,6 +69,7 @@ const ssm = new SSMClient({ region: REGION });
 
 let cachedStripeCredentials = null;
 const cachedPriceParameters = new Map();
+const cachedOptionalParameters = new Map();
 
 function corsHeaders() {
   return {
@@ -209,6 +212,29 @@ async function getPriceId(parameterName) {
 
   cachedPriceParameters.set(parameterName, priceId);
   return priceId;
+}
+
+async function getOptionalParameter(parameterName) {
+  if (cachedOptionalParameters.has(parameterName)) {
+    return cachedOptionalParameters.get(parameterName);
+  }
+
+  try {
+    const result = await ssm.send(
+      new GetParameterCommand({
+        Name: parameterName,
+      })
+    );
+    const value = normalizeString(result.Parameter?.Value);
+    cachedOptionalParameters.set(parameterName, value);
+    return value;
+  } catch (error) {
+    if (error.name === "ResourceNotFoundException") {
+      cachedOptionalParameters.set(parameterName, "");
+      return "";
+    }
+    throw error;
+  }
 }
 
 function appendFormValue(params, prefix, value) {
@@ -534,6 +560,10 @@ async function createPaymentModeBootstrap({
   credentials,
   idempotencyKey,
 }) {
+  const founderPaymentMethodConfiguration =
+    contract.contractKey === "founder_lifetime"
+      ? await getOptionalParameter(FOUNDER_PAYMENT_METHOD_CONFIGURATION_PARAMETER)
+      : "";
   const paymentIntent = await stripeRequest({
     method: "POST",
     path: "/v1/payment_intents",
@@ -544,7 +574,17 @@ async function createPaymentModeBootstrap({
       currency: STANDARD_CURRENCY,
       customer: customerId,
       receipt_email: normalizeString(lead.email) || undefined,
-      payment_method_types: ["card"],
+      ...(founderPaymentMethodConfiguration
+        ? {
+            automatic_payment_methods: {
+              enabled: true,
+            },
+            payment_method_configuration: founderPaymentMethodConfiguration,
+            excluded_payment_method_types: ["link"],
+          }
+        : {
+            payment_method_types: ["card"],
+          }),
       metadata: {
         ...buildStripeMetadata(lead, contract),
         stripe_price_id: priceId,
