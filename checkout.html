@@ -23,6 +23,7 @@
       --pp-error: #8B1E1E;
       --pp-error-tint: rgba(139, 30, 30, 0.08);
       --pp-shadow: 0 24px 60px rgba(10, 10, 10, 0.06);
+      --presttige-page-gutter: max(1cm, 24px);
     }
 
     * {
@@ -40,9 +41,9 @@
     }
 
     .shell {
-      width: min(100%, 1360px);
+      width: min(1360px, calc(100% - var(--presttige-page-gutter) - var(--presttige-page-gutter)));
       margin: 0 auto;
-      padding: 28px 20px 64px;
+      padding: 28px 0 var(--presttige-page-gutter);
     }
 
     .layout {
@@ -188,6 +189,39 @@
 
     .section li + li {
       margin-top: 6px;
+    }
+
+    .summary--founder .sections {
+      gap: 16px;
+    }
+
+    .summary--founder .section ul {
+      display: grid;
+      gap: 10px;
+      padding-left: 0;
+      list-style: none;
+      color: var(--pp-black);
+      line-height: 1.52;
+    }
+
+    .summary--founder .section li {
+      position: relative;
+      padding-left: 18px;
+    }
+
+    .summary--founder .section li + li {
+      margin-top: 0;
+    }
+
+    .summary--founder .section li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.68em;
+      width: 6px;
+      height: 6px;
+      border: 1px solid var(--pp-gold);
+      transform: rotate(45deg);
     }
 
     .payment {
@@ -364,7 +398,7 @@
 
     @media (max-width: 760px) {
       .shell {
-        padding-inline: 16px;
+        padding-top: 24px;
       }
 
       .summary,
@@ -415,6 +449,18 @@
       if (window.PresttigePreview) {
         window.PresttigePreview.syncFromQuery();
       }
+
+      const FOUNDER_CHECKOUT_TOPICS = [
+        "Dedicated Premium Concierge",
+        "Business at the highest level",
+        "To see without being seen",
+        "Full directory access",
+        "Every benefit, brought together",
+        "Founder Circles",
+        "Private dinners",
+        "Founder mark",
+        "The right to present a Founder",
+      ];
 
       const TIER_COPY = {
         club: {
@@ -484,16 +530,8 @@
             "Founder is by exception, a permanent, lifetime position in the network.",
           sections: [
             {
-              title: "What's included",
-              items: [
-                "Lifetime Founder position",
-                "Invitation-only path confirmed through referral and review",
-                "Founder communications and welcome materials",
-              ],
-            },
-            {
-              title: "After payment",
-              items: ["You'll receive confirmation within minutes and full network access."],
+              title: "What Founder receives",
+              items: FOUNDER_CHECKOUT_TOPICS,
             },
           ],
         },
