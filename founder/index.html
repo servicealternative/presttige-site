@@ -9,7 +9,7 @@
   <meta name="description" content="PRESTTIGE invitation verification." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Source+Serif+4:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -39,7 +39,7 @@
       min-height: 100%;
       background: var(--paper);
       color: var(--ink);
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Source Serif 4", Georgia, serif;
       text-rendering: optimizeLegibility;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -85,6 +85,7 @@
       align-items: center;
       gap: 12px;
       color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       letter-spacing: 0.28em;
       text-transform: uppercase;
       font-size: 12px;
@@ -99,6 +100,7 @@
 
     .home-link {
       color: var(--muted);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.18em;
@@ -114,7 +116,7 @@
       flex: 1;
       width: min(var(--max), calc(100% - var(--presttige-page-gutter) - var(--presttige-page-gutter)));
       margin: 0 auto;
-      padding: 80px 0 var(--presttige-page-gutter);
+      padding: clamp(64px, 8vw, 104px) 0 var(--presttige-page-gutter);
       display: grid;
       align-items: center;
     }
@@ -126,6 +128,7 @@
 
     .eyebrow {
       color: var(--gold-dark);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 12px;
       font-weight: 600;
       letter-spacing: 0.22em;
@@ -170,6 +173,7 @@
 
     label {
       color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.18em;
@@ -203,6 +207,7 @@
       cursor: pointer;
       font-size: 12px;
       font-weight: 600;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       transition: background 180ms ease, color 180ms ease, opacity 180ms ease;
@@ -248,7 +253,7 @@
     }
 
     .detail-copy {
-      max-width: 680px;
+      max-width: 720px;
     }
 
     .detail-copy[hidden] {
@@ -260,6 +265,7 @@
       padding: 8px 12px;
       border: 1px solid var(--gold);
       color: var(--gold-dark);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.2em;
@@ -268,21 +274,26 @@
     }
 
     .detail-title {
-      font-size: clamp(54px, 10vw, 104px);
-      line-height: 0.92;
-      margin-bottom: 28px;
+      font-size: clamp(58px, 10vw, 108px);
+      line-height: 0.9;
+      margin-bottom: 34px;
     }
 
     .detail-lede,
     .detail-copy p {
+      max-width: 64ch;
       color: var(--muted);
       font-size: 18px;
-      line-height: 1.76;
+      line-height: 1.82;
+    }
+
+    .detail-copy p + p {
+      margin-top: 18px;
     }
 
     .detail-section {
-      margin-top: 42px;
-      padding-top: 28px;
+      margin-top: 50px;
+      padding-top: 32px;
       border-top: 1px solid var(--line);
     }
 
@@ -299,26 +310,48 @@
     .detail-list {
       list-style: none;
       display: grid;
-      gap: 14px;
+      gap: 20px;
     }
 
     .detail-list li {
       position: relative;
-      padding-left: 22px;
+      padding-left: 28px;
       color: var(--ink);
-      font-size: 16px;
-      line-height: 1.64;
+      font-size: 17px;
+      line-height: 1.72;
     }
 
     .detail-list li::before {
       content: "";
       position: absolute;
       left: 0;
-      top: 0.72em;
-      width: 7px;
-      height: 7px;
-      border: 1px solid var(--gold-dark);
-      transform: rotate(45deg);
+      top: 0.74em;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold-dark);
+      box-shadow: 0 0 0 3px rgba(140, 112, 64, 0.1);
+    }
+
+    .detail-list li strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--ink);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(22px, 2.3vw, 28px);
+      font-weight: 500;
+      line-height: 1.08;
+    }
+
+    .detail-list li span {
+      display: block;
+      max-width: 64ch;
+      color: var(--muted);
+      line-height: 1.78;
+    }
+
+    .detail-list li span + span {
+      margin-top: 8px;
     }
 
     .detail-card {
@@ -347,14 +380,14 @@
     .founder-step-two {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
-      gap: clamp(32px, 5vw, 72px);
+      gap: clamp(40px, 5vw, 82px);
       align-items: start;
     }
 
     .founder-step-two__details {
       display: grid;
-      gap: 28px;
-      max-width: 720px;
+      gap: 32px;
+      max-width: 760px;
     }
 
     .founder-step-two__details > p {
@@ -368,7 +401,7 @@
       top: 28px;
       padding: 28px;
       border: 1px solid var(--line);
-      background: rgba(255, 252, 246, 0.74);
+      background: rgba(255, 252, 246, 0.82);
     }
 
     .founder-payment-panel h3 {
@@ -384,16 +417,29 @@
     .founder-topic-list {
       list-style: none;
       display: grid;
-      gap: 11px;
+      gap: 13px;
       margin: 0 0 28px;
       padding: 0 0 24px;
       border-bottom: 1px solid var(--line);
     }
 
     .founder-topic-list li {
+      position: relative;
+      padding-left: 20px;
       color: var(--ink);
       font-size: 14px;
       line-height: 1.45;
+    }
+
+    .founder-topic-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.58em;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold-dark);
     }
 
     .founder-payment-panel .detail-section {
@@ -425,6 +471,7 @@
       font-weight: 600;
       letter-spacing: 0.18em;
       text-transform: uppercase;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     .founder-step-button {
@@ -439,6 +486,7 @@
       font-weight: 600;
       letter-spacing: 0.18em;
       text-transform: none;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       transition: background 180ms ease, color 180ms ease, opacity 180ms ease;
     }
 
@@ -493,6 +541,7 @@
       font-weight: 600;
       letter-spacing: 0.18em;
       text-transform: uppercase;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       transition: background 180ms ease, color 180ms ease, opacity 180ms ease;
     }
 
@@ -529,10 +578,12 @@
 
       .detail-grid {
         grid-template-columns: 1fr;
+        gap: 34px;
       }
 
       .founder-step-two {
         grid-template-columns: 1fr;
+        gap: 36px;
       }
 
       .founder-payment-panel {
@@ -546,6 +597,27 @@
 
       .detail-card--founder-step {
         padding: 0;
+      }
+
+      .detail-title {
+        font-size: clamp(52px, 18vw, 74px);
+        margin-bottom: 26px;
+      }
+
+      .detail-lede,
+      .detail-copy p,
+      .founder-step-two__details > p {
+        font-size: 17px;
+        line-height: 1.76;
+      }
+
+      .detail-section {
+        margin-top: 38px;
+        padding-top: 26px;
+      }
+
+      .detail-list {
+        gap: 18px;
       }
     }
   </style>
