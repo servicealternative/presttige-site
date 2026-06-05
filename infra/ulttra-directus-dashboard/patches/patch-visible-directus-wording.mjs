@@ -71,8 +71,12 @@ replaceOnceAny(
 const entryFileName = basename(entryJsPath);
 replaceOnceAny(
   indexHtmlPath,
-  [`./assets/${entryFileName}`, `./assets/${entryFileName}?v=ulttra-title-favicon-20260605`],
-  `./assets/${entryFileName}?v=ulttra-title-favicon-20260605`,
+  [
+    `./assets/${entryFileName}`,
+    `./assets/${entryFileName}?v=ulttra-title-favicon-20260605`,
+    `./assets/${entryFileName}?v=ulttra-c1-reset-20260605`,
+  ],
+  `./assets/${entryFileName}?v=ulttra-c1-reset-20260605`,
 );
 
 const faviconPath = join(dirname(new URL(import.meta.url).pathname), 'ulttra-favicon.ico');
