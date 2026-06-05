@@ -106,7 +106,7 @@
     }
 
     .container {
-      width: min(var(--max), calc(100% - 40px));
+      width: min(var(--max), calc(100% - var(--presttige-page-gutter) - var(--presttige-page-gutter)));
       margin: 0 auto;
     }
 
@@ -190,7 +190,7 @@
     }
 
     .hero {
-      width: min(100%, calc(100% - 40px));
+      width: min(100%, calc(100% - var(--presttige-page-gutter) - var(--presttige-page-gutter)));
       margin: 0 auto;
       min-height: calc(100vh - 92px);
       overflow: hidden;
@@ -538,7 +538,7 @@
     @media (max-width: 720px) {
       .container,
       .hero {
-        width: min(100%, calc(100% - 20px));
+        width: min(100%, calc(100% - var(--presttige-page-gutter) - var(--presttige-page-gutter)));
       }
 
       .hero {
@@ -549,7 +549,7 @@
 
       .hero-inner {
         min-height: 78vh;
-        padding: 36px 18px 24px;
+        padding: 36px var(--presttige-page-gutter) 24px;
       }
 
       .hero h1 {
@@ -585,7 +585,7 @@
       }
 
       .apply-panel {
-        padding: 22px;
+        padding: var(--presttige-page-gutter);
         border-radius: 22px;
       }
 

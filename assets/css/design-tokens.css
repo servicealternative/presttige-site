@@ -63,6 +63,7 @@
   /* LAYOUT */
   --max-content-width: 1280px;
   --max-text-width: 640px;
+  --presttige-page-gutter: max(1cm, var(--space-md));
 
   /* Z-INDEX */
   --z-base: 1;

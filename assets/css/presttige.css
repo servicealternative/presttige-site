@@ -21,7 +21,7 @@
 .topbar-inner {
   max-width: var(--max-content-width);
   margin: 0 auto;
-  padding: 0 var(--space-md);
+  padding: 0 var(--presttige-page-gutter);
   height: 64px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -31,7 +31,7 @@
 @media (min-width: 768px) {
   .topbar-inner {
     height: 72px;
-    padding: 0 var(--space-md);
+    padding: 0 var(--presttige-page-gutter);
     grid-template-columns: 1fr auto 1fr;
     column-gap: var(--space-xl);
   }
@@ -115,9 +115,9 @@ body {
 .hero {
   position: relative;
   min-height: 82vh;
-  width: 100%;
+  width: min(100%, calc(100% - var(--presttige-page-gutter) - var(--presttige-page-gutter)));
   max-width: none;
-  margin: 0;
+  margin: 0 auto;
   padding-top: 0;
   display: flex;
   align-items: center;
@@ -162,7 +162,7 @@ body {
   position: relative;
   z-index: 1;
   text-align: center;
-  padding: 0 var(--space-md);
+  padding: 0 var(--presttige-page-gutter);
   max-width: 800px;
   transform: translateY(-2vh);
 }
@@ -221,7 +221,7 @@ body {
   max-width: var(--max-content-width);
   width: 100%;
   margin: 0 auto;
-  padding: 0 var(--space-md);
+  padding: 0 var(--presttige-page-gutter);
   position: relative;
   z-index: 1;
 }
@@ -254,7 +254,7 @@ body {
     min-height: calc(100svh - 72px);
     scroll-margin-top: 72px;
   }
-  .section-inner { padding: 0 var(--space-lg); }
+  .section-inner { padding: 0 var(--presttige-page-gutter); }
 }
 
 /* ============ HOW IT WORKS ============ */
@@ -615,8 +615,8 @@ body {
 .legal-page .container {
   width: 100%;
   margin: 0 auto;
-  padding-left: var(--space-md);
-  padding-right: var(--space-md);
+  padding-left: var(--presttige-page-gutter);
+  padding-right: var(--presttige-page-gutter);
 }
 .legal-page .legal-back-row,
 .legal-page .legal-header,
@@ -717,8 +717,8 @@ body {
 }
 @media (min-width: 768px) {
   .legal-page .container {
-    padding-left: var(--space-lg);
-    padding-right: var(--space-lg);
+    padding-left: var(--presttige-page-gutter);
+    padding-right: var(--presttige-page-gutter);
   }
   .legal-page .legal-back-row,
   .legal-page .legal-header,
