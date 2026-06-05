@@ -28,6 +28,8 @@ const Dashboard = defineComponent({
     const inviteMessage = ref('');
     const inviteSuccess = ref(false);
     const inviteStatus = ref('');
+    const inviteNameError = ref('');
+    const inviteEmailError = ref('');
     const inviteCooldownRemaining = ref(0);
     const inviteCooldownTimer = ref(null);
     const presttigeInviteEmail = ref('');
@@ -77,20 +79,55 @@ const Dashboard = defineComponent({
       }
     }
 
+    function validateInviteNameValue(value) {
+      return emailInTextPattern.test(String(value || '').trim())
+        ? 'Invitee name must be a name, not an email address.'
+        : '';
+    }
+
+    function validateInviteEmailValue(value) {
+      const cleanedEmail = String(value || '').trim().toLowerCase();
+      return cleanedEmail && !emailPattern.test(cleanedEmail)
+        ? 'Enter a valid invitee email address.'
+        : '';
+    }
+
+    function updateInviteName(value) {
+      inviteName.value = value;
+      inviteNameError.value = validateInviteNameValue(value);
+      if (inviteNameError.value) {
+        inviteMessage.value = '';
+        inviteSuccess.value = false;
+        inviteStatus.value = 'ERROR';
+      }
+    }
+
+    function updateInviteEmail(value) {
+      inviteEmail.value = value;
+      inviteEmailError.value = validateInviteEmailValue(value);
+      if (inviteEmailError.value) {
+        inviteMessage.value = '';
+        inviteSuccess.value = false;
+        inviteStatus.value = 'ERROR';
+      }
+    }
+
     async function submitInvite() {
       inviteMessage.value = '';
       inviteSuccess.value = false;
       inviteStatus.value = '';
       const cleanedName = String(inviteName.value || '').trim();
       const cleanedEmail = String(inviteEmail.value || '').trim().toLowerCase();
-      if (emailInTextPattern.test(cleanedName)) {
+      inviteNameError.value = validateInviteNameValue(cleanedName);
+      inviteEmailError.value = validateInviteEmailValue(cleanedEmail) || (!cleanedEmail ? 'Enter a valid invitee email address.' : '');
+      if (inviteNameError.value) {
         inviteStatus.value = 'ERROR';
-        inviteMessage.value = 'Invitee name must be a name, not an email address.';
+        inviteMessage.value = inviteNameError.value;
         return;
       }
-      if (!emailPattern.test(cleanedEmail)) {
+      if (inviteEmailError.value) {
         inviteStatus.value = 'ERROR';
-        inviteMessage.value = 'Enter a valid invitee email address.';
+        inviteMessage.value = inviteEmailError.value;
         return;
       }
       inviteBusy.value = true;
@@ -105,6 +142,8 @@ const Dashboard = defineComponent({
         if (response.data?.status === 'SENT') {
           inviteName.value = '';
           inviteEmail.value = '';
+          inviteNameError.value = '';
+          inviteEmailError.value = '';
           startInviteCooldown();
         }
       } catch (err) {
@@ -289,6 +328,8 @@ const Dashboard = defineComponent({
       inviteMessage,
       inviteSuccess,
       inviteStatus,
+      inviteNameError,
+      inviteEmailError,
       inviteCooldownRemaining,
       presttigeInviteEmail,
       presttigeInviteBusy,
@@ -308,6 +349,8 @@ const Dashboard = defineComponent({
       loadDashboard,
       selectProject,
       submitInvite,
+      updateInviteName,
+      updateInviteEmail,
       submitPresttigeInvitation,
       submitRegisteredFounderInvite,
       changeFinanceMonth,
@@ -425,15 +468,19 @@ const Dashboard = defineComponent({
               alignItems: 'end',
             },
           }, [
-            fieldInput('Invitee name', this.inviteName, (value) => { this.inviteName = value; }, 'text', {
+            fieldInput('Invitee name', this.inviteName, this.updateInviteName, 'text', {
               name: 'invited_name',
               autocomplete: 'name',
+              error: this.inviteNameError,
+              onBlur: () => { this.updateInviteName(this.inviteName); },
               required: true,
             }),
-            fieldInput('Invitee email', this.inviteEmail, (value) => { this.inviteEmail = value; }, 'email', {
+            fieldInput('Invitee email', this.inviteEmail, this.updateInviteEmail, 'email', {
               name: 'invited_email',
               autocomplete: 'email',
               pattern: '[^\\s@]+@[^\\s@]+\\.[^\\s@]+',
+              error: this.inviteEmailError,
+              onBlur: () => { this.updateInviteEmail(this.inviteEmail); },
               required: true,
             }),
           ]),
@@ -1407,17 +1454,25 @@ function fieldInput(label, value, update, type, options = {}) {
       required: options.required === true,
       autocomplete: options.autocomplete,
       pattern: options.pattern,
-      style: inputStyle(),
+      style: inputStyle(Boolean(options.error)),
       onInput: (event) => update(event.target.value),
+      onBlur: options.onBlur,
     }),
+    options.error ? h('span', {
+      style: {
+        color: 'var(--danger)',
+        fontSize: '12px',
+        lineHeight: '1.35',
+      },
+    }, options.error) : null,
   ]);
 }
 
-function inputStyle() {
+function inputStyle(hasError = false) {
   return {
     height: '44px',
     borderRadius: '6px',
-    border: '1px solid var(--theme--border-color)',
+    border: hasError ? '1px solid var(--danger)' : '1px solid var(--theme--border-color)',
     padding: '0 12px',
     background: 'var(--theme--form--field--input--background)',
     color: 'var(--theme--foreground)',
