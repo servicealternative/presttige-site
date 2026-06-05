@@ -195,8 +195,14 @@
     }
 
     .summary--founder .section h2 {
-      margin-bottom: 24px;
-      color: var(--pp-gold);
+      margin: 0 0 clamp(28px, 4vw, 42px);
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(44px, 5vw, 68px);
+      font-weight: 500;
+      line-height: 0.92;
+      letter-spacing: 0;
+      text-transform: none;
     }
 
     .topic-title {
@@ -239,7 +245,8 @@
       gap: 8px;
     }
 
-    .field label {
+    .field label,
+    .field-label {
       font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.18em;
@@ -386,6 +393,11 @@
 
       .summary--founder .section ul {
         gap: 20px;
+      }
+
+      .summary--founder .section h2 {
+        font-size: clamp(40px, 14vw, 54px);
+        margin-bottom: 28px;
       }
 
       .topic-title {
@@ -610,6 +622,9 @@
         const founder = tier === "founder";
         const displayPrice = describeCheckoutPrice();
         const backToken = route.sourceToken || state.context.token?.magicToken || route.token;
+        const complianceCopy = founder
+          ? "By providing your card information, you authorise PRESTTIGE to charge this one-time Founding membership payment in accordance with the terms."
+          : "By providing your card information, you allow PRESTTIGE to charge your card for future payments in accordance with their terms.";
 
         app.className = "";
         app.innerHTML = `
@@ -635,16 +650,19 @@
                   <label for="checkout-email">Email</label>
                   <input id="checkout-email" type="email" value="${escapeHtml(state.bootstrap.customerEmail || state.context.profile?.email || "")}" readonly>
                 </div>
+                <div class="element-shell express-shell" id="express-checkout-element"></div>
                 <div class="field">
                   <label for="cardholder-name">Cardholder name</label>
                   <input id="cardholder-name" type="text" value="${escapeHtml(state.context.profile?.name || "")}" autocomplete="cc-name">
                 </div>
-                <div class="element-shell express-shell" id="express-checkout-element"></div>
-                <div class="element-shell" id="payment-shell" data-wallets="apple_pay">
-                  <div id="payment-element"></div>
+                <div class="field field--payment-element">
+                  <div class="field-label">Card details</div>
+                  <div class="element-shell" id="payment-shell" data-wallets="apple_pay">
+                    <div id="payment-element"></div>
+                  </div>
                 </div>
                 <div id="error-box" class="error-box" hidden></div>
-                <p class="compliance-copy">By providing your card information, you allow PRESTTIGE to charge your card for future payments in accordance with their terms.</p>
+                <p class="compliance-copy">${escapeHtml(complianceCopy)}</p>
                 <button id="submit-button" class="button" type="button">Pay ${escapeHtml(displayPrice)}</button>
                 <p class="request-link"><a class="subtle-link" href="${REQUEST_NEW_LINK}">Link expired? Request a new payment link.</a></p>
               </div>
@@ -702,7 +720,6 @@
             klarna: "never",
           },
         });
-        state.expressElement.mount("#express-checkout-element");
         state.expressElement.on("ready", (event) => {
           const shell = document.getElementById("express-checkout-element");
           const methods = event?.availablePaymentMethods || {};
@@ -713,6 +730,7 @@
           window.__PRESTTIGE_CHECKOUT__.availableWallets = methods;
         });
         state.expressElement.on("confirm", () => confirmPayment({ requireTypedName: false }));
+        state.expressElement.mount("#express-checkout-element");
 
         state.paymentElement = state.elements.create("payment", {
           layout: {
