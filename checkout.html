@@ -229,6 +229,16 @@
       min-height: 44px;
     }
 
+    .express-shell[data-wallet-state="pending"] {
+      height: 0;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+
     .express-shell:empty {
       display: none;
     }
@@ -666,7 +676,7 @@
                   <label for="checkout-email">Email</label>
                   <input id="checkout-email" type="email" value="${escapeHtml(state.bootstrap.customerEmail || state.context.profile?.email || "")}" readonly>
                 </div>
-                <div class="element-shell express-shell" id="express-checkout-element"></div>
+                <div class="element-shell express-shell" id="express-checkout-element" data-wallet-state="pending"></div>
                 <div class="field">
                   <label for="cardholder-name">Cardholder name</label>
                   <input id="cardholder-name" type="text" value="${escapeHtml(state.context.profile?.name || "")}" autocomplete="cc-name">
@@ -741,12 +751,21 @@
           const methods = event?.availablePaymentMethods || {};
           const hasWallet = Boolean(methods.applePay || methods.googlePay);
           if (shell) {
+            shell.dataset.walletState = hasWallet ? "ready" : "unavailable";
             shell.hidden = !hasWallet;
           }
           window.__PRESTTIGE_CHECKOUT__.availableWallets = methods;
         });
         state.expressElement.on("confirm", () => confirmPayment({ requireTypedName: false }));
         state.expressElement.mount("#express-checkout-element");
+        window.setTimeout(() => {
+          const shell = document.getElementById("express-checkout-element");
+          if (!shell || window.__PRESTTIGE_CHECKOUT__?.availableWallets) {
+            return;
+          }
+          shell.dataset.walletState = "unavailable";
+          shell.hidden = true;
+        }, 3000);
 
         state.paymentElement = state.elements.create("payment", {
           layout: {
