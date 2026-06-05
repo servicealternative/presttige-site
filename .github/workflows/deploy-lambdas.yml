@@ -57,11 +57,59 @@ jobs:
           echo "${CHANGED:-none}"
 
           LAMBDAS=()
+          DEPLOY_ALL=0
+
+          add_lambda() {
+            local lambda="$1"
+            if printf '%s\n' "${ALL_LAMBDAS[@]}" | grep -qx "$lambda"; then
+              LAMBDAS+=("$lambda")
+            else
+              echo "::warning::No package script found for inferred Lambda ${lambda}"
+            fi
+          }
 
           if [ "$CHANGED" = "ALL" ]; then
             mapfile -t LAMBDAS < <(printf "%s\n" "${ALL_LAMBDAS[@]}")
           elif [ -n "$CHANGED" ]; then
-            mapfile -t LAMBDAS < <(printf "%s\n" "${ALL_LAMBDAS[@]}")
+            while IFS= read -r file; do
+              case "$file" in
+                scripts/package-presttige-*.sh)
+                  lambda="$(basename "$file" | sed -E 's/^package-(presttige-.*)\.sh$/\1/')"
+                  add_lambda "$lambda"
+                  ;;
+                scripts/verify-founder-inviter-*.sh)
+                  add_lambda "presttige-checkout-context"
+                  add_lambda "presttige-create-checkout-session"
+                  ;;
+                backend/checkout-context/*)
+                  add_lambda "presttige-checkout-context"
+                  ;;
+                backend/create-checkout-session/*)
+                  add_lambda "presttige-create-checkout-session"
+                  ;;
+                backend/lib/founder-inviter-eligibility.js|backend/lib/stripe-tier-contract.js)
+                  add_lambda "presttige-checkout-context"
+                  add_lambda "presttige-create-checkout-session"
+                  ;;
+                backend/lambdas/*/*)
+                  lambda_dir="$(printf '%s\n' "$file" | cut -d/ -f3)"
+                  add_lambda "presttige-${lambda_dir}"
+                  ;;
+                .github/workflows/deploy-lambdas.yml)
+                  echo "Workflow changed, deploying only Lambdas selected by source/package changes."
+                  ;;
+                backend/*|shared/*)
+                  echo "::warning::Broad backend/shared change ${file}, deploying all Lambdas defensively"
+                  DEPLOY_ALL=1
+                  ;;
+              esac
+            done <<< "$CHANGED"
+
+            if [ "$DEPLOY_ALL" -eq 1 ]; then
+              mapfile -t LAMBDAS < <(printf "%s\n" "${ALL_LAMBDAS[@]}")
+            else
+              mapfile -t LAMBDAS < <(printf "%s\n" "${LAMBDAS[@]}" | LC_ALL=C sort -u)
+            fi
           fi
 
           echo "Lambdas to deploy: ${LAMBDAS[*]:-none}"
@@ -149,6 +197,11 @@ jobs:
           aws lambda wait function-updated \
             --function-name ${{ matrix.lambda }} \
             --region us-east-1
+
+      - name: Verify Founder inviter live package
+        if: matrix.lambda == 'presttige-checkout-context' || matrix.lambda == 'presttige-create-checkout-session'
+        run: |
+          bash scripts/verify-founder-inviter-live.sh "${{ matrix.lambda }}"
 
       - name: Verify deploy
         run: |
