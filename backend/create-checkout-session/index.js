@@ -154,6 +154,9 @@ function buildIdempotencyKey(lead, contract) {
     contract.contractKey,
     String(lead[LEAD_PAYMENT_FIELDS.checkoutTokenVersion] || 1),
     contract.checkoutMode,
+    contract.contractKey === "founder_lifetime"
+      ? "founder_wallets_apple_card_v1"
+      : "default_wallets_v1",
   ].join("|");
 
   return crypto.createHash("sha256").update(raw).digest("hex");
