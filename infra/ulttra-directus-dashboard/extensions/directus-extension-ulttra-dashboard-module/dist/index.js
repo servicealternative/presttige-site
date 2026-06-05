@@ -37,6 +37,7 @@ const Dashboard = defineComponent({
     const presttigeInviteMessage = ref('');
     const presttigeInviteSuccess = ref(false);
     const registeredInviteBusyLeadId = ref('');
+    const registeredExcludeBusyLeadId = ref('');
     const registeredInviteMessage = ref('');
     const registeredInviteSuccess = ref(false);
     const tierDetailOpen = ref(false);
@@ -219,6 +220,27 @@ const Dashboard = defineComponent({
       }
     }
 
+    async function toggleRegisteredFounderExclusion(candidate, excluded) {
+      if (!candidate?.id || candidate.synthetic_test) return;
+      registeredExcludeBusyLeadId.value = candidate.id;
+      registeredInviteMessage.value = '';
+      registeredInviteSuccess.value = false;
+      try {
+        const response = await api.post('/ulttra-dashboard/registered-founder-exclusion', {
+          lead_id: candidate.id,
+          excluded,
+        });
+        registeredInviteSuccess.value = true;
+        registeredInviteMessage.value = response.data?.message || 'Founder invite list updated.';
+        await loadDashboard(true);
+      } catch (err) {
+        registeredInviteSuccess.value = false;
+        registeredInviteMessage.value = err?.response?.data?.message || 'Founder invite list could not be updated.';
+      } finally {
+        registeredExcludeBusyLeadId.value = '';
+      }
+    }
+
     function selectProject(projectKey) {
       if (!projectKey || projectKey === selectedProject.value) return;
       selectedProject.value = projectKey;
@@ -336,6 +358,7 @@ const Dashboard = defineComponent({
       presttigeInviteMessage,
       presttigeInviteSuccess,
       registeredInviteBusyLeadId,
+      registeredExcludeBusyLeadId,
       registeredInviteMessage,
       registeredInviteSuccess,
       tierDetailOpen,
@@ -353,6 +376,7 @@ const Dashboard = defineComponent({
       updateInviteEmail,
       submitPresttigeInvitation,
       submitRegisteredFounderInvite,
+      toggleRegisteredFounderExclusion,
       changeFinanceMonth,
       createCostCategory,
       saveCostCategory,
@@ -416,10 +440,13 @@ const Dashboard = defineComponent({
       }),
       data.current_user?.is_chairman ? registeredFounderInviteSection({
         candidates: metrics.registered_founder_candidates || [],
+        exclusions: metrics.registered_founder_exclusions || [],
         busyLeadId: this.registeredInviteBusyLeadId,
+        excludeBusyLeadId: this.registeredExcludeBusyLeadId,
         message: this.registeredInviteMessage,
         success: this.registeredInviteSuccess,
         submit: (candidate) => this.submitRegisteredFounderInvite(candidate),
+        toggleExclude: (candidate, excluded) => this.toggleRegisteredFounderExclusion(candidate, excluded),
       }) : null,
       data.current_user?.eligible_inviter ? h('section', {
         style: {
@@ -644,8 +671,9 @@ function projectEmptyState(emptyState) {
   ]);
 }
 
-function registeredFounderInviteSection({ candidates, busyLeadId, message, success, submit }) {
+function registeredFounderInviteSection({ candidates, exclusions, busyLeadId, excludeBusyLeadId, message, success, submit, toggleExclude }) {
   const rows = Array.isArray(candidates) ? candidates : [];
+  const excludedRows = Array.isArray(exclusions) ? exclusions : [];
   return h('section', {
     style: {
       border: '1px solid var(--theme--border-color)',
@@ -688,6 +716,7 @@ function registeredFounderInviteSection({ candidates, busyLeadId, message, succe
       }, [
         h('thead', null, [
           h('tr', null, [
+            founderCandidateHeader('Exclude'),
             founderCandidateHeader('Name'),
             founderCandidateHeader('Email'),
             founderCandidateHeader('Location'),
@@ -698,11 +727,36 @@ function registeredFounderInviteSection({ candidates, busyLeadId, message, succe
         h('tbody', null, rows.map((candidate) => {
           const busy = busyLeadId === candidate.id;
           const disabled = busy || candidate.already_invited;
+          const excludeBusy = excludeBusyLeadId === candidate.id;
           return h('tr', { key: candidate.id }, [
+            founderCandidateCell(h('input', {
+              type: 'checkbox',
+              checked: false,
+              disabled: Boolean(candidate.synthetic_test) || excludeBusy,
+              title: candidate.synthetic_test ? 'Synthetic test records stay visible.' : 'Hide from this list',
+              style: {
+                width: '16px',
+                height: '16px',
+                margin: 0,
+                accentColor: 'var(--theme--primary)',
+                cursor: candidate.synthetic_test || excludeBusy ? 'not-allowed' : 'pointer',
+              },
+              onChange: () => toggleExclude(candidate, true),
+            }), 'center'),
             founderCandidateCell(h('strong', { style: { color: 'var(--theme--foreground)', fontWeight: 600 } }, candidate.name || 'Unnamed')),
             founderCandidateCell(candidate.email || ''),
             founderCandidateCell(candidate.location || [candidate.city, candidate.country].filter(Boolean).join(', ')),
-            founderCandidateCell(tierLabel(candidate.tier || 'free')),
+            founderCandidateCell([
+              tierLabel(candidate.tier || 'free'),
+              candidate.synthetic_test ? h('span', {
+                style: {
+                  marginLeft: '8px',
+                  color: 'var(--theme--primary)',
+                  fontSize: '12px',
+                  whiteSpace: 'nowrap',
+                },
+              }, 'synthetic') : null,
+            ]),
             founderCandidateCell(h('button', {
               type: 'button',
               class: 'button',
@@ -722,6 +776,53 @@ function registeredFounderInviteSection({ candidates, busyLeadId, message, succe
         color: 'var(--theme--foreground-subdued)',
       },
     }, 'No registered people currently match the invite criteria.'),
+    excludedRows.length ? h('details', {
+      style: {
+        marginTop: '14px',
+        borderTop: '1px solid var(--theme--border-color)',
+        paddingTop: '14px',
+      },
+    }, [
+      h('summary', {
+        style: {
+          cursor: 'pointer',
+          color: 'var(--theme--foreground-subdued)',
+          fontSize: '13px',
+          fontWeight: 600,
+        },
+      }, `Excluded from this list (${excludedRows.length})`),
+      h('div', {
+        style: {
+          display: 'grid',
+          gap: '10px',
+          marginTop: '12px',
+        },
+      }, excludedRows.map((candidate) => h('div', {
+        key: `excluded-${candidate.id}`,
+        style: {
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 0',
+          borderBottom: '1px solid var(--theme--border-color)',
+        },
+      }, [
+        h('strong', { style: { color: 'var(--theme--foreground)', fontWeight: 600 } }, candidate.name || 'Unnamed'),
+        h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px' } }, candidate.email || ''),
+        h('button', {
+          type: 'button',
+          class: 'button',
+          disabled: excludeBusyLeadId === candidate.id,
+          style: {
+            minHeight: '34px',
+            whiteSpace: 'nowrap',
+          },
+          onClick: () => toggleExclude(candidate, false),
+        }, excludeBusyLeadId === candidate.id ? 'Restoring' : 'Restore'),
+      ]))),
+    ]) : null,
     message ? h('p', {
       style: {
         margin: '14px 0 0',
