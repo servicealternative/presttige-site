@@ -26,6 +26,7 @@
       --line: rgba(31, 27, 22, 0.14);
       --panel: rgba(255, 252, 246, 0.72);
       --max: 1120px;
+      --presttige-page-gutter: max(1cm, 24px);
     }
 
     * {
@@ -70,7 +71,7 @@
     }
 
     .topbar {
-      width: min(var(--max), calc(100% - 40px));
+      width: min(var(--max), calc(100% - var(--presttige-page-gutter) - var(--presttige-page-gutter)));
       margin: 0 auto;
       padding: 24px 0;
       display: flex;
@@ -111,9 +112,9 @@
 
     main {
       flex: 1;
-      width: min(var(--max), calc(100% - 40px));
+      width: min(var(--max), calc(100% - var(--presttige-page-gutter) - var(--presttige-page-gutter)));
       margin: 0 auto;
-      padding: 80px 0 96px;
+      padding: 80px 0 var(--presttige-page-gutter);
       display: grid;
       align-items: center;
     }
@@ -250,6 +251,10 @@
       max-width: 680px;
     }
 
+    .detail-copy[hidden] {
+      display: none;
+    }
+
     .detail-kicker {
       display: inline-flex;
       padding: 8px 12px;
@@ -322,6 +327,13 @@
       background: rgba(255, 252, 246, 0.7);
     }
 
+    .detail-card--founder-step {
+      grid-column: 1 / -1;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+
     .detail-card[hidden] {
       display: none;
     }
@@ -330,6 +342,64 @@
       margin-bottom: 18px;
       font-size: 34px;
       line-height: 1.05;
+    }
+
+    .founder-step-two {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+      gap: clamp(32px, 5vw, 72px);
+      align-items: start;
+    }
+
+    .founder-step-two__details {
+      display: grid;
+      gap: 28px;
+      max-width: 720px;
+    }
+
+    .founder-step-two__details > p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.76;
+    }
+
+    .founder-payment-panel {
+      position: sticky;
+      top: 28px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      background: rgba(255, 252, 246, 0.74);
+    }
+
+    .founder-payment-panel h3 {
+      margin-bottom: 14px;
+      color: var(--gold-dark);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .founder-topic-list {
+      list-style: none;
+      display: grid;
+      gap: 11px;
+      margin: 0 0 28px;
+      padding: 0 0 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .founder-topic-list li {
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .founder-payment-panel .detail-section {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
     }
 
     .price {
@@ -445,12 +515,12 @@
 
     @media (max-width: 760px) {
       .topbar {
-        width: min(100% - 28px, var(--max));
+        width: min(calc(100% - var(--presttige-page-gutter) - var(--presttige-page-gutter)), var(--max));
       }
 
       main {
-        width: min(100% - 28px, var(--max));
-        padding: 44px 0 72px;
+        width: min(calc(100% - var(--presttige-page-gutter) - var(--presttige-page-gutter)), var(--max));
+        padding: 44px 0 var(--presttige-page-gutter);
       }
 
       .gate-panel {
@@ -461,8 +531,21 @@
         grid-template-columns: 1fr;
       }
 
+      .founder-step-two {
+        grid-template-columns: 1fr;
+      }
+
+      .founder-payment-panel {
+        position: static;
+        padding: 24px 20px;
+      }
+
       .detail-card {
         padding: 24px 20px;
+      }
+
+      .detail-card--founder-step {
+        padding: 0;
       }
     }
   </style>

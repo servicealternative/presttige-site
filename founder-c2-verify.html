@@ -24,6 +24,7 @@
       --muted: #4A4A4A;
       --hairline: #D9D2C5;
       --danger: #8F4D47;
+      --presttige-page-gutter: max(1cm, 24px);
     }
 
     * {
@@ -51,7 +52,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 56px 22px;
+      padding: 56px var(--presttige-page-gutter) var(--presttige-page-gutter);
     }
 
     .gate {
@@ -165,7 +166,7 @@
     @media (max-width: 600px) {
       .page {
         align-items: flex-start;
-        padding: 48px 20px 40px;
+        padding: 48px var(--presttige-page-gutter) var(--presttige-page-gutter);
       }
 
       .submit {

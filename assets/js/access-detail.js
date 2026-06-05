@@ -6,9 +6,61 @@
   };
 
   function render(root, context) {
+    var founderBenefits = [
+      {
+        title: "Your Premium Concierge, without hours and without borders",
+        topic: "Dedicated Premium Concierge",
+        body: [
+          "A human line that is yours alone, 24 hours a day, 365 days a year, wherever you are in the world.",
+          "It is not a support service. It is someone who knows your name and your tastes, and who makes possible what seemed beyond reach: the table that no longer has reservations at a Michelin starred restaurant, the front row at a Formula 1 Grand Prix, reserved access to Art Basel or to fashion week, the jet that departs when you need it, the door that opens only to those who are introduced.",
+          "Your concierge opens what is closed, and gives you back your rarest possession, your time. The word dedicated belongs, at Presttige, to the Founder alone.",
+        ],
+      },
+      {
+        title: "Business, within the network and beyond",
+        topic: "Business at the highest level",
+        body: "Access to exclusive business gatherings, workshops and real opportunities, created both within Presttige and outside it. You sit at the table with those who decide, where the right conversations happen before they reach the world.",
+      },
+      {
+        title: "To see without being seen",
+        topic: "To see without being seen",
+        body: "The privilege of observing the network without exposing your presence, and of making direct contact, without restriction, with whomever you choose. The discretion is yours, and so is the initiative.",
+      },
+      {
+        title: "The directory, fully within your reach",
+        topic: "Full directory access",
+        body: "Unlimited connection requests and advanced filters that no one else holds. The entire network, navigable on your terms.",
+      },
+      {
+        title: "Every benefit, brought together",
+        topic: "Every benefit brought together",
+        body: "Founding membership brings together, in one place, all that the other tiers offer, and adds what only the Founder holds.",
+      },
+      {
+        title: "Founder Circles",
+        topic: "Founder Circles",
+        body: "Private circles, reserved for Founders, where they meet among peers.",
+      },
+      {
+        title: "Private dinners",
+        topic: "Private dinners",
+        body: "Closed tables, in an intimate setting, in the right company.",
+      },
+      {
+        title: "Your Founder mark",
+        topic: "Founder mark",
+        body: "The Founding Member inscription, permanent, yours forever, even if one day you step away and return.",
+      },
+      {
+        title: "The right to present a Founder",
+        topic: "The right to present a Founder",
+        body: "As a Founder, you may put forward someone you judge worthy of joining this circle. Your introduction is not one suggestion among many, it carries your name, and with it the trust that brought you here. Your introductions receive priority review, and your word weighs in the approval.",
+      },
+    ];
+
     root.innerHTML = [
       '<div class="detail-grid">',
-        '<article class="detail-copy">',
+        '<article class="detail-copy" data-founder-intro-step>',
           '<span class="detail-kicker">Invitation confirmed</span>',
           '<h1 class="detail-title">Founder</h1>',
           renderParagraphs([
@@ -52,69 +104,36 @@
           '</section>',
           '<button class="founder-step-button" type="button" data-founder-step-next>Become a Founder</button>',
         '</article>',
-        '<aside class="detail-card" data-founder-payment-step hidden>',
-          '<h2>Your Founding membership</h2>',
-          renderParagraphs([
-            "To become a Founder is a lifetime commitment, and everything it holds was designed to match it. Here is what you receive.",
-          ]),
-          renderFeatureList([
-            {
-              title: "Your Premium Concierge, without hours and without borders",
-              body: [
-                "A human line that is yours alone, 24 hours a day, 365 days a year, wherever you are in the world.",
-                "It is not a support service. It is someone who knows your name and your tastes, and who makes possible what seemed beyond reach: the table that no longer has reservations at a Michelin starred restaurant, the front row at a Formula 1 Grand Prix, reserved access to Art Basel or to fashion week, the jet that departs when you need it, the door that opens only to those who are introduced.",
-                "Your concierge opens what is closed, and gives you back your rarest possession, your time. The word dedicated belongs, at Presttige, to the Founder alone.",
-              ],
-            },
-            {
-              title: "Business, within the network and beyond",
-              body: "Access to exclusive business gatherings, workshops and real opportunities, created both within Presttige and outside it. You sit at the table with those who decide, where the right conversations happen before they reach the world.",
-            },
-            {
-              title: "To see without being seen",
-              body: "The privilege of observing the network without exposing your presence, and of making direct contact, without restriction, with whomever you choose. The discretion is yours, and so is the initiative.",
-            },
-            {
-              title: "The directory, fully within your reach",
-              body: "Unlimited connection requests and advanced filters that no one else holds. The entire network, navigable on your terms.",
-            },
-            {
-              title: "Every benefit, brought together",
-              body: "Founding membership brings together, in one place, all that the other tiers offer, and adds what only the Founder holds.",
-            },
-            {
-              title: "Founder Circles",
-              body: "Private circles, reserved for Founders, where they meet among peers.",
-            },
-            {
-              title: "Private dinners",
-              body: "Closed tables, in an intimate setting, in the right company.",
-            },
-            {
-              title: "Your Founder mark",
-              body: "The Founding Member inscription, permanent, yours forever, even if one day you step away and return.",
-            },
-            {
-              title: "The right to present a Founder",
-              body: "As a Founder, you may put forward someone you judge worthy of joining this circle. Your introduction is not one suggestion among many, it carries your name, and with it the trust that brought you here. Your introductions receive priority review, and your word weighs in the approval.",
-            },
-          ]),
-          '<section class="detail-section">',
-            '<h3>Founder</h3>',
-            '<p class="price">USD 9,999</p>',
-            '<p class="note">One time payment. Lifetime access.</p>',
-          '</section>',
-          '<p class="next-step">Next step, consent and payment</p>',
-          '<p class="note">Verified email: ' + escapeHtml(context.email || "") + '</p>',
-          '<form class="founder-consent" data-founder-consent-form novalidate>',
-            '<label class="founder-consent__label" for="founder-consent-checkbox">',
-              '<input id="founder-consent-checkbox" type="checkbox" data-founder-consent-checkbox required>',
-              '<span>I confirm that I am accepting the Founder lifetime invitation and consent to proceed to the USD 9,999 Founder payment step.</span>',
-            '</label>',
-            '<p class="founder-consent__legal-note">Founding membership is a one-time lifetime payment. By proceeding, you acknowledge that, once access is granted, this payment is non-refundable, and you expressly request immediate access, waiving the statutory withdrawal period (Article 16(m)).</p>',
-            '<button class="founder-consent__button" type="submit" data-founder-consent-button disabled>Proceed to payment</button>',
-            '<p class="founder-consent__message" data-founder-consent-message role="status" aria-live="polite"></p>',
-          '</form>',
+        '<aside class="detail-card detail-card--founder-step" data-founder-payment-step hidden>',
+          '<div class="founder-step-two">',
+            '<section class="founder-step-two__details" aria-labelledby="founder-step-two-title">',
+              '<h2 id="founder-step-two-title">Your Founding membership</h2>',
+              renderParagraphs([
+                "To become a Founder is a lifetime commitment, and everything it holds was designed to match it. Here is what you receive.",
+              ]),
+              renderFeatureList(founderBenefits),
+            '</section>',
+            '<section class="founder-payment-panel" aria-label="Founder payment summary">',
+              '<h3>What you receive</h3>',
+              renderTopicList(founderBenefits),
+              '<section class="detail-section">',
+                '<h3>Founder</h3>',
+                '<p class="price">USD 9,999</p>',
+                '<p class="note">One time payment. Lifetime access.</p>',
+              '</section>',
+              '<p class="next-step">Next step, consent and payment</p>',
+              '<p class="note">Verified email: ' + escapeHtml(context.email || "") + '</p>',
+              '<form class="founder-consent" data-founder-consent-form novalidate>',
+                '<label class="founder-consent__label" for="founder-consent-checkbox">',
+                  '<input id="founder-consent-checkbox" type="checkbox" data-founder-consent-checkbox required>',
+                  '<span>I confirm that I am accepting the Founder lifetime invitation and consent to proceed to the USD 9,999 Founder payment step.</span>',
+                '</label>',
+                '<p class="founder-consent__legal-note">Founding membership is a one-time lifetime payment. By proceeding, you acknowledge that, once access is granted, this payment is non-refundable, and you expressly request immediate access, waiving the statutory withdrawal period (Article 16(m)).</p>',
+                '<button class="founder-consent__button" type="submit" data-founder-consent-button disabled>Proceed to payment</button>',
+                '<p class="founder-consent__message" data-founder-consent-message role="status" aria-live="polite"></p>',
+              '</form>',
+            '</section>',
+          '</div>',
         '</aside>',
       '</div>',
     ].join("");
@@ -125,6 +144,7 @@
 
   function bindFounderStep(root) {
     var nextButton = root.querySelector("[data-founder-step-next]");
+    var introStep = root.querySelector("[data-founder-intro-step]");
     var paymentStep = root.querySelector("[data-founder-payment-step]");
 
     if (!nextButton || !paymentStep) {
@@ -133,7 +153,11 @@
 
     nextButton.addEventListener("click", function () {
       paymentStep.hidden = false;
-      nextButton.hidden = true;
+      if (introStep) {
+        introStep.hidden = true;
+      } else {
+        nextButton.hidden = true;
+      }
       paymentStep.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
@@ -242,6 +266,16 @@
               }).join(""),
             '</li>',
           ].join("");
+        }).join(""),
+      '</ul>',
+    ].join("");
+  }
+
+  function renderTopicList(items) {
+    return [
+      '<ul class="founder-topic-list">',
+        items.map(function (item) {
+          return '<li>' + escapeHtml(item.topic || item.title) + '</li>';
         }).join(""),
       '</ul>',
     ].join("");
