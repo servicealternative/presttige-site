@@ -53,7 +53,9 @@ MEMBER_COGNITO_POOL_NAME = os.environ.get("MEMBER_COGNITO_POOL_NAME", "presttige
 ACCOUNT_STATUS_PASSWORD_PENDING = "password_pending"
 VALIDATION_STATUS_NOT_STARTED = "not_started"
 PAID_MEMBER_TIERS = {"club", "premier", "patron"}
-MEMBER_TIER_GROUPS = {"free", "club", "premier", "patron"}
+FOUNDER_MEMBER_TIER = "founder"
+MEMBER_ACCOUNT_TIERS = PAID_MEMBER_TIERS | {FOUNDER_MEMBER_TIER}
+MEMBER_TIER_GROUPS = {"free"} | MEMBER_ACCOUNT_TIERS
 
 FOUNDER_TEST_WELCOME_ALLOWLIST = {
     "antoniompereira@icloud.com",
@@ -586,8 +588,8 @@ def get_cognito_user_for_lead(lead):
 
 def sync_member_tier_group(username, tier):
     canonical_tier = normalize_string(tier).lower()
-    if canonical_tier not in PAID_MEMBER_TIERS:
-        raise RuntimeError("Paid member tier is not eligible for member account creation")
+    if canonical_tier not in MEMBER_ACCOUNT_TIERS:
+        raise RuntimeError("Member tier is not eligible for account creation")
 
     cognito.admin_add_user_to_group(
         UserPoolId=MEMBER_USER_POOL_ID,
@@ -607,10 +609,10 @@ def sync_member_tier_group(username, tier):
                 raise
 
 
-def create_or_reuse_paid_member_user(lead, paid_tier):
+def create_or_reuse_member_user(lead, member_tier):
     email = normalize_email((lead or {}).get("email"))
     if not is_valid_email_address(email):
-        raise RuntimeError("Paid member identity email is missing or invalid")
+        raise RuntimeError("Member identity email is missing or invalid")
 
     user = get_cognito_user_for_lead(lead)
     created = False
@@ -629,11 +631,15 @@ def create_or_reuse_paid_member_user(lead, paid_tier):
         created = True
 
     username = normalize_string(user.get("Username") or safe_get(user, "User", {}).get("Username") or email)
-    sync_member_tier_group(username, paid_tier)
+    sync_member_tier_group(username, member_tier)
     sub = get_user_attribute(user, "sub")
     if not sub:
-        raise RuntimeError("Paid member Cognito user sub is missing")
+        raise RuntimeError("Member Cognito user sub is missing")
     return {"sub": sub, "username": username, "created": created, "idempotent": not created}
+
+
+def create_or_reuse_paid_member_user(lead, paid_tier):
+    return create_or_reuse_member_user(lead, paid_tier)
 
 
 def is_synthetic_tester_record(lead):
@@ -710,6 +716,33 @@ def link_paid_member_identity(lead, paid_tier):
         "account_status": ACCOUNT_STATUS_PASSWORD_PENDING,
         "cognito_pool": MEMBER_COGNITO_POOL_NAME,
         "tier_group": canonical_tier,
+    }
+
+
+def link_founder_member_identity(lead):
+    identity = create_or_reuse_member_user(lead, FOUNDER_MEMBER_TIER)
+    timestamp = now_iso()
+    updated = set_lead_fields(
+        lead["lead_id"],
+        {
+            "cognito_sub": identity["sub"],
+            "cognito_pool": MEMBER_COGNITO_POOL_NAME,
+            "account_status": ACCOUNT_STATUS_PASSWORD_PENDING,
+            "validation_status": lead.get("validation_status") or VALIDATION_STATUS_NOT_STARTED,
+            "signup_path": "founder",
+            "account_created_at": lead.get("account_created_at") or timestamp,
+            "cognito_linked_at": lead.get("cognito_linked_at") or timestamp,
+            "updated_at": timestamp,
+        },
+    )
+    return updated, {
+        "linked": True,
+        "account_created": identity["created"],
+        "idempotent": identity["idempotent"],
+        "account_status": ACCOUNT_STATUS_PASSWORD_PENDING,
+        "cognito_pool": MEMBER_COGNITO_POOL_NAME,
+        "tier_group": FOUNDER_MEMBER_TIER,
+        "signup_path": "founder",
     }
 
 
@@ -1310,6 +1343,10 @@ def handle_subscription_deleted(event_id, event_type, obj, context, lead):
 
 def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
     contract_key, contract = get_contract(context.get("contract_key"), lead)
+    tester_founder = (
+        is_synthetic_tester_record(lead)
+        and normalize_string(lead.get("simulated_tier")).lower() == FOUNDER_MEMBER_TIER
+    )
     is_founder = contract_key == "founder_lifetime" or contract.get("founder_lifetime")
     paid_tier = paid_tier_for_identity(contract, lead)
     is_live_event = context.get("livemode") is True
@@ -1333,7 +1370,7 @@ def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
     welcome = {"invoked": False, "reason": "not_applicable"}
 
     if is_founder:
-        if not is_live_event:
+        if not is_live_event and not tester_founder:
             raise RuntimeError("Founder activation requires a live Stripe payment event")
         metadata_price_id = normalize_string((context.get("metadata") or {}).get("stripe_price_id"))
         metadata_product_id = normalize_string((context.get("metadata") or {}).get("stripe_product_id"))
@@ -1382,21 +1419,30 @@ def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
                 metadata_product_id,
                 selected_price_id,
             )
-        fields.update(
-            {
-                "subscriber_type": "founder",
-                "tier": "founder",
-                "selected_tier": "founder",
-                "selected_tier_billing": "lifetime",
-                "payment_status": "paid",
-                "payment_status_reason": "founder_payment_succeeded",
-                "subscription_status": "none",
-                "founder_lifetime": True,
-                "access_status": "active",
-                "selected_contract_key": "founder_lifetime",
-                "founder_activated_at": fields["confirmed_payment_at"],
-            }
-        )
+        founder_fields = {
+            "subscriber_type": "founder",
+            "tier": "founder",
+            "selected_tier": "founder",
+            "selected_tier_billing": "lifetime",
+            "payment_status": "paid",
+            "payment_status_reason": "founder_payment_succeeded",
+            "subscription_status": "none",
+            "founder_lifetime": True,
+            "access_status": "active",
+            "selected_contract_key": "founder_lifetime",
+            "founder_activated_at": fields["confirmed_payment_at"],
+        }
+        if tester_founder:
+            founder_fields.update(
+                {
+                    "subscriber_type": "tester",
+                    "tier": "tester",
+                    "selected_tier": "tester",
+                    "effective_tier": "tester",
+                    "simulated_tier": FOUNDER_MEMBER_TIER,
+                }
+            )
+        fields.update(founder_fields)
     else:
         fields.update(
             {
@@ -1413,13 +1459,18 @@ def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
             add_fields["renewal_count"] = 1
 
     if is_founder:
-        updated, audit = activate_founder_payment_transaction(
-            lead=lead,
-            fields=fields,
-            event_id=event_id,
-            event_type=event_type,
-        )
-        welcome = send_founder_welcome_email_if_needed(updated)
+        if tester_founder:
+            updated = set_lead_fields(lead["lead_id"], fields)
+            audit = {"invoked": False, "reason": "synthetic_tester_founder_path"}
+        else:
+            updated, audit = activate_founder_payment_transaction(
+                lead=lead,
+                fields=fields,
+                event_id=event_id,
+                event_type=event_type,
+            )
+        updated, identity = link_founder_member_identity(updated)
+        welcome = deferred_welcome_state()
     else:
         updated = set_lead_fields(lead["lead_id"], fields, add_fields=add_fields)
         audit = {"invoked": False, "reason": "not_founder"}
