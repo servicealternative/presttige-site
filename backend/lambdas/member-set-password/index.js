@@ -35,7 +35,7 @@ const TEST_SEND_RECIPIENT = String(
   .toLowerCase();
 const MEMBER_LOGIN_URL =
   process.env.MEMBER_LOGIN_URL ||
-  "https://presttige-members.auth.us-east-1.amazoncognito.com/login?client_id=3gdek6k48cm6oirccodgrub2k1&response_type=code&scope=email+openid+profile&redirect_uri=https%3A%2F%2Fpresttige.net%2Fmember%2F";
+  "https://presttige.net/member/";
 const APP_ORIGINS = new Set([
   "https://presttige.net",
   "https://www.presttige.net",
