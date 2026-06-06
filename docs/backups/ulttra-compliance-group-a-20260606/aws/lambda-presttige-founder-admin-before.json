@@ -1,0 +1,46 @@
+{
+    "FunctionName": "presttige-founder-admin",
+    "FunctionArn": "arn:aws:lambda:us-east-1:343218208384:function:presttige-founder-admin",
+    "Runtime": "python3.12",
+    "Role": "arn:aws:iam::343218208384:role/presttige-founder-admin-role",
+    "Handler": "lambda_function.lambda_handler",
+    "CodeSize": 12938,
+    "Description": "",
+    "Timeout": 10,
+    "MemorySize": 256,
+    "LastModified": "2026-06-06T09:20:34.000+0000",
+    "CodeSha256": "9zjL0MH6BkBU1fn4MYvh10XcCGY45myL6duR4oamVnk=",
+    "Version": "$LATEST",
+    "Environment": {
+        "Variables": {
+            "AUDIT_TABLE_NAME": "presttige-review-audit",
+            "TABLE_NAME": "presttige-db",
+            "FOUNDER_TOKEN_SECRET_ID": "presttige-founder-token-secret",
+            "APP_ORIGIN": "https://presttige.net"
+        }
+    },
+    "TracingConfig": {
+        "Mode": "PassThrough"
+    },
+    "RevisionId": "e50eee2f-b200-4786-8951-9f01a5c1614a",
+    "State": "Active",
+    "LastUpdateStatus": "Successful",
+    "PackageType": "Zip",
+    "Architectures": [
+        "x86_64"
+    ],
+    "EphemeralStorage": {
+        "Size": 512
+    },
+    "SnapStart": {
+        "ApplyOn": "None",
+        "OptimizationStatus": "Off"
+    },
+    "RuntimeVersionConfig": {
+        "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:0eb6fb00a97c1a17d2e3014b04c79bfc9bea4301466439e3458f985dc75cadcc"
+    },
+    "LoggingConfig": {
+        "LogFormat": "Text",
+        "LogGroup": "/aws/lambda/presttige-founder-admin"
+    }
+}

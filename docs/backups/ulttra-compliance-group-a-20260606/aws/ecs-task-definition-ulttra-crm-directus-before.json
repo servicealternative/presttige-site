@@ -1,0 +1,398 @@
+{
+    "taskDefinition": {
+        "taskDefinitionArn": "arn:aws:ecs:us-east-1:343218208384:task-definition/ulttra-crm-directus:91",
+        "containerDefinitions": [
+            {
+                "name": "directus",
+                "image": "343218208384.dkr.ecr.us-east-1.amazonaws.com/ulttra-crm-directus:favicon-large-clean-20260606T151504Z",
+                "cpu": 0,
+                "portMappings": [
+                    {
+                        "containerPort": 8055,
+                        "hostPort": 8055,
+                        "protocol": "tcp"
+                    }
+                ],
+                "essential": true,
+                "command": [
+                    "sh",
+                    "-c",
+                    "node -e \"fetch(\\\"https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem\\\").then(async r=>{if(!r.ok) throw new Error(\\\"RDS CA download failed: \\\" + r.status); require(\\\"fs\\\").writeFileSync(\\\"/tmp/rds-global-bundle.pem\\\", await r.text());})\" && export NODE_EXTRA_CA_CERTS=/tmp/rds-global-bundle.pem && npx directus bootstrap && exec npx directus start"
+                ],
+                "environment": [
+                    {
+                        "name": "STORAGE_LOCATIONS",
+                        "value": "s3"
+                    },
+                    {
+                        "name": "DB_PORT",
+                        "value": "5432"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_DRIVER",
+                        "value": "openid"
+                    },
+                    {
+                        "name": "AUTH_PROVIDERS",
+                        "value": "chairman,technical"
+                    },
+                    {
+                        "name": "HOST",
+                        "value": "0.0.0.0"
+                    },
+                    {
+                        "name": "ELIGIBLE_INVITERS_TABLE_NAME",
+                        "value": "presttige-eligible-inviters"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_ICON",
+                        "value": "account_circle"
+                    },
+                    {
+                        "name": "DB_SSL__CA_FILE",
+                        "value": "/tmp/rds-global-bundle.pem"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_ALLOW_PUBLIC_REGISTRATION",
+                        "value": "false"
+                    },
+                    {
+                        "name": "DASHBOARD_METRICS_TABLE_NAME",
+                        "value": "ulttra-crm-dashboard-metrics"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_SCOPE",
+                        "value": "openid email profile"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_REQUIRE_VERIFIED_EMAIL",
+                        "value": "true"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_LABEL",
+                        "value": "Cognito"
+                    },
+                    {
+                        "name": "FOUNDER_ADMIN_FUNCTION_NAME",
+                        "value": "presttige-founder-admin"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_ISSUER_URL",
+                        "value": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_s5PvTEeHv/.well-known/openid-configuration"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_SYNC_USER_INFO",
+                        "value": "true"
+                    },
+                    {
+                        "name": "STORAGE_S3_REGION",
+                        "value": "us-east-1"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_ICON",
+                        "value": "account_circle"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_DRIVER",
+                        "value": "openid"
+                    },
+                    {
+                        "name": "AWS_REGION",
+                        "value": "us-east-1"
+                    },
+                    {
+                        "name": "PORT",
+                        "value": "8055"
+                    },
+                    {
+                        "name": "ACCESS_TOKEN_TTL",
+                        "value": "1d"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_CLIENT_ID",
+                        "value": "64ipldneu6qgbe2es7tjs7m695"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_ISSUER_URL",
+                        "value": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_s5PvTEeHv/.well-known/openid-configuration"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_CLIENT_ID",
+                        "value": "64ipldneu6qgbe2es7tjs7m695"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_IDENTIFIER_KEY",
+                        "value": "email"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_ICON",
+                        "value": "account_circle"
+                    },
+                    {
+                        "name": "CORS_ORIGIN",
+                        "value": "true"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_CLIENT_ID",
+                        "value": "64ipldneu6qgbe2es7tjs7m695"
+                    },
+                    {
+                        "name": "DASHBOARD_CACHE_TTL_SECONDS",
+                        "value": "300"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_REQUIRE_VERIFIED_EMAIL",
+                        "value": "true"
+                    },
+                    {
+                        "name": "DB_SSL__REJECT_UNAUTHORIZED",
+                        "value": "true"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_SYNC_USER_INFO",
+                        "value": "true"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_SCOPE",
+                        "value": "openid email profile"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_REQUIRE_VERIFIED_EMAIL",
+                        "value": "true"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_DEFAULT_ROLE_ID",
+                        "value": "2bb05b02-1ce2-46bf-af14-8b5697f990bf"
+                    },
+                    {
+                        "name": "REFRESH_TOKEN_TTL",
+                        "value": "7d"
+                    },
+                    {
+                        "name": "CORS_ENABLED",
+                        "value": "true"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_PARAMS__PROMPT",
+                        "value": "login"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_IDENTIFIER_KEY",
+                        "value": "email"
+                    },
+                    {
+                        "name": "DB_USER",
+                        "value": "directus"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_SCOPE",
+                        "value": "openid email profile"
+                    },
+                    {
+                        "name": "EXTENSIONS_CACHE_TTL",
+                        "value": "0"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_PARAMS",
+                        "value": "{\"prompt\":\"login\"}"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_MODE",
+                        "value": "session"
+                    },
+                    {
+                        "name": "GA4_OAUTH_CLIENT_ID",
+                        "value": "430778007708-uerfhfgt42k4qfbgcobb9f0cpqi6om9e.apps.googleusercontent.com"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_ISSUER_URL",
+                        "value": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_s5PvTEeHv/.well-known/openid-configuration"
+                    },
+                    {
+                        "name": "GA4_PROPERTY_ID",
+                        "value": "530348665"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_LABEL",
+                        "value": "ULTTRA admin"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_ALLOW_PUBLIC_REGISTRATION",
+                        "value": "false"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_SYNC_USER_INFO",
+                        "value": "true"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_IDENTIFIER_KEY",
+                        "value": "email"
+                    },
+                    {
+                        "name": "SESSION_COOKIE_TTL",
+                        "value": "1d"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_ALLOW_PUBLIC_REGISTRATION",
+                        "value": "false"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_DEFAULT_ROLE_ID",
+                        "value": "2bb05b02-1ce2-46bf-af14-8b5697f990bf"
+                    },
+                    {
+                        "name": "STORAGE_S3_BUCKET",
+                        "value": "ulttra-crm-files"
+                    },
+                    {
+                        "name": "STORAGE_S3_DRIVER",
+                        "value": "s3"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_PARAMS__PROMPT",
+                        "value": "login"
+                    },
+                    {
+                        "name": "DB_HOST",
+                        "value": "ulttra-crm-directus-postgres.crk2eyeeamog.us-east-1.rds.amazonaws.com"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_DEFAULT_ROLE_ID",
+                        "value": "2bb05b02-1ce2-46bf-af14-8b5697f990bf"
+                    },
+                    {
+                        "name": "DB_SSL",
+                        "value": "true"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_LABEL",
+                        "value": "ULTTRA chairman"
+                    },
+                    {
+                        "name": "PUBLIC_URL",
+                        "value": "https://crm.ulttra.net"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_DRIVER",
+                        "value": "openid"
+                    },
+                    {
+                        "name": "DB_CLIENT",
+                        "value": "pg"
+                    },
+                    {
+                        "name": "ADMIN_EMAIL",
+                        "value": "admin@ultrattek.com"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_MODE",
+                        "value": "session"
+                    },
+                    {
+                        "name": "DB_DATABASE",
+                        "value": "directus"
+                    },
+                    {
+                        "name": "DASHBOARD_CACHE_TABLE_NAME",
+                        "value": "ulttra-crm-dashboard-cache"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_MODE",
+                        "value": "session"
+                    }
+                ],
+                "mountPoints": [],
+                "volumesFrom": [],
+                "secrets": [
+                    {
+                        "name": "DB_PASSWORD",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:343218208384:secret:ulttra-crm/directus/db-Bx2oko:password::"
+                    },
+                    {
+                        "name": "KEY",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:343218208384:secret:ulttra-crm/directus/key-zEYMtY"
+                    },
+                    {
+                        "name": "SECRET",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:343218208384:secret:ulttra-crm/directus/secret-waa8vq"
+                    },
+                    {
+                        "name": "ADMIN_PASSWORD",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:343218208384:secret:ulttra-crm/directus/bootstrap-admin-password-4kslLg"
+                    },
+                    {
+                        "name": "AUTH_COGNITO_CLIENT_SECRET",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:343218208384:secret:ulttra-crm/directus/cognito-client-secret-NlVEhy"
+                    },
+                    {
+                        "name": "AUTH_CHAIRMAN_CLIENT_SECRET",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:343218208384:secret:ulttra-crm/directus/cognito-client-secret-NlVEhy"
+                    },
+                    {
+                        "name": "AUTH_TECHNICAL_CLIENT_SECRET",
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:343218208384:secret:ulttra-crm/directus/cognito-client-secret-NlVEhy"
+                    }
+                ],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-group": "/ecs/ulttra-crm-directus",
+                        "awslogs-region": "us-east-1",
+                        "awslogs-stream-prefix": "directus"
+                    }
+                },
+                "systemControls": []
+            }
+        ],
+        "family": "ulttra-crm-directus",
+        "taskRoleArn": "arn:aws:iam::343218208384:role/ulttra-crm-directus-task-role",
+        "executionRoleArn": "arn:aws:iam::343218208384:role/ulttra-crm-directus-execution-role",
+        "networkMode": "awsvpc",
+        "revision": 91,
+        "volumes": [],
+        "status": "ACTIVE",
+        "requiresAttributes": [
+            {
+                "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+            },
+            {
+                "name": "ecs.capability.execution-role-awslogs"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.ecr-auth"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+            },
+            {
+                "name": "ecs.capability.secrets.asm.environment-variables"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.task-iam-role"
+            },
+            {
+                "name": "ecs.capability.execution-role-ecr-pull"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+            },
+            {
+                "name": "ecs.capability.task-eni"
+            }
+        ],
+        "placementConstraints": [],
+        "compatibilities": [
+            "EC2",
+            "MANAGED_INSTANCES",
+            "FARGATE"
+        ],
+        "requiresCompatibilities": [
+            "FARGATE"
+        ],
+        "cpu": "512",
+        "memory": "1024",
+        "registeredAt": "2026-06-06T19:16:49.624000+04:00",
+        "registeredBy": "arn:aws:iam::343218208384:user/codex-presttige-deploy"
+    },
+    "tags": []
+}

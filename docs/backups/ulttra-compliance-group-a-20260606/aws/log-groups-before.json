@@ -1,0 +1,48 @@
+[
+    {
+        "logGroupName": "/aws/codebuild/ulttra-crm-directus-dashboard-build",
+        "creationTime": 1780227707976,
+        "metricFilterCount": 0,
+        "arn": "arn:aws:logs:us-east-1:343218208384:log-group:/aws/codebuild/ulttra-crm-directus-dashboard-build:*",
+        "storedBytes": 299200,
+        "logGroupClass": "STANDARD",
+        "logGroupArn": "arn:aws:logs:us-east-1:343218208384:log-group:/aws/codebuild/ulttra-crm-directus-dashboard-build",
+        "deletionProtectionEnabled": false,
+        "bearerTokenAuthenticationEnabled": false
+    },
+    {
+        "logGroupName": "/aws/lambda/presttige-founder-admin",
+        "creationTime": 1779892503103,
+        "retentionInDays": 90,
+        "metricFilterCount": 0,
+        "arn": "arn:aws:logs:us-east-1:343218208384:log-group:/aws/lambda/presttige-founder-admin:*",
+        "storedBytes": 27138,
+        "logGroupClass": "STANDARD",
+        "logGroupArn": "arn:aws:logs:us-east-1:343218208384:log-group:/aws/lambda/presttige-founder-admin",
+        "deletionProtectionEnabled": false,
+        "bearerTokenAuthenticationEnabled": false
+    },
+    {
+        "logGroupName": "/ecs/ulttra-crm-directus",
+        "creationTime": 1779950839729,
+        "retentionInDays": 30,
+        "metricFilterCount": 0,
+        "arn": "arn:aws:logs:us-east-1:343218208384:log-group:/ecs/ulttra-crm-directus:*",
+        "storedBytes": 6171871,
+        "logGroupClass": "STANDARD",
+        "logGroupArn": "arn:aws:logs:us-east-1:343218208384:log-group:/ecs/ulttra-crm-directus",
+        "deletionProtectionEnabled": false,
+        "bearerTokenAuthenticationEnabled": false
+    },
+    {
+        "logGroupName": "presttige-manual-runs",
+        "creationTime": 1777240105217,
+        "metricFilterCount": 0,
+        "arn": "arn:aws:logs:us-east-1:343218208384:log-group:presttige-manual-runs:*",
+        "storedBytes": 5180,
+        "logGroupClass": "STANDARD",
+        "logGroupArn": "arn:aws:logs:us-east-1:343218208384:log-group:presttige-manual-runs",
+        "deletionProtectionEnabled": false,
+        "bearerTokenAuthenticationEnabled": false
+    }
+]

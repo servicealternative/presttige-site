@@ -1,0 +1,34 @@
+{
+    "LoadBalancers": [
+        {
+            "LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-1:343218208384:loadbalancer/app/ulttra-crm-alb/1aa331256f09ae04",
+            "DNSName": "ulttra-crm-alb-2005229220.us-east-1.elb.amazonaws.com",
+            "CanonicalHostedZoneId": "Z35SXDOTRQ7X7K",
+            "CreatedTime": "2026-05-28T06:56:21.399000+00:00",
+            "LoadBalancerName": "ulttra-crm-alb",
+            "Scheme": "internet-facing",
+            "VpcId": "vpc-0a9eb5eb5249db52b",
+            "State": {
+                "Code": "active"
+            },
+            "Type": "application",
+            "AvailabilityZones": [
+                {
+                    "ZoneName": "us-east-1a",
+                    "SubnetId": "subnet-0460b04c9ea76a5ee",
+                    "LoadBalancerAddresses": []
+                },
+                {
+                    "ZoneName": "us-east-1b",
+                    "SubnetId": "subnet-06b22590038908df9",
+                    "LoadBalancerAddresses": []
+                }
+            ],
+            "SecurityGroups": [
+                "sg-08f5d570e2766462c"
+            ],
+            "IpAddressType": "ipv4",
+            "EnablePrefixForIpv6SourceNat": "off"
+        }
+    ]
+}

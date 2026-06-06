@@ -1,0 +1,36 @@
+{
+    "Listeners": [
+        {
+            "ListenerArn": "arn:aws:elasticloadbalancing:us-east-1:343218208384:listener/app/ulttra-crm-alb/1aa331256f09ae04/22c13e72d4a7d048",
+            "LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-1:343218208384:loadbalancer/app/ulttra-crm-alb/1aa331256f09ae04",
+            "Port": 443,
+            "Protocol": "HTTPS",
+            "Certificates": [
+                {
+                    "CertificateArn": "arn:aws:acm:us-east-1:343218208384:certificate/659ee0b7-d416-49cb-9951-cfee0b7e93b0"
+                }
+            ],
+            "SslPolicy": "ELBSecurityPolicy-TLS13-1-2-2021-06",
+            "DefaultActions": [
+                {
+                    "Type": "forward",
+                    "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28",
+                    "ForwardConfig": {
+                        "TargetGroups": [
+                            {
+                                "TargetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28",
+                                "Weight": 1
+                            }
+                        ],
+                        "TargetGroupStickinessConfig": {
+                            "Enabled": false
+                        }
+                    }
+                }
+            ],
+            "MutualAuthentication": {
+                "Mode": "off"
+            }
+        }
+    ]
+}
