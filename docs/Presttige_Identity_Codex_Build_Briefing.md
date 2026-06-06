@@ -11,7 +11,7 @@ Companion: `Presttige_Identity_Architecture.md` (Antonio's decision-level archit
 - English only, in code, comments, and reports.
 - No em dashes anywhere; use commas.
 - Every Codex order ends by playing the completion sound: `afplay /System/Library/Sounds/Glass.aiff`.
-- Follow the Testing Doctrine: never create test records on the fly; use only `fq@freequenza.net`, `antoniompereira@me.com`, `alternativeservice@gmail.com`, or `codex.subscriber.tester@presttige.net`. No test record (`synthetic_test=true`) ever appears in any metric, count, dashboard, or analytic. Never contact a real member in a test.
+- Follow the Testing Doctrine: never create test records on the fly; use only `antoniompereira@me.com`, `codex.subscriber.tester@presttige.net`, `analuisasf@gmail.com`, or `fq@freequenza.net`. No test record (`synthetic_test=true`) ever appears in any metric, count, dashboard, or analytic. Never contact a real member in a test.
 - Build for 1 to 10 million from the start. No quick-start wizards, no throwaway setups for foundational pieces (auth, DB). Foundational, deterministic, scalable.
 - Do not change payment amounts, Stripe charge logic, or webhooks unless an order explicitly scopes it. Verify the existing funnels still work after any identity change.
 - Report after each step: exact files, what was applied, verification, deploy details (CodeSha256 / task def / Amplify job), commit hash, and blockers.

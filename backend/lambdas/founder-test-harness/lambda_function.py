@@ -2,15 +2,25 @@ import html
 import json
 import os
 import secrets
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from pathlib import Path
 
 import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
+
+CURRENT_FILE = Path(__file__).resolve()
+for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
+    candidate_str = str(candidate)
+    if (candidate / "shared").exists() and candidate_str not in sys.path:
+        sys.path.append(candidate_str)
+
+from shared.testers import AUTHORIZED_TEST_EMAILS
 
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
@@ -29,10 +39,7 @@ SCHEDULER_ROLE_ARN = os.environ.get("SCHEDULER_ROLE_ARN", "")
 TEST_SCHEDULE_PREFIX = os.environ.get("TEST_SCHEDULE_PREFIX", "presttige-founder-test-")
 TEST_HARNESS_NAME = "founder_b6"
 
-BASE_ALLOWED_EMAILS = {
-    "antoniompereira@icloud.com",
-    "fq@freequenza.net",
-}
+BASE_ALLOWED_EMAILS = set(AUTHORIZED_TEST_EMAILS)
 DIRECTUS_RESET_EMAILS = {
     "fq@freequenza.net",
 }
@@ -110,7 +117,7 @@ def dry_check():
         "commands": ["welcome", "schedule_invite", "reset"],
         "internal_action": "send_invite",
         "allowed_emails": sorted(BASE_ALLOWED_EMAILS),
-        "icloud_alias_rule": "antoniompereira+*@icloud.com",
+        "allowlist_rule": "exact_authorized_test_emails_only",
         "test_delay_minutes": load_test_delay_minutes(),
         "production_scheduler_unchanged": True,
         "production_scheduler_excludes_synthetic_test": True,
@@ -125,7 +132,7 @@ def dry_check():
 
 def trigger_welcome(payload):
     dry_run = bool(payload.get("dry_run") or payload.get("dryRun"))
-    email = normalize_email(payload.get("email") or "antoniompereira@icloud.com")
+    email = normalize_email(payload.get("email") or "fq@freequenza.net")
     name = normalize_string(payload.get("name")) or "Antonio"
     lead = get_or_prepare_synthetic_founder(
         email=email,
@@ -726,10 +733,7 @@ def ensure_allowed_email(email):
     normalized = normalize_email(email)
     if normalized in BASE_ALLOWED_EMAILS:
         return
-    local_part, separator, domain = normalized.partition("@")
-    if separator == "@" and domain == "icloud.com" and local_part.startswith("antoniompereira+"):
-        return
-    raise HarnessError("address_not_allowed", "Founder test harness only allows Antonio-controlled test addresses.")
+    raise HarnessError("address_not_allowed", "Founder test harness only allows the four authorized Presttige tester addresses.")
 
 
 def list_matching_leads(emails):

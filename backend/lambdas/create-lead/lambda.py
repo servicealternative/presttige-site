@@ -24,6 +24,7 @@ from email_utils import (
     render_transactional_email_template,
 )
 from shared.testers import (
+    is_authorized_test_email,
     normalize_email,
 )
 
@@ -44,11 +45,20 @@ VERIFY_BASE_URL = "https://presttige.net/verify-email.html"
 ORIGINALS_BUCKET = os.environ.get("PHOTOS_ORIGINALS_BUCKET", "presttige-applicant-photos")
 THUMBNAILS_BUCKET = os.environ.get("PHOTOS_THUMBNAILS_BUCKET", "presttige-applicant-photos-thumbnails")
 SCHEDULER_GROUP_NAME = os.environ.get("TESTER_PURGE_SCHEDULER_GROUP", "default")
-TESTER_WHITELIST = {
-    "antoniompereira@me.com",
-    "alternativeservice@gmail.com",
-    "analuisasf@gmail.com",
+TEST_MARKER_KEYS = {
+    "synthetic_test",
+    "synthetic",
+    "is_test",
+    "test_tier",
 }
+TEST_TIER_KEYS = {
+    "tier",
+    "selected_tier",
+    "effective_tier",
+    "subscriber_type",
+}
+TEST_TRUE_VALUES = {"1", "true", "yes", "y", "test", "synthetic"}
+TEST_TIER_VALUES = {"test", "synthetic"}
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -74,7 +84,31 @@ def generate_lead_id():
 
 
 def is_tester(email: str) -> bool:
-    return normalize_email(email) in TESTER_WHITELIST
+    return is_authorized_test_email(email)
+
+
+def iter_payload_pairs(value):
+    if isinstance(value, dict):
+        if "key" in value and "value" in value:
+            yield str(value.get("key") or ""), value.get("value")
+        for key, nested_value in value.items():
+            yield str(key), nested_value
+            yield from iter_payload_pairs(nested_value)
+    elif isinstance(value, list):
+        for item in value:
+            yield from iter_payload_pairs(item)
+
+
+def payload_requests_test_record(body):
+    for key, value in iter_payload_pairs(body):
+        normalized_key = str(key or "").strip().lower()
+        normalized_value = str(value or "").strip().lower()
+        if normalized_key in TEST_MARKER_KEYS:
+            if value is True or normalized_value in TEST_TRUE_VALUES:
+                return True
+        if normalized_key in TEST_TIER_KEYS and normalized_value in TEST_TIER_VALUES:
+            return True
+    return False
 
 
 def generate_token(lead_id, email):
@@ -335,6 +369,13 @@ def lambda_handler(event, context):
 
         email = normalize_email(email)
         tester_whitelisted = is_tester(email)
+        requested_test_record = payload_requests_test_record(body)
+
+        if requested_test_record and not tester_whitelisted:
+            return response(403, {
+                "error": "unauthorized_test_record",
+                "message": "Synthetic and test records are restricted to the four authorized Presttige tester addresses."
+            })
 
         if tester_whitelisted:
             try:
@@ -392,6 +433,11 @@ def lambda_handler(event, context):
         }
         if tester_whitelisted:
             item["is_test"] = True
+            item["synthetic_test"] = True
+            item["test_tier"] = True
+            item["synthetic_test_reason"] = "authorized_test_address_create_lead"
+            item["synthetic_test_flagged_by"] = "server_side_authorized_test_guard"
+            item["synthetic_test_flagged_at"] = now
         if phone:
             item["phone"] = phone
         if phone_full:

@@ -16,7 +16,15 @@
  * handlers so the tester list remains centralized under `/shared`.
  */
 
-export const TESTER_EMAILS = ['antoniompereira@me.com', 'analuisasf@gmail.com'];
+export const AUTHORIZED_TEST_EMAILS = [
+  'antoniompereira@me.com',
+  'codex.subscriber.tester@presttige.net',
+  'analuisasf@gmail.com',
+  'fq@freequenza.net',
+];
+export const TESTER_EMAILS = AUTHORIZED_TEST_EMAILS;
 
 export const isTesterEmail = (email = '') =>
   TESTER_EMAILS.includes(String(email).toLowerCase().trim());
+
+export const isAuthorizedTestEmail = isTesterEmail;

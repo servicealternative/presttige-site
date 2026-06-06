@@ -7,10 +7,13 @@ from datetime import datetime, timezone
 # - add tester guard to the missing Stripe checkout session-creation lambda
 # - add tester guard to the missing Stripe Connect split routing logic
 
-TESTER_EMAILS = [
+AUTHORIZED_TEST_EMAILS = (
     "antoniompereira@me.com",
+    "codex.subscriber.tester@presttige.net",
     "analuisasf@gmail.com",
-]
+    "fq@freequenza.net",
+)
+TESTER_EMAILS = list(AUTHORIZED_TEST_EMAILS)
 
 TESTER_SKIP_MARKER = "Skipped DynamoDB, CAPI, LinkedIn, GA4"
 
@@ -20,7 +23,19 @@ def normalize_email(email):
 
 
 def is_tester_email(email):
-    return normalize_email(email) in [normalize_email(item) for item in TESTER_EMAILS]
+    return is_authorized_test_email(email)
+
+
+def is_authorized_test_email(email):
+    return normalize_email(email) in {normalize_email(item) for item in AUTHORIZED_TEST_EMAILS}
+
+
+def assert_authorized_test_email(email, context="test record"):
+    if is_authorized_test_email(email):
+        return
+    raise ValueError(
+        f"{context} is restricted to the four authorized Presttige tester addresses."
+    )
 
 
 def get_tester_lead_id(email):

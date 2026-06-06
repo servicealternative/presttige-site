@@ -8,9 +8,11 @@ BUILD_DIR="/tmp/${LAMBDA_NAME}-package"
 ZIP_PATH="/tmp/${LAMBDA_NAME}-package.zip"
 
 rm -rf "$BUILD_DIR" "$ZIP_PATH"
-mkdir -p "$BUILD_DIR"
+mkdir -p "$BUILD_DIR/shared"
 
 cp "$LAMBDA_DIR/lambda_function.py" "$BUILD_DIR/lambda_function.py"
+cp "$ROOT/shared/__init__.py" "$BUILD_DIR/shared/__init__.py"
+cp "$ROOT/shared/testers.py" "$BUILD_DIR/shared/testers.py"
 
 find "$BUILD_DIR" -exec touch -t 202001010000 {} +
 

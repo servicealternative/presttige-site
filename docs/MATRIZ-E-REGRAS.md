@@ -388,13 +388,14 @@ Full copy for each email lives in `Presttige_Transactional_Emails.md` (separate 
 
 ## 6.3 Tester whitelist
 
-The following test addresses bypass production timing and trigger 5-min cleanup after E5 sends:
+The following four addresses are the only authorized Presttige test addresses:
 
 - `antoniompereira@me.com`
-- `alternativeservice@gmail.com`
+- `codex.subscriber.tester@presttige.net`
 - `analuisasf@gmail.com`
+- `fq@freequenza.net`
 
-Tester records auto-delete from DynamoDB + S3 photos + EventBridge schedules + SES suppression 5 minutes after E5 fires. Recommended tester address: `alternativeservice@gmail.com` (Gmail handles repeat-sender testing better than iCloud, which spam-flags Codex traffic).
+No other email may be created, updated, or marked as `synthetic_test=true`, `test_tier=true`, `is_test=true`, or `subscriber_type=test`. Unauthorized attempts to create a test or synthetic record must be refused server-side. Tester records must carry `synthetic_test=true` and remain excluded from every metric, dashboard, count, analytic, and real communication set.
 
 ---
 
@@ -749,13 +750,11 @@ Each incident has: trigger, root cause, plan, status, related commits.
 
 ## 12.2 Tester whitelist behavior
 
-Three tester addresses (Chapter 6.3) bypass:
-- E3 production delay (5 min instead of 2880 min / 48h)
-- Tester records auto-cleanup 5 min after E5
+Four tester addresses (Chapter 6.3) are the only authorized test or synthetic identities. Historical tester addresses that are not listed in Chapter 6.3 are no longer authorized.
 
-This enables rapid E2E testing without polluting production data. Tester records are clearly tagged with `is_test=true` so analytics and member counts exclude them.
+This enables rapid E2E testing without polluting production data. Tester records are clearly tagged with `synthetic_test=true` so analytics and member counts exclude them.
 
-Effective 30 April 2026 (commit `b090328`): when a committee approval is for a whitelisted tester email (`antoniompereira@me.com`, `alternativeservice@gmail.com`, `analuisasf@gmail.com`), the EventBridge schedule for E3 fires after 5 MINUTES instead of the standard production delay (currently 2880 minutes = 48 hours).
+Effective 6 June 2026: any server-side creation path that accepts test markers must refuse unauthorized emails and may only mark the four Chapter 6.3 addresses as test or synthetic.
 
 Email comparison is case-insensitive. The 14 INC-001 held candidates are unaffected (their schedules do not exist).
 
@@ -772,7 +771,7 @@ C7-B (28 Apr 2026) ✅ — three live Lambdas hardened with this guard, plus dry
 - SES warm-up complete; sender reputation healthy (0/0/0 bounces/complaints/rejections)
 - DKIM, SPF, DMARC configured for `presttige.net`
 - Dedicated IP planned for launch phase (currently shared)
-- Apple iCloud spam-flags repeat tester traffic — known limitation, tester address `alternativeservice@gmail.com` preferred
+- Apple iCloud may spam-flag repeat tester traffic, use only the four authorized tester addresses in Chapter 6.3
 - Future: SES deliverability audit (C7-C, parked, low priority)
 
 ## 12.5 Working rhythm
