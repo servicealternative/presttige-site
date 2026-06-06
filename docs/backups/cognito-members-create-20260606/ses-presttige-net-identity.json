@@ -1,0 +1,40 @@
+{
+    "IdentityType": "DOMAIN",
+    "FeedbackForwardingStatus": true,
+    "VerifiedForSendingStatus": true,
+    "DkimAttributes": {
+        "SigningEnabled": true,
+        "Status": "SUCCESS",
+        "Tokens": [
+            "tk3a4hf23eddtzsfylfrzyveg4qcqhot",
+            "u6kusl3nvdwxtbgc6znmbqnlvxjfqa4b",
+            "336k523sqqf7kmsna7vzwaxjpo6jcivp"
+        ],
+        "SigningHostedZone": "dkim.amazonses.com",
+        "SigningAttributesOrigin": "AWS_SES",
+        "NextSigningKeyLength": "RSA_2048_BIT",
+        "CurrentSigningKeyLength": "RSA_2048_BIT",
+        "LastKeyGenerationTimestamp": "2026-03-19T00:15:41.188000+04:00"
+    },
+    "MailFromAttributes": {
+        "MailFromDomain": "mail.presttige.net",
+        "MailFromDomainStatus": "SUCCESS",
+        "BehaviorOnMxFailure": "USE_DEFAULT_VALUE"
+    },
+    "Policies": {
+        "cognito-presttige-members-email": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"AllowPresttigeMembersCognitoEmail\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cognito-idp.amazonaws.com\"},\"Action\":[\"ses:SendEmail\",\"ses:SendRawEmail\"],\"Resource\":\"arn:aws:ses:us-east-1:343218208384:identity/presttige.net\",\"Condition\":{\"StringEquals\":{\"aws:SourceAccount\":\"343218208384\"},\"ArnLike\":{\"aws:SourceArn\":\"arn:aws:cognito-idp:us-east-1:343218208384:userpool/us-east-1_hpwdNFGss\"}}}]}",
+        "workmail-m-21996fce15894906aa370fdeb856e861": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"AuthorizeWorkMail\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"workmail.us-east-1.amazonaws.com\"},\"Action\":\"ses:*\",\"Resource\":\"arn:aws:ses:us-east-1:343218208384:identity/presttige.net\",\"Condition\":{\"ArnEquals\":{\"aws:SourceArn\":\"arn:aws:workmail:us-east-1:343218208384:organization/m-21996fce15894906aa370fdeb856e861\"}}}]}"
+    },
+    "Tags": [],
+    "VerificationStatus": "SUCCESS",
+    "VerificationInfo": {
+        "LastCheckedTimestamp": "2026-06-06T17:42:07.086000+04:00",
+        "LastSuccessTimestamp": "2026-06-06T17:42:07.127000+04:00",
+        "ErrorType": "INVALID_VALUE",
+        "SOARecord": {
+            "PrimaryNameServer": "ns-1147.awsdns-15.org",
+            "AdminEmail": "awsdns-hostmaster.amazon.com",
+            "SerialNumber": 1
+        }
+    }
+}

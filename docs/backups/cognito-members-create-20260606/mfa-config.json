@@ -1,0 +1,14 @@
+{
+    "SmsMfaConfiguration": {
+        "SmsAuthenticationMessage": "Your Presttige authentication code is {####}.",
+        "SmsConfiguration": {
+            "SnsCallerArn": "arn:aws:iam::343218208384:role/presttige-members-cognito-sms-role",
+            "ExternalId": "presttige-members-cognito-sms-20260606",
+            "SnsRegion": "us-east-1"
+        }
+    },
+    "SoftwareTokenMfaConfiguration": {
+        "Enabled": true
+    },
+    "MfaConfiguration": "OPTIONAL"
+}

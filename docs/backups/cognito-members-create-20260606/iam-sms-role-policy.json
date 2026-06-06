@@ -1,0 +1,17 @@
+{
+    "RoleName": "presttige-members-cognito-sms-role",
+    "PolicyName": "presttige-members-cognito-sms-publish",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "AllowCognitoSmsPublish",
+                "Effect": "Allow",
+                "Action": [
+                    "sns:Publish"
+                ],
+                "Resource": "*"
+            }
+        ]
+    }
+}

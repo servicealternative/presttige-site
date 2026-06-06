@@ -1,0 +1,312 @@
+{
+    "UserPool": {
+        "Id": "us-east-1_hpwdNFGss",
+        "Name": "presttige-members",
+        "Policies": {
+            "PasswordPolicy": {
+                "MinimumLength": 14,
+                "RequireUppercase": true,
+                "RequireLowercase": true,
+                "RequireNumbers": true,
+                "RequireSymbols": true,
+                "TemporaryPasswordValidityDays": 7
+            },
+            "SignInPolicy": {
+                "AllowedFirstAuthFactors": [
+                    "PASSWORD"
+                ]
+            }
+        },
+        "DeletionProtection": "ACTIVE",
+        "LambdaConfig": {},
+        "LastModifiedDate": "2026-06-06T19:30:54.278000+04:00",
+        "CreationDate": "2026-06-06T19:30:33.218000+04:00",
+        "SchemaAttributes": [
+            {
+                "Name": "profile",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "address",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "birthdate",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "10",
+                    "MaxLength": "10"
+                }
+            },
+            {
+                "Name": "gender",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "preferred_username",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "updated_at",
+                "AttributeDataType": "Number",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "NumberAttributeConstraints": {
+                    "MinValue": "0"
+                }
+            },
+            {
+                "Name": "website",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "picture",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "identities",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {}
+            },
+            {
+                "Name": "sub",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": false,
+                "Required": true,
+                "StringAttributeConstraints": {
+                    "MinLength": "1",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "phone_number",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "32"
+                }
+            },
+            {
+                "Name": "phone_number_verified",
+                "AttributeDataType": "Boolean",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false
+            },
+            {
+                "Name": "zoneinfo",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "locale",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "email",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": true,
+                "StringAttributeConstraints": {
+                    "MinLength": "5",
+                    "MaxLength": "128"
+                }
+            },
+            {
+                "Name": "email_verified",
+                "AttributeDataType": "Boolean",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false
+            },
+            {
+                "Name": "given_name",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "family_name",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "middle_name",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            },
+            {
+                "Name": "name",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "1",
+                    "MaxLength": "128"
+                }
+            },
+            {
+                "Name": "nickname",
+                "AttributeDataType": "String",
+                "DeveloperOnlyAttribute": false,
+                "Mutable": true,
+                "Required": false,
+                "StringAttributeConstraints": {
+                    "MinLength": "0",
+                    "MaxLength": "2048"
+                }
+            }
+        ],
+        "AutoVerifiedAttributes": [
+            "email"
+        ],
+        "UsernameAttributes": [
+            "email"
+        ],
+        "SmsVerificationMessage": "Your Presttige verification code is {####}.",
+        "EmailVerificationMessage": "Your Presttige verification code is {####}.",
+        "EmailVerificationSubject": "Verify your Presttige email",
+        "VerificationMessageTemplate": {
+            "SmsMessage": "Your Presttige verification code is {####}.",
+            "EmailMessage": "Your Presttige verification code is {####}.",
+            "EmailSubject": "Verify your Presttige email",
+            "DefaultEmailOption": "CONFIRM_WITH_CODE"
+        },
+        "SmsAuthenticationMessage": "Your Presttige authentication code is {####}.",
+        "UserAttributeUpdateSettings": {
+            "AttributesRequireVerificationBeforeUpdate": [
+                "email"
+            ]
+        },
+        "MfaConfiguration": "OPTIONAL",
+        "EstimatedNumberOfUsers": 0,
+        "EmailConfiguration": {
+            "SourceArn": "arn:aws:ses:us-east-1:343218208384:identity/presttige.net",
+            "ReplyToEmailAddress": "info@presttige.net",
+            "EmailSendingAccount": "DEVELOPER",
+            "From": "Presttige <info@presttige.net>",
+            "ConfigurationSet": "presttige-deliverability-v1"
+        },
+        "SmsConfiguration": {
+            "SnsCallerArn": "arn:aws:iam::343218208384:role/presttige-members-cognito-sms-role",
+            "ExternalId": "presttige-members-cognito-sms-20260606",
+            "SnsRegion": "us-east-1"
+        },
+        "UserPoolTags": {
+            "CreatedOn": "2026-06-06",
+            "Isolation": "presttige-members",
+            "ManagedBy": "Codex",
+            "Project": "Presttige",
+            "Purpose": "members-identity"
+        },
+        "SmsConfigurationFailure": "SNSSandbox",
+        "Domain": "presttige-members",
+        "AdminCreateUserConfig": {
+            "AllowAdminCreateUserOnly": true,
+            "UnusedAccountValidityDays": 7,
+            "InviteMessageTemplate": {
+                "SMSMessage": "Your Presttige username is {username}. Temporary password: {####}",
+                "EmailMessage": "Your Presttige username is {username}. Your temporary password is {####}.",
+                "EmailSubject": "Your Presttige member access"
+            }
+        },
+        "UsernameConfiguration": {
+            "CaseSensitive": false
+        },
+        "Arn": "arn:aws:cognito-idp:us-east-1:343218208384:userpool/us-east-1_hpwdNFGss",
+        "AccountRecoverySetting": {
+            "RecoveryMechanisms": [
+                {
+                    "Priority": 1,
+                    "Name": "verified_email"
+                }
+            ]
+        },
+        "UserPoolTier": "ESSENTIALS"
+    }
+}

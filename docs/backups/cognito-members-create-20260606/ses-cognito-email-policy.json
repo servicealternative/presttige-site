@@ -1,0 +1,6 @@
+{
+    "Policies": {
+        "cognito-presttige-members-email": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"AllowPresttigeMembersCognitoEmail\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cognito-idp.amazonaws.com\"},\"Action\":[\"ses:SendEmail\",\"ses:SendRawEmail\"],\"Resource\":\"arn:aws:ses:us-east-1:343218208384:identity/presttige.net\",\"Condition\":{\"StringEquals\":{\"aws:SourceAccount\":\"343218208384\"},\"ArnLike\":{\"aws:SourceArn\":\"arn:aws:cognito-idp:us-east-1:343218208384:userpool/us-east-1_hpwdNFGss\"}}}]}",
+        "workmail-m-21996fce15894906aa370fdeb856e861": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"AuthorizeWorkMail\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"workmail.us-east-1.amazonaws.com\"},\"Action\":\"ses:*\",\"Resource\":\"arn:aws:ses:us-east-1:343218208384:identity/presttige.net\",\"Condition\":{\"ArnEquals\":{\"aws:SourceArn\":\"arn:aws:workmail:us-east-1:343218208384:organization/m-21996fce15894906aa370fdeb856e861\"}}}]}"
+    }
+}

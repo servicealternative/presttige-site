@@ -1,0 +1,9 @@
+{
+    "UserPoolClients": [
+        {
+            "ClientId": "3gdek6k48cm6oirccodgrub2k1",
+            "UserPoolId": "us-east-1_hpwdNFGss",
+            "ClientName": "presttige-member-web"
+        }
+    ]
+}

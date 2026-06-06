@@ -1,0 +1,10 @@
+{
+    "ConfigurationSetName": "presttige-deliverability-v1",
+    "ReputationOptions": {
+        "ReputationMetricsEnabled": true
+    },
+    "SendingOptions": {
+        "SendingEnabled": true
+    },
+    "Tags": []
+}

@@ -1,0 +1,43 @@
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "presttige-members-cognito-sms-role",
+        "RoleId": "AROAU72LGH2AF2UJ6DNU3",
+        "Arn": "arn:aws:iam::343218208384:role/presttige-members-cognito-sms-role",
+        "CreateDate": "2026-06-06T15:27:53+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "cognito-idp.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole",
+                    "Condition": {
+                        "StringEquals": {
+                            "sts:ExternalId": "presttige-members-cognito-sms-20260606"
+                        }
+                    }
+                }
+            ]
+        },
+        "Description": "Allows Cognito presttige-members to publish SNS SMS messages",
+        "MaxSessionDuration": 3600,
+        "Tags": [
+            {
+                "Key": "Project",
+                "Value": "Presttige"
+            },
+            {
+                "Key": "Purpose",
+                "Value": "members-cognito-sms"
+            },
+            {
+                "Key": "ManagedBy",
+                "Value": "Codex"
+            }
+        ],
+        "RoleLastUsed": {}
+    }
+}
