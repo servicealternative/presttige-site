@@ -512,7 +512,7 @@ function publicMember(lead) {
     tier: canonicalTier(lead),
     account_status: normalizeText(lead.account_status).toLowerCase(),
     validation_status: normalizeText(lead.validation_status).toLowerCase() || "not_started",
-    member_area_ready: false,
+    member_area_ready: true,
   };
 }
 
