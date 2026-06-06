@@ -267,6 +267,9 @@
       const REQUEST_NEW_LINK = "mailto:office@presttige.net?subject=Request%20a%20new%20Presttige%20link";
       const app = document.getElementById("app");
       const route = readRoute();
+      let activationReminderArmed = false;
+      let activationReminderSent = false;
+      let passwordFlowCompleted = false;
 
       if (!route.token || route.token === "welcome" || route.token === "welcome.html") {
         renderError("Missing access token.");
@@ -274,6 +277,12 @@
       }
 
       load();
+      window.addEventListener("pagehide", notifyActivationIfNeeded);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") {
+          notifyActivationIfNeeded();
+        }
+      });
 
       async function load() {
         try {
@@ -347,6 +356,7 @@
           return;
         }
 
+        activationReminderArmed = false;
         app.innerHTML = `
           <p class="eyebrow">Membership Confirmed</p>
           <h1 class="title">Welcome to Presttige</h1>
@@ -360,6 +370,8 @@
       }
 
       function renderPasswordForm(status, passwordStatus) {
+        activationReminderArmed = true;
+        passwordFlowCompleted = false;
         app.innerHTML = `
           <p class="eyebrow">Membership Confirmed</p>
           <h1 class="title">Set your password.</h1>
@@ -389,6 +401,8 @@
       }
 
       function renderAccountReady(status, passwordStatus) {
+        activationReminderArmed = false;
+        passwordFlowCompleted = true;
         app.innerHTML = `
           <p class="eyebrow">Membership Confirmed</p>
           <h1 class="title">Your account is ready.</h1>
@@ -423,6 +437,8 @@
 
         button.disabled = true;
         button.textContent = "Activating...";
+        activationReminderArmed = false;
+        passwordFlowCompleted = true;
 
         try {
           const passwordStatus = await passwordRequest({
@@ -439,9 +455,30 @@
             return;
           }
           errorBox.textContent = error.message || "Unable to set your password right now.";
+          activationReminderArmed = true;
+          passwordFlowCompleted = false;
           button.disabled = false;
           button.textContent = "Activate account";
         }
+      }
+
+      function notifyActivationIfNeeded() {
+        if (!activationReminderArmed || activationReminderSent || passwordFlowCompleted) {
+          return;
+        }
+        activationReminderSent = true;
+        const payload = JSON.stringify({ action: "activation", token: route.token });
+        if (navigator.sendBeacon) {
+          const body = new Blob([payload], { type: "text/plain" });
+          navigator.sendBeacon(PASSWORD_ENDPOINT, body);
+          return;
+        }
+        fetch(PASSWORD_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
       }
 
       function validatePassword(password) {
@@ -455,6 +492,7 @@
       }
 
       function renderProcessing(status) {
+        activationReminderArmed = false;
         app.className = "card card--processing";
         app.innerHTML = `
           <div class="processing-layout">
@@ -484,6 +522,7 @@
       }
 
       function renderFailed(status) {
+        activationReminderArmed = false;
         app.className = "card";
         const retryUrl = status.retryUrl || "";
         app.innerHTML = `
@@ -499,6 +538,7 @@
       }
 
       function renderLegacySuccess(data) {
+        activationReminderArmed = false;
         app.className = "card";
         const tier = String(data.tier || "").trim().toLowerCase();
         const body = tier === "founder"
@@ -513,6 +553,7 @@
       }
 
       function renderError(message) {
+        activationReminderArmed = false;
         app.className = "card";
         app.innerHTML = `
           <p class="eyebrow">Presttige Membership</p>

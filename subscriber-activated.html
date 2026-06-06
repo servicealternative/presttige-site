@@ -171,6 +171,9 @@
       const LOGIN_URL = "https://presttige-members.auth.us-east-1.amazoncognito.com/login?client_id=3gdek6k48cm6oirccodgrub2k1&response_type=code&scope=email+openid+profile&redirect_uri=https%3A%2F%2Fpresttige.net%2Fmember%2F";
       const app = document.getElementById("app");
       const token = window.location.pathname.split("/").filter(Boolean).pop();
+      let activationReminderArmed = false;
+      let activationReminderSent = false;
+      let passwordFlowCompleted = false;
 
       if (!token || token === "subscriber-activated" || token === "subscriber-activated.html") {
         renderError("Missing access token.");
@@ -178,6 +181,12 @@
       }
 
       validate();
+      window.addEventListener("pagehide", notifyActivationIfNeeded);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") {
+          notifyActivationIfNeeded();
+        }
+      });
 
       async function validate() {
         try {
@@ -203,6 +212,8 @@
       }
 
       function renderPasswordForm(data) {
+        activationReminderArmed = true;
+        passwordFlowCompleted = false;
         app.innerHTML = `
           <p class="eyebrow">Presttige Subscriber</p>
           <h1 class="title">Set your password.</h1>
@@ -231,6 +242,8 @@
       }
 
       function renderReady(data) {
+        activationReminderArmed = false;
+        passwordFlowCompleted = true;
         app.innerHTML = `
           <p class="eyebrow">Presttige Subscriber</p>
           <h1 class="title">Your account is ready.</h1>
@@ -264,6 +277,8 @@
 
         button.disabled = true;
         button.textContent = "Activating...";
+        activationReminderArmed = false;
+        passwordFlowCompleted = true;
 
         try {
           const data = await passwordRequest({ action: "set", token, password });
@@ -274,9 +289,30 @@
             return;
           }
           errorBox.textContent = error.message || "Unable to set your password right now.";
+          activationReminderArmed = true;
+          passwordFlowCompleted = false;
           button.disabled = false;
           button.textContent = "Activate account";
         }
+      }
+
+      function notifyActivationIfNeeded() {
+        if (!activationReminderArmed || activationReminderSent || passwordFlowCompleted) {
+          return;
+        }
+        activationReminderSent = true;
+        const payload = JSON.stringify({ action: "activation", token });
+        if (navigator.sendBeacon) {
+          const body = new Blob([payload], { type: "text/plain" });
+          navigator.sendBeacon(PASSWORD_ENDPOINT, body);
+          return;
+        }
+        fetch(PASSWORD_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
       }
 
       function validatePassword(password) {
@@ -306,6 +342,7 @@
       }
 
       function renderError(message) {
+        activationReminderArmed = false;
         app.innerHTML = `
           <p class="eyebrow">Presttige Subscriber</p>
           <h1 class="title">Link unavailable.</h1>
