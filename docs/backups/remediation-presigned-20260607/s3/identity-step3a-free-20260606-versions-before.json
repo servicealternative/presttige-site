@@ -1,0 +1,278 @@
+{
+    "Versions": [
+        {
+            "ETag": "\"771c67f45cce8ad282d864eb67cb639b\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 715,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/MANIFEST.json",
+            "VersionId": "wxm0F5J90Nmwxd9LLHy_5UXLEQI3j.rG",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:35+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"5acbf3f6401ba0602edf1211c06f0cee\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1011,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/RESTORE.md",
+            "VersionId": "tSt8Q03Dje_KkaO6qPB37V58Iky1oKVd",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"1161307055bd9ac0e1e98d3cf9f04cfa\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1626,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/cognito/presttige-members-groups-before.json",
+            "VersionId": "_DvtlUQM2l5dNLNAc8Lq58m8w9Hau6KC",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"e3233daf632a6442b3406613ab068454\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 11013,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/cognito/presttige-members-pool-before.json",
+            "VersionId": "3qIe23WWQDnvwTUcclFFQzJljTWdsu5w",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"b66010e136540891e41286d62fd9981c\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 20,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/cognito/presttige-members-users-before.json",
+            "VersionId": "PERxGL6ktcKDi7Pz5mebrh3gSSgLMCcf",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"1f8b1bed0dc395823444253f4dc37cae\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 205,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/iam/presttige-activate-subscriber-attached-policies.json",
+            "VersionId": "LNuGdheV0vhvaukVuLFLJ8jngAo9k6C3",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"557bc1fd32dd7aeb442a00f02588cc18\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 78,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/iam/presttige-activate-subscriber-inline-policy-names.json",
+            "VersionId": "NQr.r1y3nOvymddwCYMJAKu1wHkUbC_N",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"c9ccfd6c6c17078af8cd8830e2004e29\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1143,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/iam/presttige-activate-subscriber-inline-presttige-activate-subscriber-inline.json",
+            "VersionId": "G3GMVoQi3pu_6sW0n5S7uMozW90Rv.N_",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"0a6e9fc7412ac3e32d645b15a1ac3a10\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 809,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/iam/presttige-activate-subscriber-role.json",
+            "VersionId": "COQdj3jCwoezphFVMrqzK42tCJ6DbqAx",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"0cc20f9a0ccfd74c9ba1a8bca33216c0\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 36397,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/items/authorized-testers-before.json",
+            "VersionId": "EGW7_Gmc86iNGIyTJeBCuoXgV.6j3.pC",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"58822bd10b0b4b573edeb53c9fa5323b\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 4045,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/lambda/presttige-activate-subscriber/code-before.zip",
+            "VersionId": ".LNevCzY2KGywM6Retnqu4keX_dxkaD0",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"e5dabd140609f8f53e1b2996f8bce393\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1368,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/lambda/presttige-activate-subscriber/configuration.json",
+            "VersionId": "AgI3xMvvgDKn9a.QUFhUzw8wVC9gKSsg",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"8a11454907cd65e74761d89f7dbe7c84\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 2904,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/lambda/presttige-activate-subscriber/get-function.json",
+            "VersionId": "UE1Wt0HVIpksg7cA75dgANGHj3BrdMnE",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"ac4f1149327ea8fce2d693de62a8dcf2\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 5973,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/presttige-db-table-before.json",
+            "VersionId": "dKZwkaOcFl1HZCm4uz20_xIEo3qBWAaD",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"332fe614bd27a1013536b4c9c81ceef4\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 4022,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/repo/activate-subscriber-index-before.js",
+            "VersionId": "eJnu.Azr__68Qanr_R1FmdOxJsOrSmWX",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"2897a27ea9fdc88462dcbd297755049d\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 90,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/repo/activate-subscriber-package-before.json",
+            "VersionId": "R.NL8i44z4Hsx95Fzu_k9AvGyZbFjWs8",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"ebfb4e8882755f3d433db695ab034cac\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 346,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step3a-free-20260606/repo/package-presttige-activate-subscriber-before.sh",
+            "VersionId": ".StK3ps_FL0VBtYTJZInhNQOyJy_vkzt",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T17:18:36+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        }
+    ],
+    "RequestCharged": null,
+    "Prefix": "identity-step3a-free-20260606/"
+}

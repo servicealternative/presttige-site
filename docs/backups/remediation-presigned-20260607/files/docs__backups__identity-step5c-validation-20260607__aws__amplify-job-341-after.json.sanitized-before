@@ -1,0 +1,49 @@
+{
+    "job": {
+        "summary": {
+            "jobArn": "arn:aws:amplify:us-east-1:343218208384:apps/dh6banfgh3wmi/branches/main/jobs/0000000341",
+            "jobId": "341",
+            "commitId": "c9f1a44d7ba178921fa9c744b698cc3c258a13d4",
+            "commitMessage": "Fix validation setter JSON boolean output",
+            "commitTime": "2026-06-07T02:59:55+04:00",
+            "startTime": "2026-06-07T03:00:03.839000+04:00",
+            "status": "SUCCEED",
+            "endTime": "2026-06-07T03:01:05.197000+04:00"
+        },
+        "steps": [
+            {
+                "stepName": "BUILD",
+                "startTime": "2026-06-07T03:00:03.859000+04:00",
+                "status": "SUCCEED",
+                "endTime": "2026-06-07T03:00:55.288000+04:00",
+                "logUrl": "[REDACTED_PRESIGNED_AWS_URL]",
+                "artifactsUrl": "[REDACTED_PRESIGNED_AWS_URL]",
+                "testArtifactsUrl": "[REDACTED_PRESIGNED_AWS_URL]",
+                "testConfigUrl": "[REDACTED_PRESIGNED_AWS_URL]",
+                "context": "Image: amplify:al2023"
+            },
+            {
+                "stepName": "DEPLOY",
+                "startTime": "2026-06-07T03:00:55.603000+04:00",
+                "status": "SUCCEED",
+                "endTime": "2026-06-07T03:01:04.544000+04:00",
+                "logUrl": "[REDACTED_PRESIGNED_AWS_URL]",
+                "artifactsUrl": "[REDACTED_PRESIGNED_AWS_URL]"
+            },
+            {
+                "stepName": "VERIFY",
+                "startTime": "2026-06-07T03:01:04.999000+04:00",
+                "status": "SUCCEED",
+                "endTime": "2026-06-07T03:01:05.026000+04:00",
+                "artifactsUrl": "[REDACTED_PRESIGNED_AWS_URL]",
+                "screenshots": {
+                    "googlepixel": "[REDACTED_PRESIGNED_AWS_URL]",
+                    "ipadair2": "[REDACTED_PRESIGNED_AWS_URL]",
+                    "iphone7plus": "[REDACTED_PRESIGNED_AWS_URL]",
+                    "iphone8": "[REDACTED_PRESIGNED_AWS_URL]",
+                    "samsungs7": "[REDACTED_PRESIGNED_AWS_URL]"
+                }
+            }
+        ]
+    }
+}

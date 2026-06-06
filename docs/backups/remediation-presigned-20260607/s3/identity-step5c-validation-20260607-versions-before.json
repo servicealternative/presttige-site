@@ -1,0 +1,358 @@
+{
+    "Versions": [
+        {
+            "ETag": "\"40ca8d55f88a97b1d5add807da916ca3\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 22284,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/amplify-job-341-after.json",
+            "VersionId": "gj5ESqyfMR8kbRB45GA5XoHQmQvuego.",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T23:21:57+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"641e688dff8dfbb757bd5fe51fc9f6df\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 8583,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/amplify-presttige-site-after.json",
+            "VersionId": "59sSE_ZbO1R50QU1CCBt16DyO7wctX3P",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T23:21:56+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"ecb35de841f980186820472a437376cd\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 8583,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/amplify-presttige-site-before.json",
+            "VersionId": "M.n_Za5W9mfYAiIhvYYT7WW42SlFbqVG",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"8fa74ff3492e882c69b25c9b05946509\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 10118,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/api-integrations-after.json",
+            "VersionId": "kjWZxLl3dAo4T1E00yIPmK2TyyKDRWyI",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T23:21:57+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"8fa74ff3492e882c69b25c9b05946509\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 10118,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/api-integrations-before.json",
+            "VersionId": "p7VarY4I9qWlbIrYsr3fa_HKx4F5T3V3",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"59dcabf9778bd093a3f25a918906d063\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 8072,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/api-routes-after.json",
+            "VersionId": "G_dZGQgxysFiKl8RIl9vWKLGVkIAUR4p",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T23:21:57+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"59dcabf9778bd093a3f25a918906d063\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 8072,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/api-routes-before.json",
+            "VersionId": "RVonrZkeJ8KYF4L8ugkphgl0_plKlu7W",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"ade06554f5d6857df8c01c4619b9b6e7\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1429,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/cognito-presttige-member-web-client-after.json",
+            "VersionId": "fYOl5mWkxuL48YsyxVZ_8xqMZrxhCe8a",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T23:21:57+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"ade06554f5d6857df8c01c4619b9b6e7\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1429,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/cognito-presttige-member-web-client-before.json",
+            "VersionId": "LHF6rmZ6dlzH9P.Xzt27jgjmkraQ.DI7",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"f158541ddd06f67eb36705a03f0d3928\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1985,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/lambda-presttige-member-auth-config-after.json",
+            "VersionId": "psUBMTptL2C9A3D3IfR3EoYY9KyEaS1K",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T23:21:57+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"7ae36aa0102a3de2ec2c20b7c1d700cd\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1985,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/lambda-presttige-member-auth-config-before.json",
+            "VersionId": "Nbo8Y0cCcMRtnYjL3A9u3wu0tikfYYK3",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"4dad2110de1c74d5bfd5c34b4e4ee10f\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 615,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/aws/loggroup-presttige-member-auth-after.json",
+            "VersionId": "eF0AxXV0yp6IQ7hWTA9GDUowIMDGRyz0",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T23:21:57+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"8a26d445234899a97cf84ca68d466a79\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 18975,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/files/backend_member-auth_index.before-step5c.js",
+            "VersionId": "G6YocW.bWVJPZzla2TZ1LUHv0KZnhl4h",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"ad2fe392205246b586d4e02734f30570\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 82,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/files/backend_member-auth_package.before-step5c.json",
+            "VersionId": "Llaft1bPeeect7cGyqVaWfao5NuSOSCw",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"f194e8ff8a4ad012095cdea3ec197e43\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 67,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/files/member-validation-status.before-step5c.txt",
+            "VersionId": "bAhIH8NqwshsLq51Eg65pY4ihy9IEnbY",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"3d3e4f7ab1a63cb7d5958cc835efcf40\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 28594,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/files/member_index.before-step5c.html",
+            "VersionId": "84JJ7.avNgZMLkrh4xWWlAKpL9u_d7m9",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"a4dfbf6fd7fc196cd0527e540b87c6ce\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 758,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/files/package-presttige-member-auth.before-step5c.sh",
+            "VersionId": "uLSlBPN7fao40wRhxR1EznykFMch9W1p",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"d9e9d5007e7fa0fb79a90ccc48e6eb56\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 16045,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/records/analuisasf_gmail_com.before.json",
+            "VersionId": "7FazPPjStjxQODN1aLQoeWbLc0EiBYDx",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"bfec9d769d5e21693aae92bf845d32dc\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 14931,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/records/antoniompereira_me_com.before.json",
+            "VersionId": "uJPzybUCnhlWylYCe1c5cJj5Hsj6wqjG",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"fc459fe56821e32b04e1925ceb5aab62\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 9549,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/records/codex_subscriber_tester_presttige_net.after.json",
+            "VersionId": "_KXfrllNj3udSoOwgylNfKuSRFD5rLYt",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T23:21:57+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"95b7d71f357fa9657ed963b7e4d8c172\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 9351,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/records/codex_subscriber_tester_presttige_net.before.json",
+            "VersionId": "6mE3b.ppapVgjvBlxDPot5Or5qq8wk1J",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:26+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"5a5a09f8bb2dcab6fc7d4c58dbad4430\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 8170,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step5c-validation-20260607/records/fq_freequenza_net.before.json",
+            "VersionId": "_qQJwyU7Y3ex8Xf2g6sYd.JuSkALv23s",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T22:44:27+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        }
+    ],
+    "RequestCharged": null,
+    "Prefix": "identity-step5c-validation-20260607/"
+}

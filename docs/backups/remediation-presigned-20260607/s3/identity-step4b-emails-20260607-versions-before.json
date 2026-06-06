@@ -1,0 +1,390 @@
+{
+    "Versions": [
+        {
+            "ETag": "\"7d60fdbc32a0ae685f0505702d018588\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 939,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/RESTORE.md",
+            "VersionId": "tdgPaXJ4.n4YhlpeTsaT0eXN5VbAmY2C",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:21+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"e2a3a7482851f07370a13c60785743f9\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 9748,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/api-integrations.json",
+            "VersionId": "evt_1gYO4kLPBXrpV2aPJld_9SqWeJeF",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"6a6f23624db5ac611ff1854cd0f68688\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 7619,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/api-routes.json",
+            "VersionId": "o9AvAWtRDiVekd4cZQGVWIC3BBzTq3.V",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"a003f9542ff5d78f732c40acd779cb14\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 31,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/member-set-password-attached-policies.json",
+            "VersionId": "_PzBvUumzNWYcONRHwH2SOyplpS2rr9V",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"df99f9e1bf0d0ae3c3d369cd53cd34fc\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1498,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/member-set-password-config.json",
+            "VersionId": "VbSie.8vT2PutknwjlacuREsyv0TPhPD",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"f454e134acd0d7b024ea1c05d245f611\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 3056,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/member-set-password-function.json",
+            "VersionId": "yf.iUL4KoRTV2Yf830xAPKb2xZuzQczu",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"f1a2f9c94547dec3f450b16a22c94f89\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 78,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/member-set-password-inline-policy-names.json",
+            "VersionId": "k._.Lhjv9b_G5V64ekhz1fBgzvaEUpsT",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"8887f04e4eb7ab9d6a102eb634e7bcfc\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1280,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/member-set-password-inline-policy.json",
+            "VersionId": "YAoBRYjQuJsIGKxlUVmL2Y3noFmtxZNX",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"58addff30bbf7b2dfc42f64a4b63ca0a\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 3951,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/member-set-password-live.zip",
+            "VersionId": "3uUQV430cJX_z1iFmgu2MlRof8vtkiiA",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"53b29587e24cea31701295e6c9698863\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 639,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/member-set-password-log-group.json",
+            "VersionId": "U_PaS_aOxd1ZY1TDbTmpqcBox4VDN0TL",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"23ab4b234ce73c3ec65550665f49cd22\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 526,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/member-set-password-policy.json",
+            "VersionId": "I7yKkLYukEfkhVk.oiZd8CIOfqn63dwL",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"409ea98250992cd6b9fbf8a35c2d49f9\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 809,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/aws/member-set-password-role.json",
+            "VersionId": "jPyidVp6XiPX6em_ZTbNFK.Xim1Vg8_d",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"98edd5d4a1addfb011f7e4edc91dd0c1\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 14879,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/local-current/member-set-password-index.js",
+            "VersionId": "u1bhwdN9AbiiJ8iPMAo_fA1n5qBQG8WY",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"80044b23f645939b733f0f2b3b298cac\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 109,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/local-current/member-set-password-package.json",
+            "VersionId": "Tp.iPxHOtxm35FvWCMgbkZp03LJUyfgi",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"a7a98d51881ac46357bb3ba4cc9d74c7\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 782,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/local-current/package-presttige-member-set-password.sh",
+            "VersionId": "d.MTYgndgIeN5IjolCk6gbVFnonXLl_1",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"03466a11c4e309c633c85cb4ab5b347e\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 9802,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/local-current/subscriber-activated.html",
+            "VersionId": "X5t_qtsQ6.IzkhYSlQuIHrnjjc3mMNRx",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"57d3a3de510c386d876aa390ffe92bc5\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 18787,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/local-current/welcome.html",
+            "VersionId": "lAb1cpmL0ISgih7ct85OXiaK1C8CPUcZ",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"98edd5d4a1addfb011f7e4edc91dd0c1\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 14879,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/local-main/member-set-password-index.js",
+            "VersionId": "t.g0vL5xQULUcj1BEtLkRAiEByJoYxQP",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"80044b23f645939b733f0f2b3b298cac\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 109,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/local-main/member-set-password-package.json",
+            "VersionId": "e6w7gSVD5OIcDvErXbkFgXvxuhiEAJHK",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"a7a98d51881ac46357bb3ba4cc9d74c7\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 782,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/local-main/package-presttige-member-set-password.sh",
+            "VersionId": "5fXNwl9azfB98Dh36k20gLm12HQgIxV_",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"80bcb323c19452b9ce6edd37c97b06dd\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 12990,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/local-main/subscriber-activated.html",
+            "VersionId": "j1.1Nsy9.9q3QpMsluCZ9qG9kjIYhvBy",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:22+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"d1d6e8ffeab7c90898a53791fbc91722\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 19300,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/local-main/welcome.html",
+            "VersionId": "21x2nFhqaDqlK8_4s8m8OqUnKA_93rvD",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:23+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"750600cc622d5c2667e2beb5933d2866\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 8279,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/tester-records/codex-subscriber-tester.json",
+            "VersionId": "JljZbZ0PL2fPS6Rnkc5ycXSRy8qZauxr",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:23+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        },
+        {
+            "ETag": "\"5a5a09f8bb2dcab6fc7d4c58dbad4430\"",
+            "ChecksumAlgorithm": [
+                "CRC64NVME"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 8170,
+            "StorageClass": "STANDARD",
+            "Key": "identity-step4b-emails-20260607/tester-records/fq-send-receive.json",
+            "VersionId": "ElwZzPnBTry__2fjqPv4N5M8nQSP9FJ8",
+            "IsLatest": true,
+            "LastModified": "2026-06-06T20:59:23+00:00",
+            "Owner": {
+                "ID": "17491ed787b47ce68f0b0ddca034702dc15c5b0fab30cde7cf6493c5cce82f36"
+            }
+        }
+    ],
+    "RequestCharged": null,
+    "Prefix": "identity-step4b-emails-20260607/"
+}

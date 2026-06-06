@@ -1,0 +1,49 @@
+{
+    "PolicyVersion": {
+        "Document": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Action": [
+                        "lambda:GetFunctionConfiguration",
+                        "lambda:UpdateFunctionCode",
+                        "lambda:GetFunction",
+                        "lambda:PublishVersion"
+                    ],
+                    "Resource": [
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-account-create",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-activate-subscriber",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-checkout-context",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-checkout-status",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-cookie-diag",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-create-checkout-session",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-create-lead",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-gateway",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-magic-link-verify",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-member-set-password",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-photo-upload-init",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-photo-upload-status",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-review-action",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-review-fetch",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-send-application-received",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-send-committee-email",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-send-subscriber-welcome-email",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-send-tier-select-email",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-send-welcome-email",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-stripe-webhook",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-submit-access",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-tester-cleanup",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-thumbnail-generator",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-tier-downgrade",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-tier-select-fetch",
+                        "arn:aws:lambda:us-east-1:343218208384:function:presttige-verify-email"
+                    ]
+                }
+            ]
+        },
+        "VersionId": "v4",
+        "IsDefaultVersion": true,
+        "CreateDate": "2026-06-06T20:46:26+00:00"
+    }
+}
