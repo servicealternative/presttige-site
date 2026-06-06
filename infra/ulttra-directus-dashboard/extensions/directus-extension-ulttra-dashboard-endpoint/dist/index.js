@@ -327,7 +327,7 @@ export default {
               : `${count} people restored to the active Founder invite list.`,
         });
       } catch (error) {
-        sendError(res, error);
+        sendRegisteredFounderExclusionError(res, error);
       }
     });
 
@@ -2316,6 +2316,43 @@ function httpError(status, message) {
   const error = new Error(message);
   error.status = status;
   return error;
+}
+
+function sendRegisteredFounderExclusionError(res, error) {
+  const code = normalizeString(error?.name || error?.Code || error?.code);
+  console.error('registered-founder-exclusion failed', {
+    code: code || null,
+    message: normalizeString(error?.message) || null,
+  });
+  if (code === 'AccessDeniedException' || code === 'AccessDenied' || code === 'UnauthorizedOperation') {
+    res.status(500).json({
+      ok: false,
+      status: 'WRITE_ACCESS_DENIED',
+      message: 'Founder invite exclusions cannot be saved because the dashboard write permission is missing.',
+    });
+    return;
+  }
+  if (code === 'ConditionalCheckFailedException') {
+    res.status(409).json({
+      ok: false,
+      status: 'RECORD_CHANGED',
+      message: 'One or more selected people changed before the exclusion was saved. Refresh and try again.',
+    });
+    return;
+  }
+  if (error?.status) {
+    res.status(error.status).json({
+      ok: false,
+      status: 'ERROR',
+      message: error.message,
+    });
+    return;
+  }
+  res.status(500).json({
+    ok: false,
+    status: 'EXCLUSION_SAVE_FAILED',
+    message: 'Founder invite exclusions could not be saved. Check the server log for the exact failure.',
+  });
 }
 
 function sendError(res, error) {
