@@ -1,8 +1,8 @@
 {
   "bucket": "presttige-ulttra-backups-343218208384",
   "prefix": "cognito-ulttra-rename-20260606/",
-  "latest_object_count": 20,
-  "latest_total_bytes": 118937,
+  "latest_object_count": 22,
+  "latest_total_bytes": 149853,
   "versioning": {
     "Status": "Enabled"
   },
@@ -34,7 +34,7 @@
   "latest_objects": [
     {
       "Key": "cognito-ulttra-rename-20260606/MANIFEST.json",
-      "VersionId": ".tUXhaRwPoyQxJIIte.uPupwENC3u4eM",
+      "VersionId": "xsFvalybs9Ejg.pT4rk96n0h9310WKrL",
       "Size": 4145
     },
     {
@@ -56,6 +56,11 @@
       "Key": "cognito-ulttra-rename-20260606/cognito-groups.json",
       "VersionId": "qL19fOsaAwYDPk5PVOI4b43R3fmIoUWx",
       "Size": 379
+    },
+    {
+      "Key": "cognito-ulttra-rename-20260606/cognito-mfa-config-pre-rename.json",
+      "VersionId": "LqPF0oA5mR1Ly4b3tBi1TaxLaAzjrpwp",
+      "Size": 103
     },
     {
       "Key": "cognito-ulttra-rename-20260606/cognito-resource-servers.json",
@@ -108,6 +113,11 @@
       "Size": 15842
     },
     {
+      "Key": "cognito-ulttra-rename-20260606/reference-classification-pre-rename.json",
+      "VersionId": "jgSJ9FV.GEbgsmGPaiJLBvn8TqoEKzlW",
+      "Size": 30656
+    },
+    {
       "Key": "cognito-ulttra-rename-20260606/references-presttige-internal-repo.txt",
       "VersionId": "G5s2bP1r.NEaIOqEBezHyV0PFRVLUuGB",
       "Size": 29703
@@ -129,8 +139,8 @@
     },
     {
       "Key": "cognito-ulttra-rename-20260606/s3-upload-summary.json",
-      "VersionId": "8NcwrEoC3aZkdoobVKaeGGBCDGZzOmKQ",
-      "Size": 4004
+      "VersionId": "mczXVSLcBPm8ifL4XrBTg2mbz_1GqcV4",
+      "Size": 4161
     }
   ]
 }

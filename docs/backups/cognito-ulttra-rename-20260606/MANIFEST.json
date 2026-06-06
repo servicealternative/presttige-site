@@ -1,6 +1,6 @@
 {
   "backup_folder": "docs/backups/cognito-ulttra-rename-20260606",
-  "artifact_count": 19,
+  "artifact_count": 21,
   "artifacts": [
     {
       "file": "docs/backups/cognito-ulttra-rename-20260606/RESTORE.md",
@@ -21,6 +21,11 @@
       "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-groups.json",
       "bytes": 379,
       "sha256": "4774955c842660bcf112a82de31c9555bc80f381e65aee245bb0e9911b073e6b"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-mfa-config-pre-rename.json",
+      "bytes": 103,
+      "sha256": "1b6813c12e99ed650038de407916a3ee9b421e2bc5c18d9bb085097a8c70c909"
     },
     {
       "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-resource-servers.json",
@@ -73,6 +78,11 @@
       "sha256": "8860bd4bb93b16100041bea09fdbd21c04ed61fb3d8b6c12f4e14832b9cbf7de"
     },
     {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/reference-classification-pre-rename.json",
+      "bytes": 30656,
+      "sha256": "1b239b1dd6fb6bdfed7d915c7b227e2fe45e250b1b8de6883cc9f854557878d1"
+    },
+    {
       "file": "docs/backups/cognito-ulttra-rename-20260606/references-presttige-internal-repo.txt",
       "bytes": 29703,
       "sha256": "5f12e9ee4f583fd624221d8f03277eb60c5e40e4580cc18a0839de9b01e207fb"
@@ -94,8 +104,8 @@
     },
     {
       "file": "docs/backups/cognito-ulttra-rename-20260606/s3-upload-summary.json",
-      "bytes": 4161,
-      "sha256": "fca1eb436b699846020dd64a4122c7f22314a7d0c66f2b27a33ac4b0eac0ead1"
+      "bytes": 4505,
+      "sha256": "f81dbea7f0151573472319c72e5cc50f99aea253a816f2ef4e1f6e41de335aed"
     }
   ]
 }

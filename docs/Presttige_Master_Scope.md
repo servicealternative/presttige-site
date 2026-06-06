@@ -36,7 +36,7 @@ Path B is locked: build the CRM first.
 
 Authentication uses the existing Cognito setup.
 
-- User pool: `presttige-internal`
+- User pool: `ulttra-internal`
 - User pool ID: `us-east-1_s5PvTEeHv`
 - Access group: `Admins`
 - Auth model: single sign-on through Cognito.

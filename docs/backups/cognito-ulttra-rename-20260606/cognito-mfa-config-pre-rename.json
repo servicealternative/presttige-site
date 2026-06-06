@@ -1,0 +1,6 @@
+{
+    "SoftwareTokenMfaConfiguration": {
+        "Enabled": true
+    },
+    "MfaConfiguration": "ON"
+}

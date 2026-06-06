@@ -175,7 +175,7 @@ Approved Founder funnel v4 is saved in
 
 ## Cognito
 
-`presttige-internal` is live in Amazon Cognito.
+`ulttra-internal` is live in Amazon Cognito.
 
 - Region: `us-east-1`
 - User pool ID: `us-east-1_s5PvTEeHv`
@@ -263,7 +263,7 @@ Directus is live as the CRM application.
 - Private database: RDS PostgreSQL, encrypted at rest
 - File storage: S3 bucket `ulttra-crm-files`
 - Outbound access: NAT Gateway for private subnet egress
-- Auth: Cognito SSO through `presttige-internal`
+- Auth: Cognito SSO through `ulttra-internal`
 
 ### Ulttra CRM dashboard v1
 
