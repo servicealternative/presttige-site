@@ -1,0 +1,162 @@
+[
+    {
+        "Name": "/aws/lambda/presttige-account-create",
+        "Retention": null,
+        "StoredBytes": 27071
+    },
+    {
+        "Name": "/aws/lambda/presttige-activate-subscriber",
+        "Retention": null,
+        "StoredBytes": 8955
+    },
+    {
+        "Name": "/aws/lambda/presttige-checkout-context",
+        "Retention": null,
+        "StoredBytes": 98858
+    },
+    {
+        "Name": "/aws/lambda/presttige-checkout-status",
+        "Retention": null,
+        "StoredBytes": 1048610
+    },
+    {
+        "Name": "/aws/lambda/presttige-cookie-diag",
+        "Retention": null,
+        "StoredBytes": 2072
+    },
+    {
+        "Name": "/aws/lambda/presttige-create-checkout-session",
+        "Retention": null,
+        "StoredBytes": 118718
+    },
+    {
+        "Name": "/aws/lambda/presttige-create-lead",
+        "Retention": null,
+        "StoredBytes": 174280
+    },
+    {
+        "Name": "/aws/lambda/presttige-dashboard-metrics-sync",
+        "Retention": null,
+        "StoredBytes": 178291
+    },
+    {
+        "Name": "/aws/lambda/presttige-founder-admin",
+        "Retention": null,
+        "StoredBytes": 27138
+    },
+    {
+        "Name": "/aws/lambda/presttige-founder-gate",
+        "Retention": null,
+        "StoredBytes": 56291
+    },
+    {
+        "Name": "/aws/lambda/presttige-founder-invite-scheduler",
+        "Retention": null,
+        "StoredBytes": 4568
+    },
+    {
+        "Name": "/aws/lambda/presttige-founder-test-harness",
+        "Retention": null,
+        "StoredBytes": 4093
+    },
+    {
+        "Name": "/aws/lambda/presttige-founder-validate",
+        "Retention": null,
+        "StoredBytes": 1177
+    },
+    {
+        "Name": "/aws/lambda/presttige-gateway",
+        "Retention": null,
+        "StoredBytes": 43078
+    },
+    {
+        "Name": "/aws/lambda/presttige-magic-link-verify",
+        "Retention": null,
+        "StoredBytes": 6197
+    },
+    {
+        "Name": "/aws/lambda/presttige-photo-upload-init",
+        "Retention": null,
+        "StoredBytes": 49435
+    },
+    {
+        "Name": "/aws/lambda/presttige-photo-upload-status",
+        "Retention": null,
+        "StoredBytes": 44927
+    },
+    {
+        "Name": "/aws/lambda/presttige-review-action",
+        "Retention": null,
+        "StoredBytes": 47622
+    },
+    {
+        "Name": "/aws/lambda/presttige-review-fetch",
+        "Retention": null,
+        "StoredBytes": 33031
+    },
+    {
+        "Name": "/aws/lambda/presttige-send-application-received",
+        "Retention": null,
+        "StoredBytes": 35062
+    },
+    {
+        "Name": "/aws/lambda/presttige-send-committee-email",
+        "Retention": null,
+        "StoredBytes": 56270
+    },
+    {
+        "Name": "/aws/lambda/presttige-send-subscriber-welcome-email",
+        "Retention": null,
+        "StoredBytes": 7598
+    },
+    {
+        "Name": "/aws/lambda/presttige-send-tier-select-email",
+        "Retention": null,
+        "StoredBytes": 39540
+    },
+    {
+        "Name": "/aws/lambda/presttige-send-welcome-email",
+        "Retention": null,
+        "StoredBytes": 13148
+    },
+    {
+        "Name": "/aws/lambda/presttige-stripe-webhook",
+        "Retention": null,
+        "StoredBytes": 128182
+    },
+    {
+        "Name": "/aws/lambda/presttige-submit-access",
+        "Retention": null,
+        "StoredBytes": 91295
+    },
+    {
+        "Name": "/aws/lambda/presttige-synthetic-c1-reset",
+        "Retention": null,
+        "StoredBytes": 185603
+    },
+    {
+        "Name": "/aws/lambda/presttige-tester-cleanup",
+        "Retention": null,
+        "StoredBytes": 6084
+    },
+    {
+        "Name": "/aws/lambda/presttige-thumbnail-generator",
+        "Retention": null,
+        "StoredBytes": 83807
+    },
+    {
+        "Name": "/aws/lambda/presttige-tier-downgrade",
+        "Retention": null,
+        "StoredBytes": 696
+    },
+    {
+        "Name": "/aws/lambda/presttige-tier-select-fetch",
+        "Retention": null,
+        "StoredBytes": 56448
+    },
+    {
+        "Name": "/aws/lambda/presttige-verify-email",
+        "Retention": null,
+        "StoredBytes": 318317
+    }
+]
