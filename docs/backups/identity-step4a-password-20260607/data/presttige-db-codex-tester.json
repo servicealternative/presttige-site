@@ -1,0 +1,256 @@
+{
+    "Item": {
+        "access_status": {
+            "S": "active"
+        },
+        "account_active": {
+            "BOOL": true
+        },
+        "account_created_at": {
+            "S": "2026-06-06T17:23:11.324Z"
+        },
+        "account_status": {
+            "S": "password_pending"
+        },
+        "age": {
+            "S": "30"
+        },
+        "bio": {
+            "S": "Dedicated Presttige TEST tier record authorised for Codex validation only."
+        },
+        "cancel_at_period_end": {
+            "BOOL": false
+        },
+        "city": {
+            "S": "Dubai"
+        },
+        "cognito_linked_at": {
+            "S": "2026-06-06T17:23:11.324Z"
+        },
+        "cognito_pool": {
+            "S": "presttige-members"
+        },
+        "cognito_sub": {
+            "S": "e4a81458-50d1-704b-a71c-10b90450c7d4"
+        },
+        "company": {
+            "S": "Presttige"
+        },
+        "confirmed_payment_at": {
+            "S": "2026-06-06T20:18:58.755563+00:00"
+        },
+        "country": {
+            "S": "United Arab Emirates"
+        },
+        "created_at": {
+            "S": "2026-06-05T11:03:50.420299Z"
+        },
+        "effective_tier": {
+            "S": "tester"
+        },
+        "email": {
+            "S": "codex.subscriber.tester@presttige.net"
+        },
+        "email_status": {
+            "S": "verified"
+        },
+        "first_name": {
+            "S": "Codex"
+        },
+        "founder_activated_at": {
+            "S": "2026-06-06T20:18:58.755563+00:00"
+        },
+        "founder_eligible": {
+            "BOOL": false
+        },
+        "founder_lifetime": {
+            "BOOL": true
+        },
+        "founding_rate_expires_at": {
+            "NULL": true
+        },
+        "founding_rate_locked": {
+            "BOOL": false
+        },
+        "instagram": {
+            "S": "@codex_subscriber_tester"
+        },
+        "internal_test_role": {
+            "S": "presttige_free_member_founder_permissions_tester"
+        },
+        "is_test": {
+            "BOOL": true
+        },
+        "last_event_id": {
+            "S": "evt_identity_step3c_founder_1780777134"
+        },
+        "last_event_type": {
+            "S": "payment_intent.succeeded"
+        },
+        "last_name": {
+            "S": "Subscriber Tester"
+        },
+        "last_payment_at": {
+            "S": "2026-06-06T20:18:58.755559+00:00"
+        },
+        "lead_id": {
+            "S": "fdm_test_codex_subscriber_tester"
+        },
+        "linkedin": {
+            "S": ""
+        },
+        "magic_token": {
+            "S": "id3a_codex_20488b98e7ebbfbb80dc683c707e98394ea33cc652f6d199"
+        },
+        "magic_token_expires_at": {
+            "S": "2026-07-06T17:22:42Z"
+        },
+        "magic_token_issued_at": {
+            "S": "2026-06-06T17:22:42Z"
+        },
+        "magic_token_status": {
+            "S": "active"
+        },
+        "marketing_consent": {
+            "BOOL": false
+        },
+        "name": {
+            "S": "Codex Subscriber Tester"
+        },
+        "notes": {
+            "S": "Authorised by Antonio on 2026-06-05. Codex must not create any other test records without explicit authorisation."
+        },
+        "occupation": {
+            "S": "Presttige test subscriber"
+        },
+        "payment_status": {
+            "S": "paid"
+        },
+        "payment_status_reason": {
+            "S": "founder_payment_succeeded"
+        },
+        "phone": {
+            "S": "000000000"
+        },
+        "phone_country": {
+            "S": "+971"
+        },
+        "privacy_accepted": {
+            "BOOL": true
+        },
+        "profile_status": {
+            "S": "profile_submitted"
+        },
+        "review_status": {
+            "S": "approved"
+        },
+        "selected_contract_key": {
+            "S": "founder_lifetime"
+        },
+        "selected_tier": {
+            "S": "tester"
+        },
+        "selected_tier_billing": {
+            "S": "lifetime"
+        },
+        "signup_path": {
+            "S": "founder"
+        },
+        "simulated_tier": {
+            "S": "founder"
+        },
+        "source": {
+            "S": "codex_authorised_test_tier"
+        },
+        "stripe_checkout_completed_at": {
+            "S": "2026-06-06T20:11:21.229126+00:00"
+        },
+        "stripe_customer_id": {
+            "S": "cus_identity_step3c_1780777134"
+        },
+        "stripe_event_type": {
+            "S": "payment_intent.succeeded"
+        },
+        "stripe_last_event_id": {
+            "S": "evt_identity_step3c_founder_1780777134"
+        },
+        "stripe_payment_intent_id": {
+            "S": "pi_identity_step3c_1780777134"
+        },
+        "stripe_subscription_id": {
+            "S": "sub_identity_step3b_1780776676"
+        },
+        "subscriber_activated_at": {
+            "S": "2026-06-06T17:23:11.324Z"
+        },
+        "subscriber_type": {
+            "S": "tester"
+        },
+        "subscription_cancel_at_period_end": {
+            "BOOL": false
+        },
+        "subscription_current_period_end": {
+            "S": "2026-07-06T20:11:16+00:00"
+        },
+        "subscription_current_period_start": {
+            "S": "2026-06-06T20:11:16+00:00"
+        },
+        "subscription_status": {
+            "S": "none"
+        },
+        "synthetic_test": {
+            "BOOL": true
+        },
+        "terms_accepted": {
+            "BOOL": true
+        },
+        "test_founder_inviter": {
+            "BOOL": true
+        },
+        "test_founder_permission_scope": {
+            "S": "invite_and_experience"
+        },
+        "test_founder_permission_source": {
+            "S": "tester_tier_20260606"
+        },
+        "test_founder_permissions": {
+            "BOOL": true
+        },
+        "test_scope": {
+            "S": "invite_and_experience"
+        },
+        "test_simulated_tier": {
+            "S": "free"
+        },
+        "test_tier": {
+            "BOOL": true
+        },
+        "test_tier_default": {
+            "S": "free"
+        },
+        "tier": {
+            "S": "tester"
+        },
+        "tiktok": {
+            "S": ""
+        },
+        "token_status": {
+            "S": "active"
+        },
+        "updated_at": {
+            "S": "2026-06-06T20:19:00.128880+00:00"
+        },
+        "updated_reason": {
+            "S": "formalize_presttige_tester_tier_20260606"
+        },
+        "upgrade_eligible_until": {
+            "S": "2026-12-31T23:59:59Z"
+        },
+        "validation_status": {
+            "S": "not_started"
+        },
+        "website": {
+            "S": "https://presttige.net"
+        }
+    }
+}

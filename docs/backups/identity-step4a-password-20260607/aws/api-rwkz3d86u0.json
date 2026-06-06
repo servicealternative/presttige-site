@@ -1,0 +1,30 @@
+{
+    "ApiEndpoint": "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com",
+    "ApiId": "rwkz3d86u0",
+    "ApiKeySelectionExpression": "$request.header.x-api-key",
+    "CorsConfiguration": {
+        "AllowCredentials": false,
+        "AllowHeaders": [
+            "content-type",
+            "accept",
+            "*"
+        ],
+        "AllowMethods": [
+            "GET",
+            "POST",
+            "OPTIONS"
+        ],
+        "AllowOrigins": [
+            "https://presttige.net",
+            "https://www.presttige.net"
+        ],
+        "MaxAge": 0
+    },
+    "CreatedDate": "2026-04-13T10:53:02+00:00",
+    "DisableExecuteApiEndpoint": false,
+    "IpAddressType": "ipv4",
+    "Name": "presttige-api",
+    "ProtocolType": "HTTP",
+    "RouteSelectionExpression": "$request.method $request.path",
+    "Tags": {}
+}

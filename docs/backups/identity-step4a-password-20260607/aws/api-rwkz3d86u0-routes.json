@@ -1,0 +1,230 @@
+{
+    "Items": [
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "13zkc04",
+            "RouteKey": "OPTIONS /verify-email",
+            "Target": "integrations/lohvx6s"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "1xed5bp",
+            "RouteKey": "GET /review",
+            "Target": "integrations/sbepxhu"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "2iukr2b",
+            "RouteKey": "GET /magic-link-verify",
+            "Target": "integrations/fc9zobl"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "3p19hdi",
+            "RouteKey": "POST /submit-access",
+            "Target": "integrations/pftv25n"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "3zud0ru",
+            "RouteKey": "GET /verify-email",
+            "Target": "integrations/73el86k"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "50gb2w0",
+            "RouteKey": "POST /founder-validate",
+            "Target": "integrations/9uwbp7r"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "524qva7",
+            "RouteKey": "GET /review-fetch",
+            "Target": "integrations/r2cbtm6"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "5ctkzjg",
+            "RouteKey": "OPTIONS /admin/founder-token",
+            "Target": "integrations/b7v80t3"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "5vpbedn",
+            "RouteKey": "ANY /founder-c2",
+            "Target": "integrations/4kcw0mf"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "6hxr814",
+            "RouteKey": "OPTIONS /submit-access",
+            "Target": "integrations/ndmmtl8"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "7i7waaj",
+            "RouteKey": "GET /checkout-status",
+            "Target": "integrations/9nx3ype"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "9qvvlk9",
+            "RouteKey": "GET /api/cookie-diag",
+            "Target": "integrations/jed40mb"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "c41vkw1",
+            "RouteKey": "GET /tier-select-fetch",
+            "Target": "integrations/7fpfgih"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "efhb7zt",
+            "RouteKey": "POST /photo-upload-init",
+            "Target": "integrations/wos0zpb"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "f2c6093",
+            "RouteKey": "POST /send-committee-email",
+            "Target": "integrations/pynelz4"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "JWT",
+            "AuthorizerId": "gqix3c",
+            "RouteId": "ga0svtu",
+            "RouteKey": "POST /admin/founder-invite",
+            "Target": "integrations/b7v80t3"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "gdkbecs",
+            "RouteKey": "OPTIONS /founder-gate",
+            "Target": "integrations/g8a7nxt"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "hkp7hsu",
+            "RouteKey": "GET /checkout-context",
+            "Target": "integrations/9gmkybs"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "knsi7ot",
+            "RouteKey": "OPTIONS /create-lead",
+            "Target": "integrations/yanh001"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "kojl6bf",
+            "RouteKey": "POST /founder-gate",
+            "Target": "integrations/g8a7nxt"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "JWT",
+            "AuthorizerId": "gqix3c",
+            "RouteId": "ml266zu",
+            "RouteKey": "POST /admin/founder-token",
+            "Target": "integrations/b7v80t3"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "mlk6su5",
+            "RouteKey": "POST /activate-subscriber",
+            "Target": "integrations/mi27aij"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "pfvd7c5",
+            "RouteKey": "POST /review-action",
+            "Target": "integrations/9yojgvc"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "q1hfpt5",
+            "RouteKey": "ANY /prod/founder-c2",
+            "Target": "integrations/4kcw0mf"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "qt4nqs8",
+            "RouteKey": "OPTIONS /admin/founder-invite",
+            "Target": "integrations/b7v80t3"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "r60au6e",
+            "RouteKey": "POST /send-welcome-email",
+            "Target": "integrations/yuhibw9"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "t2n218r",
+            "RouteKey": "POST /create-lead",
+            "Target": "integrations/yanh001"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "vl8anra",
+            "RouteKey": "GET /photo-upload-status",
+            "Target": "integrations/7c0oc9q"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "wlywb1f",
+            "RouteKey": "OPTIONS /founder-validate",
+            "Target": "integrations/9uwbp7r"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "ygfvmud",
+            "RouteKey": "POST /checkout-context",
+            "Target": "integrations/9gmkybs"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "z091cqk",
+            "RouteKey": "POST /create-checkout-session",
+            "Target": "integrations/kfnj2pp"
+        },
+        {
+            "ApiKeyRequired": false,
+            "AuthorizationType": "NONE",
+            "RouteId": "zi7bknr",
+            "RouteKey": "POST /send-tier-select-email",
+            "Target": "integrations/uoko1dm"
+        }
+    ]
+}

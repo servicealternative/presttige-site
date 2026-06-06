@@ -1,0 +1,25 @@
+{
+    "Username": "e4a81458-50d1-704b-a71c-10b90450c7d4",
+    "UserAttributes": [
+        {
+            "Name": "email",
+            "Value": "codex.subscriber.tester@presttige.net"
+        },
+        {
+            "Name": "email_verified",
+            "Value": "true"
+        },
+        {
+            "Name": "name",
+            "Value": "Codex Subscriber Tester"
+        },
+        {
+            "Name": "sub",
+            "Value": "e4a81458-50d1-704b-a71c-10b90450c7d4"
+        }
+    ],
+    "UserCreateDate": "2026-06-06T21:23:11.798000+04:00",
+    "UserLastModifiedDate": "2026-06-06T21:23:11.798000+04:00",
+    "Enabled": true,
+    "UserStatus": "FORCE_CHANGE_PASSWORD"
+}
