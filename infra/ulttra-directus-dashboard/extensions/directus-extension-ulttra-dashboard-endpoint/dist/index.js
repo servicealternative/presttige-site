@@ -23,6 +23,8 @@ const FOUNDER_ADMIN_FUNCTION_NAME = process.env.FOUNDER_ADMIN_FUNCTION_NAME || '
 const COMMITTEE_EMAIL_FROM = process.env.COMMITTEE_EMAIL_FROM || 'committee@presttige.net';
 const EXPRESS_INTEREST_URL = process.env.EXPRESS_INTEREST_URL || 'https://presttige.net/?presttige_invited=1#express-interest';
 const TABLE_NAME = process.env.TABLE_NAME || 'presttige-db';
+const MEMBER_SET_PASSWORD_FUNCTION_NAME = process.env.MEMBER_SET_PASSWORD_FUNCTION_NAME || 'presttige-member-set-password';
+const MEMBER_COGNITO_POOL_NAME = process.env.MEMBER_COGNITO_POOL_NAME || 'presttige-members';
 const COST_CATEGORIES_COLLECTION = 'ulttra_dashboard_cost_categories';
 const COST_VALUES_COLLECTION = 'ulttra_dashboard_cost_monthly_values';
 const REVENUE_GOALS_COLLECTION = 'ulttra_dashboard_revenue_goals';
@@ -103,7 +105,7 @@ export default {
         const eligibleInviter = chairman || await isInternalInviterEligible(user.email);
         if (chairman && dashboard.metrics) {
           const financeMonth = normalizeMonthKey(req.query?.finance_month) || currentMonthKey(new Date());
-          const [manualFinance, registeredFounderCandidates] = await Promise.all([
+          const [manualFinance, registeredFounderCandidates, manualMemberActivation] = await Promise.all([
             readManualFinance(
               context,
               dashboard.project?.key || selectedProjectKey,
@@ -111,10 +113,12 @@ export default {
               dashboard.metrics.revenue,
             ),
             readRegisteredFounderCandidates(),
+            readManualMemberActivationControls(),
           ]);
           dashboard.metrics.manual_finance = manualFinance;
           dashboard.metrics.registered_founder_candidates = registeredFounderCandidates.active;
           dashboard.metrics.registered_founder_exclusions = registeredFounderCandidates.excluded;
+          dashboard.metrics.manual_member_activation = manualMemberActivation;
         }
         res.json({
           ok: true,
@@ -328,6 +332,81 @@ export default {
         });
       } catch (error) {
         sendRegisteredFounderExclusionError(res, error);
+      }
+    });
+
+    router.post('/member-email-action', async (req, res) => {
+      try {
+        const user = await requireDashboardUser(req, context);
+        requireChairman(user);
+        const leadId = normalizeString(req.body?.lead_id);
+        const action = normalizeString(req.body?.action).toLowerCase();
+        const confirmed = req.body?.confirm === true;
+        if (!leadId || !['activation', 'welcome'].includes(action)) {
+          res.status(400).json({ ok: false, status: 'ERROR', message: 'Member email action could not be prepared.' });
+          return;
+        }
+        if (!confirmed) {
+          res.status(400).json({ ok: false, status: 'CONFIRM_REQUIRED', message: 'Confirm this manual send before continuing.' });
+          return;
+        }
+
+        const lead = await readLeadById(leadId);
+        const member = manualMemberActivationRowFromLead(lead);
+        if (!member) {
+          res.status(404).json({ ok: false, status: 'NOT_FOUND', message: 'Member record was not found or is not ready for this control.' });
+          return;
+        }
+
+        const actionState = action === 'activation' ? member.activation_action : member.welcome_action;
+        if (!actionState?.enabled) {
+          res.status(409).json({
+            ok: false,
+            status: 'NOT_READY',
+            message: actionState?.reason || 'This member is not ready for that email.',
+            member,
+          });
+          return;
+        }
+
+        await writeManualMemberEmailAudit({
+          user,
+          lead,
+          action,
+          member,
+        });
+
+        const result = await invokeMemberSetPassword({
+          actorId: `directus:${user.id}`,
+          actorEmail: user.email,
+          leadId,
+          action,
+        });
+
+        if (!result.ok) {
+          res.status(result.statusCode || 500).json({
+            ok: false,
+            status: result.error || 'SEND_FAILED',
+            message: result.message || 'Member email could not be sent.',
+            member,
+          });
+          return;
+        }
+
+        const updatedLead = await readLeadById(leadId);
+        const updatedMember = manualMemberActivationRowFromLead(updatedLead);
+        res.status(200).json({
+          ok: true,
+          status: 'SENT',
+          action,
+          member: updatedMember,
+          email: result.activation_email || result.welcome_email || null,
+          message: action === 'activation'
+            ? `${member.name || 'Member'} activation email sent.`
+            : `${member.name || 'Member'} welcome email sent.`,
+        });
+      } catch (error) {
+        sendError(res, error);
       }
     });
 
@@ -1531,6 +1610,63 @@ async function readRegisteredFounderCandidates() {
   };
 }
 
+async function readManualMemberActivationControls() {
+  const items = [];
+  let ExclusiveStartKey = null;
+  do {
+    const scanInput = {
+      TableName: TABLE_NAME,
+      ProjectionExpression: [
+        'lead_id',
+        'email',
+        '#name',
+        'full_name',
+        'first_name',
+        'last_name',
+        '#tier',
+        'simulated_tier',
+        'selected_tier',
+        'effective_tier',
+        'subscriber_type',
+        'synthetic_test',
+        'review_status',
+        'cognito_sub',
+        'cognito_pool',
+        'account_status',
+        'password_set_at',
+        'activation_email_sent_at',
+        'activation_email_status',
+        'welcome_email_sent_at',
+        'welcome_email_status',
+        'checkout_token',
+        'checkout_token_status',
+        'checkout_token_expires_at',
+        'magic_token',
+        'magic_token_status',
+        'magic_token_expires_at',
+        'updated_at',
+      ].join(', '),
+      ExpressionAttributeNames: {
+        '#name': 'name',
+        '#tier': 'tier',
+      },
+    };
+    if (ExclusiveStartKey) scanInput.ExclusiveStartKey = ExclusiveStartKey;
+    const response = await ddb.send(new ScanCommand(scanInput));
+    items.push(...(response.Items || []));
+    ExclusiveStartKey = response.LastEvaluatedKey || null;
+  } while (ExclusiveStartKey);
+
+  const members = items
+    .map(manualMemberActivationRowFromLead)
+    .filter(Boolean)
+    .sort(sortManualMemberActivationRows);
+  return {
+    members,
+    count: members.length,
+  };
+}
+
 async function readLeadById(leadId) {
   if (!leadId) return null;
   const response = await ddb.send(new GetCommand({
@@ -1538,6 +1674,100 @@ async function readLeadById(leadId) {
     Key: { lead_id: leadId },
   }));
   return response.Item || null;
+}
+
+function manualMemberActivationRowFromLead(lead) {
+  if (!lead) return null;
+  const id = normalizeString(lead.lead_id);
+  const email = normalizeEmail(lead.email);
+  const name = normalizeString(lead.name || lead.full_name || [lead.first_name, lead.last_name].filter(Boolean).join(' '));
+  const accountStatus = normalizeType(lead.account_status);
+  const reviewStatus = normalizeType(lead.review_status);
+  const cognitoSubPresent = Boolean(normalizeString(lead.cognito_sub));
+  const cognitoPool = normalizeString(lead.cognito_pool);
+  const passwordSetAt = normalizeString(lead.password_set_at);
+  if (!id || !isValidEmail(email) || !name) return null;
+  if (reviewStatus !== 'approved') return null;
+  if (!cognitoSubPresent || cognitoPool !== MEMBER_COGNITO_POOL_NAME) return null;
+  if (!['password_pending', 'active'].includes(accountStatus)) return null;
+
+  const synthetic = isSynthetic(lead.synthetic_test);
+  const tier = normalizeType(lead.simulated_tier || lead.tier || lead.selected_tier || lead.effective_tier || lead.subscriber_type) || 'free';
+  const activationSentAt = normalizeString(lead.activation_email_sent_at) || null;
+  const welcomeSentAt = normalizeString(lead.welcome_email_sent_at) || null;
+  const activationReady = accountStatus === 'password_pending' && !passwordSetAt && hasActiveActivationToken(lead);
+  const welcomeReady = accountStatus === 'active' && Boolean(passwordSetAt);
+  return {
+    id,
+    email,
+    name,
+    tier,
+    synthetic_test: synthetic,
+    account_status: accountStatus,
+    password_set_at: passwordSetAt || null,
+    activation_email_sent_at: activationSentAt,
+    activation_email_status: normalizeString(lead.activation_email_status) || null,
+    welcome_email_sent_at: welcomeSentAt,
+    welcome_email_status: normalizeString(lead.welcome_email_status) || null,
+    activation_action: {
+      enabled: activationReady,
+      label: activationSentAt ? 'Re-send activation' : 'Send activation',
+      resend: Boolean(activationSentAt),
+      reason: activationReady ? '' : manualActionReason(lead, 'activation'),
+    },
+    welcome_action: {
+      enabled: welcomeReady,
+      label: welcomeSentAt ? 'Re-send welcome' : 'Send welcome',
+      resend: Boolean(welcomeSentAt),
+      reason: welcomeReady ? '' : manualActionReason(lead, 'welcome'),
+    },
+  };
+}
+
+function manualActionReason(lead, action) {
+  const accountStatus = normalizeType(lead.account_status);
+  if (action === 'activation') {
+    if (accountStatus !== 'password_pending') return 'Activation email is only available while password is pending.';
+    if (normalizeString(lead.password_set_at)) return 'Password is already set.';
+    if (!hasActiveActivationToken(lead)) return 'No active activation token is available.';
+    return 'Activation email is not available.';
+  }
+
+  if (accountStatus !== 'active') return 'Welcome email is available after the password is set.';
+  if (!normalizeString(lead.password_set_at)) return 'Password is not set yet.';
+  return 'Welcome email is not available.';
+}
+
+function hasActiveActivationToken(lead) {
+  return isUsableToken(lead.checkout_token, lead.checkout_token_status, lead.checkout_token_expires_at)
+    || isUsableToken(lead.magic_token, lead.magic_token_status, lead.magic_token_expires_at);
+}
+
+function isUsableToken(token, status, expiresAt) {
+  if (!normalizeString(token)) return false;
+  const normalizedStatus = normalizeType(status);
+  if (normalizedStatus && normalizedStatus !== 'active') return false;
+  const expiry = parseDate(expiresAt);
+  return !expiry || expiry.getTime() >= Date.now();
+}
+
+function parseDate(value) {
+  const normalized = normalizeString(value);
+  if (!normalized) return null;
+  const parsed = new Date(normalized);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function sortManualMemberActivationRows(left, right) {
+  const statusOrder = new Map([
+    ['password_pending', 0],
+    ['active', 1],
+  ]);
+  const leftStatus = statusOrder.get(left.account_status) ?? 99;
+  const rightStatus = statusOrder.get(right.account_status) ?? 99;
+  if (leftStatus !== rightStatus) return leftStatus - rightStatus;
+  if (left.synthetic_test !== right.synthetic_test) return left.synthetic_test ? 1 : -1;
+  return normalizeString(left.name).localeCompare(normalizeString(right.name), 'en');
 }
 
 function normalizeLeadIds(value) {
@@ -1793,6 +2023,91 @@ async function invokeFounderAdmin({ actorId, actorEmail, inviterEmail, invitedEm
     return { ok: false, statusCode: raw.statusCode, error: body.error };
   }
   return body;
+}
+
+async function invokeMemberSetPassword({ actorId, actorEmail, leadId, action }) {
+  const event = {
+    version: '2.0',
+    routeKey: 'POST /member-set-password',
+    rawPath: '/member-set-password',
+    requestContext: {
+      http: { method: 'POST', path: '/member-set-password' },
+      authorizer: {
+        jwt: {
+          claims: {
+            sub: actorId,
+            email: actorEmail,
+            'cognito:groups': 'Admins',
+          },
+        },
+      },
+    },
+    body: JSON.stringify({
+      action: action === 'activation' ? 'manual_activation' : 'manual_welcome',
+      lead_id: leadId,
+      force_resend: true,
+    }),
+  };
+  const response = await lambda.send(new InvokeCommand({
+    FunctionName: MEMBER_SET_PASSWORD_FUNCTION_NAME,
+    InvocationType: 'RequestResponse',
+    Payload: Buffer.from(JSON.stringify(event)),
+  }));
+  const raw = JSON.parse(Buffer.from(response.Payload || []).toString('utf8') || '{}');
+  const body = typeof raw.body === 'string' ? JSON.parse(raw.body || '{}') : raw.body || {};
+  if (response.FunctionError || raw.statusCode >= 400 || body.error) {
+    return {
+      ok: false,
+      statusCode: raw.statusCode || 500,
+      error: body.error || response.FunctionError || 'send_failed',
+      message: body.message || 'Member email could not be sent.',
+    };
+  }
+  return {
+    ok: true,
+    statusCode: raw.statusCode || 200,
+    ...body,
+  };
+}
+
+async function writeManualMemberEmailAudit({ user, lead, action, member }) {
+  const timestamp = new Date().toISOString();
+  const actionName = action === 'activation'
+    ? 'chairman_manual_member_activation_email_send'
+    : 'chairman_manual_member_welcome_email_send';
+  await ddb.send(new PutCommand({
+    TableName: AUDIT_TABLE_NAME,
+    Item: {
+      audit_id: randomUUID(),
+      timestamp,
+      lead_id: normalizeString(lead.lead_id),
+      action: actionName,
+      actor_id: `directus:${user.id}`,
+      actor_email: user.email,
+      reviewer_id: `directus:${user.id}`,
+      previous_state: {
+        account_status: normalizeString(lead.account_status) || null,
+        password_set_at: normalizeString(lead.password_set_at) || null,
+        activation_email_sent_at: normalizeString(lead.activation_email_sent_at) || null,
+        welcome_email_sent_at: normalizeString(lead.welcome_email_sent_at) || null,
+      },
+      new_state: {
+        requested_email_kind: action,
+        force_resend: true,
+        recipient_mode: member.synthetic_test ? 'fq_test' : 'member',
+        synthetic_test: member.synthetic_test,
+        account_status: member.account_status,
+      },
+      metadata: {
+        component: 'directus-extension-ulttra-dashboard-endpoint',
+        source: 'chairman_cockpit_manual_member_email',
+        one_member_at_a_time: true,
+      },
+      is_test: member.synthetic_test,
+      synthetic_test: member.synthetic_test,
+    },
+    ConditionExpression: 'attribute_not_exists(audit_id)',
+  }));
 }
 
 async function founderInviteOutcome(result, invitedEmail, invitedName = '') {

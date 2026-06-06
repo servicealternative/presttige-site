@@ -42,6 +42,10 @@ const Dashboard = defineComponent({
     const selectedRegisteredFounderLeadIds = ref([]);
     const registeredInviteMessage = ref('');
     const registeredInviteSuccess = ref(false);
+    const memberEmailBusyLeadId = ref('');
+    const memberEmailBusyKind = ref('');
+    const memberEmailMessage = ref('');
+    const memberEmailSuccess = ref(false);
     const tierDetailOpen = ref(false);
     const selectedPriorityMemberId = ref('');
     const selectedProject = ref('global');
@@ -287,6 +291,36 @@ const Dashboard = defineComponent({
       }
     }
 
+    async function submitManualMemberEmail(member, kind) {
+      if (!member?.id || !['activation', 'welcome'].includes(kind)) return;
+      const actionState = kind === 'activation' ? member.activation_action : member.welcome_action;
+      if (!actionState?.enabled) return;
+      const emailLabel = kind === 'activation' ? 'activation email' : 'welcome email';
+      const verb = actionState.resend ? 'Re-send' : 'Send';
+      const confirmed = window.confirm(`${verb} the ${emailLabel} for ${member.name || 'this member'}?`);
+      if (!confirmed) return;
+      memberEmailBusyLeadId.value = member.id;
+      memberEmailBusyKind.value = kind;
+      memberEmailMessage.value = '';
+      memberEmailSuccess.value = false;
+      try {
+        const response = await api.post('/ulttra-dashboard/member-email-action', {
+          lead_id: member.id,
+          action: kind,
+          confirm: true,
+        });
+        memberEmailSuccess.value = response.data?.status === 'SENT';
+        memberEmailMessage.value = response.data?.message || 'Member email request processed.';
+        await loadDashboard(true);
+      } catch (err) {
+        memberEmailSuccess.value = false;
+        memberEmailMessage.value = err?.response?.data?.message || 'Member email could not be sent.';
+      } finally {
+        memberEmailBusyLeadId.value = '';
+        memberEmailBusyKind.value = '';
+      }
+    }
+
     function selectProject(projectKey) {
       if (!projectKey || projectKey === selectedProject.value) return;
       selectedProject.value = projectKey;
@@ -409,6 +443,10 @@ const Dashboard = defineComponent({
       selectedRegisteredFounderLeadIds,
       registeredInviteMessage,
       registeredInviteSuccess,
+      memberEmailBusyLeadId,
+      memberEmailBusyKind,
+      memberEmailMessage,
+      memberEmailSuccess,
       tierDetailOpen,
       selectedPriorityMemberId,
       selectedProject,
@@ -427,6 +465,7 @@ const Dashboard = defineComponent({
       toggleRegisteredFounderExclusion,
       toggleRegisteredFounderSelection,
       submitSelectedRegisteredFounderExclusions,
+      submitManualMemberEmail,
       changeFinanceMonth,
       createCostCategory,
       saveCostCategory,
@@ -501,6 +540,14 @@ const Dashboard = defineComponent({
         toggleExclude: (candidate, excluded) => this.toggleRegisteredFounderExclusion(candidate, excluded),
         toggleSelect: (candidate, checked) => this.toggleRegisteredFounderSelection(candidate, checked),
         excludeSelected: () => this.submitSelectedRegisteredFounderExclusions(),
+      }) : null,
+      data.current_user?.is_chairman ? manualMemberEmailSection({
+        members: metrics.manual_member_activation?.members || [],
+        busyLeadId: this.memberEmailBusyLeadId,
+        busyKind: this.memberEmailBusyKind,
+        message: this.memberEmailMessage,
+        success: this.memberEmailSuccess,
+        send: (member, kind) => this.submitManualMemberEmail(member, kind),
       }) : null,
       data.current_user?.eligible_inviter ? h('section', {
         style: {
@@ -917,6 +964,131 @@ function registeredFounderInviteSection({
   ]);
 }
 
+function manualMemberEmailSection({ members, busyLeadId, busyKind, message, success, send }) {
+  const rows = Array.isArray(members) ? members : [];
+  return h('section', {
+    style: {
+      border: '1px solid var(--theme--border-color)',
+      borderRadius: '8px',
+      padding: '24px',
+      background: 'var(--theme--background)',
+      marginBottom: '20px',
+    },
+  }, [
+    h('div', {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '16px',
+        alignItems: 'center',
+        marginBottom: '18px',
+      },
+    }, [
+      h('div', [
+        h('h2', { style: { margin: '0 0 6px', fontSize: '22px' } }, 'Member Activation'),
+        h('p', { style: { margin: 0, color: 'var(--theme--foreground-subdued)' } }, 'Manual activation and welcome emails, one member at a time.'),
+      ]),
+      h('span', { style: { color: 'var(--theme--foreground-subdued)', fontSize: '13px', whiteSpace: 'nowrap' } }, `${rows.length} listed`),
+    ]),
+    rows.length ? h('div', {
+      style: {
+        overflowX: 'auto',
+        overflowY: 'auto',
+        maxHeight: '292px',
+        border: '1px solid var(--theme--border-color)',
+        borderRadius: '8px',
+      },
+    }, [
+      h('table', {
+        style: {
+          width: '100%',
+          minWidth: '1040px',
+          borderCollapse: 'separate',
+          borderSpacing: 0,
+        },
+      }, [
+        h('thead', null, [
+          h('tr', null, [
+            founderCandidateHeader('Name'),
+            founderCandidateHeader('Email'),
+            founderCandidateHeader('Tier'),
+            founderCandidateHeader('Account'),
+            founderCandidateHeader('Password set'),
+            founderCandidateHeader('Activation email'),
+            founderCandidateHeader('Welcome email'),
+            founderCandidateHeader('Actions', 'right'),
+          ]),
+        ]),
+        h('tbody', null, rows.map((member) => {
+          const activationBusy = busyLeadId === member.id && busyKind === 'activation';
+          const welcomeBusy = busyLeadId === member.id && busyKind === 'welcome';
+          return h('tr', { key: member.id }, [
+            founderCandidateCell([
+              h('strong', { style: { color: 'var(--theme--foreground)', fontWeight: 600 } }, member.name || 'Unnamed'),
+              member.synthetic_test ? h('span', {
+                style: {
+                  marginLeft: '8px',
+                  color: 'var(--theme--primary)',
+                  fontSize: '12px',
+                  whiteSpace: 'nowrap',
+                },
+              }, 'synthetic') : null,
+            ]),
+            founderCandidateCell(member.email || ''),
+            founderCandidateCell(tierLabel(member.tier || 'free')),
+            founderCandidateCell(titleCase(member.account_status || '')),
+            founderCandidateCell(formatTimestamp(member.password_set_at)),
+            founderCandidateCell(emailState(member.activation_email_sent_at, member.activation_email_status)),
+            founderCandidateCell(emailState(member.welcome_email_sent_at, member.welcome_email_status)),
+            founderCandidateCell(h('div', {
+              style: {
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '8px',
+                flexWrap: 'wrap',
+              },
+            }, [
+              h('button', {
+                type: 'button',
+                class: 'button',
+                disabled: activationBusy || welcomeBusy || !member.activation_action?.enabled,
+                title: member.activation_action?.enabled ? '' : member.activation_action?.reason || 'Not ready',
+                style: {
+                  minHeight: '34px',
+                  whiteSpace: 'nowrap',
+                },
+                onClick: () => send(member, 'activation'),
+              }, activationBusy ? 'Sending' : member.activation_action?.label || 'Send activation'),
+              h('button', {
+                type: 'button',
+                class: 'button',
+                disabled: activationBusy || welcomeBusy || !member.welcome_action?.enabled,
+                title: member.welcome_action?.enabled ? '' : member.welcome_action?.reason || 'Not ready',
+                style: {
+                  minHeight: '34px',
+                  whiteSpace: 'nowrap',
+                },
+                onClick: () => send(member, 'welcome'),
+              }, welcomeBusy ? 'Sending' : member.welcome_action?.label || 'Send welcome'),
+            ]), 'right'),
+          ]);
+        })),
+      ]),
+    ]) : h('p', {
+      style: {
+        margin: 0,
+        color: 'var(--theme--foreground-subdued)',
+      },
+    }, 'No member accounts are ready for manual activation or welcome emails.'),
+    message ? h('p', {
+      style: {
+        margin: '14px 0 0',
+        color: success ? 'var(--success)' : 'var(--theme--foreground-subdued)',
+      },
+    }, message) : null,
+  ]);
+}
+
 function founderCandidateHeader(content, align = 'left') {
   return h('th', {
     style: {
@@ -950,6 +1122,8 @@ function founderCandidateCell(content, align = 'left') {
 
 function tierLabel(tier) {
   const value = String(tier || 'free').toLowerCase();
+  if (value === 'founder') return 'Founder';
+  if (value === 'tester') return 'Tester';
   if (value === 'club') return 'Club';
   if (value === 'premier') return 'Premier';
   if (value === 'patron') return 'Patron';
@@ -1618,10 +1792,26 @@ function rankedList(rows, emptyText) {
 
 function titleCase(value) {
   return String(value || '')
+    .replace(/_/g, ' ')
     .split(/\s+/)
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
     .join(' ');
+}
+
+function formatTimestamp(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return 'Not set';
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return raw;
+  return date.toISOString().replace('T', ' ').slice(0, 16);
+}
+
+function emailState(sentAt, status) {
+  const state = [];
+  if (sentAt) state.push(formatTimestamp(sentAt));
+  if (status) state.push(titleCase(status));
+  return state.length ? state.join(', ') : 'Not sent';
 }
 
 function formatPercent(value) {
