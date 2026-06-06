@@ -2321,8 +2321,7 @@ function httpError(status, message) {
 function sendRegisteredFounderExclusionError(res, error) {
   const code = normalizeString(error?.name || error?.Code || error?.code);
   console.error('registered-founder-exclusion failed', {
-    code: code || null,
-    message: normalizeString(error?.message) || null,
+    status: code || 'unknown_error',
   });
   if (code === 'AccessDeniedException' || code === 'AccessDenied' || code === 'UnauthorizedOperation') {
     res.status(500).json({

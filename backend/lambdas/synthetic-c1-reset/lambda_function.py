@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import os
 
 import boto3
@@ -110,6 +111,13 @@ def lambda_handler(event, context):
     }
 
 
+def safe_hash(value):
+    raw = str(value or "").strip()
+    if not raw:
+        return "none"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+
+
 def reset_synthetic_lead(lead_id, email, now):
     names = {"#updated_at": "updated_at"}
     values = {
@@ -142,4 +150,4 @@ def reset_synthetic_lead(lead_id, email, now):
         ExpressionAttributeNames=names,
         ExpressionAttributeValues=values,
     )
-    print(f"SYNTHETIC_C1_RESET_LEAD lead_id={lead_id} email={email or ''}")
+    print(f"SYNTHETIC_C1_RESET_LEAD lead_hash={safe_hash(lead_id)} email_hash={safe_hash(email)}")

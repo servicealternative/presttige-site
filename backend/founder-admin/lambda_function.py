@@ -78,6 +78,30 @@ def format_source(address):
     return f"Presttige <{address}>"
 
 
+def safe_hash(value):
+    raw = normalize_string(value)
+    if not raw:
+        return None
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+
+
+def safe_error_type(exc):
+    return exc.__class__.__name__
+
+
+def email_send_summary(result):
+    if not isinstance(result, dict):
+        return {"status": "unknown"}
+    return {
+        "sent": bool(result.get("sent")),
+        "skipped": bool(result.get("skipped")),
+        "reason": normalize_string(result.get("reason")) or None,
+        "message_id_present": bool(result.get("message_id")),
+        "sent_at_present": bool(result.get("sent_at")),
+        "link_target_present": bool(result.get("link_target")),
+    }
+
+
 def lambda_handler(event, context):
     method = request_method(event)
     if method == "OPTIONS":
@@ -123,8 +147,7 @@ def lambda_handler(event, context):
             json.dumps(
                 {
                     "event": "founder_admin_error",
-                    "name": exc.__class__.__name__,
-                    "message": str(exc),
+                    "error_type": safe_error_type(exc),
                 }
             )
         )
@@ -530,9 +553,9 @@ def send_founder_invite_emails(lead_id, invited_email, invited_name, inviter, in
         json.dumps(
             {
                 "event": "founder_invite_emails_processed",
-                "lead_id": lead_id,
-                "invitee": result["invitee"],
-                "inviter": result["inviter"],
+                "lead_hash": safe_hash(lead_id),
+                "invitee": email_send_summary(result["invitee"]),
+                "inviter": email_send_summary(result["inviter"]),
             }
         )
     )
@@ -602,8 +625,7 @@ def read_directus_chairman_person(email):
             json.dumps(
                 {
                     "event": "chairman_directus_lookup_failed",
-                    "name": exc.__class__.__name__,
-                    "message": str(exc),
+                    "error_type": safe_error_type(exc),
                 }
             )
         )
@@ -688,7 +710,7 @@ def send_founder_inviter_email_if_needed(lead, inviter):
             json.dumps(
                 {
                     "event": "founder_inviter_email_skipped",
-                    "lead_id": lead_id,
+                    "lead_hash": safe_hash(lead_id),
                     "reason": "chairman_inviter",
                 }
             )
@@ -704,7 +726,7 @@ def send_founder_inviter_email_if_needed(lead, inviter):
             json.dumps(
                 {
                     "event": "founder_inviter_email_skipped",
-                    "lead_id": lead_id,
+                    "lead_hash": safe_hash(lead_id),
                     "reason": "missing_inviter_email",
                 }
             )

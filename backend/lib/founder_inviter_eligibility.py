@@ -231,8 +231,7 @@ def is_eligible_founder_inviter(
         print(
             {
                 "event": "founder_inviter_ulttra_lookup_failed",
-                "name": exc.__class__.__name__,
-                "message": str(exc),
+                "error_type": exc.__class__.__name__,
             }
         )
 
@@ -242,8 +241,7 @@ def is_eligible_founder_inviter(
         print(
             {
                 "event": "founder_inviter_eligibility_lookup_failed",
-                "name": exc.__class__.__name__,
-                "message": str(exc),
+                "error_type": exc.__class__.__name__,
             }
         )
         return {"eligible": False, "reason": "lookup_failed"}
@@ -266,8 +264,7 @@ def is_eligible_founder_inviter(
         print(
             {
                 "event": "founder_inviter_founder_lookup_failed",
-                "name": exc.__class__.__name__,
-                "message": str(exc),
+                "error_type": exc.__class__.__name__,
             }
         )
         return {"eligible": False, "reason": "founder_lookup_failed"}
