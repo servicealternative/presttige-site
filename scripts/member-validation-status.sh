@@ -92,6 +92,12 @@ if [[ "$PREVIOUS_STATUS" == "None" ]]; then
   PREVIOUS_STATUS="not_started"
 fi
 
+if [[ "$SYNTHETIC" == "True" ]]; then
+  SYNTHETIC_JSON="true"
+else
+  SYNTHETIC_JSON="false"
+fi
+
 TIMESTAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 AUDIT_ID="$(uuidgen | tr '[:upper:]' '[:lower:]')"
 TMP_JSON="$(mktemp)"
@@ -128,10 +134,10 @@ payload = [
                     "M": {
                         "component": {"S": "scripts/member-validation-status.sh"},
                         "source": {"S": "operations_cli"},
-                        "synthetic_test": {"BOOL": ${SYNTHETIC,,}}
+                        "synthetic_test": {"BOOL": ${SYNTHETIC_JSON}}
                     }
                 },
-                "is_test": {"BOOL": ${SYNTHETIC,,}}
+                "is_test": {"BOOL": ${SYNTHETIC_JSON}}
             },
             "ConditionExpression": "attribute_not_exists(audit_id)"
         }
