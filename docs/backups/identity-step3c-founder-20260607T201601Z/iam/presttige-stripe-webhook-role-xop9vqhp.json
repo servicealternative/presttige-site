@@ -1,0 +1,26 @@
+{
+    "Role": {
+        "Path": "/service-role/",
+        "RoleName": "presttige-stripe-webhook-role-xop9vqhp",
+        "RoleId": "AROAU72LGH2AFBXSLI67O",
+        "Arn": "arn:aws:iam::343218208384:role/service-role/presttige-stripe-webhook-role-xop9vqhp",
+        "CreateDate": "2026-04-08T14:08:05+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "lambda.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                }
+            ]
+        },
+        "MaxSessionDuration": 3600,
+        "RoleLastUsed": {
+            "LastUsedDate": "2026-06-06T20:11:21+00:00",
+            "Region": "us-east-1"
+        }
+    }
+}

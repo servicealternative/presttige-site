@@ -1,0 +1,19 @@
+{
+    "RoleName": "presttige-stripe-webhook-role-xop9vqhp",
+    "PolicyName": "presttige-stripe-webhook-member-cognito",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "cognito-idp:AdminCreateUser",
+                    "cognito-idp:AdminGetUser",
+                    "cognito-idp:AdminAddUserToGroup",
+                    "cognito-idp:AdminRemoveUserFromGroup"
+                ],
+                "Resource": "arn:aws:cognito-idp:us-east-1:343218208384:userpool/us-east-1_hpwdNFGss"
+            }
+        ]
+    }
+}

@@ -1,0 +1,79 @@
+{
+    "Users": [
+        {
+            "Username": "8438f438-3041-704d-6039-a1e78578043b",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "antoniompereira@me.com"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "name",
+                    "Value": "Antonio Manuel Pereira"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "8438f438-3041-704d-6039-a1e78578043b"
+                }
+            ],
+            "UserCreateDate": "2026-06-06T21:23:09.703000+04:00",
+            "UserLastModifiedDate": "2026-06-06T21:23:09.703000+04:00",
+            "Enabled": true,
+            "UserStatus": "FORCE_CHANGE_PASSWORD"
+        },
+        {
+            "Username": "e4a81458-50d1-704b-a71c-10b90450c7d4",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "codex.subscriber.tester@presttige.net"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "name",
+                    "Value": "Codex Subscriber Tester"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "e4a81458-50d1-704b-a71c-10b90450c7d4"
+                }
+            ],
+            "UserCreateDate": "2026-06-06T21:23:11.798000+04:00",
+            "UserLastModifiedDate": "2026-06-06T21:23:11.798000+04:00",
+            "Enabled": true,
+            "UserStatus": "FORCE_CHANGE_PASSWORD"
+        },
+        {
+            "Username": "842844e8-a0f1-709f-440b-6a40cc9559bb",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "analuisasf@gmail.com"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "name",
+                    "Value": "Ana Luisa"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "842844e8-a0f1-709f-440b-6a40cc9559bb"
+                }
+            ],
+            "UserCreateDate": "2026-06-06T21:23:13.947000+04:00",
+            "UserLastModifiedDate": "2026-06-06T21:23:13.947000+04:00",
+            "Enabled": true,
+            "UserStatus": "FORCE_CHANGE_PASSWORD"
+        }
+    ]
+}

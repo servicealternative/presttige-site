@@ -1,0 +1,11 @@
+{
+    "PolicyNames": [
+        "presttige-dynamodb-write",
+        "presttige-stripe-webhook-member-cognito",
+        "presttige-stripe-webhook-mr5",
+        "presttige-stripe-webhook-send-welcome-email",
+        "presttige-stripe-webhook-tester-purge",
+        "presttige-webhook-dynamodb-update",
+        "ulttra-dynamodb-access"
+    ]
+}
