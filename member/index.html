@@ -283,6 +283,10 @@
       text-transform: uppercase;
     }
 
+    .nav-item:not(:disabled) {
+      cursor: pointer;
+    }
+
     .nav-item[aria-current="page"] {
       border-color: rgba(140, 112, 64, 0.34);
       color: var(--pp-gold);
@@ -291,6 +295,11 @@
     .nav-item:disabled {
       cursor: not-allowed;
       opacity: 0.58;
+    }
+
+    .nav-item.is-silent-locked {
+      color: #A9A196;
+      opacity: 1;
     }
 
     .member-body {
@@ -376,6 +385,16 @@
       background: var(--pp-paper);
     }
 
+    .section-row.is-silent-locked {
+      background: #F0ECE4;
+      color: #A39B90;
+    }
+
+    .section-row.is-silent-locked h3,
+    .section-row.is-silent-locked p {
+      color: #A39B90;
+    }
+
     .section-row h3 {
       margin: 0;
       font-family: "Cormorant Garamond", Georgia, serif;
@@ -403,6 +422,46 @@
       text-align: center;
       text-transform: uppercase;
       white-space: nowrap;
+    }
+
+    .status-badge:empty {
+      display: none;
+    }
+
+    .status-badge.action-badge {
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .status-badge.action-badge:focus-visible {
+      outline: 1px solid var(--pp-gold);
+      outline-offset: 3px;
+    }
+
+    .section-row.is-active {
+      border-left: 2px solid var(--pp-gold);
+    }
+
+    .section-panel {
+      border: 1px solid var(--pp-hairline);
+      padding: 24px;
+      background: #fffdf8;
+    }
+
+    .section-panel h2 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 34px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .section-panel p {
+      margin: 12px 0 0;
+      color: var(--pp-muted);
+      font-size: 16px;
+      line-height: 1.7;
     }
 
     .member-side {
@@ -525,6 +584,7 @@
         ? "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/member-auth"
         : "/member-api";
       const app = document.getElementById("app");
+      const VALIDATION_REQUIRED_SECTIONS = new Set(["profile", "photos", "privacy", "founder"]);
 
       loadSession();
 
@@ -612,11 +672,19 @@
       }
 
       function renderMemberArea(member) {
+        renderMemberShell(member, "overview");
+      }
+
+      function renderMemberShell(member, activeSectionKey) {
         const tier = normalizeTier(member?.tier);
         const tierLabel = tierLabelFor(tier);
         const isFounder = tier === "founder";
         const firstName = firstNameOf(member?.name);
+        const isValidated = isMemberValidated(member);
         const sections = memberSections(tier);
+        const activeSection = activeSectionKey === "overview"
+          ? null
+          : sections.find((section) => section.key === activeSectionKey);
 
         app.innerHTML = `
           <section class="member-frame">
@@ -626,11 +694,8 @@
                 <span class="brand-name">Presttige</span>
               </div>
               <nav class="member-nav" aria-label="Member area">
-                <button class="nav-item" type="button" aria-current="page">Overview</button>
-                <button class="nav-item" type="button" disabled>Profile</button>
-                <button class="nav-item" type="button" disabled>Photos</button>
-                <button class="nav-item" type="button" disabled>Membership</button>
-                <button class="nav-item" type="button" disabled>Privacy</button>
+                <button class="nav-item" type="button" data-section="overview" ${activeSection ? "" : 'aria-current="page"'}>Overview</button>
+                ${sections.map((section) => renderNavItem(section, isValidated, activeSectionKey)).join("")}
               </nav>
             </header>
             <div class="member-body">
@@ -657,9 +722,10 @@
                 <div>
                   <p class="eyebrow">Next Sections</p>
                   <div class="section-list">
-                    ${sections.map(renderSectionRow).join("")}
+                    ${sections.map((section) => renderSectionRow(section, isValidated, activeSectionKey)).join("")}
                   </div>
                 </div>
+                ${activeSection ? renderSectionPanel(activeSection) : ""}
               </section>
               <aside class="member-side" aria-label="Membership details">
                 <div class="side-panel tier-card ${isFounder ? "is-founder" : ""}">
@@ -680,60 +746,132 @@
           </section>
         `;
         document.getElementById("sign-out").addEventListener("click", signOut);
+        app.querySelectorAll("[data-section]").forEach((button) => {
+          button.addEventListener("click", () => openMemberSection(member, button.dataset.section));
+        });
       }
 
-      function renderSectionRow(section) {
+      function renderNavItem(section, isValidated, activeSectionKey) {
+        const locked = isSectionLocked(section, isValidated);
+        const current = activeSectionKey === section.key;
         return `
-          <article class="section-row">
+          <button
+            class="nav-item ${locked ? "is-silent-locked" : ""}"
+            type="button"
+            ${locked ? "disabled" : `data-section="${escapeHtml(section.key)}"`}
+            ${current ? 'aria-current="page"' : ""}
+          >${escapeHtml(section.title)}</button>
+        `;
+      }
+
+      function renderSectionRow(section, isValidated, activeSectionKey) {
+        const locked = isSectionLocked(section, isValidated);
+        const current = activeSectionKey === section.key;
+        return `
+          <article class="section-row ${locked ? "is-silent-locked" : ""} ${current ? "is-active" : ""}">
             <div>
               <h3>${escapeHtml(section.title)}</h3>
               <p>${escapeHtml(section.copy)}</p>
             </div>
-            <span class="status-badge">${escapeHtml(section.status)}</span>
+            ${locked
+              ? '<span class="status-badge"></span>'
+              : `<button class="status-badge action-badge" type="button" data-section="${escapeHtml(section.key)}">${escapeHtml(section.status)}</button>`}
           </article>
+        `;
+      }
+
+      function renderSectionPanel(section) {
+        return `
+          <div class="section-panel" aria-live="polite">
+            <p class="eyebrow">${escapeHtml(section.title)}</p>
+            <h2>${escapeHtml(section.title)}</h2>
+            <p>${escapeHtml(section.openCopy)}</p>
+          </div>
         `;
       }
 
       function memberSections(tier) {
         const base = [
           {
+            key: "profile",
             title: "Profile",
             copy: "Your member details will appear here as the profile area opens.",
-            status: "Coming",
+            openCopy: "This private profile area is prepared for the profile step.",
+            status: "Open",
+            requiresValidation: true,
           },
           {
+            key: "photos",
             title: "Photos",
             copy: "Your photos will appear here when the photo area opens.",
-            status: "Coming",
+            openCopy: "This private photo area is prepared for the photo step.",
+            status: "Open",
+            requiresValidation: true,
           },
           {
+            key: "membership",
             title: "Membership",
             copy: "Tier details and access state are visible here first.",
-            status: "Prepared",
+            openCopy: "Your membership summary is available in this shell.",
+            status: "View",
+            requiresValidation: false,
           },
           {
+            key: "privacy",
             title: "Privacy",
             copy: "Privacy controls will appear here when the privacy area opens.",
-            status: "Coming",
+            openCopy: "This private privacy area is prepared for the privacy step.",
+            status: "Open",
+            requiresValidation: true,
           },
         ];
 
         if (tier === "founder") {
           base.splice(2, 0, {
+            key: "founder",
             title: "Founder",
             copy: "Founder-specific access will open here in the dedicated Founder step.",
-            status: "Coming",
+            openCopy: "This private Founder area is prepared for the dedicated Founder step.",
+            status: "Open",
+            requiresValidation: true,
           });
         }
 
         return base;
       }
 
+      async function openMemberSection(member, sectionKey) {
+        if (sectionKey === "overview") {
+          renderMemberShell(member, "overview");
+          return;
+        }
+
+        const tier = normalizeTier(member?.tier);
+        const section = memberSections(tier).find((item) => item.key === sectionKey);
+        if (!section || isSectionLocked(section, isMemberValidated(member))) {
+          return;
+        }
+
+        if (section.requiresValidation) {
+          await api("member-action", { section: section.key });
+        }
+        renderMemberShell(member, section.key);
+      }
+
+      function isSectionLocked(section, isValidated) {
+        return Boolean(section.requiresValidation || VALIDATION_REQUIRED_SECTIONS.has(section.key)) && !isValidated;
+      }
+
+      function isMemberValidated(member) {
+        return member?.validation?.is_validated === true ||
+          String(member?.validation_status || "").toLowerCase() === "validated";
+      }
+
       function renderPasswordPending(payload) {
         const activationUrl = payload.activation_url || "";
         renderEntry(`
           <p class="eyebrow">Account Setup</p>
-          <h2 class="title">Password pending.</h2>
+          <h2 class="title">Complete setup.</h2>
           <p class="copy">Your account setup is not complete yet. Complete the password step before entering the member area.</p>
           <div class="actions">
             ${activationUrl ? `<a class="button" href="${escapeHtml(activationUrl)}">Set password</a>` : ""}
@@ -910,7 +1048,7 @@
       function statusLabel(value) {
         const status = String(value || "").trim().toLowerCase();
         if (status === "active") return "Active";
-        if (status === "password_pending") return "Password pending";
+        if (status === "password_pending") return "Complete setup";
         return titleCase(status || "Active");
       }
 

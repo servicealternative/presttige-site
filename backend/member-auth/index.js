@@ -39,6 +39,13 @@ const COOKIE_ID = "__Host-pp_member_id";
 const COOKIE_REFRESH = "__Host-pp_member_refresh";
 const ACTIVE_ACCOUNT_STATUS = "active";
 const PASSWORD_PENDING_STATUS = "password_pending";
+const VALIDATED_STATUS = "validated";
+const VALIDATION_REQUIRED_ACTIONS = new Set([
+  "profile",
+  "photos",
+  "privacy",
+  "founder",
+]);
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: REGION }));
 const cognito = new CognitoIdentityProviderClient({ region: REGION });
@@ -65,6 +72,9 @@ exports.handler = async (event) => {
     }
     if (route === "confirm-reset") {
       return handleConfirmReset(event);
+    }
+    if (route === "member-action") {
+      return handleMemberAction(event);
     }
 
     return response(event, 404, { ok: false, status: "NOT_FOUND" }, []);
@@ -155,22 +165,7 @@ async function handleLogin(event) {
 }
 
 async function handleSession(event) {
-  const cookies = parseCookies(event);
-  let accessToken = cookies[COOKIE_ACCESS] || "";
-  const refreshToken = cookies[COOKIE_REFRESH] || "";
-  let refreshedTokens = null;
-
-  if (!accessToken && refreshToken) {
-    refreshedTokens = await refreshFromToken(refreshToken);
-    accessToken = refreshedTokens?.AccessToken || "";
-  }
-
-  let session = await sessionFromAccessToken(accessToken);
-  if (!session.ok && refreshToken) {
-    refreshedTokens = await refreshFromToken(refreshToken);
-    accessToken = refreshedTokens?.AccessToken || "";
-    session = await sessionFromAccessToken(accessToken);
-  }
+  const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
 
   if (!session.ok) {
     logAuth("session", session.status || "invalid", {
@@ -192,6 +187,56 @@ async function handleSession(event) {
     ok: true,
     status: "ACTIVE",
     member: publicMember(session.member),
+  }, cookiesToSet);
+}
+
+async function handleMemberAction(event) {
+  const body = parseBody(event);
+  const section = normalizeText(body.section).toLowerCase();
+  const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
+
+  if (!session.ok) {
+    logAuth("member_action", session.status || "invalid", {
+      sub_hash: hashIdentifier(session.cognito_sub),
+    });
+    return response(event, session.statusCode || 401, session, clearSessionCookies());
+  }
+
+  const actionHash = hashIdentifier(section);
+  if (!VALIDATION_REQUIRED_ACTIONS.has(section)) {
+    logAuth("member_action", "unknown", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      action_hash: actionHash,
+    });
+    return response(event, 404, {
+      ok: false,
+      status: "ACTION_UNAVAILABLE",
+    }, []);
+  }
+
+  const cookiesToSet = refreshedTokens
+    ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
+    : [];
+
+  if (!isMemberValidated(session.member)) {
+    logAuth("member_action", "unavailable", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      action_hash: actionHash,
+    });
+    return response(event, 403, {
+      ok: false,
+      status: "ACTION_UNAVAILABLE",
+    }, cookiesToSet);
+  }
+
+  logAuth("member_action", "available", {
+    lead_hash: hashIdentifier(session.member.lead_id),
+    action_hash: actionHash,
+  });
+  return response(event, 200, {
+    ok: true,
+    status: "ACTION_AVAILABLE",
+    section,
   }, cookiesToSet);
 }
 
@@ -294,6 +339,27 @@ async function handleConfirmReset(event) {
       message: "Password reset could not be completed.",
     }, []);
   }
+}
+
+async function memberSessionFromEvent(event) {
+  const cookies = parseCookies(event);
+  let accessToken = cookies[COOKIE_ACCESS] || "";
+  const refreshToken = cookies[COOKIE_REFRESH] || "";
+  let refreshedTokens = null;
+
+  if (!accessToken && refreshToken) {
+    refreshedTokens = await refreshFromToken(refreshToken);
+    accessToken = refreshedTokens?.AccessToken || "";
+  }
+
+  let session = await sessionFromAccessToken(accessToken);
+  if (!session.ok && refreshToken) {
+    refreshedTokens = await refreshFromToken(refreshToken);
+    accessToken = refreshedTokens?.AccessToken || "";
+    session = await sessionFromAccessToken(accessToken);
+  }
+
+  return { session, refreshedTokens, refreshToken };
 }
 
 async function sessionFromAccessToken(accessToken) {
@@ -512,8 +578,15 @@ function publicMember(lead) {
     tier: canonicalTier(lead),
     account_status: normalizeText(lead.account_status).toLowerCase(),
     validation_status: normalizeText(lead.validation_status).toLowerCase() || "not_started",
+    validation: {
+      is_validated: isMemberValidated(lead),
+    },
     member_area_ready: true,
   };
+}
+
+function isMemberValidated(lead) {
+  return normalizeText(lead?.validation_status).toLowerCase() === VALIDATED_STATUS;
 }
 
 function canonicalTier(lead) {
@@ -590,7 +663,7 @@ function response(event, statusCode, body, cookies = []) {
 function routeName(event) {
   const path = normalizeText(event?.rawPath || event?.requestContext?.http?.path);
   const segment = path.split("/").filter(Boolean).pop() || "";
-  if (["login", "session", "logout", "forgot", "confirm-reset"].includes(segment)) {
+  if (["login", "session", "logout", "forgot", "confirm-reset", "member-action"].includes(segment)) {
     return segment;
   }
   const body = safeParseBody(event);
