@@ -29,9 +29,10 @@ AWS account `343218208384`, region `us-east-1`.
 - ECS service `ulttra-crm-directus`, RDS PostgreSQL `ulttra-crm-directus-postgres` (db `directus`). Auth via Cognito OIDC providers `chairman` and `technical` (both backed by the internal pool). This is the internal world; leave its auth intact.
 
 **Members data:**
-- DynamoDB `presttige-db`, primary key `lead_id`. GSIs: `email-index`, `phone-index`, `checkout-token-index`. ~42 items.
+- DynamoDB `presttige-db`, primary key `lead_id`. GSIs: `email-index`, `phone-index`, `checkout-token-index`, `cognito_sub-index`. ~42 items.
 - Identity-relevant fields present: `lead_id`, `email`, `name`, `phone_full`, `email_status`, `profile_status`, `review_status`, `payment_status`, `subscriber_type`, `selected_tier`, `effective_tier`, `tier`, `test_tier`, `founder_eligible`, `founder_gate_status`, `founder_token_status`, `magic_token`, `checkout_token`, `review_token`, `synthetic_test`, `account_active`.
 - NO record currently has `password`, `password_hash`, `cognito_sub`, `external_id`, `auth_provider`, or `identity_provider`. Members have NO login today. Clean start, no migration.
+- Identity Step 2 field contract lives in `docs/Presttige_Identity_Data_Model.md` and code constants live in `backend/lib/member-identity-fields.js` and `backend/lib/member_identity_fields.py`.
 
 **Email:** SES production, configuration set `presttige-deliverability-v1`, domain `presttige.net` verified, inbox-confirmed. Senders use friendly From "Presttige <address>". Founder-facing emails are signed "The Founders' House", never the Committee.
 

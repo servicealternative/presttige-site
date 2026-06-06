@@ -1,0 +1,7 @@
+{
+  "captured_at": "2026-06-06T15:53:09Z",
+  "table": "presttige-db",
+  "index_added": "cognito_sub-index",
+  "index_status": "ACTIVE",
+  "note": "Post-GSI verification capture. Existing records were not written or migrated."
+}

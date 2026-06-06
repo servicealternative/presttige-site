@@ -895,6 +895,23 @@ Frozen analytics rule:
   statistic, dashboard, count, or analytic, anywhere, including the Ulttra CRM.
 - Only real data reaches CRM and analytics.
 
+Presttige member identity, Step 2:
+
+- `presttige-db` remains the Presttige subscriber source of truth.
+- Identity fields are defined but not migrated onto existing records:
+  `cognito_sub`, `cognito_pool`, `account_status`, `password_set_at`,
+  `welcome_email_sent_at`, `activation_email_sent_at`, `validation_status`,
+  and `signup_path`.
+- Reserved future referral fields are named but not wired:
+  `invite_code`, `invited_by_lead_id`, `wallet_balance_credits`.
+- Canonical member tier remains `tier`. No separate `member_tier` field is
+  introduced. `selected_tier` remains the choice and checkout field, and
+  `effective_tier` remains an existing effective-state field.
+- `cognito_sub-index` was added on `presttige-db` as a sparse GSI with hash key
+  `cognito_sub`, projection `ALL`, on-demand billing inherited from the table.
+- Existing records were not updated, no Cognito users were created, no funnel,
+  gate, checkout, payment, CRM, or Ulttra auth path was wired.
+
 Google Analytics progress:
 
 - GA4 property: `530348665`
