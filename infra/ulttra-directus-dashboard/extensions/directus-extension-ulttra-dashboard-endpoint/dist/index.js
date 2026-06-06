@@ -263,61 +263,68 @@ export default {
       try {
         const user = await requireDashboardUser(req, context);
         requireChairman(user);
-        const leadId = normalizeString(req.body?.lead_id);
+        const leadIds = normalizeLeadIds(req.body?.lead_ids || req.body?.lead_id);
         const excluded = isSynthetic(req.body?.excluded);
-        if (!leadId) {
+        if (!leadIds.length) {
           res.status(400).json({ ok: false, status: 'ERROR', message: 'Exclusion could not be saved.' });
           return;
         }
 
-        const lead = await readLeadById(leadId);
-        if (!lead) {
+        const leads = await Promise.all(leadIds.map((leadId) => readLeadById(leadId)));
+        const missingLeadId = leadIds.find((leadId, index) => !leads[index]);
+        if (missingLeadId) {
           res.status(404).json({ ok: false, status: 'NOT_FOUND', message: 'Record was not found.' });
           return;
         }
-        if (isSynthetic(lead.synthetic_test)) {
+        const candidates = leads.map(registeredFounderCandidateFromLead);
+        if (candidates.some((candidate) => !candidate)) {
           res.status(200).json({
-            ok: true,
-            status: 'IGNORED_SYNTHETIC',
-            excluded: false,
-            message: 'Synthetic test records stay visible for C1 testing.',
+            ok: false,
+            status: 'NOT_ELIGIBLE',
+            message: 'One or more selected people are not eligible for this list action.',
           });
           return;
         }
 
         const timestamp = new Date().toISOString();
-        const updateInput = excluded
+        await Promise.all(leads.map((lead) => ddb.send(new UpdateCommand(excluded
           ? {
               TableName: TABLE_NAME,
-              Key: { lead_id: leadId },
+              Key: { lead_id: lead.lead_id },
               UpdateExpression: 'SET c1_founder_excluded = :true, c1_founder_excluded_at = :timestamp, c1_founder_excluded_by = :actor, updated_at = :timestamp',
-              ConditionExpression: 'email = :email AND (attribute_not_exists(synthetic_test) OR synthetic_test = :false)',
+              ConditionExpression: 'email = :email',
               ExpressionAttributeValues: {
                 ':true': true,
                 ':timestamp': timestamp,
                 ':actor': user.email,
                 ':email': lead.email,
-                ':false': false,
               },
             }
           : {
               TableName: TABLE_NAME,
-              Key: { lead_id: leadId },
+              Key: { lead_id: lead.lead_id },
               UpdateExpression: 'SET updated_at = :timestamp REMOVE c1_founder_excluded, c1_founder_excluded_at, c1_founder_excluded_by',
-              ConditionExpression: 'email = :email AND (attribute_not_exists(synthetic_test) OR synthetic_test = :false)',
+              ConditionExpression: 'email = :email',
               ExpressionAttributeValues: {
                 ':timestamp': timestamp,
                 ':email': lead.email,
-                ':false': false,
               },
-            };
-        await ddb.send(new UpdateCommand(updateInput));
+            }))));
+        const count = leads.length;
         res.status(200).json({
           ok: true,
           status: excluded ? 'EXCLUDED' : 'RESTORED',
           excluded,
-          lead_id: leadId,
-          message: excluded ? 'Person hidden from the active Founder invite list.' : 'Person restored to the active Founder invite list.',
+          lead_id: count === 1 ? leads[0].lead_id : null,
+          lead_ids: leads.map((lead) => lead.lead_id),
+          count,
+          message: excluded
+            ? count === 1
+              ? 'Person hidden from the active Founder invite list.'
+              : `${count} people hidden from the active Founder invite list.`
+            : count === 1
+              ? 'Person restored to the active Founder invite list.'
+              : `${count} people restored to the active Founder invite list.`,
         });
       } catch (error) {
         sendError(res, error);
@@ -1533,6 +1540,18 @@ async function readLeadById(leadId) {
   return response.Item || null;
 }
 
+function normalizeLeadIds(value) {
+  const rawValues = Array.isArray(value) ? value : [value];
+  const seen = new Set();
+  return rawValues
+    .map((item) => normalizeString(item))
+    .filter((item) => {
+      if (!item || seen.has(item)) return false;
+      seen.add(item);
+      return true;
+    });
+}
+
 function registeredFounderCandidateFromLead(lead) {
   if (!lead) return null;
   const synthetic = isSynthetic(lead.synthetic_test);
@@ -1541,6 +1560,7 @@ function registeredFounderCandidateFromLead(lead) {
   const name = normalizeString(lead.name || lead.full_name || [lead.first_name, lead.last_name].filter(Boolean).join(' '));
   const country = normalizeString(lead.country || lead.member_country);
   const city = normalizeString(lead.city || lead.member_city);
+  const excluded = isSynthetic(lead.c1_founder_excluded);
   if (!id || !isValidEmail(email) || !name) return null;
   if (!synthetic && (!country || !city)) return null;
   if (synthetic) {
@@ -1554,7 +1574,9 @@ function registeredFounderCandidateFromLead(lead) {
       tier: 'free',
       already_invited: false,
       invited_at: null,
-      excluded: false,
+      excluded,
+      excluded_at: excluded ? normalizeString(lead.c1_founder_excluded_at) || null : null,
+      excluded_by: excluded ? normalizeString(lead.c1_founder_excluded_by) || null : null,
       synthetic_test: true,
     };
   }
@@ -1563,7 +1585,6 @@ function registeredFounderCandidateFromLead(lead) {
 
   const alreadyInvited = isAlreadyFounderInvited(lead);
   if (alreadyInvited) return null;
-  const excluded = isSynthetic(lead.c1_founder_excluded);
   return {
     id,
     email,

@@ -38,6 +38,8 @@ const Dashboard = defineComponent({
     const presttigeInviteSuccess = ref(false);
     const registeredInviteBusyLeadId = ref('');
     const registeredExcludeBusyLeadId = ref('');
+    const registeredBulkExcludeBusy = ref(false);
+    const selectedRegisteredFounderLeadIds = ref([]);
     const registeredInviteMessage = ref('');
     const registeredInviteSuccess = ref(false);
     const tierDetailOpen = ref(false);
@@ -60,6 +62,7 @@ const Dashboard = defineComponent({
           params,
         });
         payload.value = prepareDashboardPayload(response.data);
+        pruneRegisteredFounderSelection();
         selectedProject.value = response.data?.selected_project || projectKey;
         financeMonth.value = response.data?.metrics?.manual_finance?.month_key || financeMonth.value;
       } catch (err) {
@@ -221,7 +224,7 @@ const Dashboard = defineComponent({
     }
 
     async function toggleRegisteredFounderExclusion(candidate, excluded) {
-      if (!candidate?.id || candidate.synthetic_test) return;
+      if (!candidate?.id) return;
       registeredExcludeBusyLeadId.value = candidate.id;
       registeredInviteMessage.value = '';
       registeredInviteSuccess.value = false;
@@ -237,6 +240,49 @@ const Dashboard = defineComponent({
         registeredInviteSuccess.value = false;
         registeredInviteMessage.value = err?.response?.data?.message || 'Founder invite list could not be updated.';
       } finally {
+        registeredExcludeBusyLeadId.value = '';
+      }
+    }
+
+    function pruneRegisteredFounderSelection() {
+      const rows = payload.value?.metrics?.registered_founder_candidates || [];
+      const activeIds = new Set(rows.map((candidate) => candidate.id).filter(Boolean));
+      selectedRegisteredFounderLeadIds.value = selectedRegisteredFounderLeadIds.value
+        .filter((leadId) => activeIds.has(leadId));
+    }
+
+    function toggleRegisteredFounderSelection(candidate, checked) {
+      if (!candidate?.id || registeredBulkExcludeBusy.value) return;
+      const ids = new Set(selectedRegisteredFounderLeadIds.value);
+      if (checked) {
+        ids.add(candidate.id);
+      } else {
+        ids.delete(candidate.id);
+      }
+      selectedRegisteredFounderLeadIds.value = [...ids];
+    }
+
+    async function submitSelectedRegisteredFounderExclusions() {
+      const leadIds = selectedRegisteredFounderLeadIds.value.filter(Boolean);
+      if (!leadIds.length || registeredBulkExcludeBusy.value) return;
+      registeredBulkExcludeBusy.value = true;
+      registeredExcludeBusyLeadId.value = 'bulk';
+      registeredInviteMessage.value = '';
+      registeredInviteSuccess.value = false;
+      try {
+        const response = await api.post('/ulttra-dashboard/registered-founder-exclusion', {
+          lead_ids: leadIds,
+          excluded: true,
+        });
+        selectedRegisteredFounderLeadIds.value = [];
+        registeredInviteSuccess.value = true;
+        registeredInviteMessage.value = response.data?.message || 'Selected people hidden from the active Founder invite list.';
+        await loadDashboard(true);
+      } catch (err) {
+        registeredInviteSuccess.value = false;
+        registeredInviteMessage.value = err?.response?.data?.message || 'Selected people could not be excluded.';
+      } finally {
+        registeredBulkExcludeBusy.value = false;
         registeredExcludeBusyLeadId.value = '';
       }
     }
@@ -359,6 +405,8 @@ const Dashboard = defineComponent({
       presttigeInviteSuccess,
       registeredInviteBusyLeadId,
       registeredExcludeBusyLeadId,
+      registeredBulkExcludeBusy,
+      selectedRegisteredFounderLeadIds,
       registeredInviteMessage,
       registeredInviteSuccess,
       tierDetailOpen,
@@ -377,6 +425,8 @@ const Dashboard = defineComponent({
       submitPresttigeInvitation,
       submitRegisteredFounderInvite,
       toggleRegisteredFounderExclusion,
+      toggleRegisteredFounderSelection,
+      submitSelectedRegisteredFounderExclusions,
       changeFinanceMonth,
       createCostCategory,
       saveCostCategory,
@@ -443,10 +493,14 @@ const Dashboard = defineComponent({
         exclusions: metrics.registered_founder_exclusions || [],
         busyLeadId: this.registeredInviteBusyLeadId,
         excludeBusyLeadId: this.registeredExcludeBusyLeadId,
+        bulkExcludeBusy: this.registeredBulkExcludeBusy,
+        selectedLeadIds: this.selectedRegisteredFounderLeadIds,
         message: this.registeredInviteMessage,
         success: this.registeredInviteSuccess,
         submit: (candidate) => this.submitRegisteredFounderInvite(candidate),
         toggleExclude: (candidate, excluded) => this.toggleRegisteredFounderExclusion(candidate, excluded),
+        toggleSelect: (candidate, checked) => this.toggleRegisteredFounderSelection(candidate, checked),
+        excludeSelected: () => this.submitSelectedRegisteredFounderExclusions(),
       }) : null,
       data.current_user?.eligible_inviter ? h('section', {
         style: {
@@ -671,9 +725,24 @@ function projectEmptyState(emptyState) {
   ]);
 }
 
-function registeredFounderInviteSection({ candidates, exclusions, busyLeadId, excludeBusyLeadId, message, success, submit, toggleExclude }) {
+function registeredFounderInviteSection({
+  candidates,
+  exclusions,
+  busyLeadId,
+  excludeBusyLeadId,
+  bulkExcludeBusy,
+  selectedLeadIds,
+  message,
+  success,
+  submit,
+  toggleExclude,
+  toggleSelect,
+  excludeSelected,
+}) {
   const rows = Array.isArray(candidates) ? candidates : [];
   const excludedRows = Array.isArray(exclusions) ? exclusions : [];
+  const selectedIds = Array.isArray(selectedLeadIds) ? selectedLeadIds : [];
+  const selectedCount = selectedIds.length;
   return h('section', {
     style: {
       border: '1px solid var(--theme--border-color)',
@@ -705,43 +774,59 @@ function registeredFounderInviteSection({ candidates, exclusions, busyLeadId, ex
         maxHeight: '292px',
         border: '1px solid var(--theme--border-color)',
         borderRadius: '8px',
+        position: 'relative',
       },
     }, [
       h('table', {
         style: {
           width: '100%',
           minWidth: '860px',
-          borderCollapse: 'collapse',
+          borderCollapse: 'separate',
+          borderSpacing: 0,
         },
       }, [
         h('thead', null, [
           h('tr', null, [
-            founderCandidateHeader('Exclude'),
+            founderCandidateHeader(h('button', {
+              type: 'button',
+              class: 'button',
+              disabled: !selectedCount || bulkExcludeBusy,
+              title: selectedCount ? `Exclude ${selectedCount} selected` : 'Select one or more rows first',
+              style: {
+                minHeight: '32px',
+                padding: '0 12px',
+                fontSize: '12px',
+                lineHeight: '30px',
+                whiteSpace: 'nowrap',
+              },
+              onClick: excludeSelected,
+            }, bulkExcludeBusy ? 'Excluding' : selectedCount ? `Exclude (${selectedCount})` : 'Exclude'), 'center'),
             founderCandidateHeader('Name'),
             founderCandidateHeader('Email'),
             founderCandidateHeader('Location'),
             founderCandidateHeader('Tier Status'),
-            founderCandidateHeader(''),
+            founderCandidateHeader('Action', 'right'),
           ]),
         ]),
         h('tbody', null, rows.map((candidate) => {
           const busy = busyLeadId === candidate.id;
-          const disabled = busy || candidate.already_invited;
+          const disabled = busy || bulkExcludeBusy || candidate.already_invited;
           const excludeBusy = excludeBusyLeadId === candidate.id;
+          const checked = selectedIds.includes(candidate.id);
           return h('tr', { key: candidate.id }, [
             founderCandidateCell(h('input', {
               type: 'checkbox',
-              checked: false,
-              disabled: Boolean(candidate.synthetic_test) || excludeBusy,
-              title: candidate.synthetic_test ? 'Synthetic test records stay visible.' : 'Hide from this list',
+              checked,
+              disabled: bulkExcludeBusy || excludeBusy,
+              title: 'Select for exclusion',
               style: {
                 width: '16px',
                 height: '16px',
                 margin: 0,
                 accentColor: 'var(--theme--primary)',
-                cursor: candidate.synthetic_test || excludeBusy ? 'not-allowed' : 'pointer',
+                cursor: bulkExcludeBusy || excludeBusy ? 'not-allowed' : 'pointer',
               },
-              onChange: () => toggleExclude(candidate, true),
+              onChange: (event) => toggleSelect(candidate, event.target.checked),
             }), 'center'),
             founderCandidateCell(h('strong', { style: { color: 'var(--theme--foreground)', fontWeight: 600 } }, candidate.name || 'Unnamed')),
             founderCandidateCell(candidate.email || ''),
@@ -814,7 +899,7 @@ function registeredFounderInviteSection({ candidates, exclusions, busyLeadId, ex
         h('button', {
           type: 'button',
           class: 'button',
-          disabled: excludeBusyLeadId === candidate.id,
+          disabled: bulkExcludeBusy || excludeBusyLeadId === candidate.id,
           style: {
             minHeight: '34px',
             whiteSpace: 'nowrap',
@@ -832,17 +917,22 @@ function registeredFounderInviteSection({ candidates, exclusions, busyLeadId, ex
   ]);
 }
 
-function founderCandidateHeader(label) {
+function founderCandidateHeader(content, align = 'left') {
   return h('th', {
     style: {
-      textAlign: label ? 'left' : 'right',
+      textAlign: align,
       padding: '11px 12px',
       borderBottom: '1px solid var(--theme--border-color)',
       color: 'var(--theme--foreground-subdued)',
       fontSize: '12px',
       fontWeight: 700,
+      position: 'sticky',
+      top: 0,
+      zIndex: 2,
+      background: 'var(--theme--background)',
+      boxShadow: '0 1px 0 var(--theme--border-color)',
     },
-  }, label);
+  }, content);
 }
 
 function founderCandidateCell(content, align = 'left') {
