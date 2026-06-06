@@ -397,6 +397,10 @@ The following four addresses are the only authorized Presttige test addresses:
 
 No other email may be created, updated, or marked as `synthetic_test=true`, `test_tier=true`, `is_test=true`, or `subscriber_type=test`. Unauthorized attempts to create a test or synthetic record must be refused server-side. Tester records must carry `synthetic_test=true` and remain excluded from every metric, dashboard, count, analytic, and real communication set.
 
+Presttige member testers use `tier=tester`, `selected_tier=tester`, and `effective_tier=tester`. The tier being tested is stored separately in `simulated_tier`, default `free`. Tester is a synthetic technical tier only, not a sixth public or commercial membership tier.
+
+Codex may use only `codex.subscriber.tester@presttige.net` as its own Presttige test identity. Any Codex-initiated test email send must go only to `fq@freequenza.net`; any other destination requires Antonio's explicit authorization.
+
 ---
 
 # Chapter 7 — Committee Review Process
@@ -753,6 +757,8 @@ Each incident has: trigger, root cause, plan, status, related commits.
 Four tester addresses (Chapter 6.3) are the only authorized test or synthetic identities. Historical tester addresses that are not listed in Chapter 6.3 are no longer authorized.
 
 This enables rapid E2E testing without polluting production data. Tester records are clearly tagged with `synthetic_test=true` so analytics and member counts exclude them.
+
+The three member tester records are the Presttige `tester` tier and carry `simulated_tier` for the tier currently being tested. This does not alter the five locked public membership tiers. The FQ record is the fixed send and receive test address, not a normal member tester tier.
 
 Effective 6 June 2026: any server-side creation path that accepts test markers must refuse unauthorized emails and may only mark the four Chapter 6.3 addresses as test or synthetic.
 

@@ -20,7 +20,7 @@ for candidate in (CURRENT_FILE.parent, *CURRENT_FILE.parents):
     if (candidate / "shared").exists() and candidate_str not in sys.path:
         sys.path.append(candidate_str)
 
-from shared.testers import AUTHORIZED_TEST_EMAILS
+from shared.testers import AUTHORIZED_TEST_EMAILS, TEST_SEND_RECEIVE_EMAIL
 
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
@@ -117,6 +117,7 @@ def dry_check():
         "commands": ["welcome", "schedule_invite", "reset"],
         "internal_action": "send_invite",
         "allowed_emails": sorted(BASE_ALLOWED_EMAILS),
+        "codex_test_send_destination": TEST_SEND_RECEIVE_EMAIL,
         "allowlist_rule": "exact_authorized_test_emails_only",
         "test_delay_minutes": load_test_delay_minutes(),
         "production_scheduler_unchanged": True,
@@ -133,6 +134,7 @@ def dry_check():
 def trigger_welcome(payload):
     dry_run = bool(payload.get("dry_run") or payload.get("dryRun"))
     email = normalize_email(payload.get("email") or "fq@freequenza.net")
+    ensure_test_send_destination(email)
     name = normalize_string(payload.get("name")) or "Antonio"
     lead = get_or_prepare_synthetic_founder(
         email=email,
@@ -166,6 +168,7 @@ def schedule_invite(payload, context):
     email = normalize_email(payload.get("email"))
     lead_id = normalize_string(payload.get("lead_id"))
     lead = resolve_synthetic_test_lead(email=email, lead_id=lead_id)
+    ensure_test_send_destination(lead.get("email"))
     ensure_synthetic_founder(lead)
 
     delay_minutes = load_test_delay_minutes()
@@ -243,6 +246,7 @@ def send_invite(payload):
     email = normalize_email(payload.get("email"))
     lead_id = normalize_string(payload.get("lead_id"))
     lead = resolve_synthetic_test_lead(email=email, lead_id=lead_id)
+    ensure_test_send_destination(lead.get("email"))
     ensure_synthetic_founder(lead)
 
     delay_minutes = load_test_delay_minutes()
@@ -494,6 +498,7 @@ def send_founder_welcome_email_if_needed(lead):
     if lead.get("founder_welcome_email_sent_at"):
         return {"sent": False, "skipped": True, "reason": "already_sent"}
     ensure_synthetic_founder(lead)
+    ensure_test_send_destination(lead.get("email"))
 
     member_name = normalize_string(lead.get("name")) or "Member"
     text_body = "\n\n".join(
@@ -556,6 +561,7 @@ def send_founder_welcome_email_if_needed(lead):
 
 def send_founder_invitation_ready_email(founder):
     ensure_synthetic_founder(founder)
+    ensure_test_send_destination(founder.get("email"))
     first_name = first_name_for_email(founder.get("name"), founder["email"])
     subject = "Your Founder invitation is ready"
     text_body = founder_invitation_ready_text(first_name)
@@ -734,6 +740,15 @@ def ensure_allowed_email(email):
     if normalized in BASE_ALLOWED_EMAILS:
         return
     raise HarnessError("address_not_allowed", "Founder test harness only allows the four authorized Presttige tester addresses.")
+
+
+def ensure_test_send_destination(email):
+    if normalize_email(email) == TEST_SEND_RECEIVE_EMAIL:
+        return
+    raise HarnessError(
+        "test_send_destination_not_allowed",
+        f"Founder test harness email sends are restricted to {TEST_SEND_RECEIVE_EMAIL}.",
+    )
 
 
 def list_matching_leads(emails):

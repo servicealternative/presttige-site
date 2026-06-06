@@ -14,6 +14,10 @@ AUTHORIZED_TEST_EMAILS = (
     "fq@freequenza.net",
 )
 TESTER_EMAILS = list(AUTHORIZED_TEST_EMAILS)
+CODEX_TESTER_EMAIL = "codex.subscriber.tester@presttige.net"
+TEST_SEND_RECEIVE_EMAIL = "fq@freequenza.net"
+TESTER_TIER = "tester"
+DEFAULT_SIMULATED_TIER = "free"
 
 TESTER_SKIP_MARKER = "Skipped DynamoDB, CAPI, LinkedIn, GA4"
 
@@ -62,6 +66,18 @@ def assert_authorized_test_email(email, context="test record"):
         return
     raise ValueError(
         f"{context} is restricted to the four authorized Presttige tester addresses."
+    )
+
+
+def is_test_send_receive_email(email):
+    return normalize_email(email) == TEST_SEND_RECEIVE_EMAIL
+
+
+def assert_test_send_receive_email(email, context="test email send"):
+    if is_test_send_receive_email(email):
+        return
+    raise ValueError(
+        f"{context} is restricted to {TEST_SEND_RECEIVE_EMAIL}."
     )
 
 

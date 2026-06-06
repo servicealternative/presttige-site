@@ -21,7 +21,31 @@ If a request tries to create a test or synthetic record for any other email, the
 
 ## Codex Rule
 
+Codex may use only its own Presttige test identity for account and member-flow tests:
+
+- `codex.subscriber.tester@presttige.net`
+
 Codex must not create new test records except when Antonio explicitly authorizes one of the four addresses above for a specific task. Codex must never create ad hoc plus-addresses or placeholder test users.
+
+Any Codex-initiated test email send must go only to:
+
+- `fq@freequenza.net`
+
+No other email destination is self-authorized. If any other destination is needed, Codex must ask Antonio first.
+
+## Tester Tier Model
+
+The three Presttige member testers are real Presttige member records with `tier=tester`, `selected_tier=tester`, and `effective_tier=tester`. Their active simulation target is stored in `simulated_tier`, default `free`. Tester is a synthetic technical tier only, not a public or commercial membership tier.
+
+The three member testers are:
+
+- `antoniompereira@me.com`
+- `codex.subscriber.tester@presttige.net`
+- `analuisasf@gmail.com`
+
+They always carry `synthetic_test=true` and remain excluded from every metric, dashboard, count, analytic, and real communication set.
+
+The FQ record, `fq@freequenza.net`, is not a normal member tester tier. It is the fixed send and receive test address, marked with `test_email_role=send_receive`, `test_send_receive_address=true`, `test_always_active=true`, and `test_never_expires=true`.
 
 ## Guard Location
 
@@ -31,3 +55,4 @@ The current server-side creation guards are enforced in:
 
 - `backend/lambdas/create-lead/lambda.py`, public lead creation rejects unauthorized test markers and only marks the four authorized addresses as test or synthetic.
 - `backend/lambdas/founder-test-harness/lambda_function.py`, synthetic Founder test preparation is restricted to the same four exact emails.
+- `backend/lambdas/founder-test-harness/lambda_function.py`, email-send actions are restricted to `fq@freequenza.net`.
