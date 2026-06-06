@@ -1,0 +1,12 @@
+{
+    "AttachedPolicies": [
+        {
+            "PolicyName": "AWSLambdaBasicExecutionRole-1de110d7-a5a1-41af-91fb-3d0477f7fbc3",
+            "PolicyArn": "arn:aws:iam::343218208384:policy/service-role/AWSLambdaBasicExecutionRole-1de110d7-a5a1-41af-91fb-3d0477f7fbc3"
+        },
+        {
+            "PolicyName": "AWSXRayDaemonWriteAccess",
+            "PolicyArn": "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "RoleName": "presttige-stripe-webhook-role-xop9vqhp",
+    "PolicyName": "presttige-stripe-webhook-send-welcome-email",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "lambda:InvokeFunction"
+                ],
+                "Resource": "arn:aws:lambda:us-east-1:343218208384:function:presttige-send-welcome-email"
+            }
+        ]
+    }
+}

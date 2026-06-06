@@ -1,0 +1,52 @@
+{
+    "RoleName": "presttige-stripe-webhook-role-xop9vqhp",
+    "PolicyName": "presttige-stripe-webhook-tester-purge",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:DeleteItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "scheduler:DeleteSchedule"
+                ],
+                "Resource": "arn:aws:scheduler:us-east-1:343218208384:schedule/default/*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "s3:ListBucket"
+                ],
+                "Resource": [
+                    "arn:aws:s3:::presttige-applicant-photos",
+                    "arn:aws:s3:::presttige-applicant-photos-thumbnails"
+                ]
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "s3:DeleteObject",
+                    "s3:DeleteObjectVersion"
+                ],
+                "Resource": [
+                    "arn:aws:s3:::presttige-applicant-photos/*",
+                    "arn:aws:s3:::presttige-applicant-photos-thumbnails/*"
+                ]
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "ses:GetSuppressedDestination",
+                    "ses:DeleteSuppressedDestination"
+                ],
+                "Resource": "*"
+            }
+        ]
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "RoleName": "presttige-stripe-webhook-role-xop9vqhp",
+    "PolicyName": "presttige-dynamodb-write",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:UpdateItem",
+                    "dynamodb:PutItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:*:table/presttige-database"
+            }
+        ]
+    }
+}

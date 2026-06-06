@@ -1,0 +1,56 @@
+{
+    "RoleName": "presttige-stripe-webhook-role-xop9vqhp",
+    "PolicyName": "presttige-stripe-webhook-mr5",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "ReadWebhookSecretFromSsm",
+                "Effect": "Allow",
+                "Action": [
+                    "ssm:GetParameter"
+                ],
+                "Resource": "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/stripe/webhook-secret"
+            },
+            {
+                "Sid": "StripeEventIdempotencyTable",
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-stripe-events"
+            },
+            {
+                "Sid": "CreateAndDeleteDowngradeSchedules",
+                "Effect": "Allow",
+                "Action": [
+                    "scheduler:CreateSchedule",
+                    "scheduler:DeleteSchedule"
+                ],
+                "Resource": "arn:aws:scheduler:us-east-1:343218208384:schedule/default/presttige-downgrade-*"
+            },
+            {
+                "Sid": "PassDowngradeSchedulerRole",
+                "Effect": "Allow",
+                "Action": [
+                    "iam:PassRole"
+                ],
+                "Resource": "arn:aws:iam::343218208384:role/presttige-scheduler-invoke-tier-downgrade-role"
+            },
+            {
+                "Sid": "SendInternalDisputeNotification",
+                "Effect": "Allow",
+                "Action": [
+                    "ses:SendEmail",
+                    "ses:SendRawEmail"
+                ],
+                "Resource": [
+                    "arn:aws:ses:us-east-1:343218208384:identity/presttige.net",
+                    "arn:aws:ses:us-east-1:343218208384:identity/office@presttige.net"
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "RoleName": "presttige-stripe-webhook-role-xop9vqhp",
+    "PolicyName": "ulttra-dynamodb-access",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "UlttraDynamoAccess",
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:PutItem"
+                ],
+                "Resource": [
+                    "arn:aws:dynamodb:us-east-1:*:table/ulttra-campaigns",
+                    "arn:aws:dynamodb:us-east-1:*:table/ulttra-daily-reports"
+                ]
+            }
+        ]
+    }
+}
