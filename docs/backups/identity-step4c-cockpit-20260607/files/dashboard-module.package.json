@@ -1,0 +1,11 @@
+{
+  "name": "directus-extension-ulttra-dashboard-module",
+  "version": "1.0.1",
+  "type": "module",
+  "directus:extension": {
+    "type": "module",
+    "source": "dist/index.js",
+    "path": "dist/index.js",
+    "host": "^11.0.0"
+  }
+}
