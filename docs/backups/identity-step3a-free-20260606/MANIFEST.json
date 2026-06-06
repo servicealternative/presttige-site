@@ -1,0 +1,22 @@
+{
+  "backup_name": "identity-step3a-free-20260606",
+  "created_at": "2026-06-06T17:18:19.746Z",
+  "aws_account": "343218208384",
+  "region": "us-east-1",
+  "lambda_backed_up": {
+    "function_name": "presttige-activate-subscriber",
+    "code_sha256": "cqyGznpEHY7KJZNZ9VhOKPv8PYiYi/QOCNUvi3wxPrA=",
+    "last_modified": "2026-06-05T17:26:38.000+0000"
+  },
+  "cognito_pool": {
+    "name": "presttige-members",
+    "id": "us-east-1_hpwdNFGss",
+    "user_count_before": 0
+  },
+  "tester_records_backed_up": [
+    "analuisasf@gmail.com",
+    "antoniompereira@me.com",
+    "codex.subscriber.tester@presttige.net"
+  ],
+  "note": "Pre-change snapshot for Identity Step 3a, free Subscriber Cognito account creation path."
+}

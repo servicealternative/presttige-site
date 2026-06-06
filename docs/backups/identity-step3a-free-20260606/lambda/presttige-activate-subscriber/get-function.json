@@ -1,0 +1,49 @@
+{
+    "Configuration": {
+        "FunctionName": "presttige-activate-subscriber",
+        "FunctionArn": "arn:aws:lambda:us-east-1:343218208384:function:presttige-activate-subscriber",
+        "Runtime": "nodejs20.x",
+        "Role": "arn:aws:iam::343218208384:role/presttige-activate-subscriber-role",
+        "Handler": "index.handler",
+        "CodeSize": 4045,
+        "Description": "",
+        "Timeout": 10,
+        "MemorySize": 256,
+        "LastModified": "2026-06-05T17:26:38.000+0000",
+        "CodeSha256": "cqyGznpEHY7KJZNZ9VhOKPv8PYiYi/QOCNUvi3wxPrA=",
+        "Version": "$LATEST",
+        "Environment": {
+            "Variables": {
+                "SEND_SUBSCRIBER_WELCOME_FUNCTION_NAME": "presttige-send-subscriber-welcome-email"
+            }
+        },
+        "TracingConfig": {
+            "Mode": "PassThrough"
+        },
+        "RevisionId": "04872c3b-95a1-44b6-8faa-88234e4329e1",
+        "State": "Active",
+        "LastUpdateStatus": "Successful",
+        "PackageType": "Zip",
+        "Architectures": [
+            "x86_64"
+        ],
+        "EphemeralStorage": {
+            "Size": 512
+        },
+        "SnapStart": {
+            "ApplyOn": "None",
+            "OptimizationStatus": "Off"
+        },
+        "RuntimeVersionConfig": {
+            "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:18671876e7cc385452255180c58ca50cf8763398a4248ae92ed14410d196b942"
+        },
+        "LoggingConfig": {
+            "LogFormat": "Text",
+            "LogGroup": "/aws/lambda/presttige-activate-subscriber"
+        }
+    },
+    "Code": {
+        "RepositoryType": "S3",
+        "Location": "https://prod-iad-c1-djusa-tasks.s3.us-east-1.amazonaws.com/snapshots/343218208384/presttige-activate-subscriber-4ffa5e6a-536f-41cc-8301-45c69966823c?versionId=hCWbcQRtKUdfYepQH9cdCo5L3Vi2vu4K&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEMH%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJIMEYCIQCFqLo%2FyJ6IZVaR%2BEu7OFs2KRkA3T2eFNx%2F4CEwopRQGQIhAOmZ1zVx1okIPIsJEWI5ZNNOvCju5e54jcgcTimbM4QNKpQCCIr%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEQBBoMNDc5MjMzMDI1Mzc5Igxahnfa3sqXPf%2Bgo%2Fcq6AFQjTkIsRZBiGkNPMpBlxlpZmZAukhwbzlnH8AytGCuJj2p45J9EevINihrlmWNlfurDR5XYY9afGImTFwtfluPnvDFO1q1KPHFZ%2FgTwSzBo2GuzIx1%2B4ig%2F8WpBM3ABcn2DzDTuAOvnUdo3JxZoiRIQWRcq2%2FiYvUe%2FXuOzLJ0HA0wJ8BsNJ%2FCcWUyOed5WpbqNqgHRE7d8FybCT8Bg6C57pEZeuAiKO9yYDTdTY3IxjYbyYPOgyF%2F0ZBpRjWjba2AmjkpdXHotq5m7Cwwj1m%2F95%2B53fCBBrNDxr0LnIMwuUqQrSs5AY6NMO2ekdEGOowBprDkADDNWK1GvrVUa1TcOnuzvy4Eh7vgUrsFDqaqdlvs32WoFKDr453zZRVUUgQyzflldalygTU2TCIEX7zIP3RN2WYeFRSC5namhfNiH8ChkCRHDXC0nO%2BAkOL24BI9XH8OZDBULV6H4XECR65uA95s1p6yOKqW0XD3Je0pfnqoedymeJNEAyaAqjc%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260606T171804Z&X-Amz-SignedHeaders=host&X-Amz-Expires=600&X-Amz-Credential=ASIAW7FEDUVR2JRTHZIE%2F20260606%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=de00e8c4d7cea604188a6104ad30f3c67a06f596327b6e6b01ad9bccb4e7c1d9"
+    }
+}

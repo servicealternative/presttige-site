@@ -1,0 +1,44 @@
+{
+    "Groups": [
+        {
+            "GroupName": "premier",
+            "UserPoolId": "us-east-1_hpwdNFGss",
+            "Description": "Presttige Premier members",
+            "Precedence": 30,
+            "LastModifiedDate": "2026-06-06T19:31:19.289000+04:00",
+            "CreationDate": "2026-06-06T19:31:19.289000+04:00"
+        },
+        {
+            "GroupName": "patron",
+            "UserPoolId": "us-east-1_hpwdNFGss",
+            "Description": "Presttige Patron members",
+            "Precedence": 20,
+            "LastModifiedDate": "2026-06-06T19:31:17.826000+04:00",
+            "CreationDate": "2026-06-06T19:31:17.826000+04:00"
+        },
+        {
+            "GroupName": "free",
+            "UserPoolId": "us-east-1_hpwdNFGss",
+            "Description": "Presttige Free members",
+            "Precedence": 50,
+            "LastModifiedDate": "2026-06-06T19:31:22.204000+04:00",
+            "CreationDate": "2026-06-06T19:31:22.204000+04:00"
+        },
+        {
+            "GroupName": "founder",
+            "UserPoolId": "us-east-1_hpwdNFGss",
+            "Description": "Presttige Founder members",
+            "Precedence": 10,
+            "LastModifiedDate": "2026-06-06T19:31:16.367000+04:00",
+            "CreationDate": "2026-06-06T19:31:16.367000+04:00"
+        },
+        {
+            "GroupName": "club",
+            "UserPoolId": "us-east-1_hpwdNFGss",
+            "Description": "Presttige Club members",
+            "Precedence": 40,
+            "LastModifiedDate": "2026-06-06T19:31:20.758000+04:00",
+            "CreationDate": "2026-06-06T19:31:20.758000+04:00"
+        }
+    ]
+}

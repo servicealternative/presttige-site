@@ -1,0 +1,34 @@
+{
+    "RoleName": "presttige-activate-subscriber-role",
+    "PolicyName": "presttige-activate-subscriber-inline",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:Scan",
+                    "dynamodb:UpdateItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "lambda:InvokeFunction"
+                ],
+                "Resource": [
+                    "arn:aws:lambda:us-east-1:343218208384:function:presttige-send-subscriber-welcome-email",
+                    "arn:aws:lambda:us-east-1:343218208384:function:presttige-send-welcome-email"
+                ]
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "ses:SendEmail"
+                ],
+                "Resource": "arn:aws:ses:us-east-1:343218208384:identity/office@presttige.net"
+            }
+        ]
+    }
+}

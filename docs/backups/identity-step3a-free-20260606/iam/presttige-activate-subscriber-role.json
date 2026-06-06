@@ -1,0 +1,26 @@
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "presttige-activate-subscriber-role",
+        "RoleId": "AROAU72LGH2AC2SHOAT6H",
+        "Arn": "arn:aws:iam::343218208384:role/presttige-activate-subscriber-role",
+        "CreateDate": "2026-04-27T08:10:45+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "lambda.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                }
+            ]
+        },
+        "MaxSessionDuration": 3600,
+        "RoleLastUsed": {
+            "LastUsedDate": "2026-05-07T12:19:16+00:00",
+            "Region": "us-east-1"
+        }
+    }
+}
