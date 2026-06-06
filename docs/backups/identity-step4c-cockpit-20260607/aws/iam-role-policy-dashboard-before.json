@@ -1,0 +1,97 @@
+{
+    "RoleName": "ulttra-crm-directus-task-role",
+    "PolicyName": "ulttra-crm-dashboard-read-api",
+    "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "ReadEligibleInviterMirror",
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:GetItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-eligible-inviters"
+            },
+            {
+                "Sid": "ReadDashboardMetrics",
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:BatchGetItem",
+                    "dynamodb:Query"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/ulttra-crm-dashboard-metrics"
+            },
+            {
+                "Sid": "ReadWriteDashboardCache",
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/ulttra-crm-dashboard-cache"
+            },
+            {
+                "Sid": "ReadDashboardParameters",
+                "Effect": "Allow",
+                "Action": [
+                    "ssm:GetParameter",
+                    "ssm:GetParameters"
+                ],
+                "Resource": [
+                    "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/stripe/secret-key",
+                    "arn:aws:ssm:us-east-1:343218208384:parameter/ulttra/ga/oauth-client-secret",
+                    "arn:aws:ssm:us-east-1:343218208384:parameter/ulttra/ga/oauth-refresh-token",
+                    "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/founder-invite/global-cap"
+                ]
+            },
+            {
+                "Sid": "InvokeFounderAdminForDashboardInvite",
+                "Effect": "Allow",
+                "Action": "lambda:InvokeFunction",
+                "Resource": "arn:aws:lambda:us-east-1:343218208384:function:presttige-founder-admin"
+            },
+            {
+                "Sid": "WriteDashboardInvitationAudit",
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:PutItem"
+                ],
+                "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-review-audit"
+            },
+            {
+                "Sid": "SendCommitteePresttigeInvitation",
+                "Effect": "Allow",
+                "Action": [
+                    "ses:SendEmail"
+                ],
+                "Resource": [
+                    "arn:aws:ses:us-east-1:343218208384:identity/presttige.net",
+                    "arn:aws:ses:us-east-1:343218208384:identity/committee@presttige.net"
+                ]
+            },
+            {
+                "Sid": "ReadAwsCostExplorerMonthToDate",
+                "Effect": "Allow",
+                "Action": [
+                    "ce:GetCostAndUsage"
+                ],
+                "Resource": "*"
+            },
+            {
+                "Sid": "ReadPresttigeRegisteredFounderCandidates",
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:Query",
+                    "dynamodb:Scan",
+                    "dynamodb:UpdateItem"
+                ],
+                "Resource": [
+                    "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db",
+                    "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db/index/email-index"
+                ]
+            }
+        ]
+    }
+}
