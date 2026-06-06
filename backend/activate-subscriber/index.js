@@ -79,11 +79,7 @@ function getUserAttribute(user, name) {
 }
 
 function buildTemporaryPassword() {
-  return [
-    crypto.randomBytes(8).toString("base64").replace(/[^A-Za-z0-9]/g, "").slice(0, 10),
-    "Aa1!",
-    crypto.randomBytes(4).toString("hex"),
-  ].join("");
+  return `${crypto.randomBytes(18).toString("base64url")}Aa1!`;
 }
 
 async function getCognitoUserByEmail(email) {
