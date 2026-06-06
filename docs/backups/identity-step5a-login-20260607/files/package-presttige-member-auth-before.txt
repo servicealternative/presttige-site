@@ -1,0 +1,1 @@
+package-presttige-member-auth script absent before Step 5a

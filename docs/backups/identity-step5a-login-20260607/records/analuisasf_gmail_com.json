@@ -1,0 +1,459 @@
+{
+    "Item": {
+        "preview_receipt_sent_at": {
+            "S": "2026-05-07T12:19:07.595Z"
+        },
+        "application_received_email_sent_at": {
+            "S": "2026-05-07T12:03:27.499Z"
+        },
+        "reinvite_count": {
+            "N": "0"
+        },
+        "preview_mode": {
+            "BOOL": true
+        },
+        "test_tier": {
+            "BOOL": true
+        },
+        "review_note": {
+            "NULL": true
+        },
+        "access_status": {
+            "S": "active"
+        },
+        "validation_status": {
+            "S": "not_started"
+        },
+        "website": {
+            "S": ""
+        },
+        "lead_id": {
+            "S": "fdm_c8f2b323a4"
+        },
+        "magic_token_issued_at": {
+            "S": "2026-06-06T17:22:42Z"
+        },
+        "subscriber_welcome_email_sent_at": {
+            "S": "2026-05-07T12:18:35.933Z"
+        },
+        "company": {
+            "S": "Company 1"
+        },
+        "verification_token": {
+            "S": "df3f13cca83439d93b8dd2b03b5ece785b0f72c97e02c11b71bdb8c6f07c6c2f"
+        },
+        "founding_rate_expires_at": {
+            "NULL": true
+        },
+        "e2_sent_at": {
+            "S": "2026-05-07T12:03:27.679Z"
+        },
+        "effective_tier": {
+            "S": "tester"
+        },
+        "marketing_consent": {
+            "S": "true"
+        },
+        "submitted_to_committee_at": {
+            "S": "2026-05-07T12:03:25.760238+00:00"
+        },
+        "synthetic_test_flagged_at": {
+            "S": "2026-05-29T13:46:04.533Z"
+        },
+        "city": {
+            "S": "Dubai"
+        },
+        "invite_status": {
+            "S": "scheduled"
+        },
+        "country": {
+            "S": "United Arab Emirates"
+        },
+        "linkedin": {
+            "S": ""
+        },
+        "magic_token": {
+            "S": "id3a_ana_1b3dbd01fdb988d077e2063dac1d67ae27b9bf0557f66542"
+        },
+        "profile_submitted_at": {
+            "S": "2026-05-07T12:03:09.126510+00:00"
+        },
+        "simulated_tier": {
+            "S": "free"
+        },
+        "internal_test_role": {
+            "S": "presttige_free_member_founder_permissions_tester"
+        },
+        "payment_status": {
+            "S": "free"
+        },
+        "welcome_sent_at": {
+            "S": "2026-05-07T12:19:09.066Z"
+        },
+        "e3_variant": {
+            "S": "tier_select"
+        },
+        "magic_token_expires_at": {
+            "S": "2026-07-06T17:22:42Z"
+        },
+        "account_created_at": {
+            "S": "2026-06-06T17:23:13.403Z"
+        },
+        "tiktok": {
+            "S": ""
+        },
+        "campaign_id": {
+            "S": ""
+        },
+        "review_token_status": {
+            "S": "used"
+        },
+        "e3_sent_at": {
+            "S": "2026-05-07T12:10:22.888Z"
+        },
+        "marketing_consent_at": {
+            "S": "2026-05-07T12:03:07.809Z"
+        },
+        "email_verified_at": {
+            "S": "2026-05-07T12:01:17.314008"
+        },
+        "subscriber_activated_at": {
+            "S": "2026-05-07T12:18:34.321Z"
+        },
+        "phone_status": {
+            "S": "pending"
+        },
+        "account_status": {
+            "S": "password_pending"
+        },
+        "selected_tier_billing": {
+            "NULL": true
+        },
+        "terms_accepted_at": {
+            "S": "2026-05-07T12:03:07.809Z"
+        },
+        "application_received_sent": {
+            "BOOL": false
+        },
+        "e3_scheduled_at": {
+            "S": "2026-05-07T12:09:30.543780+00:00"
+        },
+        "review_token_used_at": {
+            "S": "2026-05-07T12:04:30.272074+00:00"
+        },
+        "occupation": {
+            "S": "job"
+        },
+        "referral_code": {
+            "S": "invitation"
+        },
+        "submitted_photo_ids": {
+            "L": [
+                {
+                    "S": "5b1bff095eb5902ea098ee18646bd44d"
+                },
+                {
+                    "S": "3afe430bdd3d55efbb623cd66cefb286"
+                },
+                {
+                    "S": "7e4cc7301e912614f517ada0071bcca0"
+                }
+            ]
+        },
+        "test_simulated_tier": {
+            "S": "free"
+        },
+        "test_founder_inviter": {
+            "BOOL": true
+        },
+        "name": {
+            "S": "Ana Luisa"
+        },
+        "synthetic_test_flagged_by": {
+            "S": "antonio_approved_codex_stage2"
+        },
+        "updated_reason": {
+            "S": "formalize_presttige_tester_tier_20260606"
+        },
+        "profile_completed_at": {
+            "S": "2026-05-07T12:03:25.760238+00:00"
+        },
+        "welcome_variant": {
+            "S": "membership_active"
+        },
+        "review_attempt_id": {
+            "S": "abbbf7b004456875"
+        },
+        "application_type": {
+            "S": "access"
+        },
+        "verification_token_used_at": {
+            "S": "2026-05-07T12:01:17.314008"
+        },
+        "review_status": {
+            "S": "approved"
+        },
+        "signup_path": {
+            "S": "free"
+        },
+        "email": {
+            "S": "analuisasf@gmail.com"
+        },
+        "e3_schedule_name": {
+            "S": "presttige-e3-fdm_c8f2b323a4-1778155770"
+        },
+        "magic_token_status": {
+            "S": "active"
+        },
+        "bio": {
+            "S": "Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7"
+        },
+        "cognito_linked_at": {
+            "S": "2026-06-06T17:23:13.403Z"
+        },
+        "phone": {
+            "S": "504350310"
+        },
+        "synthetic_test_reason": {
+            "S": "Approved cleanup: exclude confirmed test/preview payment artifacts from real-data counts"
+        },
+        "source": {
+            "S": "invitation"
+        },
+        "token_status": {
+            "S": "active"
+        },
+        "why": {
+            "S": "Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7"
+        },
+        "onboarded_at": {
+            "S": "2026-05-07T12:19:07.142Z"
+        },
+        "test_scope": {
+            "S": "invite_and_experience"
+        },
+        "terms_accepted": {
+            "S": "true"
+        },
+        "verification_token_status": {
+            "S": "used"
+        },
+        "photo_uploads": {
+            "M": {
+                "5b1bff095eb5902ea098ee18646bd44d": {
+                    "M": {
+                        "selected_for_committee": {
+                            "BOOL": true
+                        },
+                        "content_type": {
+                            "S": "image/png"
+                        },
+                        "original_key": {
+                            "S": "fdm_c8f2b323a4/original/5b1bff095eb5902ea098ee18646bd44d.png"
+                        },
+                        "submitted_at": {
+                            "S": "2026-05-07T12:03:25.760238+00:00"
+                        },
+                        "created_at": {
+                            "S": "2026-05-07T12:03:11.696Z"
+                        },
+                        "processed_at": {
+                            "S": "2026-05-07T12:03:18.049Z"
+                        },
+                        "thumbnails": {
+                            "M": {
+                                "400": {
+                                    "S": "fdm_c8f2b323a4/thumbnails/5b1bff095eb5902ea098ee18646bd44d-400.jpg"
+                                },
+                                "1200": {
+                                    "S": "fdm_c8f2b323a4/thumbnails/5b1bff095eb5902ea098ee18646bd44d-1200.jpg"
+                                }
+                            }
+                        },
+                        "file_size": {
+                            "N": "1705981"
+                        },
+                        "retention": {
+                            "S": "tester"
+                        },
+                        "status": {
+                            "S": "ready"
+                        }
+                    }
+                },
+                "3afe430bdd3d55efbb623cd66cefb286": {
+                    "M": {
+                        "selected_for_committee": {
+                            "BOOL": true
+                        },
+                        "content_type": {
+                            "S": "image/jpeg"
+                        },
+                        "original_key": {
+                            "S": "fdm_c8f2b323a4/original/3afe430bdd3d55efbb623cd66cefb286.jpg"
+                        },
+                        "submitted_at": {
+                            "S": "2026-05-07T12:03:25.760238+00:00"
+                        },
+                        "created_at": {
+                            "S": "2026-05-07T12:03:19.316Z"
+                        },
+                        "processed_at": {
+                            "S": "2026-05-07T12:03:20.940Z"
+                        },
+                        "thumbnails": {
+                            "M": {
+                                "400": {
+                                    "S": "fdm_c8f2b323a4/thumbnails/3afe430bdd3d55efbb623cd66cefb286-400.jpg"
+                                },
+                                "1200": {
+                                    "S": "fdm_c8f2b323a4/thumbnails/3afe430bdd3d55efbb623cd66cefb286-1200.jpg"
+                                }
+                            }
+                        },
+                        "file_size": {
+                            "N": "40438"
+                        },
+                        "retention": {
+                            "S": "tester"
+                        },
+                        "status": {
+                            "S": "ready"
+                        }
+                    }
+                },
+                "7e4cc7301e912614f517ada0071bcca0": {
+                    "M": {
+                        "selected_for_committee": {
+                            "BOOL": true
+                        },
+                        "content_type": {
+                            "S": "image/jpeg"
+                        },
+                        "original_key": {
+                            "S": "fdm_c8f2b323a4/original/7e4cc7301e912614f517ada0071bcca0.jpg"
+                        },
+                        "submitted_at": {
+                            "S": "2026-05-07T12:03:25.760238+00:00"
+                        },
+                        "created_at": {
+                            "S": "2026-05-07T12:03:22.656Z"
+                        },
+                        "processed_at": {
+                            "S": "2026-05-07T12:03:24.503Z"
+                        },
+                        "thumbnails": {
+                            "M": {
+                                "400": {
+                                    "S": "fdm_c8f2b323a4/thumbnails/7e4cc7301e912614f517ada0071bcca0-400.jpg"
+                                },
+                                "1200": {
+                                    "S": "fdm_c8f2b323a4/thumbnails/7e4cc7301e912614f517ada0071bcca0-1200.jpg"
+                                }
+                            }
+                        },
+                        "file_size": {
+                            "N": "84026"
+                        },
+                        "retention": {
+                            "S": "tester"
+                        },
+                        "status": {
+                            "S": "ready"
+                        }
+                    }
+                }
+            }
+        },
+        "test_founder_permission_scope": {
+            "S": "invite_and_experience"
+        },
+        "created_at": {
+            "S": "2026-05-07T12:00:36.586234"
+        },
+        "preview_mode_enabled_at": {
+            "S": "2026-05-07T12:00:36.586234"
+        },
+        "tier": {
+            "S": "tester"
+        },
+        "phone_country": {
+            "S": "+971"
+        },
+        "application_received_sent_at": {
+            "NULL": true
+        },
+        "updated_at": {
+            "S": "2026-06-06T19:40:24Z"
+        },
+        "invite_send_at": {
+            "N": "1778155770"
+        },
+        "preview_mode_completed_at": {
+            "S": "2026-05-07T12:19:07.142Z"
+        },
+        "test_founder_permissions": {
+            "BOOL": true
+        },
+        "age": {
+            "S": "40"
+        },
+        "review_token": {
+            "S": "ff9b1b163fb465eb408cba97327ecd28bed52df1f18ea31345b7cb0a977de402"
+        },
+        "subscriber_type": {
+            "S": "tester"
+        },
+        "cognito_sub": {
+            "S": "842844e8-a0f1-709f-440b-6a40cc9559bb"
+        },
+        "account_active": {
+            "BOOL": true
+        },
+        "email_status": {
+            "S": "verified"
+        },
+        "founding_rate_locked": {
+            "BOOL": false
+        },
+        "profile_status": {
+            "S": "profile_submitted"
+        },
+        "test_founder_permission_source": {
+            "S": "tester_tier_20260606"
+        },
+        "upgrade_eligible_until": {
+            "S": "2026-12-31T23:59:59Z"
+        },
+        "instagram": {
+            "S": "@alsf11"
+        },
+        "reviewed_at": {
+            "S": "2026-05-07T12:04:30.272074+00:00"
+        },
+        "selected_tier": {
+            "S": "tester"
+        },
+        "is_test": {
+            "BOOL": true
+        },
+        "synthetic_test": {
+            "BOOL": true
+        },
+        "cognito_pool": {
+            "S": "presttige-members"
+        },
+        "founder_eligible": {
+            "BOOL": false
+        },
+        "magic_token_used_at": {
+            "S": "2026-05-07T12:19:11.609Z"
+        },
+        "reinvite_eligible": {
+            "BOOL": true
+        },
+        "test_tier_default": {
+            "S": "free"
+        }
+    }
+}
