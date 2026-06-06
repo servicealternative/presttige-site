@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-06-06T15:42:58Z",
+  "account": "343218208384",
+  "region": "us-east-1",
+  "table": "presttige-db",
+  "purpose": "Identity Step 2, pre-GSI table description backup",
+  "note": "Schema and PITR capture before adding cognito_sub-index. No table items exported or modified."
+}
