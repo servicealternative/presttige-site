@@ -1,0 +1,343 @@
+{
+    "Item": {
+        "review_token_status": {
+            "S": "used"
+        },
+        "verification_token": {
+            "S": "3d88aa9bb577d7a68aabb4a71aa23eef53a06133f9ef00766bdf553e346c124b"
+        },
+        "application_received_email_sent_at": {
+            "S": "2026-05-29T16:03:53.320Z"
+        },
+        "phone_status": {
+            "S": "pending"
+        },
+        "e2_sent_at": {
+            "S": "2026-05-29T16:03:53.782Z"
+        },
+        "photo_uploads": {
+            "M": {
+                "cdbb993321a7ee127c4b2d8e5a3dc890": {
+                    "M": {
+                        "selected_for_committee": {
+                            "BOOL": true
+                        },
+                        "content_type": {
+                            "S": "image/jpeg"
+                        },
+                        "original_key": {
+                            "S": "fdm_4ce6a9508a/original/cdbb993321a7ee127c4b2d8e5a3dc890.jpg"
+                        },
+                        "submitted_at": {
+                            "S": "2026-05-29T16:03:51.518569+00:00"
+                        },
+                        "created_at": {
+                            "S": "2026-05-29T16:03:27.954Z"
+                        },
+                        "processed_at": {
+                            "S": "2026-05-29T16:03:49.423Z"
+                        },
+                        "thumbnails": {
+                            "M": {
+                                "400": {
+                                    "S": "fdm_4ce6a9508a/thumbnails/cdbb993321a7ee127c4b2d8e5a3dc890-400.jpg"
+                                },
+                                "1200": {
+                                    "S": "fdm_4ce6a9508a/thumbnails/cdbb993321a7ee127c4b2d8e5a3dc890-1200.jpg"
+                                }
+                            }
+                        },
+                        "file_size": {
+                            "N": "3724743"
+                        },
+                        "retention": {
+                            "S": "pending"
+                        },
+                        "status": {
+                            "S": "ready"
+                        }
+                    }
+                },
+                "c8377717c4d906588f49879507408f8b": {
+                    "M": {
+                        "selected_for_committee": {
+                            "BOOL": true
+                        },
+                        "content_type": {
+                            "S": "image/jpeg"
+                        },
+                        "original_key": {
+                            "S": "fdm_4ce6a9508a/original/c8377717c4d906588f49879507408f8b.jpg"
+                        },
+                        "submitted_at": {
+                            "S": "2026-05-29T16:03:51.518569+00:00"
+                        },
+                        "created_at": {
+                            "S": "2026-05-29T16:02:50.796Z"
+                        },
+                        "processed_at": {
+                            "S": "2026-05-29T16:03:24.764Z"
+                        },
+                        "thumbnails": {
+                            "M": {
+                                "400": {
+                                    "S": "fdm_4ce6a9508a/thumbnails/c8377717c4d906588f49879507408f8b-400.jpg"
+                                },
+                                "1200": {
+                                    "S": "fdm_4ce6a9508a/thumbnails/c8377717c4d906588f49879507408f8b-1200.jpg"
+                                }
+                            }
+                        },
+                        "file_size": {
+                            "N": "5993241"
+                        },
+                        "retention": {
+                            "S": "pending"
+                        },
+                        "status": {
+                            "S": "ready"
+                        }
+                    }
+                }
+            }
+        },
+        "magic_token_issued_at": {
+            "S": "2026-05-31T16:17:31.174Z"
+        },
+        "tiktok": {
+            "S": ""
+        },
+        "verification_token_used_at": {
+            "S": "2026-05-29T15:41:37.910104"
+        },
+        "linkedin": {
+            "S": "https://www.linkedin.com/in/victoriaburca/"
+        },
+        "campaign_id": {
+            "S": ""
+        },
+        "application_received_sent": {
+            "BOOL": false
+        },
+        "tier_intent": {
+            "S": "founder"
+        },
+        "country": {
+            "S": "United Arab Emirates"
+        },
+        "submitted_to_committee_at": {
+            "S": "2026-05-29T16:03:51.518569+00:00"
+        },
+        "payment_status": {
+            "S": "pending"
+        },
+        "e3_variant": {
+            "S": "tier_select"
+        },
+        "referral_code": {
+            "S": "invitation"
+        },
+        "lead_id": {
+            "S": "fdm_4ce6a9508a"
+        },
+        "e3_sent_at": {
+            "S": "2026-05-31T16:17:32.786Z"
+        },
+        "founder_token_version": {
+            "N": "1"
+        },
+        "reinvite_count": {
+            "N": "0"
+        },
+        "review_note": {
+            "NULL": true
+        },
+        "reviewed_at": {
+            "S": "2026-05-29T16:17:10.344647+00:00"
+        },
+        "invite_status": {
+            "S": "scheduled"
+        },
+        "marketing_consent": {
+            "S": "true"
+        },
+        "created_at": {
+            "S": "2026-05-29T15:41:19.302901"
+        },
+        "review_token": {
+            "S": "f30ffe467205d70d03c2fde65255f6dbc7ebdb039be7193e9f5786efa304bf31"
+        },
+        "invite_send_at": {
+            "N": "1780244230"
+        },
+        "review_status": {
+            "S": "approved"
+        },
+        "magic_token_expires_at": {
+            "S": "2026-06-21T16:17:31.174Z"
+        },
+        "profile_completed_at": {
+            "S": "2026-05-29T16:03:51.518569+00:00"
+        },
+        "terms_accepted": {
+            "S": "true"
+        },
+        "consent_basis": {
+            "S": "admin_invited_legitimate_interest"
+        },
+        "company": {
+            "S": ""
+        },
+        "inviter_founder_invite_token": {
+            "NULL": true
+        },
+        "founder_token_nonce": {
+            "S": "a849d7b0f0c0959779c660ebb66e0dbd"
+        },
+        "review_token_used_at": {
+            "S": "2026-05-29T16:17:10.344647+00:00"
+        },
+        "founder_token_status": {
+            "S": "active"
+        },
+        "inviter_lead_id": {
+            "NULL": true
+        },
+        "inviter_role": {
+            "S": "chairman"
+        },
+        "website": {
+            "S": ""
+        },
+        "inviter_email": {
+            "S": "apereira@presttige.net"
+        },
+        "phone": {
+            "S": "507910563"
+        },
+        "email_status": {
+            "S": "verified"
+        },
+        "source": {
+            "S": "invitation"
+        },
+        "founder_token_generated_at": {
+            "S": "2026-06-06T09:01:05.547422+00:00"
+        },
+        "magic_token": {
+            "S": "2ef5eb229426a19d09d2211c938eb75a15a891ad9e3a7fa6ad340d1aa9841740"
+        },
+        "name": {
+            "S": "victoria"
+        },
+        "age": {
+            "S": "49"
+        },
+        "occupation": {
+            "S": "Luxury real estate"
+        },
+        "submitted_photo_ids": {
+            "L": [
+                {
+                    "S": "c8377717c4d906588f49879507408f8b"
+                },
+                {
+                    "S": "cdbb993321a7ee127c4b2d8e5a3dc890"
+                }
+            ]
+        },
+        "city": {
+            "S": "Dubai"
+        },
+        "founder_gate_status": {
+            "S": "confirmed"
+        },
+        "magic_token_status": {
+            "S": "active"
+        },
+        "reinvite_eligible": {
+            "BOOL": true
+        },
+        "founder_token": {
+            "S": "534681c4102a527c6a30d2058327e068fe80476b279611d13ed13ba488a66649"
+        },
+        "instagram": {
+            "S": "@victoriaburca"
+        },
+        "email": {
+            "S": "victoriaburca@gmail.com"
+        },
+        "profile_submitted_at": {
+            "S": "2026-05-29T16:02:48.682440+00:00"
+        },
+        "consent_timestamp": {
+            "S": "2026-06-06T09:01:05.547422+00:00"
+        },
+        "founder_invite_flow": {
+            "S": "direct_founder"
+        },
+        "marketing_consent_at": {
+            "S": "2026-05-29T16:02:46.762Z"
+        },
+        "application_received_sent_at": {
+            "NULL": true
+        },
+        "founder_eligible": {
+            "BOOL": true
+        },
+        "email_verified_at": {
+            "S": "2026-05-29T15:41:37.910104"
+        },
+        "phone_country": {
+            "S": "+971"
+        },
+        "founder_invite_email_sent_at": {
+            "S": "2026-06-06T09:01:05.690172+00:00"
+        },
+        "profile_status": {
+            "S": "submitted_to_committee"
+        },
+        "verification_token_status": {
+            "S": "used"
+        },
+        "bio": {
+            "S": "I’m Victoria, a Dubai-based real estate advisor specializing in luxury properties, investment opportunities, and lifestyle-driven communities. With a background in marketing and branding, I combine market expertise, strategic thinking, and a strong network to help clients make informed real estate decisions.\n\nPassionate about travel, architecture, design, and meaningful connections, I value quality experiences, continuous growth, and surrounding myself with inspiring people. I believe success is built on trust, discretion, and long-term relationships."
+        },
+        "terms_accepted_at": {
+            "S": "2026-05-29T16:02:46.762Z"
+        },
+        "e3_scheduled_at": {
+            "S": "2026-05-31T16:17:10.793428+00:00"
+        },
+        "token_status": {
+            "S": "active"
+        },
+        "subscriber_type": {
+            "S": "founder_invited"
+        },
+        "updated_at": {
+            "S": "2026-06-06T09:01:05.690172+00:00"
+        },
+        "inviter_source": {
+            "S": "ulttra"
+        },
+        "inviter_ulttra_person_id": {
+            "S": "4"
+        },
+        "application_type": {
+            "S": "access"
+        },
+        "created_by_admin": {
+            "BOOL": true
+        },
+        "review_attempt_id": {
+            "S": "fdc7dbc85b6f3a01"
+        },
+        "why": {
+            "S": "I believe the quality of your network shapes the quality of your opportunities. Presttige brings together people who value discretion, excellence, and genuine connections—qualities I deeply appreciate both personally and professionally."
+        },
+        "e3_schedule_name": {
+            "S": "presttige-e3-fdm_4ce6a9508a-1780244230"
+        }
+    }
+}

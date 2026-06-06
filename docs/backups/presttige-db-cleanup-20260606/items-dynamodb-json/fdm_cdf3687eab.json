@@ -1,0 +1,234 @@
+{
+    "Item": {
+        "country": {
+            "S": "Portugal"
+        },
+        "review_status": {
+            "S": "approved"
+        },
+        "profile_submitted_at": {
+            "S": "2026-04-27T13:22:29.816188+00:00"
+        },
+        "campaign_id": {
+            "S": ""
+        },
+        "lead_id": {
+            "S": "fdm_cdf3687eab"
+        },
+        "reviewed_at": {
+            "S": "2026-04-27T13:24:15.611754+00:00"
+        },
+        "tiktok": {
+            "S": ""
+        },
+        "marketing_consent_at": {
+            "S": "2026-04-27T13:22:28.572Z"
+        },
+        "profile_status": {
+            "S": "profile_submitted"
+        },
+        "token_status": {
+            "S": "active"
+        },
+        "age": {
+            "S": "22"
+        },
+        "review_token": {
+            "S": "2017b165fd3539d0f2d6fce8c29c9f3bffdbbb7f0ded28243cebddcd29a7831b"
+        },
+        "review_token_used_at": {
+            "S": "2026-04-27T13:24:15.611754+00:00"
+        },
+        "source": {
+            "S": "invitation"
+        },
+        "reinvite_eligible": {
+            "BOOL": true
+        },
+        "occupation": {
+            "S": "Student of Engineering"
+        },
+        "review_note": {
+            "NULL": true
+        },
+        "terms_accepted_at": {
+            "S": "2026-04-27T13:22:28.572Z"
+        },
+        "why": {
+            "S": "Testestesttesttestnsnsndnndndndndjdjjdjdjdjdjjdjdjeksqmwhxhxnznusiksksmxmmxxmmxmxmxmzmzjjz"
+        },
+        "invite_send_at": {
+            "N": "1777469056"
+        },
+        "company": {
+            "S": ""
+        },
+        "phone": {
+            "S": "928036742"
+        },
+        "city": {
+            "S": "Lisbon"
+        },
+        "review_attempt_id": {
+            "S": "cdfd63cf7db27846"
+        },
+        "application_type": {
+            "S": "access"
+        },
+        "c1_founder_excluded": {
+            "BOOL": true
+        },
+        "c1_founder_excluded_by": {
+            "S": "apereira@presttige.net"
+        },
+        "referral_code": {
+            "S": "invitation"
+        },
+        "created_at": {
+            "S": "2026-04-27T13:19:53.517391"
+        },
+        "website": {
+            "S": ""
+        },
+        "email": {
+            "S": "franciscompereira202212@gmail.com"
+        },
+        "review_token_status": {
+            "S": "used"
+        },
+        "c1_founder_excluded_at": {
+            "S": "2026-06-06T11:11:22.281Z"
+        },
+        "phone_status": {
+            "S": "pending"
+        },
+        "application_received_sent": {
+            "BOOL": false
+        },
+        "reinvite_count": {
+            "N": "0"
+        },
+        "verification_token": {
+            "S": "c5a2327d3052611b61ec09d4ab3194b4a6725e2ea1ba756c01cd1a1936facb9e"
+        },
+        "e3_schedule_name": {
+            "S": "presttige-e3-fdm_cdf3687eab-1777469056"
+        },
+        "e2_sent_at": {
+            "S": "2026-04-27T13:23:13.310Z"
+        },
+        "application_received_sent_at": {
+            "NULL": true
+        },
+        "linkedin": {
+            "S": ""
+        },
+        "bio": {
+            "S": "Testestestjdjdjdndndmmddmmdmdmdmmdmdmdmdmmdmdhshagajfkfjfjdjjddjjdjsjskskksk"
+        },
+        "e3_scheduled_at": {
+            "S": "2026-04-29T13:24:16.062087+00:00"
+        },
+        "invite_status": {
+            "S": "scheduled"
+        },
+        "terms_accepted": {
+            "S": "true"
+        },
+        "phone_country": {
+            "S": "+351"
+        },
+        "updated_at": {
+            "S": "2026-06-06T11:11:22.281Z"
+        },
+        "photo_uploads": {
+            "M": {
+                "7cbea9ae6b7365bb561f1099d39beae6": {
+                    "M": {
+                        "content_type": {
+                            "S": "image/jpeg"
+                        },
+                        "created_at": {
+                            "S": "2026-04-27T13:23:09.617Z"
+                        },
+                        "file_size": {
+                            "N": "198597"
+                        },
+                        "original_key": {
+                            "S": "fdm_cdf3687eab/original/7cbea9ae6b7365bb561f1099d39beae6.jpg"
+                        },
+                        "processed_at": {
+                            "S": "2026-04-27T13:23:12.790Z"
+                        },
+                        "retention": {
+                            "S": "pending"
+                        },
+                        "status": {
+                            "S": "ready"
+                        },
+                        "thumbnails": {
+                            "M": {
+                                "400": {
+                                    "S": "fdm_cdf3687eab/thumbnails/7cbea9ae6b7365bb561f1099d39beae6-400.jpg"
+                                },
+                                "1200": {
+                                    "S": "fdm_cdf3687eab/thumbnails/7cbea9ae6b7365bb561f1099d39beae6-1200.jpg"
+                                }
+                            }
+                        }
+                    }
+                },
+                "83688030cb466e3fbaef6c02280010f6": {
+                    "M": {
+                        "content_type": {
+                            "S": "image/jpeg"
+                        },
+                        "created_at": {
+                            "S": "2026-04-27T13:23:08.100Z"
+                        },
+                        "file_size": {
+                            "N": "234640"
+                        },
+                        "original_key": {
+                            "S": "fdm_cdf3687eab/original/83688030cb466e3fbaef6c02280010f6.jpg"
+                        },
+                        "processed_at": {
+                            "S": "2026-04-27T13:23:12.141Z"
+                        },
+                        "retention": {
+                            "S": "pending"
+                        },
+                        "status": {
+                            "S": "ready"
+                        },
+                        "thumbnails": {
+                            "M": {
+                                "400": {
+                                    "S": "fdm_cdf3687eab/thumbnails/83688030cb466e3fbaef6c02280010f6-400.jpg"
+                                },
+                                "1200": {
+                                    "S": "fdm_cdf3687eab/thumbnails/83688030cb466e3fbaef6c02280010f6-1200.jpg"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "marketing_consent": {
+            "S": "true"
+        },
+        "email_status": {
+            "S": "verified"
+        },
+        "name": {
+            "S": "Test"
+        },
+        "instagram": {
+            "S": "testest"
+        },
+        "application_received_email_sent_at": {
+            "S": "2026-04-27T13:23:14.362Z"
+        }
+    }
+}

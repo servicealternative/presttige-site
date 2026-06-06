@@ -1,0 +1,19 @@
+{
+  "captured_at": "2026-06-06T16:20:24Z",
+  "account": "343218208384",
+  "region": "us-east-1",
+  "table": "presttige-db",
+  "change_records": [
+    "fdm_552b7cb39c",
+    "fdm_founder_63c5385260",
+    "fdm_b26verify_1777288502",
+    "fdm_cdf3687eab",
+    "fdm_3cf8337bb7"
+  ],
+  "investigation_records": [
+    "fdm_4ce6a9508a",
+    "fdm_c5866ef213",
+    "fdm_c5c831e5e7"
+  ],
+  "note": "Full item JSON captured before three deletes, one rename, and one tester role change. Victoria records are read-only investigation snapshots."
+}

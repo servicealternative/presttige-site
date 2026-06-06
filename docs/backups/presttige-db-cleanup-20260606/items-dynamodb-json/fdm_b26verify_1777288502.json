@@ -1,0 +1,73 @@
+{
+    "Item": {
+        "magic_token_issued_at": {
+            "S": "2026-04-27T11:15:02.962541Z"
+        },
+        "tier_select_expires_at": {
+            "S": "2026-04-27T12:15:02.962541Z"
+        },
+        "tier_select_token": {
+            "S": "2232239e8aef13f3a701e42d778e4451565169a66c8c715f8995f480a323375c"
+        },
+        "created_at": {
+            "S": "2026-04-27T11:15:02.962541Z"
+        },
+        "magic_token": {
+            "S": "2232239e8aef13f3a701e42d778e4451565169a66c8c715f8995f480a323375c"
+        },
+        "selected_tier_billing": {
+            "S": "PLACEHOLDER_TO_BE_PROVIDED"
+        },
+        "selected_tier": {
+            "S": "PLACEHOLDER_TO_BE_PROVIDED"
+        },
+        "payment_status": {
+            "S": "pending"
+        },
+        "email": {
+            "S": "verify@presttige.net"
+        },
+        "country": {
+            "S": "United Arab Emirates"
+        },
+        "email_status": {
+            "S": "verified"
+        },
+        "name": {
+            "S": "Antonio Safari Verify"
+        },
+        "updated_at": {
+            "S": "2026-04-27T11:15:02.962541Z"
+        },
+        "reviewed_at": {
+            "S": "2026-04-27T11:15:02.962541Z"
+        },
+        "founding_rate_locked": {
+            "BOOL": false
+        },
+        "review_status": {
+            "S": "approved"
+        },
+        "magic_token_status": {
+            "S": "active"
+        },
+        "is_test": {
+            "BOOL": true
+        },
+        "magic_token_expires_at": {
+            "S": "2026-04-27T12:15:02.962541Z"
+        },
+        "profile_status": {
+            "S": "complete"
+        },
+        "lead_id": {
+            "S": "fdm_b26verify_1777288502"
+        },
+        "phone": {
+            "S": "PLACEHOLDER_TO_BE_PROVIDED"
+        },
+        "synthetic_verify_record": {
+            "BOOL": true
+        }
+    }
+}

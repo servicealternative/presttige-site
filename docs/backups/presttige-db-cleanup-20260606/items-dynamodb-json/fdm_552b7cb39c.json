@@ -1,0 +1,139 @@
+{
+    "Item": {
+        "preview_mode": {
+            "BOOL": true
+        },
+        "created_by_admin": {
+            "BOOL": true
+        },
+        "founder_token": {
+            "S": "dd06ed6ae7d22031f5ef477b66b13de2fcf125834882a896e31a9770b5a17fbc"
+        },
+        "verification_token_used_at": {
+            "S": "2026-05-07T11:41:55.878844"
+        },
+        "tier_intent": {
+            "S": "founder"
+        },
+        "verification_token": {
+            "S": "3f93a194984e1b5e9c965998f206e6177f60c2737f21dd705a2544def478db84"
+        },
+        "founder_invite_email_sent_at": {
+            "S": "2026-06-01T19:51:26.440979+00:00"
+        },
+        "inviter_source": {
+            "S": "chairman"
+        },
+        "verification_token_status": {
+            "S": "used"
+        },
+        "application_type": {
+            "S": "access"
+        },
+        "inviter_role": {
+            "S": "chairman"
+        },
+        "application_received_sent_at": {
+            "NULL": true
+        },
+        "inviter_ulttra_person_id": {
+            "S": "4"
+        },
+        "country": {
+            "S": "AE"
+        },
+        "phone": {
+            "S": "+971581234567"
+        },
+        "founder_eligible": {
+            "BOOL": true
+        },
+        "email": {
+            "S": "alternativeservice@gmail.com"
+        },
+        "application_received_sent": {
+            "BOOL": false
+        },
+        "consent_basis": {
+            "S": "admin_invited_legitimate_interest"
+        },
+        "campaign_id": {
+            "S": ""
+        },
+        "inviter_email": {
+            "S": "apereira@presttige.net"
+        },
+        "email_status": {
+            "S": "verified"
+        },
+        "review_status": {
+            "S": "pending"
+        },
+        "consent_timestamp": {
+            "S": "2026-06-01T19:51:25.981671+00:00"
+        },
+        "is_test": {
+            "BOOL": true
+        },
+        "created_at": {
+            "S": "2026-05-07T11:41:35.127728"
+        },
+        "inviter_founder_invite_token": {
+            "NULL": true
+        },
+        "founder_token_nonce": {
+            "S": "66ab3801b161ba4d1d5a11c59106a004"
+        },
+        "phone_status": {
+            "S": "pending"
+        },
+        "preview_mode_enabled_at": {
+            "S": "2026-05-07T11:41:35.127728"
+        },
+        "updated_at": {
+            "S": "2026-06-01T19:51:26.579169+00:00"
+        },
+        "profile_status": {
+            "S": "step_2"
+        },
+        "email_verified_at": {
+            "S": "2026-05-07T11:41:55.878844"
+        },
+        "phone_full": {
+            "S": "+971581234567"
+        },
+        "source": {
+            "S": "codex-round3"
+        },
+        "founder_inviter_email_sent_at": {
+            "S": "2026-06-01T19:51:26.579169+00:00"
+        },
+        "founder_token_status": {
+            "S": "active"
+        },
+        "inviter_lead_id": {
+            "NULL": true
+        },
+        "lead_id": {
+            "S": "fdm_552b7cb39c"
+        },
+        "founder_token_generated_at": {
+            "S": "2026-06-01T19:51:25.981671+00:00"
+        },
+        "founder_token_version": {
+            "N": "1"
+        },
+        "subscriber_type": {
+            "S": "founder_invited"
+        },
+        "founder_gate_status": {
+            "S": "confirmed"
+        },
+        "name": {
+            "S": "Preview Route Check"
+        },
+        "referral_code": {
+            "S": "codex-round3"
+        }
+    }
+}

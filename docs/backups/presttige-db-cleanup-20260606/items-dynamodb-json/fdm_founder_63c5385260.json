@@ -1,0 +1,100 @@
+{
+    "Item": {
+        "founder_inviter_email_sent_at": {
+            "S": "2026-05-30T18:09:34.608084+00:00"
+        },
+        "inviter_ulttra_person_id": {
+            "S": "4"
+        },
+        "updated_at": {
+            "S": "2026-06-01T22:32:55.884245+00:00"
+        },
+        "email": {
+            "S": "antoniompereira@icloud.com"
+        },
+        "review_status": {
+            "S": "approved"
+        },
+        "checkout_token_status": {
+            "S": "active"
+        },
+        "tier_intent": {
+            "S": "founder"
+        },
+        "founder_invite_email_sent_at": {
+            "S": "2026-05-30T18:09:34.483239+00:00"
+        },
+        "checkout_token_version": {
+            "N": "1"
+        },
+        "founder_token_status": {
+            "S": "active"
+        },
+        "name": {
+            "S": "Antonio Pereira"
+        },
+        "founder_eligible": {
+            "BOOL": true
+        },
+        "founder_token_version": {
+            "N": "1"
+        },
+        "founder_token_generated_at": {
+            "S": "2026-06-01T22:32:55.884245+00:00"
+        },
+        "checkbox_consent_at": {
+            "S": "2026-05-30T18:41:59.605Z"
+        },
+        "checkout_token_expires_at": {
+            "S": "2026-06-29T18:41:59.605Z"
+        },
+        "inviter_founder_invite_token": {
+            "NULL": true
+        },
+        "consent_basis": {
+            "S": "admin_invited_legitimate_interest"
+        },
+        "inviter_email": {
+            "S": "apereira@presttige.net"
+        },
+        "founder_gate_status": {
+            "S": "confirmed"
+        },
+        "inviter_lead_id": {
+            "NULL": true
+        },
+        "subscriber_type": {
+            "S": "founder_invited"
+        },
+        "founder_token_nonce": {
+            "S": "6842b6032581ba2c4777ca5042e57844"
+        },
+        "lead_id": {
+            "S": "fdm_founder_63c5385260"
+        },
+        "founder_token": {
+            "S": "8819cf699f042cfb46f579a3e7cf3cef33a20a7122eea5b240821f54d9d79f39"
+        },
+        "inviter_role": {
+            "S": "chairman"
+        },
+        "checkout_token": {
+            "S": "7508894242f4b3c0ffeb6b3815a4c5b2647e6bc70aede4d53745a29bf20c6abf"
+        },
+        "created_at": {
+            "S": "2026-05-30T18:09:33.866329+00:00"
+        },
+        "created_by_admin": {
+            "BOOL": true
+        },
+        "inviter_source": {
+            "S": "chairman"
+        },
+        "checkout_token_issued_at": {
+            "S": "2026-05-30T18:41:59.605Z"
+        },
+        "consent_timestamp": {
+            "S": "2026-06-01T22:32:55.884245+00:00"
+        }
+    }
+}

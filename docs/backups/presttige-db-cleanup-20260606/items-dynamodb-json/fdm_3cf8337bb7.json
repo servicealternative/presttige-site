@@ -1,0 +1,379 @@
+{
+    "Item": {
+        "last_event_id": {
+            "S": "evt_1TeY1EDmiQXcrE5NVbm5xvip"
+        },
+        "review_status": {
+            "S": "approved"
+        },
+        "magic_token_expires_at": {
+            "S": "2026-06-24T10:53:36.975Z"
+        },
+        "preview_mode": {
+            "BOOL": true
+        },
+        "test_tier": {
+            "BOOL": true
+        },
+        "subscription_status": {
+            "S": "incomplete_expired"
+        },
+        "currency": {
+            "S": "USD"
+        },
+        "verification_token": {
+            "S": "4d8121241640b869e5a8a0293b9c7067ee1672a3c08e809e9d47947e391a24bd"
+        },
+        "submitted_to_committee_at": {
+            "S": "2026-06-03T10:47:32.494787+00:00"
+        },
+        "review_note": {
+            "NULL": true
+        },
+        "age": {
+            "S": "63"
+        },
+        "referral_code": {
+            "S": "committee_invitation"
+        },
+        "stripe_subscription_id": {
+            "S": "sub_1TeCT4DmiQXcrE5NWYihOtig"
+        },
+        "selected_tier": {
+            "S": "TEST"
+        },
+        "email": {
+            "S": "antoniompereira@me.com"
+        },
+        "magic_token_status": {
+            "S": "active"
+        },
+        "tiktok": {
+            "S": ""
+        },
+        "campaign_id": {
+            "S": ""
+        },
+        "submitted_photo_ids": {
+            "L": [
+                {
+                    "S": "3fefc3c4f99e0951c67fc383a641d245"
+                },
+                {
+                    "S": "6a5f802e164ab7340018d6627f4b96fd"
+                }
+            ]
+        },
+        "review_token_status": {
+            "S": "used"
+        },
+        "token_status": {
+            "S": "active"
+        },
+        "company": {
+            "S": ""
+        },
+        "name": {
+            "S": "Antonio Manuel Pereira"
+        },
+        "phone_status": {
+            "S": "pending"
+        },
+        "updated_reason": {
+            "S": "test_tier_migration_20260605"
+        },
+        "profile_completed_at": {
+            "S": "2026-06-03T10:47:32.494787+00:00"
+        },
+        "email_verified_at": {
+            "S": "2026-06-03T10:46:02.574641"
+        },
+        "last_event_type": {
+            "S": "customer.subscription.updated"
+        },
+        "c1_founder_excluded": {
+            "BOOL": true
+        },
+        "invite_send_at": {
+            "N": "1780483976"
+        },
+        "subscription_current_period_end": {
+            "NULL": true
+        },
+        "stripe_latest_invoice_id": {
+            "S": "in_1TeCT4DmiQXcrE5NHwwHSwCx"
+        },
+        "e3_sent_at": {
+            "S": "2026-06-03T10:53:38.851Z"
+        },
+        "tier": {
+            "S": "TEST"
+        },
+        "instagram": {
+            "S": "antonio.mpereira"
+        },
+        "reinvite_count": {
+            "N": "0"
+        },
+        "subscription_cancel_at_period_end": {
+            "BOOL": false
+        },
+        "source": {
+            "S": "committee_invitation"
+        },
+        "updated_at": {
+            "S": "2026-06-06T11:12:15.380Z"
+        },
+        "verification_token_used_at": {
+            "S": "2026-06-03T10:46:02.574641"
+        },
+        "review_token_used_at": {
+            "S": "2026-06-03T10:47:56.089947+00:00"
+        },
+        "marketing_consent_at": {
+            "S": "2026-06-03T10:47:17.445Z"
+        },
+        "phone_country": {
+            "S": "+971"
+        },
+        "simulated_tier": {
+            "S": "free"
+        },
+        "c1_founder_excluded_by": {
+            "S": "apereira@presttige.net"
+        },
+        "verification_token_status": {
+            "S": "used"
+        },
+        "phone": {
+            "S": "562195500"
+        },
+        "subscription_current_period_start": {
+            "NULL": true
+        },
+        "application_type": {
+            "S": "access"
+        },
+        "founder_eligible": {
+            "BOOL": false
+        },
+        "application_received_sent_at": {
+            "NULL": true
+        },
+        "payment_status": {
+            "S": "free"
+        },
+        "stripe_event_type": {
+            "S": "customer.subscription.updated"
+        },
+        "occupation": {
+            "S": ""
+        },
+        "website": {
+            "S": ""
+        },
+        "e3_variant": {
+            "S": "tier_select"
+        },
+        "review_attempt_id": {
+            "S": "7db2effbd05351f0"
+        },
+        "bio": {
+            "S": "oiuykjtfrhdesaz dxcfgvhbjnkml,;,kjnbhgvfcdxszxdcfvgbhjnkml,kmjnbhgvcfdxscfvgbhjkl,;,kmjnbhgvcfxddcfvgbhnjmk,"
+        },
+        "magic_token": {
+            "S": "8c758f124d0b7d1b6320e9dfd814df0a6e3003c21994659cc9205059be51dbf8"
+        },
+        "preview_mode_enabled_at": {
+            "S": "2026-06-03T10:45:33.761415"
+        },
+        "application_received_sent": {
+            "BOOL": false
+        },
+        "created_at": {
+            "S": "2026-06-03T10:45:33.761415"
+        },
+        "profile_submitted_at": {
+            "S": "2026-06-03T10:47:18.937966+00:00"
+        },
+        "review_token": {
+            "S": "d3b70bfd56f65cace7980542ec084566a6fc013b9fedf57893d746c7cf13ed37"
+        },
+        "reviewed_at": {
+            "S": "2026-06-03T10:47:56.089947+00:00"
+        },
+        "magic_token_issued_at": {
+            "S": "2026-06-03T10:53:36.975Z"
+        },
+        "selected_tier_billing": {
+            "S": "yearly"
+        },
+        "subscriber_type": {
+            "S": "test"
+        },
+        "email_status": {
+            "S": "verified"
+        },
+        "profile_status": {
+            "S": "profile_submitted"
+        },
+        "is_test": {
+            "BOOL": true
+        },
+        "lead_id": {
+            "S": "fdm_3cf8337bb7"
+        },
+        "stripe_last_event_id": {
+            "S": "evt_1TeY1EDmiQXcrE5NVbm5xvip"
+        },
+        "e3_scheduled_at": {
+            "S": "2026-06-03T10:52:56.305048+00:00"
+        },
+        "application_received_email_sent_at": {
+            "S": "2026-06-03T10:47:34.293Z"
+        },
+        "effective_tier": {
+            "S": "TEST"
+        },
+        "why": {
+            "S": "kjihgfdghjklkjhgfcxdcfgvhjkl;lkjhgfcdxdxcfgvbhjklkjhgfcdxszdxcfvbnjmk,lkjhgfdxszdxcfgvbhjklkjbhvgcfdxcvbnm,"
+        },
+        "marketing_consent": {
+            "S": "true"
+        },
+        "city": {
+            "S": "Dubai"
+        },
+        "e2_sent_at": {
+            "S": "2026-06-03T10:47:34.436Z"
+        },
+        "photo_uploads": {
+            "M": {
+                "6a5f802e164ab7340018d6627f4b96fd": {
+                    "M": {
+                        "selected_for_committee": {
+                            "BOOL": true
+                        },
+                        "content_type": {
+                            "S": "image/png"
+                        },
+                        "original_key": {
+                            "S": "fdm_3cf8337bb7/original/6a5f802e164ab7340018d6627f4b96fd.png"
+                        },
+                        "submitted_at": {
+                            "S": "2026-06-03T10:47:32.494787+00:00"
+                        },
+                        "created_at": {
+                            "S": "2026-06-03T10:47:28.593Z"
+                        },
+                        "processed_at": {
+                            "S": "2026-06-03T10:47:31.014Z"
+                        },
+                        "thumbnails": {
+                            "M": {
+                                "400": {
+                                    "S": "fdm_3cf8337bb7/thumbnails/6a5f802e164ab7340018d6627f4b96fd-400.jpg"
+                                },
+                                "1200": {
+                                    "S": "fdm_3cf8337bb7/thumbnails/6a5f802e164ab7340018d6627f4b96fd-1200.jpg"
+                                }
+                            }
+                        },
+                        "file_size": {
+                            "N": "1536044"
+                        },
+                        "retention": {
+                            "S": "tester"
+                        },
+                        "status": {
+                            "S": "ready"
+                        }
+                    }
+                },
+                "3fefc3c4f99e0951c67fc383a641d245": {
+                    "M": {
+                        "selected_for_committee": {
+                            "BOOL": true
+                        },
+                        "content_type": {
+                            "S": "image/jpeg"
+                        },
+                        "original_key": {
+                            "S": "fdm_3cf8337bb7/original/3fefc3c4f99e0951c67fc383a641d245.jpg"
+                        },
+                        "submitted_at": {
+                            "S": "2026-06-03T10:47:32.494787+00:00"
+                        },
+                        "created_at": {
+                            "S": "2026-06-03T10:47:21.333Z"
+                        },
+                        "processed_at": {
+                            "S": "2026-06-03T10:47:27.045Z"
+                        },
+                        "thumbnails": {
+                            "M": {
+                                "400": {
+                                    "S": "fdm_3cf8337bb7/thumbnails/3fefc3c4f99e0951c67fc383a641d245-400.jpg"
+                                },
+                                "1200": {
+                                    "S": "fdm_3cf8337bb7/thumbnails/3fefc3c4f99e0951c67fc383a641d245-1200.jpg"
+                                }
+                            }
+                        },
+                        "file_size": {
+                            "N": "634665"
+                        },
+                        "retention": {
+                            "S": "tester"
+                        },
+                        "status": {
+                            "S": "ready"
+                        }
+                    }
+                }
+            }
+        },
+        "cancel_at_period_end": {
+            "BOOL": false
+        },
+        "invite_status": {
+            "S": "scheduled"
+        },
+        "stripe_customer_id": {
+            "S": "cus_UdTPEUdeihtXI4"
+        },
+        "country": {
+            "S": "United Arab Emirates"
+        },
+        "linkedin": {
+            "S": ""
+        },
+        "test_simulated_tier": {
+            "S": "free"
+        },
+        "terms_accepted_at": {
+            "S": "2026-06-03T10:47:17.445Z"
+        },
+        "reinvite_eligible": {
+            "BOOL": true
+        },
+        "e3_schedule_name": {
+            "S": "presttige-e3-fdm_3cf8337bb7-1780483976"
+        },
+        "c1_founder_excluded_at": {
+            "S": "2026-06-06T11:12:15.380Z"
+        },
+        "synthetic_test": {
+            "BOOL": true
+        },
+        "terms_accepted": {
+            "S": "true"
+        },
+        "product_type": {
+            "S": "membership"
+        },
+        "test_tier_default": {
+            "S": "free"
+        }
+    }
+}

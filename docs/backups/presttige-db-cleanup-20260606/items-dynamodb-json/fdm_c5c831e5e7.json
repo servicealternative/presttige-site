@@ -1,0 +1,58 @@
+{
+    "Item": {
+        "application_received_sent": {
+            "BOOL": false
+        },
+        "application_received_sent_at": {
+            "NULL": true
+        },
+        "application_type": {
+            "S": "access"
+        },
+        "campaign_id": {
+            "S": ""
+        },
+        "country": {
+            "S": "Italy"
+        },
+        "created_at": {
+            "S": "2026-05-05T21:04:48.078808"
+        },
+        "email": {
+            "S": "soloviova.ellen@gmail.com"
+        },
+        "email_status": {
+            "S": "verified"
+        },
+        "email_verified_at": {
+            "S": "2026-05-05T22:08:45.720025"
+        },
+        "lead_id": {
+            "S": "fdm_c5c831e5e7"
+        },
+        "name": {
+            "S": "Hellen"
+        },
+        "phone_status": {
+            "S": "pending"
+        },
+        "profile_status": {
+            "S": "step_2"
+        },
+        "referral_code": {
+            "S": "invitation"
+        },
+        "review_status": {
+            "S": "pending"
+        },
+        "source": {
+            "S": "invitation"
+        },
+        "updated_at": {
+            "S": "2026-05-05T22:08:45.720025"
+        },
+        "verification_token": {
+            "S": "9259dec9f4e417f9df1dcf9f17a125e272bf52a73bb261fa173a64ff529e95f7"
+        }
+    }
+}
