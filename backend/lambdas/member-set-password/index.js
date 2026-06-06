@@ -4,7 +4,6 @@ const crypto = require("crypto");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {
   DynamoDBDocumentClient,
-  GetCommand,
   QueryCommand,
   ScanCommand,
   UpdateCommand,
@@ -207,29 +206,6 @@ async function findLeadByToken(token) {
   return null;
 }
 
-async function findLeadById(leadId) {
-  const normalized = normalizeText(leadId);
-  if (!normalized) {
-    return null;
-  }
-  const result = await ddb.send(
-    new GetCommand({
-      TableName: TABLE_NAME,
-      Key: { lead_id: normalized },
-    })
-  );
-  return result.Item || null;
-}
-
-function isInternalAdminEvent(event) {
-  const claims = event?.requestContext?.authorizer?.jwt?.claims || {};
-  const groups = String(claims["cognito:groups"] || "");
-  return groups
-    .split(",")
-    .map((group) => normalizeText(group).toLowerCase())
-    .includes("admins");
-}
-
 function tokenError(lead, tokenType) {
   if (normalizeText(lead.review_status).toLowerCase() !== "approved") {
     return {
@@ -286,71 +262,6 @@ function tokenError(lead, tokenType) {
   }
 
   return null;
-}
-
-function tokenErrorForValue(lead, tokenType, token) {
-  const normalizedToken = normalizeText(token);
-  if (!normalizedToken) {
-    return {
-      statusCode: 409,
-      code: "missing_activation_token",
-      message: "This membership does not have an activation token ready.",
-    };
-  }
-
-  if (tokenType === "checkout") {
-    const status = normalizeText(lead.checkout_token_status).toLowerCase();
-    if (status && status !== "active") {
-      return {
-        statusCode: 410,
-        code: "token_inactive",
-        message: "This activation link is no longer active.",
-      };
-    }
-    const expiresAt = parseDate(lead.checkout_token_expires_at);
-    if (expiresAt && expiresAt.getTime() < Date.now()) {
-      return {
-        statusCode: 410,
-        code: "token_expired",
-        message: "This activation link has expired.",
-      };
-    }
-  }
-
-  if (tokenType === "magic") {
-    const status = normalizeText(lead.magic_token_status).toLowerCase();
-    if (status && status !== "active") {
-      return {
-        statusCode: 410,
-        code: "token_inactive",
-        message: "This activation link is no longer active.",
-      };
-    }
-    const expiresAt = parseDate(lead.magic_token_expires_at);
-    if (expiresAt && expiresAt.getTime() < Date.now()) {
-      return {
-        statusCode: 410,
-        code: "token_expired",
-        message: "This activation link has expired.",
-      };
-    }
-  }
-
-  return null;
-}
-
-function activationTokenForLead(lead) {
-  const checkoutToken = normalizeText(lead.checkout_token);
-  if (checkoutToken) {
-    return { token: checkoutToken, tokenType: "checkout" };
-  }
-
-  const magicToken = normalizeText(lead.magic_token);
-  if (magicToken) {
-    return { token: magicToken, tokenType: "magic" };
-  }
-
-  return { token: "", tokenType: "" };
 }
 
 function publicStatus(lead, tokenType) {
@@ -625,33 +536,26 @@ function buildWelcomeEmail(lead) {
   };
 }
 
-async function reserveEmailSend(lead, kind, forceResend = false) {
+async function reserveEmailSend(lead, kind) {
   const fields = emailFields(kind);
   const nowDate = new Date();
   const now = nowDate.toISOString();
   const staleBefore = new Date(nowDate.getTime() - 15 * 60 * 1000).toISOString();
-  const sendingGuard =
-    "(attribute_not_exists(#status) OR #status <> :sending OR #startedAt < :staleBefore)";
-  const conditionExpression = forceResend
-    ? `attribute_exists(lead_id) AND ${sendingGuard}`
-    : `attribute_exists(lead_id) AND attribute_not_exists(#sentAt) AND ${sendingGuard}`;
-  const expressionAttributeNames = {
-    "#status": fields.status,
-    "#startedAt": fields.startedAt,
-  };
-  if (!forceResend) {
-    expressionAttributeNames["#sentAt"] = fields.sentAt;
-  }
 
   try {
     await ddb.send(
       new UpdateCommand({
         TableName: TABLE_NAME,
         Key: { lead_id: lead.lead_id },
-        ConditionExpression: conditionExpression,
+        ConditionExpression:
+          "attribute_exists(lead_id) AND attribute_not_exists(#sentAt) AND (attribute_not_exists(#status) OR #status <> :sending OR #startedAt < :staleBefore)",
         UpdateExpression:
           "SET #status = :sending, #startedAt = :now, updated_at = :now",
-        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeNames: {
+          "#sentAt": fields.sentAt,
+          "#status": fields.status,
+          "#startedAt": fields.startedAt,
+        },
         ExpressionAttributeValues: {
           ":sending": EMAIL_STATUS_SENDING,
           ":staleBefore": staleBefore,
@@ -669,15 +573,13 @@ async function reserveEmailSend(lead, kind, forceResend = false) {
   return { reserved: true, fields };
 }
 
-async function markEmailSent(lead, fields, messageId, recipientHash, forceResend = false) {
+async function markEmailSent(lead, fields, messageId, recipientHash) {
   const now = new Date().toISOString();
   await ddb.send(
     new UpdateCommand({
       TableName: TABLE_NAME,
       Key: { lead_id: lead.lead_id },
-      ConditionExpression: forceResend
-        ? "attribute_exists(lead_id)"
-        : "attribute_exists(lead_id) AND attribute_not_exists(#sentAt)",
+      ConditionExpression: "attribute_exists(lead_id) AND attribute_not_exists(#sentAt)",
       UpdateExpression:
         "SET #sentAt = :now, #status = :sent, #messageId = :messageId, #recipientHash = :recipientHash, updated_at = :now",
       ExpressionAttributeNames: {
@@ -724,8 +626,8 @@ async function markEmailFailed(lead, fields) {
   }
 }
 
-async function sendMemberEmailIfNeeded({ lead, kind, token, tokenType, forceResend = false }) {
-  const reserve = await reserveEmailSend(lead, kind, forceResend);
+async function sendMemberEmailIfNeeded({ lead, kind, token, tokenType }) {
+  const reserve = await reserveEmailSend(lead, kind);
   if (!reserve.reserved) {
     return { sent: false, reason: reserve.reason };
   }
@@ -768,8 +670,7 @@ async function sendMemberEmailIfNeeded({ lead, kind, token, tokenType, forceRese
       lead,
       reserve.fields,
       result.MessageId,
-      hashIdentifier(delivery.email),
-      forceResend
+      hashIdentifier(delivery.email)
     );
 
     console.log("member-email-send", {
@@ -778,7 +679,6 @@ async function sendMemberEmailIfNeeded({ lead, kind, token, tokenType, forceRese
       lead_hash: hashIdentifier(lead.lead_id),
       recipient_type: delivery.recipientType,
       message_hash: hashIdentifier(result.MessageId),
-      force_resend: forceResend,
     });
 
     return {
@@ -786,7 +686,6 @@ async function sendMemberEmailIfNeeded({ lead, kind, token, tokenType, forceRese
       kind,
       recipient_type: delivery.recipientType,
       sent_at: sentAt,
-      force_resend: forceResend,
     };
   } catch (error) {
     await markEmailFailed(lead, reserve.fields);
@@ -796,7 +695,6 @@ async function sendMemberEmailIfNeeded({ lead, kind, token, tokenType, forceRese
       lead_hash: hashIdentifier(lead.lead_id),
       recipient_type: delivery.recipientType,
       error_type: safeErrorType(error),
-      force_resend: forceResend,
     });
     return { sent: false, kind, reason: "send_failed" };
   }
@@ -970,7 +868,7 @@ async function handleStatus(event, token) {
   return response(event, 200, publicStatus(context.lead, context.tokenType));
 }
 
-async function handleActivation(event, token, forceResend = false) {
+async function handleActivation(event, token) {
   const context = await loadContext(event, token);
   if (context.error) {
     return context.error;
@@ -997,108 +895,10 @@ async function handleActivation(event, token, forceResend = false) {
     kind: "activation",
     token,
     tokenType: context.tokenType,
-    forceResend,
   });
 
   return response(event, 200, {
     activation_email: activationEmail,
-    ...current,
-  });
-}
-
-async function handleManualActivation(event, leadId, forceResend = true) {
-  const lead = await findLeadById(leadId);
-  if (!lead) {
-    return response(event, 404, {
-      error: "member_not_found",
-      message: "Member record was not found.",
-    });
-  }
-
-  const tokenBaseError = tokenError(lead, "manual");
-  if (tokenBaseError) {
-    return response(event, tokenBaseError.statusCode, {
-      error: tokenBaseError.code,
-      message: tokenBaseError.message,
-    });
-  }
-
-  const current = publicStatus(lead, "manual");
-  if (current.account_ready) {
-    return response(event, 409, {
-      error: "account_already_active",
-      message: "This account is already active.",
-      activation_email: { sent: false, reason: "account_already_active" },
-      ...current,
-    });
-  }
-
-  if (!current.password_ready) {
-    return response(event, 409, {
-      error: "not_password_pending",
-      message: "This account is not waiting for a password.",
-      ...current,
-    });
-  }
-
-  const tokenContext = activationTokenForLead(lead);
-  const tokenValueError = tokenErrorForValue(lead, tokenContext.tokenType, tokenContext.token);
-  if (tokenValueError) {
-    return response(event, tokenValueError.statusCode, {
-      error: tokenValueError.code,
-      message: tokenValueError.message,
-      ...current,
-    });
-  }
-
-  const activationEmail = await sendMemberEmailIfNeeded({
-    lead,
-    kind: "activation",
-    token: tokenContext.token,
-    tokenType: tokenContext.tokenType,
-    forceResend,
-  });
-
-  return response(event, 200, {
-    activation_email: activationEmail,
-    ...current,
-  });
-}
-
-async function handleManualWelcome(event, leadId, forceResend = true) {
-  const lead = await findLeadById(leadId);
-  if (!lead) {
-    return response(event, 404, {
-      error: "member_not_found",
-      message: "Member record was not found.",
-    });
-  }
-
-  const tokenBaseError = tokenError(lead, "manual");
-  if (tokenBaseError) {
-    return response(event, tokenBaseError.statusCode, {
-      error: tokenBaseError.code,
-      message: tokenBaseError.message,
-    });
-  }
-
-  const current = publicStatus(lead, "manual");
-  if (!current.account_ready) {
-    return response(event, 409, {
-      error: "account_not_active",
-      message: "This account is not active yet.",
-      ...current,
-    });
-  }
-
-  const welcomeEmail = await sendMemberEmailIfNeeded({
-    lead,
-    kind: "welcome",
-    forceResend,
-  });
-
-  return response(event, 200, {
-    welcome_email: welcomeEmail,
     ...current,
   });
 }
@@ -1211,27 +1011,6 @@ exports.handler = async (event) => {
     const body = parseBody(event);
     const token = normalizeText(body.token);
     const action = normalizeText(body.action || "status").toLowerCase();
-    const forceResend = body.force_resend === true;
-
-    if (["manual_activation", "manual_welcome"].includes(action)) {
-      if (!isInternalAdminEvent(event)) {
-        return response(event, 403, {
-          error: "admin_required",
-          message: "This action is not available.",
-        });
-      }
-      const leadId = normalizeText(body.lead_id);
-      if (!leadId) {
-        return response(event, 400, {
-          error: "missing_lead_id",
-          message: "Missing member record.",
-        });
-      }
-      if (action === "manual_activation") {
-        return handleManualActivation(event, leadId, forceResend);
-      }
-      return handleManualWelcome(event, leadId, forceResend);
-    }
 
     if (!token) {
       return response(event, 400, {
@@ -1249,7 +1028,7 @@ exports.handler = async (event) => {
     }
 
     if (["activation", "send_activation", "left_before_password"].includes(action)) {
-      return handleActivation(event, token, forceResend);
+      return handleActivation(event, token);
     }
 
     return response(event, 400, {
