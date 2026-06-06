@@ -10,6 +10,7 @@ ZIP_PATH="/tmp/${LAMBDA_NAME}-package.zip"
 rm -rf "$BUILD_DIR" "$ZIP_PATH"
 mkdir -p "$BUILD_DIR"
 
+# Keep package contents deterministic and limited to deployable Lambda files.
 cp "$LAMBDA_DIR/index.js" "$BUILD_DIR/index.js"
 cp "$LAMBDA_DIR/package.json" "$BUILD_DIR/package.json"
 
