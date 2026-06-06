@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import html
 import json
 import os
@@ -32,9 +33,6 @@ AUDIT_TABLE_NAME = os.environ.get("AUDIT_TABLE_NAME", "presttige-review-audit")
 WEBHOOK_SECRET_PARAMETER = os.environ.get(
     "STRIPE_WEBHOOK_SECRET_PARAMETER", "/presttige/stripe/webhook-secret"
 )
-SEND_WELCOME_EMAIL_FUNCTION = os.environ.get(
-    "SEND_WELCOME_EMAIL_FUNCTION", "presttige-send-welcome-email"
-)
 DOWNGRADE_FUNCTION_ARN = os.environ.get(
     "TIER_DOWNGRADE_FUNCTION_ARN",
     "arn:aws:lambda:us-east-1:343218208384:function:presttige-tier-downgrade",
@@ -50,12 +48,13 @@ OFFICE_NOTIFICATION_FROM = os.environ.get(
 OFFICE_NOTIFICATION_TO = os.environ.get("OFFICE_NOTIFICATION_TO", "office@presttige.net")
 FOUNDER_WELCOME_EMAIL_FROM = "founders@presttige.net"
 SES_CONFIGURATION_SET = os.environ.get("SES_CONFIGURATION_SET", "presttige-deliverability-v1")
+MEMBER_USER_POOL_ID = os.environ.get("MEMBER_USER_POOL_ID", "us-east-1_hpwdNFGss")
+MEMBER_COGNITO_POOL_NAME = os.environ.get("MEMBER_COGNITO_POOL_NAME", "presttige-members")
+ACCOUNT_STATUS_PASSWORD_PENDING = "password_pending"
+VALIDATION_STATUS_NOT_STARTED = "not_started"
+PAID_MEMBER_TIERS = {"club", "premier", "patron"}
+MEMBER_TIER_GROUPS = {"free", "club", "premier", "patron"}
 
-TESTER_WHITELIST = {
-    "antoniompereira@me.com",
-    "alternativeservice@gmail.com",
-    "analuisasf@gmail.com",
-}
 FOUNDER_TEST_WELCOME_ALLOWLIST = {
     "antoniompereira@icloud.com",
     "fq@freequenza.net",
@@ -124,9 +123,9 @@ leads_table = dynamodb.Table(LEADS_TABLE_NAME)
 events_table = dynamodb.Table(EVENTS_TABLE_NAME)
 serializer = TypeSerializer()
 ssm = boto3.client("ssm", region_name=REGION)
-lambda_client = boto3.client("lambda", region_name=REGION)
 scheduler = boto3.client("scheduler", region_name=REGION)
 ses = boto3.client("ses", region_name=REGION)
+cognito = boto3.client("cognito-idp", region_name=REGION)
 
 _cached_webhook_secret = None
 
@@ -187,8 +186,29 @@ def normalize_email(value):
     return normalize_string(value).lower()
 
 
-def is_tester_lead(lead):
-    return bool((lead or {}).get("is_test")) or normalize_email((lead or {}).get("email")) in TESTER_WHITELIST
+def hash_identifier(value):
+    normalized = normalize_string(value)
+    if not normalized:
+        return ""
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:12]
+
+
+SENSITIVE_LOG_KEY_PARTS = ("email", "phone", "token", "name", "lead_id", "error", "stack")
+
+
+def sanitize_log_value(key, value):
+    normalized_key = normalize_string(key).lower()
+    if isinstance(value, dict):
+        return {nested_key: sanitize_log_value(nested_key, nested_value) for nested_key, nested_value in value.items()}
+    if isinstance(value, list):
+        return [sanitize_log_value(key, item) for item in value]
+    if any(part in normalized_key for part in SENSITIVE_LOG_KEY_PARTS):
+        return hash_identifier(value)
+    return value
+
+
+def sanitize_log_fields(fields):
+    return {key: sanitize_log_value(key, value) for key, value in (fields or {}).items()}
 
 
 def is_valid_email_address(email):
@@ -244,7 +264,7 @@ def log_json(message, **fields):
     payload = {
         "message": message,
         "timestamp": now_iso(),
-        **fields,
+        **sanitize_log_fields(fields),
     }
     print(json.dumps(payload, default=str, sort_keys=True))
 
@@ -524,6 +544,177 @@ def set_lead_fields(lead_id, fields, remove_fields=None, add_fields=None):
         ReturnValues="ALL_NEW",
     )
     return result.get("Attributes", {})
+
+
+def get_user_attribute(user, name):
+    attributes = (user or {}).get("UserAttributes") or (user or {}).get("Attributes") or []
+    for attribute in attributes:
+        if attribute.get("Name") == name:
+            return attribute.get("Value") or ""
+    nested = (user or {}).get("User") or {}
+    if nested:
+        return get_user_attribute(nested, name)
+    return ""
+
+
+def build_temporary_password():
+    return f"{uuid.uuid4().hex}{uuid.uuid4().hex[:8]}Aa1!"
+
+
+def cognito_get_user(username):
+    if not username:
+        return None
+    try:
+        return cognito.admin_get_user(
+            UserPoolId=MEMBER_USER_POOL_ID,
+            Username=username,
+        )
+    except ClientError as exc:
+        code = exc.response.get("Error", {}).get("Code")
+        if code == "UserNotFoundException":
+            return None
+        raise
+
+
+def get_cognito_user_for_lead(lead):
+    email = normalize_email((lead or {}).get("email"))
+    user = cognito_get_user(email)
+    if user:
+        return user
+    return cognito_get_user(normalize_string((lead or {}).get("cognito_sub")))
+
+
+def sync_member_tier_group(username, tier):
+    canonical_tier = normalize_string(tier).lower()
+    if canonical_tier not in PAID_MEMBER_TIERS:
+        raise RuntimeError("Paid member tier is not eligible for member account creation")
+
+    cognito.admin_add_user_to_group(
+        UserPoolId=MEMBER_USER_POOL_ID,
+        Username=username,
+        GroupName=canonical_tier,
+    )
+    for group_name in sorted(MEMBER_TIER_GROUPS - {canonical_tier}):
+        try:
+            cognito.admin_remove_user_from_group(
+                UserPoolId=MEMBER_USER_POOL_ID,
+                Username=username,
+                GroupName=group_name,
+            )
+        except ClientError as exc:
+            code = exc.response.get("Error", {}).get("Code")
+            if code not in {"ResourceNotFoundException", "UserNotFoundException"}:
+                raise
+
+
+def create_or_reuse_paid_member_user(lead, paid_tier):
+    email = normalize_email((lead or {}).get("email"))
+    if not is_valid_email_address(email):
+        raise RuntimeError("Paid member identity email is missing or invalid")
+
+    user = get_cognito_user_for_lead(lead)
+    created = False
+    if not user:
+        user = cognito.admin_create_user(
+            UserPoolId=MEMBER_USER_POOL_ID,
+            Username=email,
+            MessageAction="SUPPRESS",
+            TemporaryPassword=build_temporary_password(),
+            UserAttributes=[
+                {"Name": "email", "Value": email},
+                {"Name": "email_verified", "Value": "true"},
+                {"Name": "name", "Value": normalize_string((lead or {}).get("name")) or email},
+            ],
+        )
+        created = True
+
+    username = normalize_string(user.get("Username") or safe_get(user, "User", {}).get("Username") or email)
+    sync_member_tier_group(username, paid_tier)
+    sub = get_user_attribute(user, "sub")
+    if not sub:
+        raise RuntimeError("Paid member Cognito user sub is missing")
+    return {"sub": sub, "username": username, "created": created, "idempotent": not created}
+
+
+def is_synthetic_tester_record(lead):
+    tier = normalize_string((lead or {}).get("tier")).lower()
+    subscriber_type = normalize_string((lead or {}).get("subscriber_type")).lower()
+    return (lead or {}).get("synthetic_test") is True and (tier == "tester" or subscriber_type == "tester")
+
+
+def canonical_paid_tier(*values):
+    for value in values:
+        normalized = normalize_string(value).lower()
+        if normalized in PAID_MEMBER_TIERS:
+            return normalized
+    return ""
+
+
+def paid_tier_for_identity(contract, lead):
+    return canonical_paid_tier(
+        (contract or {}).get("tier"),
+        (lead or {}).get("simulated_tier") if is_synthetic_tester_record(lead) else "",
+        (lead or {}).get("selected_tier"),
+        (lead or {}).get("effective_tier"),
+        (lead or {}).get("tier"),
+    )
+
+
+def paid_record_tier_fields(lead, paid_tier):
+    canonical_tier = canonical_paid_tier(paid_tier)
+    if is_synthetic_tester_record(lead):
+        return {
+            "tier": "tester",
+            "selected_tier": "tester",
+            "effective_tier": "tester",
+            "simulated_tier": canonical_tier or normalize_string((lead or {}).get("simulated_tier")),
+        }
+    if canonical_tier:
+        return {
+            "tier": canonical_tier,
+            "selected_tier": canonical_tier,
+        }
+    return {
+        "tier": (lead or {}).get("selected_tier"),
+        "selected_tier": (lead or {}).get("selected_tier"),
+    }
+
+
+def link_paid_member_identity(lead, paid_tier):
+    canonical_tier = canonical_paid_tier(paid_tier)
+    if not canonical_tier:
+        return get_lead(lead["lead_id"]), {
+            "linked": False,
+            "reason": "not_paid_member_tier",
+        }
+
+    identity = create_or_reuse_paid_member_user(lead, canonical_tier)
+    timestamp = now_iso()
+    updated = set_lead_fields(
+        lead["lead_id"],
+        {
+            "cognito_sub": identity["sub"],
+            "cognito_pool": MEMBER_COGNITO_POOL_NAME,
+            "account_status": ACCOUNT_STATUS_PASSWORD_PENDING,
+            "validation_status": lead.get("validation_status") or VALIDATION_STATUS_NOT_STARTED,
+            "signup_path": "paid",
+            "account_created_at": lead.get("account_created_at") or timestamp,
+            "cognito_linked_at": lead.get("cognito_linked_at") or timestamp,
+            "updated_at": timestamp,
+        },
+    )
+    return updated, {
+        "linked": True,
+        "account_created": identity["created"],
+        "idempotent": identity["idempotent"],
+        "account_status": ACCOUNT_STATUS_PASSWORD_PENDING,
+        "cognito_pool": MEMBER_COGNITO_POOL_NAME,
+        "tier_group": canonical_tier,
+    }
+
+
+def deferred_welcome_state():
+    return {"invoked": False, "reason": "deferred_to_step_4"}
 
 
 def serialize_item(item):
@@ -819,25 +1010,6 @@ def delete_schedule_if_present(schedule_name):
         return False
 
 
-def invoke_welcome_email(lead):
-    if not lead or not lead.get("lead_id"):
-        return {"invoked": False, "reason": "missing_lead"}
-    if lead.get("welcome_sent_at"):
-        return {"invoked": False, "reason": "already_sent"}
-
-    invocation_type = "RequestResponse" if is_tester_lead(lead) else "Event"
-    result = lambda_client.invoke(
-        FunctionName=SEND_WELCOME_EMAIL_FUNCTION,
-        InvocationType=invocation_type,
-        Payload=json.dumps({"body": json.dumps({"lead_id": lead["lead_id"]})}).encode("utf-8"),
-    )
-    return {
-        "invoked": True,
-        "invocation_type": invocation_type,
-        "status_code": result.get("StatusCode"),
-    }
-
-
 def send_founder_welcome_email_if_needed(lead):
     if not lead or not lead.get("lead_id"):
         return {"sent": False, "skipped": True, "reason": "missing_lead"}
@@ -958,6 +1130,7 @@ def notify_office_dispute(lead, context, dispute):
 
 def handle_subscription_created(event_id, event_type, obj, context, lead):
     contract_key, contract = get_contract(context.get("contract_key"), lead)
+    paid_tier = paid_tier_for_identity(contract, lead)
     status = normalize_string(safe_get(obj, "status")).lower()
     cancel_at_period_end = bool(safe_get(obj, "cancel_at_period_end", False))
     fields = {
@@ -971,6 +1144,7 @@ def handle_subscription_created(event_id, event_type, obj, context, lead):
         "subscription_cancel_at_period_end": cancel_at_period_end,
     }
 
+    identity = {"linked": False, "reason": "not_active"}
     welcome = {"invoked": False, "reason": "not_active"}
     if status in SUBSCRIPTION_ACTIVE_STATUSES or not status:
         fields.update(
@@ -978,15 +1152,15 @@ def handle_subscription_created(event_id, event_type, obj, context, lead):
                 "payment_status": "subscription_active",
                 "payment_status_reason": "subscription_created",
                 "access_status": "active",
-                "tier": contract.get("tier") or lead.get("selected_tier"),
-                "selected_tier": contract.get("tier") or lead.get("selected_tier"),
+                **paid_record_tier_fields(lead, paid_tier),
                 "selected_tier_billing": contract.get("billing") or lead.get("selected_tier_billing"),
                 "selected_contract_key": contract_key or lead.get("selected_contract_key"),
                 "stripe_checkout_completed_at": lead.get("stripe_checkout_completed_at") or now_iso(),
             }
         )
         updated = set_lead_fields(lead["lead_id"], fields)
-        welcome = invoke_welcome_email(updated)
+        updated, identity = link_paid_member_identity(updated, paid_tier)
+        welcome = deferred_welcome_state()
     elif status in SUBSCRIPTION_PAST_DUE_STATUSES:
         fields.update(
             {
@@ -1010,6 +1184,7 @@ def handle_subscription_created(event_id, event_type, obj, context, lead):
         "new_state": {
             "payment_status": updated.get("payment_status"),
             "subscription_status": updated.get("subscription_status"),
+            "identity": identity,
             "welcome": welcome,
         },
     }
@@ -1017,6 +1192,7 @@ def handle_subscription_created(event_id, event_type, obj, context, lead):
 
 def handle_subscription_updated(event_id, event_type, obj, context, lead):
     contract_key, contract = get_contract(context.get("contract_key"), lead)
+    paid_tier = paid_tier_for_identity(contract, lead)
     status = normalize_string(safe_get(obj, "status")).lower()
     cancel_at_period_end = bool(safe_get(obj, "cancel_at_period_end", False))
     previous_schedule_name = normalize_string(lead.get("downgrade_schedule_name"))
@@ -1033,6 +1209,7 @@ def handle_subscription_updated(event_id, event_type, obj, context, lead):
     }
     remove_fields = []
     schedule_action = {"action": "none"}
+    identity = {"linked": False, "reason": "not_active"}
     welcome = {"invoked": False, "reason": "not_active"}
 
     if cancel_at_period_end:
@@ -1063,8 +1240,7 @@ def handle_subscription_updated(event_id, event_type, obj, context, lead):
                     "payment_status": "subscription_active",
                     "payment_status_reason": "subscription_active",
                     "access_status": "active",
-                    "tier": contract.get("tier") or lead.get("selected_tier"),
-                    "selected_tier": contract.get("tier") or lead.get("selected_tier"),
+                    **paid_record_tier_fields(lead, paid_tier),
                     "selected_tier_billing": contract.get("billing") or lead.get("selected_tier_billing"),
                 }
             )
@@ -1085,7 +1261,8 @@ def handle_subscription_updated(event_id, event_type, obj, context, lead):
 
     updated = set_lead_fields(lead["lead_id"], fields, remove_fields=remove_fields)
     if updated.get("payment_status") == "subscription_active":
-        welcome = invoke_welcome_email(updated)
+        updated, identity = link_paid_member_identity(updated, paid_tier)
+        welcome = deferred_welcome_state()
 
     return {
         "action": "subscription_updated",
@@ -1095,6 +1272,7 @@ def handle_subscription_updated(event_id, event_type, obj, context, lead):
             "subscription_status": updated.get("subscription_status"),
             "cancel_at_period_end": updated.get("cancel_at_period_end"),
             "schedule": schedule_action,
+            "identity": identity,
             "welcome": welcome,
         },
     }
@@ -1133,6 +1311,7 @@ def handle_subscription_deleted(event_id, event_type, obj, context, lead):
 def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
     contract_key, contract = get_contract(context.get("contract_key"), lead)
     is_founder = contract_key == "founder_lifetime" or contract.get("founder_lifetime")
+    paid_tier = paid_tier_for_identity(contract, lead)
     is_live_event = context.get("livemode") is True
     payment_intent_id = context.get("payment_intent_id") or safe_get(obj, "id")
     is_initial_payment = (
@@ -1150,6 +1329,7 @@ def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
         "stripe_checkout_completed_at": lead.get("stripe_checkout_completed_at") or now_iso(),
     }
     add_fields = {}
+    identity = {"linked": False, "reason": "not_applicable"}
     welcome = {"invoked": False, "reason": "not_applicable"}
 
     if is_founder:
@@ -1220,8 +1400,7 @@ def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
     else:
         fields.update(
             {
-                "tier": contract.get("tier") or lead.get("selected_tier"),
-                "selected_tier": contract.get("tier") or lead.get("selected_tier"),
+                **paid_record_tier_fields(lead, paid_tier),
                 "selected_tier_billing": contract.get("billing") or lead.get("selected_tier_billing"),
                 "payment_status": "subscription_active",
                 "payment_status_reason": "payment_intent_succeeded",
@@ -1244,7 +1423,8 @@ def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
     else:
         updated = set_lead_fields(lead["lead_id"], fields, add_fields=add_fields)
         audit = {"invoked": False, "reason": "not_founder"}
-        welcome = invoke_welcome_email(updated)
+        updated, identity = link_paid_member_identity(updated, paid_tier)
+        welcome = deferred_welcome_state()
 
     return {
         "action": "payment_intent_succeeded",
@@ -1255,6 +1435,7 @@ def handle_payment_intent_succeeded(event_id, event_type, obj, context, lead):
             "founder_lifetime": updated.get("founder_lifetime", False),
             "renewal_count": updated.get("renewal_count"),
             "audit": audit,
+            "identity": identity,
             "welcome": welcome,
         },
     }
@@ -1280,6 +1461,8 @@ def handle_payment_intent_failed(event_id, event_type, obj, context, lead):
 def handle_invoice_payment_succeeded(event_id, event_type, obj, context, lead):
     billing_reason = normalize_string(safe_get(obj, "billing_reason")).lower()
     invoice_id = normalize_string(safe_get(obj, "id"))
+    contract_key, contract = get_contract(context.get("contract_key"), lead)
+    paid_tier = paid_tier_for_identity(contract, lead)
     fields = {
         **event_fields(event_id, event_type),
         "stripe_latest_invoice_id": invoice_id,
@@ -1294,6 +1477,9 @@ def handle_invoice_payment_succeeded(event_id, event_type, obj, context, lead):
         add_fields["renewal_count"] = 1
 
     updated = set_lead_fields(lead["lead_id"], fields, add_fields=add_fields)
+    identity = {"linked": False, "reason": "not_paid_member_tier"}
+    if updated.get("payment_status") == "subscription_active" and paid_tier:
+        updated, identity = link_paid_member_identity(updated, paid_tier)
     return {
         "action": "invoice_payment_succeeded_reconciled",
         "lead_id": lead["lead_id"],
@@ -1301,6 +1487,7 @@ def handle_invoice_payment_succeeded(event_id, event_type, obj, context, lead):
             "payment_status": updated.get("payment_status"),
             "renewal_count": updated.get("renewal_count"),
             "billing_reason": billing_reason,
+            "identity": identity,
         },
     }
 
