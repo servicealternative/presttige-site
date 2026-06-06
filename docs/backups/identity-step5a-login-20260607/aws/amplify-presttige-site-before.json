@@ -1,0 +1,229 @@
+{
+    "app": {
+        "appId": "dh6banfgh3wmi",
+        "appArn": "arn:aws:amplify:us-east-1:343218208384:apps/dh6banfgh3wmi",
+        "name": "presttige-site",
+        "tags": {},
+        "repository": "https://github.com/servicealternative/presttige-site",
+        "platform": "WEB",
+        "createTime": "2026-03-29T23:39:55.117000+04:00",
+        "updateTime": "2026-06-05T20:33:26.779000+04:00",
+        "defaultDomain": "dh6banfgh3wmi.amplifyapp.com",
+        "enableBranchAutoBuild": false,
+        "enableBranchAutoDeletion": false,
+        "enableBasicAuth": false,
+        "customRules": [
+            {
+                "source": "/api/cookie-diag",
+                "target": "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/api/cookie-diag",
+                "status": "200"
+            },
+            {
+                "source": "/api/verify-email",
+                "target": "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/prod/verify-email",
+                "status": "200"
+            },
+            {
+                "source": "/sitemap.xml",
+                "target": "/sitemap.xml",
+                "status": "200"
+            },
+            {
+                "source": "/site.webmanifest",
+                "target": "/site.webmanifest",
+                "status": "200"
+            },
+            {
+                "source": "/privacy/",
+                "target": "/privacy/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/terms/",
+                "target": "/terms/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/cookies/",
+                "target": "/cookies/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/privacy",
+                "target": "/privacy/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/terms",
+                "target": "/terms/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/cookies",
+                "target": "/cookies/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/verify-email.html",
+                "target": "/verify-email.html",
+                "status": "200"
+            },
+            {
+                "source": "/check-email.html",
+                "target": "/check-email.html",
+                "status": "200"
+            },
+            {
+                "source": "/thank-you.html",
+                "target": "/thank-you.html",
+                "status": "200"
+            },
+            {
+                "source": "/thank-you",
+                "target": "/thank-you.html",
+                "status": "200"
+            },
+            {
+                "source": "/access-form.html",
+                "target": "/access-form.html",
+                "status": "200"
+            },
+            {
+                "source": "/founders.html",
+                "target": "/founders.html",
+                "status": "200"
+            },
+            {
+                "source": "/confirm.html",
+                "target": "/confirm.html",
+                "status": "200"
+            },
+            {
+                "source": "/confirm",
+                "target": "/confirm.html",
+                "status": "200"
+            },
+            {
+                "source": "/success.html",
+                "target": "/success.html",
+                "status": "200"
+            },
+            {
+                "source": "/success",
+                "target": "/success.html",
+                "status": "200"
+            },
+            {
+                "source": "/cancel.html",
+                "target": "/cancel.html",
+                "status": "200"
+            },
+            {
+                "source": "/cancel",
+                "target": "/cancel.html",
+                "status": "200"
+            },
+            {
+                "source": "/assets/<*>",
+                "target": "/assets/<*>",
+                "status": "200"
+            },
+            {
+                "source": "/review/<*>",
+                "target": "/review.html",
+                "status": "200"
+            },
+            {
+                "source": "/tier-select/<*>",
+                "target": "/tier-select.html",
+                "status": "200"
+            },
+            {
+                "source": "/checkout/<*>",
+                "target": "/checkout.html",
+                "status": "200"
+            },
+            {
+                "source": "/checkout",
+                "target": "/checkout.html",
+                "status": "200"
+            },
+            {
+                "source": "/welcome/<*>",
+                "target": "/welcome.html",
+                "status": "200"
+            },
+            {
+                "source": "/subscriber-activated/<*>",
+                "target": "/subscriber-activated.html",
+                "status": "200"
+            },
+            {
+                "source": "/subscriber/<*>",
+                "target": "/subscriber-activated.html",
+                "status": "200"
+            },
+            {
+                "source": "/preview/success/",
+                "target": "/preview/success/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/preview/success",
+                "target": "/preview/success/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/memberships/<*>",
+                "target": "/memberships/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/memberships/",
+                "target": "/memberships/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/memberships",
+                "target": "/memberships/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/founder/",
+                "target": "/founder/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/founder",
+                "target": "/founder/index.html",
+                "status": "200"
+            },
+            {
+                "source": "/.well-known/apple-developer-merchantid-domain-association",
+                "target": "/apple-developer-merchantid-domain-association.txt",
+                "status": "200"
+            },
+            {
+                "source": "</^[^.]+$|\\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json|webp|html)$)([^.]+$)/>",
+                "target": "/index.html",
+                "status": "200"
+            }
+        ],
+        "productionBranch": {
+            "lastDeployTime": "2026-06-07T01:29:44.350000+04:00",
+            "status": "SUCCEED",
+            "branchName": "main"
+        },
+        "buildSpec": "version: 1\nfrontend:\n  phases:\n    build:\n      commands: []\n  artifacts:\n    baseDirectory: /\n    files:\n      - \"**/*\"\n",
+        "customHeaders": "[{\"pattern\":\"**/*\",\"headers\":[{\"key\":\"Strict-Transport-Security\",\"value\":\"max-age=63072000; includeSubDomains; preload\"},{\"key\":\"X-Content-Type-Options\",\"value\":\"nosniff\"},{\"key\":\"X-Frame-Options\",\"value\":\"SAMEORIGIN\"},{\"key\":\"Referrer-Policy\",\"value\":\"strict-origin-when-cross-origin\"},{\"key\":\"Permissions-Policy\",\"value\":\"camera=(), microphone=(), geolocation=(), payment=(self \\\"https://js.stripe.com\\\" \\\"https://checkout.stripe.com\\\")\"}]}]",
+        "enableAutoBranchCreation": false,
+        "repositoryCloneMethod": "TOKEN",
+        "cacheConfig": {
+            "type": "AMPLIFY_MANAGED_NO_COOKIES"
+        },
+        "webhookCreateTime": "2026-03-29T23:39:54.888000+04:00",
+        "jobConfig": {
+            "buildComputeType": "STANDARD_8GB"
+        }
+    }
+}
