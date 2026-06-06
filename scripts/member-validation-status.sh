@@ -93,9 +93,9 @@ if [[ "$PREVIOUS_STATUS" == "None" ]]; then
 fi
 
 if [[ "$SYNTHETIC" == "True" ]]; then
-  SYNTHETIC_JSON="true"
+  SYNTHETIC_PY="True"
 else
-  SYNTHETIC_JSON="false"
+  SYNTHETIC_PY="False"
 fi
 
 TIMESTAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
@@ -134,10 +134,10 @@ payload = [
                     "M": {
                         "component": {"S": "scripts/member-validation-status.sh"},
                         "source": {"S": "operations_cli"},
-                        "synthetic_test": {"BOOL": ${SYNTHETIC_JSON}}
+                        "synthetic_test": {"BOOL": ${SYNTHETIC_PY}}
                     }
                 },
-                "is_test": {"BOOL": ${SYNTHETIC_JSON}}
+                "is_test": {"BOOL": ${SYNTHETIC_PY}}
             },
             "ConditionExpression": "attribute_not_exists(audit_id)"
         }
