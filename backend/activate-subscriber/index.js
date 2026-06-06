@@ -1,4 +1,3 @@
-const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const {
@@ -9,7 +8,6 @@ const {
 } = require("@aws-sdk/client-cognito-identity-provider");
 const crypto = require("crypto");
 
-const lambda = new LambdaClient({ region: "us-east-1" });
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
 const cognito = new CognitoIdentityProviderClient({ region: "us-east-1" });
 
@@ -20,8 +18,6 @@ const MEMBER_COGNITO_POOL_NAME = process.env.MEMBER_COGNITO_POOL_NAME || "prestt
 const FREE_MEMBER_GROUP = "free";
 const ACCOUNT_STATUS_PASSWORD_PENDING = "password_pending";
 const VALIDATION_STATUS_NOT_STARTED = "not_started";
-const SEND_SUBSCRIBER_WELCOME_FUNCTION_NAME =
-  process.env.SEND_SUBSCRIBER_WELCOME_FUNCTION_NAME || "presttige-send-subscriber-welcome-email";
 
 async function findLeadByMagicToken(token) {
   let ExclusiveStartKey;
@@ -46,26 +42,6 @@ async function findLeadByMagicToken(token) {
   return null;
 }
 
-async function invokeSubscriberWelcomeEmail(leadId) {
-  try {
-    await lambda.send(
-      new InvokeCommand({
-        FunctionName: SEND_SUBSCRIBER_WELCOME_FUNCTION_NAME,
-        InvocationType: "Event",
-        Payload: Buffer.from(
-          JSON.stringify({
-            body: JSON.stringify({ lead_id: leadId }),
-          })
-        ),
-      })
-    );
-    return true;
-  } catch (error) {
-    console.error("activate-subscriber invoke error", error);
-    return false;
-  }
-}
-
 function normalizeText(value) {
   return String(value || "").trim();
 }
@@ -80,6 +56,16 @@ function getUserAttribute(user, name) {
 
 function buildTemporaryPassword() {
   return `${crypto.randomBytes(18).toString("base64url")}Aa1!`;
+}
+
+function safeErrorType(error) {
+  return normalizeText(error?.name || error?.code || error?.constructor?.name || "Error");
+}
+
+function isSyntheticTesterRecord(lead) {
+  const tier = normalizeText(lead.tier).toLowerCase();
+  const subscriberType = normalizeText(lead.subscriber_type).toLowerCase();
+  return lead.synthetic_test === true && (tier === "tester" || subscriberType === "tester");
 }
 
 async function getCognitoUserByEmail(email) {
@@ -185,38 +171,45 @@ exports.handler = async (event) => {
     const identity = lead.cognito_sub
       ? { sub: lead.cognito_sub, username: normalizeEmail(lead.email), created: false, idempotent: true }
       : await createOrReuseFreeMemberUser(lead);
+    const testerRecord = isSyntheticTesterRecord(lead);
+    const selectedTierForRecord = testerRecord ? "tester" : "subscriber";
+    const memberTierForRecord = testerRecord ? "tester" : "free";
+    const setClauses = [
+      "selected_tier = :selected_tier",
+      "selected_tier_billing = :billing",
+      "#member_tier = :member_tier",
+      "effective_tier = :member_tier",
+      "founding_rate_locked = :founding_rate_locked",
+      "founding_rate_expires_at = :founding_rate_expires_at",
+      "upgrade_eligible_until = :upgrade_eligible_until",
+      "subscriber_activated_at = if_not_exists(subscriber_activated_at, :subscriber_activated_at)",
+      "account_active = :account_active",
+      "cognito_sub = if_not_exists(cognito_sub, :cognito_sub)",
+      "cognito_pool = :cognito_pool",
+      "account_status = :account_status",
+      "validation_status = if_not_exists(validation_status, :validation_status)",
+      "signup_path = :signup_path",
+      "account_created_at = if_not_exists(account_created_at, :account_created_at)",
+      "cognito_linked_at = if_not_exists(cognito_linked_at, :cognito_linked_at)",
+      "updated_at = :updated_at",
+    ];
+
+    if (testerRecord) {
+      setClauses.splice(4, 0, "simulated_tier = :simulated_tier");
+    }
 
     await ddb.send(
       new UpdateCommand({
         TableName: TABLE_NAME,
         Key: { lead_id: lead.lead_id },
-        UpdateExpression: `
-          SET selected_tier = :tier,
-              selected_tier_billing = :billing,
-              #member_tier = :member_tier,
-              effective_tier = :member_tier,
-              founding_rate_locked = :founding_rate_locked,
-              founding_rate_expires_at = :founding_rate_expires_at,
-              upgrade_eligible_until = :upgrade_eligible_until,
-              subscriber_activated_at = if_not_exists(subscriber_activated_at, :subscriber_activated_at),
-              account_active = :account_active,
-              cognito_sub = if_not_exists(cognito_sub, :cognito_sub),
-              cognito_pool = :cognito_pool,
-              account_status = :account_status,
-              validation_status = if_not_exists(validation_status, :validation_status),
-              signup_path = :signup_path,
-              account_created_at = if_not_exists(account_created_at, :account_created_at),
-              cognito_linked_at = if_not_exists(cognito_linked_at, :cognito_linked_at),
-              updated_at = :updated_at
-          REMOVE selected_periodicity, effective_tier_until, stripe_session_id, stripe_checkout_started_at, selected_price_id
-        `,
+        UpdateExpression: `SET ${setClauses.join(", ")} REMOVE selected_periodicity, effective_tier_until, stripe_session_id, stripe_checkout_started_at, selected_price_id`,
         ConditionExpression: "review_status = :approved",
         ExpressionAttributeNames: {
           "#member_tier": "tier",
         },
         ExpressionAttributeValues: {
-          ":tier": "subscriber",
-          ":member_tier": "free",
+          ":selected_tier": selectedTierForRecord,
+          ":member_tier": memberTierForRecord,
           ":billing": null,
           ":founding_rate_locked": false,
           ":founding_rate_expires_at": null,
@@ -232,13 +225,10 @@ exports.handler = async (event) => {
           ":cognito_linked_at": now,
           ":updated_at": now,
           ":approved": "approved",
+          ...(testerRecord ? { ":simulated_tier": "free" } : {}),
         },
       })
     );
-
-    const welcomeTriggered = lead.synthetic_test === true
-      ? false
-      : await invokeSubscriberWelcomeEmail(lead.lead_id);
 
     return response(200, {
       activated: true,
@@ -249,7 +239,10 @@ exports.handler = async (event) => {
       cognito_pool: MEMBER_COGNITO_POOL_NAME,
       cognito_sub: identity.sub,
       idempotent: Boolean(identity.idempotent),
-      subscriber_welcome_triggered: welcomeTriggered,
+      subscriber_welcome_triggered: false,
+      activation_email_step: "deferred_to_step_4",
+      record_tier: memberTierForRecord,
+      simulated_tier: testerRecord ? "free" : undefined,
       redirect_url: redirectUrl(token),
     });
   } catch (error) {
@@ -261,8 +254,11 @@ exports.handler = async (event) => {
         message: "Membership is not ready for activation.",
       });
     }
-    console.error("activate-subscriber error", error);
-    return response(500, { error: "Internal", detail: error.message });
+    console.error("activate-subscriber error", {
+      status: "failed",
+      error_type: safeErrorType(error),
+    });
+    return response(500, { error: "Internal" });
   }
 };
 
