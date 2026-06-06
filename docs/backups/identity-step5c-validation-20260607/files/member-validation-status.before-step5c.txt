@@ -1,0 +1,1 @@
+scripts/member-validation-status.mjs did not exist before Step 5c.
