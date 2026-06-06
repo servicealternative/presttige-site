@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" class="notranslate">
+<head>
+  <meta name="google" content="notranslate">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Subscriber</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="/assets/js/preview-mode-banner.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-black: #1A1A1A;
+      --pp-paper: #FBF9F4;
+      --pp-background: #FBF9F4;
+      --pp-gold: #8A7544;
+      --pp-hairline: #DDD6C8;
+      --pp-muted: #4F4940;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1cm;
+      background: var(--pp-background);
+      color: var(--pp-black);
+      font-family: "Source Serif 4", Georgia, serif;
+    }
+
+    .card {
+      width: min(100%, 760px);
+      padding: 42px 34px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+    }
+
+    .label {
+      margin: 0 0 16px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0 0 22px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(44px, 7vw, 64px);
+      font-weight: 600;
+      line-height: 0.95;
+    }
+
+    .copy-group {
+      display: grid;
+      gap: 18px;
+    }
+
+    .copy {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 24px;
+      border: 1px solid var(--pp-gold);
+      background: var(--pp-gold);
+      color: #FFFFFF;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button[disabled] {
+      cursor: default;
+      opacity: 0.7;
+    }
+
+    .form {
+      display: grid;
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: #fffdf8;
+      color: var(--pp-black);
+      font: inherit;
+      font-size: 16px;
+      padding: 12px 14px;
+    }
+
+    .field input[readonly] {
+      color: var(--pp-muted);
+      background: rgba(221, 214, 200, 0.22);
+    }
+
+    .hint,
+    .notice {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .notice {
+      margin-top: 18px;
+      border-top: 1px solid var(--pp-hairline);
+      padding-top: 18px;
+    }
+
+    .error {
+      color: #8B1E1E;
+    }
+  </style>
+  <link rel="stylesheet" href="/assets/css/brand-fonts.css">
+  <link rel="stylesheet" href="/assets/css/preview-mode-banner.css">
+</head>
+<body translate="no">
+  <section id="app" class="card">
+    <p class="label">ACCESS POINT</p>
+    <h1 class="title">Subscriber</h1>
+    <div class="copy-group">
+      <p class="copy">Loading your membership…</p>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const PASSWORD_ENDPOINT = `${API_BASE}/member-set-password`;
+      const LOGIN_URL = "https://presttige-members.auth.us-east-1.amazoncognito.com/login?client_id=3gdek6k48cm6oirccodgrub2k1&response_type=code&scope=email+openid+profile&redirect_uri=https%3A%2F%2Fpresttige.net%2Fmember%2F";
+      const app = document.getElementById("app");
+      const route = readRoute();
+      const state = {
+        busy: false,
+      };
+
+      if (!route.token) {
+        renderError("Missing access token.");
+        return;
+      }
+
+      if (route.previewMode && window.PresttigePreview) {
+        window.PresttigePreview.enable();
+      }
+
+      if (route.status === "confirmed") {
+        validatePasswordSetup();
+      } else {
+        render();
+      }
+
+      function render() {
+        const confirmed = route.status === "confirmed";
+        app.innerHTML = `
+          <p class="label">ACCESS POINT</p>
+          <h1 class="title">Subscriber</h1>
+          <div class="copy-group">
+            <p class="copy">You have been approved.</p>
+            <p class="copy">No payment required at this stage.</p>
+            <p class="copy">Your place is recognised. Your membership — Club, Premier, or Patron — is yours to choose, when you choose.</p>
+          </div>
+          <div class="actions">
+            ${
+              confirmed
+                ? `<button type="button" class="button" disabled>Subscription confirmed</button>`
+                : route.mode !== "confirmed"
+                ? `<button type="button" class="button" data-confirm-subscriber="true" ${state.busy ? "disabled" : ""}>${state.busy ? "Confirming…" : "Confirm subscription"}</button>`
+                : `<button type="button" class="button" disabled>Subscription confirmed</button>`
+            }
+          </div>
+        `;
+
+        const button = app.querySelector("[data-confirm-subscriber]");
+        if (button) {
+          button.addEventListener("click", confirmSubscription);
+        }
+      }
+
+      async function validatePasswordSetup() {
+        try {
+          const data = await passwordRequest({ action: "status", token: route.token });
+          renderPasswordState(data);
+        } catch (error) {
+          renderError(error.message || "Unable to validate your access right now.");
+        }
+      }
+
+      function renderPasswordState(data) {
+        if (data.account_ready) {
+          renderReady(data);
+          return;
+        }
+
+        if (data.password_ready) {
+          renderPasswordForm(data);
+          return;
+        }
+
+        renderError("This membership account is not ready for password setup.");
+      }
+
+      function renderPasswordForm(data) {
+        app.innerHTML = `
+          <p class="label">ACCESS POINT</p>
+          <h1 class="title">Set your password</h1>
+          <div class="copy-group">
+            <p class="copy">Your Subscriber account is ready. Choose a password to complete activation.</p>
+          </div>
+          <form id="password-form" class="form" novalidate>
+            <div class="field">
+              <label for="member-email">Email</label>
+              <input id="member-email" type="email" value="${escapeHtml(data.email || "")}" readonly autocomplete="username">
+            </div>
+            <div class="field">
+              <label for="member-password">Password</label>
+              <input id="member-password" type="password" minlength="14" autocomplete="new-password" required>
+              <p class="hint">Use at least 14 characters, with uppercase, lowercase, a number and a symbol.</p>
+            </div>
+            <div class="field">
+              <label for="member-password-confirm">Confirm password</label>
+              <input id="member-password-confirm" type="password" minlength="14" autocomplete="new-password" required>
+            </div>
+            <p id="password-error" class="hint error" aria-live="polite"></p>
+            <div class="actions">
+              <button id="password-submit" class="button" type="submit">Activate account</button>
+            </div>
+          </form>
+        `;
+        document.getElementById("password-form").addEventListener("submit", submitPassword);
+      }
+
+      function renderReady(data) {
+        app.innerHTML = `
+          <p class="label">ACCESS POINT</p>
+          <h1 class="title">Your account is ready</h1>
+          <div class="copy-group">
+            <p class="copy">Your password is set and your Presttige account is active.</p>
+          </div>
+          <p class="notice">Email: ${escapeHtml(data.email || "")}</p>
+          <div class="actions">
+            <a class="button" href="${LOGIN_URL}">Log in</a>
+          </div>
+        `;
+      }
+
+      async function submitPassword(event) {
+        event.preventDefault();
+        const password = document.getElementById("member-password").value;
+        const confirm = document.getElementById("member-password-confirm").value;
+        const errorBox = document.getElementById("password-error");
+        const button = document.getElementById("password-submit");
+        const localErrors = validatePassword(password);
+
+        errorBox.textContent = "";
+
+        if (localErrors.length) {
+          errorBox.textContent = `Password needs ${localErrors.join(", ")}.`;
+          return;
+        }
+
+        if (password !== confirm) {
+          errorBox.textContent = "The two password fields must match.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Activating...";
+
+        try {
+          const data = await passwordRequest({ action: "set", token: route.token, password });
+          renderReady(data);
+        } catch (error) {
+          if (error.code === "already_set") {
+            renderReady(error.payload || {});
+            return;
+          }
+          errorBox.textContent = error.message || "Unable to set your password right now.";
+          button.disabled = false;
+          button.textContent = "Activate account";
+        }
+      }
+
+      function validatePassword(password) {
+        const checks = [];
+        if (password.length < 14) checks.push("14 characters");
+        if (!/[A-Z]/.test(password)) checks.push("an uppercase letter");
+        if (!/[a-z]/.test(password)) checks.push("a lowercase letter");
+        if (!/[0-9]/.test(password)) checks.push("a number");
+        if (!/[^A-Za-z0-9]/.test(password)) checks.push("a symbol");
+        return checks;
+      }
+
+      async function passwordRequest(payload) {
+        const response = await fetch(PASSWORD_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data.message || data.error || "Request failed");
+          error.code = data.error;
+          error.payload = data;
+          throw error;
+        }
+        return data;
+      }
+
+      async function confirmSubscription() {
+        if (state.busy) {
+          return;
+        }
+
+        state.busy = true;
+        render();
+
+        try {
+          const response = await fetch(`${API_BASE}/activate-subscriber`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              token: route.token,
+            }),
+          });
+          const data = await response.json();
+
+          if (!response.ok || !data.activated) {
+            renderError(data.error || "Unable to confirm your subscription right now.");
+            return;
+          }
+
+          const previewParam = route.previewMode ? '&preview=1' : '';
+          window.location.assign(`/subscriber/${encodeURIComponent(route.token)}?status=confirmed${previewParam}`);
+        } catch (error) {
+          renderError("Unable to confirm your subscription right now.");
+        } finally {
+          state.busy = false;
+        }
+      }
+
+      function renderError(message) {
+        app.innerHTML = `
+          <p class="label">ACCESS POINT</p>
+          <h1 class="title">Subscriber</h1>
+          <div class="copy-group">
+            <p class="copy error">${escapeHtml(message)}</p>
+          </div>
+        `;
+      }
+
+      function readRoute() {
+        const segments = window.location.pathname.split("/").filter(Boolean);
+        const query = new URLSearchParams(window.location.search);
+        return {
+          token:
+            segments[0] === "subscriber" || segments[0] === "subscriber-activated"
+              ? segments[1] || ""
+              : "",
+          mode: query.get("mode") || "",
+          status: query.get("status") || "",
+          previewMode: query.get("preview") === "1",
+        };
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+    })();
+  </script>
+</body>
+</html>

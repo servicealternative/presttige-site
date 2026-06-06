@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Subscriber</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-primary: #0A0A0A;
+      --pp-paper: #FBF9F4;
+      --pp-background: #F5F2ED;
+      --pp-accent: #8C7040;
+      --pp-hairline: #D9D2C5;
+      --pp-muted: #6B6B6B;
+      --pp-error: #9F1D1D;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: var(--pp-background);
+      color: var(--pp-primary);
+      font-family: "Source Serif Pro", Georgia, serif;
+      padding: 1cm;
+    }
+
+    .card {
+      width: min(100%, 760px);
+      background: var(--pp-paper);
+      border: 1px solid var(--pp-hairline);
+      padding: 40px 32px;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0 0 18px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(42px, 7vw, 64px);
+      font-style: italic;
+      font-weight: 500;
+      line-height: 0.95;
+    }
+
+    .copy {
+      margin: 0 0 20px;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.8;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 24px;
+      border: 1px solid var(--pp-primary);
+      background: var(--pp-primary);
+      color: var(--pp-paper);
+      font: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .form {
+      display: grid;
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      color: var(--pp-accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: #fffdf8;
+      color: var(--pp-primary);
+      font: inherit;
+      font-size: 16px;
+      padding: 12px 14px;
+    }
+
+    .field input[readonly] {
+      color: var(--pp-muted);
+      background: rgba(217, 210, 197, 0.18);
+    }
+
+    .hint,
+    .notice {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .notice {
+      margin-top: 18px;
+      border-top: 1px solid var(--pp-hairline);
+      padding-top: 18px;
+    }
+
+    .error {
+      color: var(--pp-error);
+    }
+
+    @media (max-width: 560px) {
+      .card {
+        padding: 32px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section id="app" class="card">
+    <p class="eyebrow">Presttige Subscriber</p>
+    <h1 class="title">You're on the list.</h1>
+    <p class="copy">Validating your access…</p>
+  </section>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const PASSWORD_ENDPOINT = `${API_BASE}/member-set-password`;
+      const LOGIN_URL = "https://presttige-members.auth.us-east-1.amazoncognito.com/login?client_id=3gdek6k48cm6oirccodgrub2k1&response_type=code&scope=email+openid+profile&redirect_uri=https%3A%2F%2Fpresttige.net%2Fmember%2F";
+      const app = document.getElementById("app");
+      const token = window.location.pathname.split("/").filter(Boolean).pop();
+
+      if (!token || token === "subscriber-activated" || token === "subscriber-activated.html") {
+        renderError("Missing access token.");
+        return;
+      }
+
+      validate();
+
+      async function validate() {
+        try {
+          const data = await passwordRequest({ action: "status", token });
+          renderPasswordState(data);
+        } catch (error) {
+          renderError(error.message || "Unable to validate your access right now.");
+        }
+      }
+
+      function renderPasswordState(data) {
+        if (data.account_ready) {
+          renderReady(data);
+          return;
+        }
+
+        if (data.password_ready) {
+          renderPasswordForm(data);
+          return;
+        }
+
+        renderError("This membership account is not ready for password setup.");
+      }
+
+      function renderPasswordForm(data) {
+        app.innerHTML = `
+          <p class="eyebrow">Presttige Subscriber</p>
+          <h1 class="title">Set your password.</h1>
+          <p class="copy">Your Subscriber account is ready. Choose a password to complete activation.</p>
+          <form id="password-form" class="form" novalidate>
+            <div class="field">
+              <label for="member-email">Email</label>
+              <input id="member-email" type="email" value="${escapeHtml(data.email || "")}" readonly autocomplete="username">
+            </div>
+            <div class="field">
+              <label for="member-password">Password</label>
+              <input id="member-password" type="password" minlength="14" autocomplete="new-password" required>
+              <p class="hint">Use at least 14 characters, with uppercase, lowercase, a number and a symbol.</p>
+            </div>
+            <div class="field">
+              <label for="member-password-confirm">Confirm password</label>
+              <input id="member-password-confirm" type="password" minlength="14" autocomplete="new-password" required>
+            </div>
+            <p id="password-error" class="hint error" aria-live="polite"></p>
+            <div class="actions">
+              <button id="password-submit" class="button" type="submit">Activate account</button>
+            </div>
+          </form>
+        `;
+        document.getElementById("password-form").addEventListener("submit", submitPassword);
+      }
+
+      function renderReady(data) {
+        app.innerHTML = `
+          <p class="eyebrow">Presttige Subscriber</p>
+          <h1 class="title">Your account is ready.</h1>
+          <p class="copy">Your password is set and your Presttige account is active.</p>
+          <p class="notice">Email: ${escapeHtml(data.email || "")}</p>
+          <div class="actions">
+            <a class="button" href="${LOGIN_URL}">Log in</a>
+          </div>
+        `;
+      }
+
+      async function submitPassword(event) {
+        event.preventDefault();
+        const password = document.getElementById("member-password").value;
+        const confirm = document.getElementById("member-password-confirm").value;
+        const errorBox = document.getElementById("password-error");
+        const button = document.getElementById("password-submit");
+        const localErrors = validatePassword(password);
+
+        errorBox.textContent = "";
+
+        if (localErrors.length) {
+          errorBox.textContent = `Password needs ${localErrors.join(", ")}.`;
+          return;
+        }
+
+        if (password !== confirm) {
+          errorBox.textContent = "The two password fields must match.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Activating...";
+
+        try {
+          const data = await passwordRequest({ action: "set", token, password });
+          renderReady(data);
+        } catch (error) {
+          if (error.code === "already_set") {
+            renderReady(error.payload || {});
+            return;
+          }
+          errorBox.textContent = error.message || "Unable to set your password right now.";
+          button.disabled = false;
+          button.textContent = "Activate account";
+        }
+      }
+
+      function validatePassword(password) {
+        const checks = [];
+        if (password.length < 14) checks.push("14 characters");
+        if (!/[A-Z]/.test(password)) checks.push("an uppercase letter");
+        if (!/[a-z]/.test(password)) checks.push("a lowercase letter");
+        if (!/[0-9]/.test(password)) checks.push("a number");
+        if (!/[^A-Za-z0-9]/.test(password)) checks.push("a symbol");
+        return checks;
+      }
+
+      async function passwordRequest(payload) {
+        const response = await fetch(PASSWORD_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data.message || data.error || "Request failed");
+          error.code = data.error;
+          error.payload = data;
+          throw error;
+        }
+        return data;
+      }
+
+      function renderError(message) {
+        app.innerHTML = `
+          <p class="eyebrow">Presttige Subscriber</p>
+          <h1 class="title">Link unavailable.</h1>
+          <p class="copy error">${escapeHtml(message)}</p>
+        `;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+    })();
+  </script>
+</body>
+</html>

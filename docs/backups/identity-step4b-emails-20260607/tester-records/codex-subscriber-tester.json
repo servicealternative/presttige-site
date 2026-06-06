@@ -1,0 +1,279 @@
+{
+    "Items": [
+        {
+            "payment_status": {
+                "S": "paid"
+            },
+            "updated_reason": {
+                "S": "formalize_presttige_tester_tier_20260606"
+            },
+            "stripe_event_type": {
+                "S": "payment_intent.succeeded"
+            },
+            "cognito_sub": {
+                "S": "e4a81458-50d1-704b-a71c-10b90450c7d4"
+            },
+            "stripe_subscription_id": {
+                "S": "sub_identity_step3b_1780776676"
+            },
+            "test_tier": {
+                "BOOL": true
+            },
+            "source": {
+                "S": "codex_authorised_test_tier"
+            },
+            "subscription_cancel_at_period_end": {
+                "BOOL": false
+            },
+            "name": {
+                "S": "Codex Subscriber Tester"
+            },
+            "access_status": {
+                "S": "active"
+            },
+            "validation_status": {
+                "S": "not_started"
+            },
+            "review_status": {
+                "S": "approved"
+            },
+            "lead_id": {
+                "S": "fdm_test_codex_subscriber_tester"
+            },
+            "last_event_id": {
+                "S": "evt_identity_step3c_founder_1780777134"
+            },
+            "magic_token_issued_at": {
+                "S": "2026-06-06T17:22:42Z"
+            },
+            "marketing_consent": {
+                "BOOL": false
+            },
+            "stripe_checkout_completed_at": {
+                "S": "2026-06-06T20:11:21.229126+00:00"
+            },
+            "magic_token_status": {
+                "S": "active"
+            },
+            "founding_rate_expires_at": {
+                "NULL": true
+            },
+            "payment_status_reason": {
+                "S": "founder_payment_succeeded"
+            },
+            "subscription_current_period_start": {
+                "S": "2026-06-06T20:11:16+00:00"
+            },
+            "effective_tier": {
+                "S": "tester"
+            },
+            "subscriber_activated_at": {
+                "S": "2026-06-06T17:23:11.324Z"
+            },
+            "founder_lifetime": {
+                "BOOL": true
+            },
+            "password_setup_token_status": {
+                "S": "used"
+            },
+            "token_status": {
+                "S": "active"
+            },
+            "city": {
+                "S": "Dubai"
+            },
+            "account_status": {
+                "S": "active"
+            },
+            "company": {
+                "S": "Presttige"
+            },
+            "terms_accepted": {
+                "BOOL": true
+            },
+            "test_scope": {
+                "S": "invite_and_experience"
+            },
+            "stripe_customer_id": {
+                "S": "cus_identity_step3c_1780777134"
+            },
+            "cognito_linked_at": {
+                "S": "2026-06-06T17:23:11.324Z"
+            },
+            "signup_path": {
+                "S": "founder"
+            },
+            "password_setup_started_at": {
+                "S": "2026-06-06T20:39:24.644Z"
+            },
+            "subscription_current_period_end": {
+                "S": "2026-07-06T20:11:16+00:00"
+            },
+            "linkedin": {
+                "S": ""
+            },
+            "country": {
+                "S": "United Arab Emirates"
+            },
+            "notes": {
+                "S": "Authorised by Antonio on 2026-06-05. Codex must not create any other test records without explicit authorisation."
+            },
+            "test_founder_permission_scope": {
+                "S": "invite_and_experience"
+            },
+            "created_at": {
+                "S": "2026-06-05T11:03:50.420299Z"
+            },
+            "first_name": {
+                "S": "Codex"
+            },
+            "updated_at": {
+                "S": "2026-06-06T20:39:25.303Z"
+            },
+            "tier": {
+                "S": "tester"
+            },
+            "password_setup_token_hash": {
+                "S": "ba66d15452dcd47b"
+            },
+            "email": {
+                "S": "codex.subscriber.tester@presttige.net"
+            },
+            "phone_country": {
+                "S": "+971"
+            },
+            "account_created_at": {
+                "S": "2026-06-06T17:23:11.324Z"
+            },
+            "cancel_at_period_end": {
+                "BOOL": false
+            },
+            "internal_test_role": {
+                "S": "presttige_free_member_founder_permissions_tester"
+            },
+            "password_setup_token_type": {
+                "S": "magic"
+            },
+            "selected_contract_key": {
+                "S": "founder_lifetime"
+            },
+            "instagram": {
+                "S": "@codex_subscriber_tester"
+            },
+            "test_founder_permissions": {
+                "BOOL": true
+            },
+            "magic_token_expires_at": {
+                "S": "2026-07-06T17:22:42Z"
+            },
+            "age": {
+                "S": "30"
+            },
+            "tiktok": {
+                "S": ""
+            },
+            "subscriber_type": {
+                "S": "tester"
+            },
+            "bio": {
+                "S": "Dedicated Presttige TEST tier record authorised for Codex validation only."
+            },
+            "confirmed_payment_at": {
+                "S": "2026-06-06T20:18:58.755563+00:00"
+            },
+            "subscription_status": {
+                "S": "none"
+            },
+            "account_active": {
+                "BOOL": true
+            },
+            "email_status": {
+                "S": "verified"
+            },
+            "simulated_tier": {
+                "S": "founder"
+            },
+            "profile_status": {
+                "S": "profile_submitted"
+            },
+            "founding_rate_locked": {
+                "BOOL": false
+            },
+            "founder_activated_at": {
+                "S": "2026-06-06T20:18:58.755563+00:00"
+            },
+            "last_name": {
+                "S": "Subscriber Tester"
+            },
+            "selected_tier_billing": {
+                "S": "lifetime"
+            },
+            "last_payment_at": {
+                "S": "2026-06-06T20:18:58.755559+00:00"
+            },
+            "test_founder_permission_source": {
+                "S": "tester_tier_20260606"
+            },
+            "upgrade_eligible_until": {
+                "S": "2026-12-31T23:59:59Z"
+            },
+            "password_setup_completed_at": {
+                "S": "2026-06-06T20:39:25.303Z"
+            },
+            "selected_tier": {
+                "S": "tester"
+            },
+            "is_test": {
+                "BOOL": true
+            },
+            "privacy_accepted": {
+                "BOOL": true
+            },
+            "stripe_payment_intent_id": {
+                "S": "pi_identity_step3c_1780777134"
+            },
+            "password_set_at": {
+                "S": "2026-06-06T20:39:25.303Z"
+            },
+            "synthetic_test": {
+                "BOOL": true
+            },
+            "test_simulated_tier": {
+                "S": "free"
+            },
+            "stripe_last_event_id": {
+                "S": "evt_identity_step3c_founder_1780777134"
+            },
+            "occupation": {
+                "S": "Presttige test subscriber"
+            },
+            "website": {
+                "S": "https://presttige.net"
+            },
+            "cognito_pool": {
+                "S": "presttige-members"
+            },
+            "test_founder_inviter": {
+                "BOOL": true
+            },
+            "founder_eligible": {
+                "BOOL": false
+            },
+            "magic_token": {
+                "S": "id3a_codex_20488b98e7ebbfbb80dc683c707e98394ea33cc652f6d199"
+            },
+            "last_event_type": {
+                "S": "payment_intent.succeeded"
+            },
+            "phone": {
+                "S": "000000000"
+            },
+            "test_tier_default": {
+                "S": "free"
+            }
+        }
+    ],
+    "Count": 1,
+    "ScannedCount": 1,
+    "ConsumedCapacity": null
+}

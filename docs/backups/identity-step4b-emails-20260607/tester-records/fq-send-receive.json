@@ -1,0 +1,282 @@
+{
+    "Items": [
+        {
+            "inviter_role": {
+                "S": "chairman"
+            },
+            "checkout_token_expires_at": {
+                "S": "2026-07-06T08:58:50.983Z"
+            },
+            "currency": {
+                "S": "USD"
+            },
+            "checkout_token_status": {
+                "S": "active"
+            },
+            "tier_intent": {
+                "S": "founder"
+            },
+            "product_type": {
+                "S": "entry"
+            },
+            "test_founder_permissions": {
+                "BOOL": true
+            },
+            "inviter_ulttra_person_id": {
+                "S": "4"
+            },
+            "terms_accepted_at": {
+                "S": "2026-06-03T09:14:15Z"
+            },
+            "founder_eligible": {
+                "BOOL": true
+            },
+            "created_by_admin": {
+                "BOOL": true
+            },
+            "checkbox_consent_at": {
+                "S": "2026-06-06T08:58:50.983Z"
+            },
+            "occupation": {
+                "S": ""
+            },
+            "website": {
+                "S": ""
+            },
+            "age": {
+                "S": "63"
+            },
+            "inviter_founder_invite_token": {
+                "NULL": true
+            },
+            "founder_token_status": {
+                "S": "active"
+            },
+            "profile_submitted_at": {
+                "S": "2026-06-05T18:18:08.582623+00:00"
+            },
+            "founder_token": {
+                "S": "f97137ed82f57d32d16a108e6abc24bf2836ed76698d67766cf3dda930ec3c6a"
+            },
+            "inviter_source": {
+                "S": "ulttra"
+            },
+            "founder_token_version": {
+                "N": "1"
+            },
+            "inviter_lead_id": {
+                "NULL": true
+            },
+            "selected_checkout_mode": {
+                "S": "payment"
+            },
+            "profile_status": {
+                "S": "founder_c2_ready_for_payment"
+            },
+            "inviter_email": {
+                "S": "apereira@presttige.net"
+            },
+            "test_founder_permission_scope": {
+                "S": "invite_and_experience"
+            },
+            "test_founder_inviter": {
+                "BOOL": true
+            },
+            "payment_status_reason": {
+                "S": "bootstrap_created"
+            },
+            "synthetic_test": {
+                "BOOL": true
+            },
+            "reviewed_at": {
+                "S": "2026-06-05T18:18:08.582623+00:00"
+            },
+            "test_never_expires": {
+                "BOOL": true
+            },
+            "country": {
+                "S": "United Arab Emirates"
+            },
+            "lead_id": {
+                "S": "fdm_founder_b7b1f1a293"
+            },
+            "city": {
+                "S": "Dubai"
+            },
+            "founder_invite_flow": {
+                "S": "direct_founder"
+            },
+            "tier": {
+                "S": "TEST"
+            },
+            "is_test": {
+                "BOOL": true
+            },
+            "linkedin": {
+                "S": ""
+            },
+            "terms_accepted": {
+                "S": "true"
+            },
+            "subscriber_type": {
+                "S": "founder_invited"
+            },
+            "stripe_customer_id": {
+                "S": "cus_UdO6QfmOk1UQ4F"
+            },
+            "test_scope": {
+                "S": "invite_and_experience"
+            },
+            "stripe_payment_intent_id": {
+                "S": "pi_3TfG4BDmiQXcrE5N0BiTtF07"
+            },
+            "email": {
+                "S": "fq@freequenza.net"
+            },
+            "account_active": {
+                "BOOL": true
+            },
+            "test_always_active": {
+                "BOOL": true
+            },
+            "phone_country": {
+                "S": "+971"
+            },
+            "marketing_consent": {
+                "S": "false"
+            },
+            "updated_reason": {
+                "S": "formalize_fq_send_receive_exception_20260606"
+            },
+            "founder_invite_email_sent_at": {
+                "S": "2026-06-05T11:14:58.806968+00:00"
+            },
+            "founder_c2_no_committee": {
+                "BOOL": true
+            },
+            "phone": {
+                "S": "562195500"
+            },
+            "checkout_token_issued_at": {
+                "S": "2026-06-06T08:58:50.983Z"
+            },
+            "selected_contract_key": {
+                "S": "founder_lifetime"
+            },
+            "founder_token_generated_at": {
+                "S": "2026-06-06T08:42:40.958456+00:00"
+            },
+            "internal_test_role": {
+                "S": "presttige_send_receive_founder_test_address"
+            },
+            "updated_at": {
+                "S": "2026-06-06T19:40:24Z"
+            },
+            "founder_c2_profile_completed_at": {
+                "S": "2026-06-05T18:18:08.582623+00:00"
+            },
+            "founder_token_nonce": {
+                "S": "cb37565aec9b206faa5cf94ba187d2c2"
+            },
+            "consent_basis": {
+                "S": "admin_invited_legitimate_interest"
+            },
+            "test_simulated_tier": {
+                "S": "founder"
+            },
+            "test_tier": {
+                "BOOL": true
+            },
+            "payment_status": {
+                "S": "checkout_ready"
+            },
+            "consent_timestamp": {
+                "S": "2026-06-06T08:42:40.958456+00:00"
+            },
+            "tiktok": {
+                "S": ""
+            },
+            "controlled_test_invite": {
+                "BOOL": true
+            },
+            "selected_price_id": {
+                "S": "price_1TSyCjDmiQXcrE5NyKR5cb60"
+            },
+            "company": {
+                "S": ""
+            },
+            "email_status": {
+                "S": "verified"
+            },
+            "checkout_token": {
+                "S": "0970768e28788537e4462405b71fdf4bd6e3dd33ba43354ae5c1c2a971de895d"
+            },
+            "founder_gate_status": {
+                "S": "confirmed"
+            },
+            "simulated_tier": {
+                "S": "founder"
+            },
+            "name": {
+                "S": "Free Quenza"
+            },
+            "effective_tier": {
+                "S": "TEST"
+            },
+            "selected_tier": {
+                "S": "founder"
+            },
+            "test_founder_permission_source": {
+                "S": "tester_tier_20260606"
+            },
+            "test_email_role": {
+                "S": "send_receive"
+            },
+            "stripe_checkout_started_at": {
+                "S": "2026-06-05T11:17:29.133Z"
+            },
+            "checkout_token_version": {
+                "N": "18"
+            },
+            "created_at": {
+                "S": "2026-06-01T19:58:09.537908+00:00"
+            },
+            "access_status": {
+                "S": "active"
+            },
+            "selected_tier_billing": {
+                "S": "lifetime"
+            },
+            "test_invite_reason": {
+                "S": "Controlled Founder email CTA rendering test, fq only, no payment."
+            },
+            "review_status": {
+                "S": "approved"
+            },
+            "bio": {
+                "S": "dfghjjikoijluhygtfrdesrrdftgyuiopiuytrertyuiopoiuytressdftgyuiopoiuysdfgyuiopodfghjkl"
+            },
+            "marketing_consent_at": {
+                "S": ""
+            },
+            "test_send_receive_address": {
+                "BOOL": true
+            },
+            "instagram": {
+                "S": "antonio.mpereira"
+            },
+            "reviewed_by": {
+                "S": "founder_c2_no_committee"
+            },
+            "test_tier_default": {
+                "S": "free"
+            },
+            "founder_c2_email_verified_at": {
+                "S": "2026-06-05T18:17:26.166304+00:00"
+            }
+        }
+    ],
+    "Count": 1,
+    "ScannedCount": 1,
+    "ConsumedCapacity": null
+}

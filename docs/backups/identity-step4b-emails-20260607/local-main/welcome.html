@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en" class="notranslate">
+<head>
+  <meta name="google" content="notranslate">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Welcome</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <script src="/assets/js/preview-mode-banner.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-black: #1A1A1A;
+      --pp-gold: #8A7544;
+      --pp-paper: #FBF9F4;
+      --pp-background: #FBF9F4;
+      --pp-hairline: #D8D1C3;
+      --pp-muted: #5F5B54;
+      --pp-success-tint: rgba(140, 112, 64, 0.08);
+      --pp-shadow: 0 24px 60px rgba(10, 10, 10, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1cm;
+      background: var(--pp-background);
+      color: var(--pp-black);
+      font-family: "Source Serif 4", Georgia, serif;
+    }
+
+    .card {
+      width: min(100%, 1180px);
+      padding: 34px 30px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      box-shadow: var(--pp-shadow);
+    }
+
+    .card:not(.card--processing) {
+      max-width: 780px;
+    }
+
+    .processing-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(320px, 1.15fr) minmax(0, 1fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .processing-panel {
+      min-height: 100%;
+      padding: 22px;
+      border: 1px solid rgba(140, 112, 64, 0.14);
+      background: rgba(140, 112, 64, 0.035);
+    }
+
+    .brand-mark {
+      width: 86px;
+      height: 86px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+      border: 1px solid rgba(140, 112, 64, 0.42);
+      color: var(--pp-gold);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 58px;
+      font-style: italic;
+      line-height: 1;
+    }
+
+    .status-steps {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .status-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--pp-gold);
+      box-shadow: 0 0 0 6px rgba(140, 112, 64, 0.08);
+      animation: pulse 1.3s ease-in-out infinite;
+      flex: 0 0 auto;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 0.45;
+        transform: scale(0.92);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0 0 18px;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(44px, 7vw, 68px);
+      font-style: italic;
+      font-weight: 500;
+      line-height: 0.95;
+    }
+
+    .copy {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.8;
+    }
+
+    .callout {
+      margin-top: 22px;
+      padding: 16px 18px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .callout {
+      border: 1px solid rgba(140, 112, 64, 0.18);
+      background: var(--pp-success-tint);
+      color: var(--pp-black);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 13px 18px;
+      border: 1px solid var(--pp-gold);
+      background: var(--pp-gold);
+      color: var(--pp-paper);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      text-transform: none;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .button--secondary {
+      background: transparent;
+      color: var(--pp-gold);
+    }
+
+    .form {
+      display: grid;
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: #fffdf8;
+      color: var(--pp-black);
+      font: inherit;
+      font-size: 16px;
+      padding: 12px 14px;
+    }
+
+    .field input[readonly] {
+      color: var(--pp-muted);
+      background: rgba(216, 209, 195, 0.18);
+    }
+
+    .hint,
+    .notice {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .error-text {
+      color: #8B1E1E;
+    }
+
+    @media (max-width: 900px) {
+      .processing-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="/assets/css/brand-fonts.css">
+  <link rel="stylesheet" href="/assets/css/preview-mode-banner.css">
+</head>
+<body translate="no">
+  <section id="app" class="card">
+    <p class="eyebrow">Presttige Membership</p>
+    <h1 class="title">Checking payment status.</h1>
+    <p class="copy">Hold this page for a moment while we confirm the membership state.</p>
+  </section>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const PASSWORD_ENDPOINT = `${API_BASE}/member-set-password`;
+      const LOGIN_URL = "https://presttige-members.auth.us-east-1.amazoncognito.com/login?client_id=3gdek6k48cm6oirccodgrub2k1&response_type=code&scope=email+openid+profile&redirect_uri=https%3A%2F%2Fpresttige.net%2Fmember%2F";
+      const REQUEST_NEW_LINK = "mailto:office@presttige.net?subject=Request%20a%20new%20Presttige%20link";
+      const app = document.getElementById("app");
+      const route = readRoute();
+
+      if (window.PresttigePreview) {
+        window.PresttigePreview.syncFromQuery();
+      }
+
+      if (!route.token || route.token === "welcome" || route.token === "welcome.html") {
+        renderError("Missing access token.");
+        return;
+      }
+
+      load();
+
+      async function load() {
+        try {
+          const status = await fetchStatus();
+          await renderState(status);
+        } catch (error) {
+          const legacy = await fetchLegacyFallback();
+          if (legacy) {
+            renderLegacySuccess(legacy);
+            return;
+          }
+          renderError(error.message || "Unable to verify your payment status.");
+        }
+      }
+
+      async function fetchStatus() {
+        return fetchJson(`${API_BASE}/checkout-status?token=${encodeURIComponent(route.token)}`);
+      }
+
+      async function passwordRequest(payload) {
+        const response = await fetch(PASSWORD_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data.message || data.error || "Request failed");
+          error.code = data.error;
+          error.payload = data;
+          throw error;
+        }
+        return data;
+      }
+
+      async function fetchLegacyFallback() {
+        try {
+          return await fetchJson(`${API_BASE}/magic-link-verify?token=${encodeURIComponent(route.token)}`);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      async function renderState(status) {
+        if (status.previewMode && window.PresttigePreview) {
+          window.PresttigePreview.enable();
+        }
+
+        const state = status.displayState || "processing";
+
+        if (state === "paid") {
+          const passwordStatus = await passwordRequest({ action: "status", token: route.token });
+          renderPaid(status, passwordStatus);
+          return;
+        }
+
+        if (state === "failed") {
+          renderFailed(status);
+          return;
+        }
+
+        renderProcessing(status);
+        window.setTimeout(load, status.pollAfterMs || 4000);
+      }
+
+      function renderPaid(status, passwordStatus) {
+        app.className = "card";
+        if (passwordStatus?.account_ready) {
+          renderAccountReady(status, passwordStatus);
+          return;
+        }
+
+        if (passwordStatus?.password_ready) {
+          renderPasswordForm(status, passwordStatus);
+          return;
+        }
+
+        app.innerHTML = `
+          <p class="eyebrow">Membership Confirmed</p>
+          <h1 class="title">Welcome to Presttige</h1>
+          <p class="copy">${escapeHtml(successBody(status))}</p>
+          <div class="callout">Your membership is confirmed. Account setup will be available shortly.</div>
+          ${status.recordedAt ? `<div class="callout">Recorded ${escapeHtml(status.recordedAt)}.</div>` : ""}
+          <div class="actions">
+            ${status.retryUrl ? `<a class="button button--secondary" href="${escapeHtml(status.retryUrl)}">Return to checkout</a>` : ""}
+          </div>
+        `;
+      }
+
+      function renderPasswordForm(status, passwordStatus) {
+        app.innerHTML = `
+          <p class="eyebrow">Membership Confirmed</p>
+          <h1 class="title">Set your password.</h1>
+          <p class="copy">${escapeHtml(successBody(status))}</p>
+          <form id="password-form" class="form" novalidate>
+            <div class="field">
+              <label for="member-email">Email</label>
+              <input id="member-email" type="email" value="${escapeHtml(passwordStatus.email || "")}" readonly autocomplete="username">
+            </div>
+            <div class="field">
+              <label for="member-password">Password</label>
+              <input id="member-password" type="password" minlength="14" autocomplete="new-password" required>
+              <p class="hint">Use at least 14 characters, with uppercase, lowercase, a number and a symbol.</p>
+            </div>
+            <div class="field">
+              <label for="member-password-confirm">Confirm password</label>
+              <input id="member-password-confirm" type="password" minlength="14" autocomplete="new-password" required>
+            </div>
+            <p id="password-error" class="hint error-text" aria-live="polite"></p>
+            ${status.recordedAt ? `<div class="callout">Recorded ${escapeHtml(status.recordedAt)}.</div>` : ""}
+            <div class="actions">
+              <button id="password-submit" class="button" type="submit">Activate account</button>
+            </div>
+          </form>
+        `;
+        document.getElementById("password-form").addEventListener("submit", submitPassword);
+      }
+
+      function renderAccountReady(status, passwordStatus) {
+        app.innerHTML = `
+          <p class="eyebrow">Membership Confirmed</p>
+          <h1 class="title">Your account is ready.</h1>
+          <p class="copy">${escapeHtml(successBody(status))}</p>
+          <div class="callout">Your password is set and your Presttige account is active.</div>
+          <p class="notice">Email: ${escapeHtml(passwordStatus.email || "")}</p>
+          <div class="actions">
+            <a class="button" href="${LOGIN_URL}">Log in</a>
+          </div>
+        `;
+      }
+
+      async function submitPassword(event) {
+        event.preventDefault();
+        const password = document.getElementById("member-password").value;
+        const confirm = document.getElementById("member-password-confirm").value;
+        const errorBox = document.getElementById("password-error");
+        const button = document.getElementById("password-submit");
+        const localErrors = validatePassword(password);
+
+        errorBox.textContent = "";
+
+        if (localErrors.length) {
+          errorBox.textContent = `Password needs ${localErrors.join(", ")}.`;
+          return;
+        }
+
+        if (password !== confirm) {
+          errorBox.textContent = "The two password fields must match.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Activating...";
+
+        try {
+          const passwordStatus = await passwordRequest({
+            action: "set",
+            token: route.token,
+            password,
+          });
+          const status = await fetchStatus();
+          renderAccountReady(status, passwordStatus);
+        } catch (error) {
+          if (error.code === "already_set") {
+            const status = await fetchStatus();
+            renderAccountReady(status, error.payload || {});
+            return;
+          }
+          errorBox.textContent = error.message || "Unable to set your password right now.";
+          button.disabled = false;
+          button.textContent = "Activate account";
+        }
+      }
+
+      function validatePassword(password) {
+        const checks = [];
+        if (password.length < 14) checks.push("14 characters");
+        if (!/[A-Z]/.test(password)) checks.push("an uppercase letter");
+        if (!/[a-z]/.test(password)) checks.push("a lowercase letter");
+        if (!/[0-9]/.test(password)) checks.push("a number");
+        if (!/[^A-Za-z0-9]/.test(password)) checks.push("a symbol");
+        return checks;
+      }
+
+      function renderProcessing(status) {
+        app.className = "card card--processing";
+        app.innerHTML = `
+          <div class="processing-layout">
+            <aside class="processing-panel">
+              <div class="brand-mark" aria-hidden="true">P</div>
+              <p class="eyebrow">Welcome to Presttige</p>
+              <p class="copy">Your membership path is being prepared with care.</p>
+            </aside>
+            <section class="processing-panel">
+              <p class="eyebrow">Payment Processing</p>
+              <h1 class="title">We are confirming your payment.</h1>
+              <p class="copy">This page refreshes automatically while your ${escapeHtml(titleCase(status.tier || "member"))} access is confirmed.</p>
+              <div class="callout">
+                <div class="status-step"><span class="status-dot" aria-hidden="true"></span><span>Confirming...</span></div>
+              </div>
+            </section>
+            <aside class="processing-panel">
+              <p class="eyebrow">What happens next</p>
+              <div class="status-steps">
+                <div class="status-step"><span class="status-dot" aria-hidden="true"></span><span>Your account is being activated</span></div>
+                <div class="status-step"><span class="status-dot" aria-hidden="true"></span><span>You'll receive confirmation by email</span></div>
+                <div class="status-step"><span class="status-dot" aria-hidden="true"></span><span>Full network access begins immediately on confirmation</span></div>
+              </div>
+            </aside>
+          </div>
+        `;
+      }
+
+      function renderFailed(status) {
+        app.className = "card";
+        const retryUrl = status.retryUrl || "";
+        app.innerHTML = `
+          <h1 class="title">Payment not confirmed</h1>
+          <p class="copy">Your transaction did not complete.</p>
+          <p class="copy" style="margin-top:18px;">You may return to checkout to finish, or request a new link at your convenience.</p>
+          <div class="actions">
+            ${
+              retryUrl
+                ? `<a class="button" href="${escapeHtml(retryUrl)}">Return to checkout</a>`
+                : `<button type="button" class="button" data-history-back="true">Return to checkout</button>`
+            }
+            <a class="button button--secondary" href="${REQUEST_NEW_LINK}">Request a new link</a>
+          </div>
+        `;
+        const historyButton = app.querySelector("[data-history-back]");
+        if (historyButton) {
+          historyButton.addEventListener("click", () => {
+            window.history.back();
+          });
+        }
+      }
+
+      function renderLegacySuccess(data) {
+        if (route.previewMode && window.PresttigePreview) {
+          window.PresttigePreview.enable();
+        }
+        app.className = "card";
+        const tier = String(data.tier || "").trim().toLowerCase();
+        const body = tier === "founder"
+          ? "Founder status is active."
+          : "Your membership is active.";
+
+        app.innerHTML = `
+          <p class="eyebrow">Membership Confirmed</p>
+          <h1 class="title">Welcome to Presttige</h1>
+          <p class="copy">${escapeHtml(body)}</p>
+        `;
+      }
+
+      function renderError(message) {
+        app.className = "card";
+        app.innerHTML = `
+          <p class="eyebrow">Presttige Membership</p>
+          <h1 class="title">Link unavailable.</h1>
+          <p class="copy">${escapeHtml(message)}</p>
+          <div class="actions">
+            <a class="button button--secondary" href="${REQUEST_NEW_LINK}">Request a new link</a>
+          </div>
+        `;
+      }
+
+      function successBody(status) {
+        const tier = String(status.tier || "").trim().toLowerCase();
+        if (tier === "founder") {
+          return "Founder access is confirmed. This lifetime class remains on your record permanently.";
+        }
+        if (tier === "patron") {
+          return "Patron access is active. Your Presttige record is confirmed.";
+        }
+        if (tier === "premier") {
+          return "Premier access is active. Your Presttige record is confirmed.";
+        }
+        if (tier === "club") {
+          return "Club access is active. Your Presttige record is confirmed.";
+        }
+        return "Your Presttige membership is active.";
+      }
+
+      function readRoute() {
+        const segments = window.location.pathname.split("/").filter(Boolean);
+        const query = new URLSearchParams(window.location.search);
+        return {
+          token: segments[0] === "welcome" ? segments[1] || "" : "",
+          previewMode: query.get("preview") === "1",
+        };
+      }
+
+      async function fetchJson(url) {
+        const response = await fetch(url);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data?.error?.message || data.error || "Request failed");
+          error.statusCode = response.status;
+          throw error;
+        }
+        return data;
+      }
+
+      function titleCase(value) {
+        return String(value || "")
+          .split(/[_\s-]+/)
+          .filter(Boolean)
+          .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(" ");
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+    })();
+  </script>
+</body>
+</html>
