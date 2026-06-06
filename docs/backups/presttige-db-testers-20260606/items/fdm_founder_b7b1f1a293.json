@@ -1,0 +1,241 @@
+{
+  "action": "modify",
+  "email": "fq@freequenza.net",
+  "lead_id": "fdm_founder_b7b1f1a293",
+  "item": {
+    "profile_submitted_at": {
+      "S": "2026-06-05T18:18:08.582623+00:00"
+    },
+    "founder_token": {
+      "S": "f97137ed82f57d32d16a108e6abc24bf2836ed76698d67766cf3dda930ec3c6a"
+    },
+    "terms_accepted_at": {
+      "S": "2026-06-03T09:14:15Z"
+    },
+    "founder_token_generated_at": {
+      "S": "2026-06-06T08:42:40.958456+00:00"
+    },
+    "synthetic_test": {
+      "BOOL": true
+    },
+    "marketing_consent_at": {
+      "S": ""
+    },
+    "review_status": {
+      "S": "approved"
+    },
+    "phone_country": {
+      "S": "+971"
+    },
+    "checkout_token_status": {
+      "S": "active"
+    },
+    "tier_intent": {
+      "S": "founder"
+    },
+    "simulated_tier": {
+      "S": "free"
+    },
+    "stripe_customer_id": {
+      "S": "cus_UdO6QfmOk1UQ4F"
+    },
+    "company": {
+      "S": ""
+    },
+    "checkout_token_expires_at": {
+      "S": "2026-07-06T08:58:50.983Z"
+    },
+    "checkout_token": {
+      "S": "0970768e28788537e4462405b71fdf4bd6e3dd33ba43354ae5c1c2a971de895d"
+    },
+    "updated_at": {
+      "S": "2026-06-06T11:12:11Z"
+    },
+    "marketing_consent": {
+      "S": "false"
+    },
+    "product_type": {
+      "S": "entry"
+    },
+    "consent_timestamp": {
+      "S": "2026-06-06T08:42:40.958456+00:00"
+    },
+    "founder_token_status": {
+      "S": "active"
+    },
+    "founder_eligible": {
+      "BOOL": true
+    },
+    "founder_token_version": {
+      "N": "1"
+    },
+    "payment_status_reason": {
+      "S": "bootstrap_created"
+    },
+    "email": {
+      "S": "fq@freequenza.net"
+    },
+    "bio": {
+      "S": "dfghjjikoijluhygtfrdesrrdftgyuiopiuytrertyuiopoiuytressdftgyuiopoiuysdfgyuiopodfghjkl"
+    },
+    "tiktok": {
+      "S": ""
+    },
+    "selected_price_id": {
+      "S": "price_1TSyCjDmiQXcrE5NyKR5cb60"
+    },
+    "consent_basis": {
+      "S": "admin_invited_legitimate_interest"
+    },
+    "payment_status": {
+      "S": "checkout_ready"
+    },
+    "selected_checkout_mode": {
+      "S": "payment"
+    },
+    "email_status": {
+      "S": "verified"
+    },
+    "terms_accepted": {
+      "S": "true"
+    },
+    "age": {
+      "S": "63"
+    },
+    "created_at": {
+      "S": "2026-06-01T19:58:09.537908+00:00"
+    },
+    "phone": {
+      "S": "562195500"
+    },
+    "checkout_token_issued_at": {
+      "S": "2026-06-06T08:58:50.983Z"
+    },
+    "reviewed_at": {
+      "S": "2026-06-05T18:18:08.582623+00:00"
+    },
+    "founder_invite_flow": {
+      "S": "direct_founder"
+    },
+    "effective_tier": {
+      "S": "TEST"
+    },
+    "country": {
+      "S": "United Arab Emirates"
+    },
+    "test_tier_default": {
+      "S": "free"
+    },
+    "lead_id": {
+      "S": "fdm_founder_b7b1f1a293"
+    },
+    "city": {
+      "S": "Dubai"
+    },
+    "reviewed_by": {
+      "S": "founder_c2_no_committee"
+    },
+    "founder_c2_email_verified_at": {
+      "S": "2026-06-05T18:17:26.166304+00:00"
+    },
+    "checkout_token_version": {
+      "N": "18"
+    },
+    "test_invite_reason": {
+      "S": "Controlled Founder email CTA rendering test, fq only, no payment."
+    },
+    "currency": {
+      "S": "USD"
+    },
+    "created_by_admin": {
+      "BOOL": true
+    },
+    "test_simulated_tier": {
+      "S": "free"
+    },
+    "stripe_payment_intent_id": {
+      "S": "pi_3TfG4BDmiQXcrE5N0BiTtF07"
+    },
+    "inviter_ulttra_person_id": {
+      "S": "4"
+    },
+    "linkedin": {
+      "S": ""
+    },
+    "founder_invite_email_sent_at": {
+      "S": "2026-06-05T11:14:58.806968+00:00"
+    },
+    "selected_contract_key": {
+      "S": "founder_lifetime"
+    },
+    "founder_c2_profile_completed_at": {
+      "S": "2026-06-05T18:18:08.582623+00:00"
+    },
+    "founder_token_nonce": {
+      "S": "cb37565aec9b206faa5cf94ba187d2c2"
+    },
+    "name": {
+      "S": "Free Quenza"
+    },
+    "inviter_source": {
+      "S": "ulttra"
+    },
+    "selected_tier": {
+      "S": "founder"
+    },
+    "founder_c2_no_committee": {
+      "BOOL": true
+    },
+    "inviter_founder_invite_token": {
+      "NULL": true
+    },
+    "tier": {
+      "S": "TEST"
+    },
+    "profile_status": {
+      "S": "founder_c2_ready_for_payment"
+    },
+    "inviter_email": {
+      "S": "apereira@presttige.net"
+    },
+    "checkbox_consent_at": {
+      "S": "2026-06-06T08:58:50.983Z"
+    },
+    "founder_gate_status": {
+      "S": "confirmed"
+    },
+    "occupation": {
+      "S": ""
+    },
+    "website": {
+      "S": ""
+    },
+    "subscriber_type": {
+      "S": "founder_invited"
+    },
+    "inviter_lead_id": {
+      "NULL": true
+    },
+    "selected_tier_billing": {
+      "S": "lifetime"
+    },
+    "controlled_test_invite": {
+      "BOOL": true
+    },
+    "updated_reason": {
+      "S": "test_tier_migration_20260605"
+    },
+    "instagram": {
+      "S": "antonio.mpereira"
+    },
+    "inviter_role": {
+      "S": "chairman"
+    },
+    "test_tier": {
+      "BOOL": true
+    },
+    "stripe_checkout_started_at": {
+      "S": "2026-06-05T11:17:29.133Z"
+    }
+  }
+}

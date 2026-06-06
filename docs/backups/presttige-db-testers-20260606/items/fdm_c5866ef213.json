@@ -1,0 +1,49 @@
+{
+  "action": "delete",
+  "email": "victoriaburca@icloud.com",
+  "lead_id": "fdm_c5866ef213",
+  "item": {
+    "source": {
+      "S": "hero"
+    },
+    "name": {
+      "S": "Victoria Burca"
+    },
+    "email_status": {
+      "S": "pending"
+    },
+    "application_type": {
+      "S": "access"
+    },
+    "profile_status": {
+      "S": "step_1"
+    },
+    "country": {
+      "S": "United States of America"
+    },
+    "email": {
+      "S": "victoriaburca@icloud.com"
+    },
+    "campaign_id": {
+      "S": ""
+    },
+    "updated_at": {
+      "S": "2026-04-19T08:42:15.136449"
+    },
+    "phone_status": {
+      "S": "pending"
+    },
+    "lead_id": {
+      "S": "fdm_c5866ef213"
+    },
+    "review_status": {
+      "S": "pending"
+    },
+    "created_at": {
+      "S": "2026-04-19T08:42:15.136449"
+    },
+    "verification_token": {
+      "S": "eb2db7ab8c398b4ea6da1ec86c65ffad29f3994d5c4629356f151a48d1a7c6c7"
+    }
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "action": "modify",
+  "email": "codex.subscriber.tester@presttige.net",
+  "lead_id": "fdm_test_codex_subscriber_tester",
+  "item": {
+    "marketing_consent": {
+      "BOOL": false
+    },
+    "review_status": {
+      "S": "approved"
+    },
+    "terms_accepted": {
+      "BOOL": true
+    },
+    "tier": {
+      "S": "TEST"
+    },
+    "occupation": {
+      "S": "Presttige test subscriber"
+    },
+    "created_at": {
+      "S": "2026-06-05T11:03:50.420299Z"
+    },
+    "tiktok": {
+      "S": ""
+    },
+    "updated_at": {
+      "S": "2026-06-06T11:13:16Z"
+    },
+    "subscriber_type": {
+      "S": "test"
+    },
+    "email": {
+      "S": "codex.subscriber.tester@presttige.net"
+    },
+    "last_name": {
+      "S": "Subscriber Tester"
+    },
+    "simulated_tier": {
+      "S": "free"
+    },
+    "phone_country": {
+      "S": "+971"
+    },
+    "name": {
+      "S": "Codex Subscriber Tester"
+    },
+    "profile_status": {
+      "S": "profile_submitted"
+    },
+    "privacy_accepted": {
+      "BOOL": true
+    },
+    "effective_tier": {
+      "S": "TEST"
+    },
+    "city": {
+      "S": "Dubai"
+    },
+    "synthetic_test": {
+      "BOOL": true
+    },
+    "payment_status": {
+      "S": "free"
+    },
+    "linkedin": {
+      "S": ""
+    },
+    "instagram": {
+      "S": "@codex_subscriber_tester"
+    },
+    "test_tier": {
+      "BOOL": true
+    },
+    "lead_id": {
+      "S": "fdm_test_codex_subscriber_tester"
+    },
+    "age": {
+      "S": "30"
+    },
+    "test_simulated_tier": {
+      "S": "free"
+    },
+    "selected_tier": {
+      "S": "TEST"
+    },
+    "notes": {
+      "S": "Authorised by Antonio on 2026-06-05. Codex must not create any other test records without explicit authorisation."
+    },
+    "first_name": {
+      "S": "Codex"
+    },
+    "bio": {
+      "S": "Dedicated Presttige TEST tier record authorised for Codex validation only."
+    },
+    "test_tier_default": {
+      "S": "free"
+    },
+    "phone": {
+      "S": "000000000"
+    },
+    "email_status": {
+      "S": "verified"
+    },
+    "website": {
+      "S": "https://presttige.net"
+    },
+    "country": {
+      "S": "United Arab Emirates"
+    },
+    "source": {
+      "S": "codex_authorised_test_tier"
+    },
+    "company": {
+      "S": "Presttige"
+    }
+  }
+}

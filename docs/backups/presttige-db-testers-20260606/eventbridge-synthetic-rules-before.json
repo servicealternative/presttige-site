@@ -1,0 +1,11 @@
+{
+    "Rules": [
+        {
+            "Name": "presttige-synthetic-c1-reset-1min",
+            "Arn": "arn:aws:events:us-east-1:343218208384:rule/presttige-synthetic-c1-reset-1min",
+            "State": "DISABLED",
+            "ScheduleExpression": "rate(1 minute)",
+            "EventBusName": "default"
+        }
+    ]
+}
