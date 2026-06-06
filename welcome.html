@@ -31,7 +31,7 @@
       min-height: 100vh;
       display: grid;
       place-items: center;
-      padding: 24px;
+      padding: 1cm;
       background: var(--pp-background);
       color: var(--pp-black);
       font-family: "Source Serif 4", Georgia, serif;
@@ -173,11 +173,65 @@
       letter-spacing: 0.01em;
       text-transform: none;
       text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
     }
 
     .button--secondary {
       background: transparent;
       color: var(--pp-gold);
+    }
+
+    .form {
+      display: grid;
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: #fffdf8;
+      color: var(--pp-black);
+      font: inherit;
+      font-size: 16px;
+      padding: 12px 14px;
+    }
+
+    .field input[readonly] {
+      color: var(--pp-muted);
+      background: rgba(216, 209, 195, 0.18);
+    }
+
+    .hint,
+    .notice {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .error-text {
+      color: #8B1E1E;
     }
 
     @media (max-width: 900px) {
@@ -201,6 +255,8 @@
       "use strict";
 
       const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const PASSWORD_ENDPOINT = `${API_BASE}/member-set-password`;
+      const LOGIN_URL = "https://presttige-members.auth.us-east-1.amazoncognito.com/login?client_id=3gdek6k48cm6oirccodgrub2k1&response_type=code&scope=email+openid+profile&redirect_uri=https%3A%2F%2Fpresttige.net%2Fmember%2F";
       const REQUEST_NEW_LINK = "mailto:office@presttige.net?subject=Request%20a%20new%20Presttige%20link";
       const app = document.getElementById("app");
       const route = readRoute();
@@ -219,7 +275,7 @@
       async function load() {
         try {
           const status = await fetchStatus();
-          renderState(status);
+          await renderState(status);
         } catch (error) {
           const legacy = await fetchLegacyFallback();
           if (legacy) {
@@ -234,6 +290,22 @@
         return fetchJson(`${API_BASE}/checkout-status?token=${encodeURIComponent(route.token)}`);
       }
 
+      async function passwordRequest(payload) {
+        const response = await fetch(PASSWORD_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data.message || data.error || "Request failed");
+          error.code = data.error;
+          error.payload = data;
+          throw error;
+        }
+        return data;
+      }
+
       async function fetchLegacyFallback() {
         try {
           return await fetchJson(`${API_BASE}/magic-link-verify?token=${encodeURIComponent(route.token)}`);
@@ -242,7 +314,7 @@
         }
       }
 
-      function renderState(status) {
+      async function renderState(status) {
         if (status.previewMode && window.PresttigePreview) {
           window.PresttigePreview.enable();
         }
@@ -250,7 +322,8 @@
         const state = status.displayState || "processing";
 
         if (state === "paid") {
-          renderPaid(status);
+          const passwordStatus = await passwordRequest({ action: "status", token: route.token });
+          renderPaid(status, passwordStatus);
           return;
         }
 
@@ -263,17 +336,123 @@
         window.setTimeout(load, status.pollAfterMs || 4000);
       }
 
-      function renderPaid(status) {
+      function renderPaid(status, passwordStatus) {
         app.className = "card";
+        if (passwordStatus?.account_ready) {
+          renderAccountReady(status, passwordStatus);
+          return;
+        }
+
+        if (passwordStatus?.password_ready) {
+          renderPasswordForm(status, passwordStatus);
+          return;
+        }
+
         app.innerHTML = `
           <p class="eyebrow">Membership Confirmed</p>
           <h1 class="title">Welcome to Presttige</h1>
           <p class="copy">${escapeHtml(successBody(status))}</p>
+          <div class="callout">Your membership is confirmed. Account setup will be available shortly.</div>
           ${status.recordedAt ? `<div class="callout">Recorded ${escapeHtml(status.recordedAt)}.</div>` : ""}
           <div class="actions">
             ${status.retryUrl ? `<a class="button button--secondary" href="${escapeHtml(status.retryUrl)}">Return to checkout</a>` : ""}
           </div>
         `;
+      }
+
+      function renderPasswordForm(status, passwordStatus) {
+        app.innerHTML = `
+          <p class="eyebrow">Membership Confirmed</p>
+          <h1 class="title">Set your password.</h1>
+          <p class="copy">${escapeHtml(successBody(status))}</p>
+          <form id="password-form" class="form" novalidate>
+            <div class="field">
+              <label for="member-email">Email</label>
+              <input id="member-email" type="email" value="${escapeHtml(passwordStatus.email || "")}" readonly autocomplete="username">
+            </div>
+            <div class="field">
+              <label for="member-password">Password</label>
+              <input id="member-password" type="password" minlength="14" autocomplete="new-password" required>
+              <p class="hint">Use at least 14 characters, with uppercase, lowercase, a number and a symbol.</p>
+            </div>
+            <div class="field">
+              <label for="member-password-confirm">Confirm password</label>
+              <input id="member-password-confirm" type="password" minlength="14" autocomplete="new-password" required>
+            </div>
+            <p id="password-error" class="hint error-text" aria-live="polite"></p>
+            ${status.recordedAt ? `<div class="callout">Recorded ${escapeHtml(status.recordedAt)}.</div>` : ""}
+            <div class="actions">
+              <button id="password-submit" class="button" type="submit">Activate account</button>
+            </div>
+          </form>
+        `;
+        document.getElementById("password-form").addEventListener("submit", submitPassword);
+      }
+
+      function renderAccountReady(status, passwordStatus) {
+        app.innerHTML = `
+          <p class="eyebrow">Membership Confirmed</p>
+          <h1 class="title">Your account is ready.</h1>
+          <p class="copy">${escapeHtml(successBody(status))}</p>
+          <div class="callout">Your password is set and your Presttige account is active.</div>
+          <p class="notice">Email: ${escapeHtml(passwordStatus.email || "")}</p>
+          <div class="actions">
+            <a class="button" href="${LOGIN_URL}">Log in</a>
+          </div>
+        `;
+      }
+
+      async function submitPassword(event) {
+        event.preventDefault();
+        const password = document.getElementById("member-password").value;
+        const confirm = document.getElementById("member-password-confirm").value;
+        const errorBox = document.getElementById("password-error");
+        const button = document.getElementById("password-submit");
+        const localErrors = validatePassword(password);
+
+        errorBox.textContent = "";
+
+        if (localErrors.length) {
+          errorBox.textContent = `Password needs ${localErrors.join(", ")}.`;
+          return;
+        }
+
+        if (password !== confirm) {
+          errorBox.textContent = "The two password fields must match.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Activating...";
+
+        try {
+          const passwordStatus = await passwordRequest({
+            action: "set",
+            token: route.token,
+            password,
+          });
+          const status = await fetchStatus();
+          renderAccountReady(status, passwordStatus);
+        } catch (error) {
+          if (error.code === "already_set") {
+            const status = await fetchStatus();
+            renderAccountReady(status, error.payload || {});
+            return;
+          }
+          errorBox.textContent = error.message || "Unable to set your password right now.";
+          button.disabled = false;
+          button.textContent = "Activate account";
+        }
+      }
+
+      function validatePassword(password) {
+        const checks = [];
+        if (password.length < 14) checks.push("14 characters");
+        if (!/[A-Z]/.test(password)) checks.push("an uppercase letter");
+        if (!/[a-z]/.test(password)) checks.push("a lowercase letter");
+        if (!/[0-9]/.test(password)) checks.push("a number");
+        if (!/[^A-Za-z0-9]/.test(password)) checks.push("a symbol");
+        return checks;
       }
 
       function renderProcessing(status) {
@@ -377,6 +556,7 @@
 
       function readRoute() {
         const segments = window.location.pathname.split("/").filter(Boolean);
+        const query = new URLSearchParams(window.location.search);
         return {
           token: segments[0] === "welcome" ? segments[1] || "" : "",
           previewMode: query.get("preview") === "1",
