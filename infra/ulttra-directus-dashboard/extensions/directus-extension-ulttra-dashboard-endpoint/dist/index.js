@@ -393,6 +393,17 @@ export default {
           return;
         }
 
+        const emailResult = result.activation_email || result.welcome_email || null;
+        if (!emailResult?.sent) {
+          res.status(409).json({
+            ok: false,
+            status: emailResult?.reason || 'SEND_NOT_CONFIRMED',
+            message: 'Member email send was not confirmed.',
+            member,
+          });
+          return;
+        }
+
         const updatedLead = await readLeadById(leadId);
         const updatedMember = manualMemberActivationRowFromLead(updatedLead);
         res.status(200).json({
@@ -400,7 +411,7 @@ export default {
           status: 'SENT',
           action,
           member: updatedMember,
-          email: result.activation_email || result.welcome_email || null,
+          email: emailResult,
           message: action === 'activation'
             ? `${member.name || 'Member'} activation email sent.`
             : `${member.name || 'Member'} welcome email sent.`,
