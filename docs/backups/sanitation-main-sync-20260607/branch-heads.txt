@@ -1,0 +1,5 @@
+canonical_head=45d5c7e962a1da4dd03a2f235716a786d94a0560
+feature_origin_head=45d5c7e962a1da4dd03a2f235716a786d94a0560
+main_origin_head=c52d7f04b7b943345ef24aaa843d655be6b4bcbb
+main_local_head=7f22e60c870271ce42928c32f6f416e5386ee4ab
+current_branch=feat/M-R6.2.M-prices-v4

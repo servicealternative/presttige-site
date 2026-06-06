@@ -1,0 +1,35 @@
+## backend/activate-subscriber/index.js
+origin/feat/M-R6.2.M-prices-v4: 5015c65718ae9e3e3b918bee84d10850a104290a
+origin/main: c11fb4e887d21bc34a4dffa582b86521e96e0f43
+diff: M	backend/activate-subscriber/index.js
+
+## backend/activate-subscriber/package.json
+origin/feat/M-R6.2.M-prices-v4: a80665572866346ae0f37fbe01ba6d4e39b94cc0
+origin/main: a80665572866346ae0f37fbe01ba6d4e39b94cc0
+diff: none
+
+## backend/lambdas/stripe-webhook/lambda_function.py
+origin/feat/M-R6.2.M-prices-v4: d22164a293aac3ccdfa9e28a9bbe90c2291cdbce
+origin/main: 37ea50d368d023e617c83faaaefeadcb2a1411ca
+diff: M	backend/lambdas/stripe-webhook/lambda_function.py
+
+## backend/lib/member-identity-fields.js
+origin/feat/M-R6.2.M-prices-v4: 551e64273b53f1b19cae83983b0c944f04193835
+origin/main: MISSING
+diff: A	backend/lib/member-identity-fields.js
+
+## backend/lib/member_identity_fields.py
+origin/feat/M-R6.2.M-prices-v4: a715a88274802809928dcfbd2e111ae3ef5d5856
+origin/main: MISSING
+diff: A	backend/lib/member_identity_fields.py
+
+## scripts/package-presttige-activate-subscriber.sh
+origin/feat/M-R6.2.M-prices-v4: 827d2574e8639d5c6a8bd480ab099ed8391ec7fe
+origin/main: 827d2574e8639d5c6a8bd480ab099ed8391ec7fe
+diff: none
+
+## .github/workflows/deploy-lambdas.yml
+origin/feat/M-R6.2.M-prices-v4: e2383d71d55d433cd22e635d21d1c95ee83beeb3
+origin/main: e2383d71d55d433cd22e635d21d1c95ee83beeb3
+diff: none
+

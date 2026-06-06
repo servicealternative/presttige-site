@@ -1,0 +1,161 @@
+## /Users/antonio/Desktop/presttige-site
+feat/M-R6.2.M-prices-v4
+45d5c7e962a1da4dd03a2f235716a786d94a0560
+## feat/M-R6.2.M-prices-v4
+ M AGENTS.md
+ M android-chrome-192x192.png
+ M android-chrome-512x512.png
+ M apple-touch-icon.png
+ M assets/images/presttige-favicon.png
+ M backend/lib/stripe-tier-contract.js
+ M favicon-16x16.png
+ M favicon-32x32.png
+ M favicon.ico
+ M presttige-favicon.png
+?? audits/admin-ui-browser-20260531T180401Z/
+?? audits/c1-a2-gate-eligibility-20260530T101522Z/
+?? audits/c1-branch-b-b2-founder-invite-scheduler-20260530T110559Z/
+?? audits/c1-branch-b-b3-founder-eligibility-20260530T112415Z/
+?? audits/c1-branch-b-b4-add-people-synthetic-test-20260530T135742Z/
+?? audits/c1-branch-b-b4-authorized-manuel-activation-20260530T141241Z/
+?? audits/c1-branch-b-b4-controlled-test-20260530T134836Z/
+?? audits/c1-branch-b-b4-controlled-test-reset-20260530T143859Z/
+?? audits/c1-branch-b-b4-test-b-finish-20260530T143540Z/
+?? audits/c1-branch-b-b4-test-b-founder-tree-20260530T141900Z/
+?? audits/c1-branch-b-b5-founder-welcome-20260530T131715Z/
+?? audits/chairman-landing-dashboard-20260601T182927Z/
+?? audits/chairman-standard-presttige-invite-20260602T055330Z/
+?? audits/checkout-context-confirmation-fix-20260605T140201Z/
+?? audits/checkout-context-confirmation-recurrence-20260605T140138Z/
+?? audits/checkout-context-ulttra-inviters-20260603T051836Z/
+?? audits/cognito-admin-login-fix-20260601T182658Z/
+?? audits/cognito-authenticator-labels-20260602T210443Z/
+?? audits/cognito-consultant-password-reset-20260531T190849Z/
+?? audits/cognito-force-account-choice-20260601T171439Z/
+?? audits/cognito-login-labels-short-20260601T175650Z/
+?? audits/cognito-login-labels-with-20260601T181345Z/
+?? audits/cognito-members-create-20260606T152752Z/
+?? audits/cognito-mfa-reset-apereira-20260531T171005Z/
+?? audits/cognito-two-login-options-20260601T172450Z/
+?? audits/consultant-landing-reset-20260531T191413Z/
+?? audits/consultant-white-screen-20260531T175109Z/
+?? audits/consultant-white-screen-20260531T175901Z/
+?? audits/consultant-white-screen-browser-20260531T180142Z/
+?? audits/consultant-white-screen-fix-20260531T180554Z/
+?? audits/controlled-test-invite-cleanup/
+?? audits/dashboard-module-appdist-rebundle-20260602T092623Z/
+?? audits/dashboard-module-rebundle-20260602T091438Z/
+?? audits/dashboard-module-rebundle-20260602T091724Z/
+?? audits/directus-bootstrap-retirement-20260530T164330Z/
+?? audits/founder-admin-chairman-eligibility-20260601T194409Z/
+?? audits/founder-checkout-cleanup-wallets-20260605T120935Z/
+?? audits/founder-email-texts-signature-routing-20260603T074156Z/
+?? audits/founder-invite-email-field-live-fix-20260601T185017Z/
+?? audits/founder-invite-sender-20260530T171516Z/
+?? audits/founder-invite-synthetic-email-exception-20260601T211528Z/
+?? audits/founder-page-texts-20260603T083149Z/
+?? audits/founder-page-two-step-20260602T175656Z/
+?? audits/founder-page-two-step-main-20260602T181356Z/
+?? audits/founder-real-invite-reset-20260530T183933Z/
+?? audits/founder-welcome-sender-20260530T143101Z/
+?? audits/public-founder-gate-chairman-20260601T201528Z/
+?? audits/real-founder-self-walk-20260530T180639Z/
+?? audits/stripe-test-key-cleanup-20260530T163128Z/
+?? audits/ultrattek-workmail-info-alias-20260531T153627Z/
+?? audits/ultrattek-workmail-setup-20260531T153137Z/
+?? audits/ulttra-access-separation-20260531T154846Z/
+?? audits/ulttra-basic-dashboard-20260531T113754Z/
+?? audits/ulttra-chairman-identity-20260601T144516Z/
+?? audits/ulttra-crm-cockpit-landing-20260606T143954Z/
+?? audits/ulttra-crm-cockpit-landing-20260606T144156Z/
+?? audits/ulttra-crm-favicon-large-20260606T150655Z/
+?? audits/ulttra-crm-favicon-large-clean-20260606T151504Z/
+?? audits/ulttra-crm-session-ttl-20260602T213356Z/
+?? audits/ulttra-crm-user-type-landing-20260606T145142Z/
+?? audits/ulttra-dashboard-analytics-block1-20260602T104547Z/
+?? audits/ulttra-dashboard-analytics-block1-20260602T104751Z/
+?? audits/ulttra-dashboard-analytics-block1-20260602T105622Z/
+?? audits/ulttra-dashboard-analytics-block1-webkit-20260602T110403Z/
+?? audits/ulttra-dashboard-analytics-block2-20260602T113718Z/
+?? audits/ulttra-dashboard-analytics-block2-webkit-20260602T114512Z/
+?? audits/ulttra-dashboard-c1-email-scroll-20260603T120253Z/
+?? audits/ulttra-dashboard-c1-email-scroll-20260603T121259Z-overlay/
+?? audits/ulttra-dashboard-c1-email-scroll-20260603T121433Z-overlay/
+?? audits/ulttra-dashboard-c1-email-scroll-20260603T122142Z-overlay2/
+?? audits/ulttra-dashboard-finance-block3-20260602T135157Z/
+?? audits/ulttra-dashboard-finance-block3-20260602T160916Z/
+?? audits/ulttra-dashboard-finance-block3-20260602T161208Z/
+?? audits/ulttra-dashboard-finance-block3-iam-20260602T160537Z/
+?? audits/ulttra-dashboard-header-invite-cleanup-20260601T080232Z/
+?? audits/ulttra-dashboard-members-panel-20260601T084404Z/
+?? audits/ulttra-dashboard-page-not-found-20260601T135300Z/
+?? audits/ulttra-dashboard-project-tabs-20260601T094132Z/
+?? audits/ulttra-dashboard-registered-founder-invite-20260603T054443Z/
+?? audits/ulttra-dashboard-registered-founder-invite-appdist-20260603T055940Z/
+?? audits/ulttra-dashboard-registered-founder-invite-appdist-fix-20260603T063000Z/
+?? audits/ulttra-dashboard-registered-founder-invite-appsource-fix-20260603T065000Z/
+?? audits/ulttra-dashboard-registered-founder-invite-appsource-import-fix-20260603T065500Z/
+?? audits/ulttra-dashboard-registered-founder-invite-array-export-fix-20260603T072500Z/
+?? audits/ulttra-dashboard-registered-founder-invite-endpoint-fix-20260603T061230Z/
+?? audits/ulttra-dashboard-registered-founder-invite-pnpm-20260603T055620Z/
+?? audits/ulttra-dashboard-registered-founder-invite-pnpm-fix-20260603T064000Z/
+?? audits/ulttra-dashboard-registered-founder-invite-tierlabel-fix-20260603T071500Z/
+?? audits/ulttra-dashboard-revenue-paid-at-20260531T125437Z/
+?? audits/ulttra-dashboard-standards-v1-20260531T133203Z/
+?? audits/ulttra-dashboard-tab-styling-20260601T104111Z/
+?? audits/ulttra-dashboard-title-format-20260601T091000Z/
+?? audits/ulttra-dashboard-uppercase-title-20260601T082718Z/
+?? audits/ulttra-dashboard-visible-admin-20260531T135740Z/
+?? audits/ulttra-favicon-max-20260602T2146Z/
+?? audits/ulttra-favicon-max-appdist-20260602T2157Z/
+?? audits/ulttra-favicon-max-pnpm-20260602T2203Z/
+?? audits/ulttra-founder-invite-fase1-honest-ui-20260601T212946Z/
+?? audits/ulttra-founder-invite-two-fields-20260601T163932Z/
+?? audits/ulttra-ui-directus-wording-20260601T110208Z/
+?? backend/lambdas/founder-invite-scheduler/package.json
+?? backend/lib/ga4_oauth_client.py
+?? "founder-c2-verify 2.html"
+?? scripts/ga4_oauth.py
+
+## /private/tmp/presttige-main-c2-jDbiAi
+codex/c2-prod-main
+36c8b3dd45d9938bc7220956b7a76a94fdf0d071
+## codex/c2-prod-main
+
+## /private/tmp/presttige-main-c2-validation-deploy
+codex/c2-validation-prod
+c30443bf86943cef5d352fbdf12509b92c5081ed
+## codex/c2-validation-prod
+
+## /private/tmp/presttige-main-checkout-topics-deploy
+
+fe288e5913e96cf6bae9ad67f7deba2c8d07a0fc
+## HEAD (no branch)
+
+## /private/tmp/presttige-main-layout-deploy
+codex/founder-layout-prod
+1b3109400bfa0b746b65a099f6a4a50b843f42a0
+## codex/founder-layout-prod
+
+## /private/tmp/presttige-main-notice-YPyBJs
+codex/no-refund-notice-main
+504d7f5b3eea44bc1459ed4e68e3693c8d946280
+## codex/no-refund-notice-main
+
+## /private/tmp/presttige-main-step4a
+codex/identity-step4a-main-deploy
+c52d7f04b7b943345ef24aaa843d655be6b4bcbb
+## codex/identity-step4a-main-deploy...origin/main
+
+## /private/tmp/presttige-site-main-favicon
+main
+7f22e60c870271ce42928c32f6f416e5386ee4ab
+## main...origin/main [behind 2]
+
+## /Users/antonio/Desktop/presttige-site-origin-main-fontfix
+codex/remove-brand-fonts
+90264504882506c45b01ae4e7652fe8244ef7730
+## codex/remove-brand-fonts...origin/main [behind 39]
+?? backend/founder-gate/
+?? backend/founder-validate/
+

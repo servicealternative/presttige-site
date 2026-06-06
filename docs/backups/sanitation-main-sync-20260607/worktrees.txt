@@ -1,0 +1,36 @@
+worktree /Users/antonio/Desktop/presttige-site
+HEAD 45d5c7e962a1da4dd03a2f235716a786d94a0560
+branch refs/heads/feat/M-R6.2.M-prices-v4
+
+worktree /private/tmp/presttige-main-c2-jDbiAi
+HEAD 36c8b3dd45d9938bc7220956b7a76a94fdf0d071
+branch refs/heads/codex/c2-prod-main
+
+worktree /private/tmp/presttige-main-c2-validation-deploy
+HEAD c30443bf86943cef5d352fbdf12509b92c5081ed
+branch refs/heads/codex/c2-validation-prod
+
+worktree /private/tmp/presttige-main-checkout-topics-deploy
+HEAD fe288e5913e96cf6bae9ad67f7deba2c8d07a0fc
+detached
+
+worktree /private/tmp/presttige-main-layout-deploy
+HEAD 1b3109400bfa0b746b65a099f6a4a50b843f42a0
+branch refs/heads/codex/founder-layout-prod
+
+worktree /private/tmp/presttige-main-notice-YPyBJs
+HEAD 504d7f5b3eea44bc1459ed4e68e3693c8d946280
+branch refs/heads/codex/no-refund-notice-main
+
+worktree /private/tmp/presttige-main-step4a
+HEAD c52d7f04b7b943345ef24aaa843d655be6b4bcbb
+branch refs/heads/codex/identity-step4a-main-deploy
+
+worktree /private/tmp/presttige-site-main-favicon
+HEAD 7f22e60c870271ce42928c32f6f416e5386ee4ab
+branch refs/heads/main
+
+worktree /Users/antonio/Desktop/presttige-site-origin-main-fontfix
+HEAD 90264504882506c45b01ae4e7652fe8244ef7730
+branch refs/heads/codex/remove-brand-fonts
+

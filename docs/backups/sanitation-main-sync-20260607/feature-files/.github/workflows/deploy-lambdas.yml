@@ -1,0 +1,227 @@
+name: Deploy Lambdas to AWS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "shared/**"
+      - "scripts/package-*.sh"
+      - ".github/workflows/deploy-lambdas.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+# IAM coverage verification keeps deploy permissions aligned with the package script inventory.
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      lambdas: ${{ steps.changes.outputs.lambdas }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: changes
+        run: |
+          set -euo pipefail
+
+          # Keep CI deploy coverage aligned with the package-presttige script inventory and amend-push safety.
+          mapfile -t ALL_LAMBDAS < <(
+            find scripts -maxdepth 1 -type f -name 'package-presttige-*.sh' \
+              -exec basename {} \; \
+              | sed -E 's/^package-(presttige-.*)\.sh$/\1/' \
+              | sort -u
+          )
+
+          echo "Discovered package scripts for ${#ALL_LAMBDAS[@]} Lambdas:"
+          printf ' - %s\n' "${ALL_LAMBDAS[@]}"
+
+          BASE_SHA="${{ github.event.before }}"
+          CHANGED=""
+
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "::warning::Base SHA unavailable from event payload, deploying ALL Lambdas defensively"
+            CHANGED="ALL"
+          elif ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+            echo "::warning::Base SHA $BASE_SHA unavailable, deploying ALL Lambdas defensively"
+            CHANGED="ALL"
+          else
+            CHANGED="$(git diff --name-only "$BASE_SHA" "${{ github.sha }}")"
+          fi
+
+          echo "Changed files:"
+          echo "${CHANGED:-none}"
+
+          LAMBDAS=()
+          DEPLOY_ALL=0
+
+          add_lambda() {
+            local lambda="$1"
+            if printf '%s\n' "${ALL_LAMBDAS[@]}" | grep -qx "$lambda"; then
+              LAMBDAS+=("$lambda")
+            else
+              echo "::warning::No package script found for inferred Lambda ${lambda}"
+            fi
+          }
+
+          if [ "$CHANGED" = "ALL" ]; then
+            mapfile -t LAMBDAS < <(printf "%s\n" "${ALL_LAMBDAS[@]}")
+          elif [ -n "$CHANGED" ]; then
+            while IFS= read -r file; do
+              case "$file" in
+                scripts/package-presttige-*.sh)
+                  lambda="$(basename "$file" | sed -E 's/^package-(presttige-.*)\.sh$/\1/')"
+                  add_lambda "$lambda"
+                  ;;
+                scripts/verify-founder-inviter-*.sh)
+                  add_lambda "presttige-checkout-context"
+                  add_lambda "presttige-create-checkout-session"
+                  ;;
+                backend/checkout-context/*)
+                  add_lambda "presttige-checkout-context"
+                  ;;
+                backend/create-checkout-session/*)
+                  add_lambda "presttige-create-checkout-session"
+                  ;;
+                backend/lib/founder-inviter-eligibility.js|backend/lib/stripe-tier-contract.js)
+                  add_lambda "presttige-checkout-context"
+                  add_lambda "presttige-create-checkout-session"
+                  ;;
+                backend/lambdas/*/*)
+                  lambda_dir="$(printf '%s\n' "$file" | cut -d/ -f3)"
+                  add_lambda "presttige-${lambda_dir}"
+                  ;;
+                .github/workflows/deploy-lambdas.yml)
+                  echo "Workflow changed, deploying only Lambdas selected by source/package changes."
+                  ;;
+                backend/*|shared/*)
+                  echo "::warning::Broad backend/shared change ${file}, deploying all Lambdas defensively"
+                  DEPLOY_ALL=1
+                  ;;
+              esac
+            done <<< "$CHANGED"
+
+            if [ "$DEPLOY_ALL" -eq 1 ]; then
+              mapfile -t LAMBDAS < <(printf "%s\n" "${ALL_LAMBDAS[@]}")
+            else
+              mapfile -t LAMBDAS < <(printf "%s\n" "${LAMBDAS[@]}" | LC_ALL=C sort -u)
+            fi
+          fi
+
+          echo "Lambdas to deploy: ${LAMBDAS[*]:-none}"
+
+          if [ ${#LAMBDAS[@]} -eq 0 ]; then
+            echo "lambdas=[]" >> "$GITHUB_OUTPUT"
+          else
+            echo "lambdas=$(printf '%s\n' "${LAMBDAS[@]}" | jq -R . | jq -s -c .)" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.lambdas != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lambda: ${{ fromJson(needs.detect-changes.outputs.lambdas) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::343218208384:role/presttige-github-actions-deploy
+          aws-region: us-east-1
+
+      - name: Package Lambda
+        id: package
+        run: |
+          set -euo pipefail
+
+          rm -rf "/tmp/${{ matrix.lambda }}-package" "/tmp/${{ matrix.lambda }}-package.zip"
+          LOG_FILE="$(mktemp)"
+          bash scripts/package-${{ matrix.lambda }}.sh | tee "$LOG_FILE"
+
+          PACKAGE_ZIP=""
+          if [ -f "/tmp/${{ matrix.lambda }}-package.zip" ]; then
+            PACKAGE_ZIP="/tmp/${{ matrix.lambda }}-package.zip"
+          else
+            PACKAGE_ZIP="$(sed -n 's/^Package path: //p' "$LOG_FILE" | tail -n1)"
+
+            if [ -z "$PACKAGE_ZIP" ]; then
+              PACKAGE_ZIP="$(sed -n 's/^Package created at //p' "$LOG_FILE" | tail -n1)"
+            fi
+
+            if [ -z "$PACKAGE_ZIP" ]; then
+              PACKAGE_ZIP="$(find backend -type f -name dist.zip | head -n1)"
+            fi
+          fi
+
+          if [ -z "$PACKAGE_ZIP" ] || [ ! -f "$PACKAGE_ZIP" ]; then
+            echo "::error::Unable to locate package zip for ${{ matrix.lambda }}"
+            exit 1
+          fi
+
+          echo "Package zip: $PACKAGE_ZIP"
+          echo "zip_path=$PACKAGE_ZIP" >> "$GITHUB_OUTPUT"
+
+      - name: Capture pre-deploy CodeSha256
+        id: pre
+        run: |
+          PRE_SHA=$(aws lambda get-function-configuration \
+            --function-name ${{ matrix.lambda }} \
+            --region us-east-1 \
+            --query CodeSha256 --output text)
+          echo "sha=$PRE_SHA" >> "$GITHUB_OUTPUT"
+          echo "Pre-deploy CodeSha256: $PRE_SHA"
+
+      - name: Deploy Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ matrix.lambda }} \
+            --zip-file fileb://${{ steps.package.outputs.zip_path }} \
+            --region us-east-1 \
+            --no-cli-pager
+
+      - name: Wait for Lambda update completion
+        run: |
+          aws lambda wait function-updated \
+            --function-name ${{ matrix.lambda }} \
+            --region us-east-1
+
+      - name: Verify Founder inviter live package
+        if: matrix.lambda == 'presttige-checkout-context' || matrix.lambda == 'presttige-create-checkout-session'
+        run: |
+          bash scripts/verify-founder-inviter-live.sh "${{ matrix.lambda }}"
+
+      - name: Verify deploy
+        run: |
+          POST_SHA=$(aws lambda get-function-configuration \
+            --function-name ${{ matrix.lambda }} \
+            --region us-east-1 \
+            --query CodeSha256 --output text)
+
+          echo "Post-deploy CodeSha256: $POST_SHA"
+
+          if [ "$POST_SHA" = "${{ steps.pre.outputs.sha }}" ]; then
+            echo "::warning::CodeSha256 unchanged for ${{ matrix.lambda }} (may indicate identical code)"
+          else
+            echo "::notice::${{ matrix.lambda }} deployed successfully: ${{ steps.pre.outputs.sha }} -> $POST_SHA"
+          fi
+
+      - name: Publish version
+        run: |
+          aws lambda publish-version \
+            --function-name ${{ matrix.lambda }} \
+            --description "Deploy from commit ${{ github.sha }}" \
+            --region us-east-1 \
+            --no-cli-pager || echo "::warning::Version publish failed (non-blocking)"
