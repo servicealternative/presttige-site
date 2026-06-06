@@ -1,0 +1,16 @@
+{
+    "logGroups": [
+        {
+            "logGroupName": "/aws/lambda/presttige-member-auth",
+            "creationTime": 1780784136964,
+            "retentionInDays": 90,
+            "metricFilterCount": 0,
+            "arn": "arn:aws:logs:us-east-1:343218208384:log-group:/aws/lambda/presttige-member-auth:*",
+            "storedBytes": 0,
+            "logGroupClass": "STANDARD",
+            "logGroupArn": "arn:aws:logs:us-east-1:343218208384:log-group:/aws/lambda/presttige-member-auth",
+            "deletionProtectionEnabled": false,
+            "bearerTokenAuthenticationEnabled": false
+        }
+    ]
+}
