@@ -321,7 +321,7 @@
     }
 
     .detail-section--first-privileges .note + .detail-list {
-      margin-top: 8px;
+      margin-top: 20px;
     }
 
     .detail-list {
@@ -403,14 +403,23 @@
 
     .founder-step-two__details {
       display: grid;
-      gap: 32px;
+      gap: 0;
       max-width: 760px;
     }
 
+    .founder-step-two__details h2 {
+      margin-bottom: 12px;
+    }
+
     .founder-step-two__details > p {
+      margin: 0;
       color: var(--muted);
       font-size: 18px;
       line-height: 1.76;
+    }
+
+    .founder-step-two__details > p + .detail-list {
+      margin-top: 38px;
     }
 
     .founder-payment-panel {
@@ -638,8 +647,20 @@
         padding-top: 20px;
       }
 
+      .detail-section--first-privileges .note + .detail-list {
+        margin-top: 18px;
+      }
+
       .detail-list {
         gap: 18px;
+      }
+
+      .founder-step-two__details h2 {
+        margin-bottom: 10px;
+      }
+
+      .founder-step-two__details > p + .detail-list {
+        margin-top: 30px;
       }
     }
   </style>
