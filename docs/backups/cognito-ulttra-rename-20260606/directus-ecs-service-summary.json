@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-06-06T14:09:02Z",
+  "service": {
+    "serviceName": "ulttra-crm-directus",
+    "status": "ACTIVE",
+    "desiredCount": 1,
+    "runningCount": 1,
+    "taskDefinition": "arn:aws:ecs:us-east-1:343218208384:task-definition/ulttra-crm-directus:87",
+    "deployments": [
+      {
+        "id": "ecs-svc/7366650820873929479",
+        "status": "PRIMARY",
+        "taskDefinition": "arn:aws:ecs:us-east-1:343218208384:task-definition/ulttra-crm-directus:87",
+        "desiredCount": 1,
+        "runningCount": 1,
+        "createdAt": "2026-06-06T15:06:22.130000+04:00",
+        "updatedAt": "2026-06-06T15:09:35.953000+04:00"
+      }
+    ]
+  }
+}

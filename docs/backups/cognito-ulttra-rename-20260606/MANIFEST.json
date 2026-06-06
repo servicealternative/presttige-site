@@ -1,0 +1,101 @@
+{
+  "backup_folder": "docs/backups/cognito-ulttra-rename-20260606",
+  "artifact_count": 19,
+  "artifacts": [
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/RESTORE.md",
+      "bytes": 5492,
+      "sha256": "4b6e97ec403c46cef6d252ebac252571110c0813fe147f0ee5780e461dede775"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-app-clients-describe.sanitized.json",
+      "bytes": 2382,
+      "sha256": "99869c25e89ea0e1fc3ab902f40d22619733a212495bd71db928e8a23f101a5c"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-app-clients-list.json",
+      "bytes": 383,
+      "sha256": "953102031645e826677518837a6eee3134284815bc6a51c52741246fa4168a56"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-groups.json",
+      "bytes": 379,
+      "sha256": "4774955c842660bcf112a82de31c9555bc80f381e65aee245bb0e9911b073e6b"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-resource-servers.json",
+      "bytes": 30,
+      "sha256": "4fa528314dc70de08853091ff707db428375c5335d97a3816e94346fae727751"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-user-pool-describe.json",
+      "bytes": 9376,
+      "sha256": "4d41419695b64472df4ae4fd0d75234cc94c358dca499ef72f4570e1f9e48f1a"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-user-pool-domain-describe.json",
+      "bytes": 378,
+      "sha256": "132ade7b26ddaa776b82718c548e86be690ae3364759aafbfa941697984fac53"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-users-in-group-Admins.json",
+      "bytes": 865,
+      "sha256": "528aaa3c56f0ec6bc7caeb6ca79a82afbbaa828ae6a61c9d33aae536f703bb00"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-users-with-group-membership.json",
+      "bytes": 1748,
+      "sha256": "a6506779d92c3fc9bc734a6374b7cdb4086afcb09ada635052855f6c20a325e7"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/cognito-users.json",
+      "bytes": 1584,
+      "sha256": "bae4a2815afb50d18516a6e33a7898d9bea80c4fb6d2e8057e60b6c9409bee36"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/directus-ecs-service-describe.json",
+      "bytes": 35867,
+      "sha256": "73676d1b1bdcd13f8bccfe995c8718c97ff25a59ffa0d7677384f78c93442517"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/directus-ecs-service-summary.json",
+      "bytes": 662,
+      "sha256": "f074b41eb366dd19bf7d2b500fb89b2462940c085f4fd9318f440d8d66a0f659"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/directus-oidc-ecs-auth-config.sanitized.json",
+      "bytes": 5735,
+      "sha256": "ad398522ce61699e2f6908cc094ff0c907a8f4410f8c81a9043a78d75579e0d3"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/directus-task-definition-full.json",
+      "bytes": 15842,
+      "sha256": "8860bd4bb93b16100041bea09fdbd21c04ed61fb3d8b6c12f4e14832b9cbf7de"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/references-presttige-internal-repo.txt",
+      "bytes": 29703,
+      "sha256": "5f12e9ee4f583fd624221d8f03277eb60c5e40e4580cc18a0839de9b01e207fb"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/references-presttige-internal-secret-names.json",
+      "bytes": 23,
+      "sha256": "df76106ce9af34518130e5ded109048bf08c8102262189258463d11348d3bdcf"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/references-presttige-internal-ssm-parameter-names.json",
+      "bytes": 23,
+      "sha256": "29eca2eed652792a10926adbae9daf1c82afc4ada0f5e9dd8193ec0fbc2a583b"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/references-presttige-internal-summary.json",
+      "bytes": 316,
+      "sha256": "6e9427fdafc295507bdda28d5c7f116d07d2c5466bb35abd1a3083bb03d57f2e"
+    },
+    {
+      "file": "docs/backups/cognito-ulttra-rename-20260606/s3-upload-summary.json",
+      "bytes": 4161,
+      "sha256": "fca1eb436b699846020dd64a4122c7f22314a7d0c66f2b27a33ac4b0eac0ead1"
+    }
+  ]
+}

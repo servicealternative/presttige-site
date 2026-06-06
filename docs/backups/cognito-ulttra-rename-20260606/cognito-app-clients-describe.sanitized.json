@@ -1,0 +1,79 @@
+{
+  "UserPoolClients": [
+    {
+      "UserPoolId": "us-east-1_s5PvTEeHv",
+      "ClientName": "ulttra-crm-directus-oidc",
+      "ClientId": "64ipldneu6qgbe2es7tjs7m695",
+      "ClientSecret": "__REDACTED_PRESENT__",
+      "LastModifiedDate": "2026-06-01T21:54:39.863000+04:00",
+      "CreationDate": "2026-05-28T12:17:17.437000+04:00",
+      "RefreshTokenValidity": 30,
+      "TokenValidityUnits": {},
+      "SupportedIdentityProviders": [
+        "COGNITO"
+      ],
+      "CallbackURLs": [
+        "https://crm.ulttra.net/auth/login/chairman/callback",
+        "https://crm.ulttra.net/auth/login/cognito/callback",
+        "https://crm.ulttra.net/auth/login/technical/callback"
+      ],
+      "LogoutURLs": [
+        "https://crm.ulttra.net/admin"
+      ],
+      "AllowedOAuthFlows": [
+        "code"
+      ],
+      "AllowedOAuthScopes": [
+        "email",
+        "openid",
+        "profile"
+      ],
+      "AllowedOAuthFlowsUserPoolClient": true,
+      "PreventUserExistenceErrors": "ENABLED",
+      "EnableTokenRevocation": true,
+      "EnablePropagateAdditionalUserContextData": false,
+      "AuthSessionValidity": 3,
+      "ClientSecretPresent": true
+    },
+    {
+      "UserPoolId": "us-east-1_s5PvTEeHv",
+      "ClientName": "presttige-admin-spa",
+      "ClientId": "6e5jtrqjfroptv19mpu0raplkh",
+      "LastModifiedDate": "2026-05-28T11:54:51.511000+04:00",
+      "CreationDate": "2026-05-27T16:29:06.296000+04:00",
+      "RefreshTokenValidity": 8,
+      "AccessTokenValidity": 60,
+      "IdTokenValidity": 60,
+      "TokenValidityUnits": {
+        "AccessToken": "minutes",
+        "IdToken": "minutes",
+        "RefreshToken": "hours"
+      },
+      "SupportedIdentityProviders": [
+        "COGNITO"
+      ],
+      "CallbackURLs": [
+        "https://crm.ulttra.net/auth/login/cognito/callback",
+        "https://presttige.net/admin/callback"
+      ],
+      "LogoutURLs": [
+        "https://crm.ulttra.net/admin",
+        "https://presttige.net/admin"
+      ],
+      "AllowedOAuthFlows": [
+        "code"
+      ],
+      "AllowedOAuthScopes": [
+        "email",
+        "openid",
+        "profile"
+      ],
+      "AllowedOAuthFlowsUserPoolClient": true,
+      "PreventUserExistenceErrors": "ENABLED",
+      "EnableTokenRevocation": true,
+      "EnablePropagateAdditionalUserContextData": false,
+      "AuthSessionValidity": 3,
+      "ClientSecretPresent": false
+    }
+  ]
+}

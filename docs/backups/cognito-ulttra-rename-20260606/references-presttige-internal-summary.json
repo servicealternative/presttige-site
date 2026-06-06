@@ -1,0 +1,7 @@
+{
+  "searched_string": "presttige-internal",
+  "repo_reference_count": 66,
+  "ssm_parameter_name_reference_count": 0,
+  "secret_name_reference_count": 0,
+  "note": "Repo scan excludes this backup folder to avoid self-references. AWS SSM and Secrets Manager scans check names only, not secret or parameter values."
+}

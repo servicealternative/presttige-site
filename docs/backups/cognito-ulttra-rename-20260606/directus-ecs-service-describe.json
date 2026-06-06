@@ -1,0 +1,603 @@
+{
+    "services": [
+        {
+            "serviceArn": "arn:aws:ecs:us-east-1:343218208384:service/ulttra-crm-directus/ulttra-crm-directus",
+            "serviceName": "ulttra-crm-directus",
+            "clusterArn": "arn:aws:ecs:us-east-1:343218208384:cluster/ulttra-crm-directus",
+            "loadBalancers": [
+                {
+                    "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28",
+                    "containerName": "directus",
+                    "containerPort": 8055
+                }
+            ],
+            "serviceRegistries": [],
+            "status": "ACTIVE",
+            "desiredCount": 1,
+            "runningCount": 1,
+            "pendingCount": 0,
+            "launchType": "FARGATE",
+            "platformVersion": "LATEST",
+            "platformFamily": "Linux",
+            "taskDefinition": "arn:aws:ecs:us-east-1:343218208384:task-definition/ulttra-crm-directus:87",
+            "deploymentConfiguration": {
+                "deploymentCircuitBreaker": {
+                    "enable": false,
+                    "rollback": false
+                },
+                "maximumPercent": 200,
+                "minimumHealthyPercent": 0,
+                "strategy": "ROLLING",
+                "bakeTimeInMinutes": 0
+            },
+            "deployments": [
+                {
+                    "id": "ecs-svc/7366650820873929479",
+                    "status": "PRIMARY",
+                    "taskDefinition": "arn:aws:ecs:us-east-1:343218208384:task-definition/ulttra-crm-directus:87",
+                    "desiredCount": 1,
+                    "pendingCount": 0,
+                    "runningCount": 1,
+                    "failedTasks": 0,
+                    "createdAt": "2026-06-06T15:06:22.130000+04:00",
+                    "updatedAt": "2026-06-06T15:09:35.953000+04:00",
+                    "launchType": "FARGATE",
+                    "platformVersion": "1.4.0",
+                    "platformFamily": "Linux",
+                    "networkConfiguration": {
+                        "awsvpcConfiguration": {
+                            "subnets": [
+                                "subnet-06eba95e42f18e2b3",
+                                "subnet-0f03ea2432082c6d8"
+                            ],
+                            "securityGroups": [
+                                "sg-09025cd6a524ac993"
+                            ],
+                            "assignPublicIp": "DISABLED"
+                        }
+                    },
+                    "rolloutState": "COMPLETED",
+                    "rolloutStateReason": "ECS deployment ecs-svc/7366650820873929479 completed."
+                }
+            ],
+            "roleArn": "arn:aws:iam::343218208384:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+            "events": [
+                {
+                    "id": "9466c3d9-20a5-448f-beda-f708ffccbf90",
+                    "createdAt": "2026-06-06T15:09:35.961000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "2fdcf5bc-2445-46fa-9928-f8401043b795",
+                    "createdAt": "2026-06-06T15:09:35.960000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/7366650820873929479) deployment completed."
+                },
+                {
+                    "id": "48cdecdc-438b-42f1-bc94-8d6224e27129",
+                    "createdAt": "2026-06-06T15:07:10.423000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "9b219686-1f87-47e0-8b44-b7d843477c49",
+                    "createdAt": "2026-06-06T15:06:38.580000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/2590775702825906508) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "7e557a05-b996-4660-af9c-75789214fe03",
+                    "createdAt": "2026-06-06T15:06:38.575000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "234f90c1-f124-4f3a-a4bd-c307c35bf81f",
+                    "createdAt": "2026-06-06T15:06:29.646000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task 491297343538440a8730d61d16d87ffa)."
+                },
+                {
+                    "id": "a79dca75-f207-448a-a5e4-139a27b12773",
+                    "createdAt": "2026-06-06T15:06:28.734000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task 81126e0dafd040a88e45411aa9ecbb97)."
+                },
+                {
+                    "id": "9d341c23-f98a-4d26-b4c0-8c1df706a603",
+                    "createdAt": "2026-06-06T14:45:59.679000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "729984e7-1af5-4daf-b5ba-9a2e289aa36c",
+                    "createdAt": "2026-06-06T14:45:59.678000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/2590775702825906508) deployment completed."
+                },
+                {
+                    "id": "339fe91d-a1eb-4293-93dc-aaeb31d4afd6",
+                    "createdAt": "2026-06-06T14:43:35.817000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "7e7d4ff3-330a-4df2-975b-ee14493115b8",
+                    "createdAt": "2026-06-06T14:43:03.484000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/5744674129738198276) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "49df3793-6d84-4a14-a76f-189bb946ccd1",
+                    "createdAt": "2026-06-06T14:43:03.480000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "548f3380-6405-42fb-acdc-b69b2b80e518",
+                    "createdAt": "2026-06-06T14:42:54.614000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task 81126e0dafd040a88e45411aa9ecbb97)."
+                },
+                {
+                    "id": "0822e75a-ec0b-415b-ae9e-6c2159b7e7d5",
+                    "createdAt": "2026-06-06T14:42:53.618000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task 26351b44bc024e5ca16545df79d007aa)."
+                },
+                {
+                    "id": "3289f986-5013-4fdb-8be6-0f5e6c294dfc",
+                    "createdAt": "2026-06-06T13:03:22.968000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "2bf29f83-afc7-43a0-b0e7-6efe9f8c3df3",
+                    "createdAt": "2026-06-06T07:03:02.294000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "60ae6ddb-2ccc-4ebc-9dd2-f0a6ba21cc7b",
+                    "createdAt": "2026-06-06T01:02:40.137000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "adcc56f2-8a53-44fc-8fb8-e5b29e230efb",
+                    "createdAt": "2026-06-05T19:02:15.167000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "0dec31ca-790f-43b3-8142-eefdc50bbfa8",
+                    "createdAt": "2026-06-05T13:01:29.656000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "194a52d3-bc64-4ce2-abdb-73649379fd70",
+                    "createdAt": "2026-06-05T13:01:29.655000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/5744674129738198276) deployment completed."
+                },
+                {
+                    "id": "03a1e7d3-8276-4df5-ad86-2d0dff4c93eb",
+                    "createdAt": "2026-06-05T12:58:53.242000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "35641047-18a5-42d7-89a2-cceb526c8359",
+                    "createdAt": "2026-06-05T12:58:10.896000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/4215074812156601838) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "5f5e74ee-0cd6-4012-880f-33e0cc58cb7f",
+                    "createdAt": "2026-06-05T12:58:10.888000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "18ce9e5a-13a5-466b-ac73-0bc4fc3b8e50",
+                    "createdAt": "2026-06-05T12:58:01.940000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task 26351b44bc024e5ca16545df79d007aa)."
+                },
+                {
+                    "id": "56a13524-a210-414a-9328-f27862b9c8ef",
+                    "createdAt": "2026-06-05T12:58:00.870000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task 144f9467883048ed80edaa7f011f409c)."
+                },
+                {
+                    "id": "7e691db8-12b4-476c-ae1f-a7f5387fd75d",
+                    "createdAt": "2026-06-05T12:51:05.357000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "186caabe-da9e-457f-99f7-490e01eb87a5",
+                    "createdAt": "2026-06-05T12:51:05.356000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/4215074812156601838) deployment completed."
+                },
+                {
+                    "id": "cfa15954-fac6-4512-a83d-eb9918d33c41",
+                    "createdAt": "2026-06-05T12:48:29.665000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "cee24b8a-fc52-4815-a5ce-d2fd664ce427",
+                    "createdAt": "2026-06-05T12:47:46.880000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/4919967444509918108) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "eb249467-7994-47de-b02e-1d0b6e8c3faa",
+                    "createdAt": "2026-06-05T12:47:46.874000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "029fa26d-ba63-4afa-85bd-40812fa1aa78",
+                    "createdAt": "2026-06-05T12:47:37.644000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task 144f9467883048ed80edaa7f011f409c)."
+                },
+                {
+                    "id": "5d025dcf-7229-48d6-8f9c-d16a80152aff",
+                    "createdAt": "2026-06-05T12:47:36.678000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task bc5427d7dbe74ad08ca47fb932acdc86)."
+                },
+                {
+                    "id": "cb1bf3f2-fa9f-4b15-bfa7-2725a3039338",
+                    "createdAt": "2026-06-05T11:46:42.217000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "918b84ed-2a12-4baf-83c2-80d509be3798",
+                    "createdAt": "2026-06-05T11:46:42.216000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/4919967444509918108) deployment completed."
+                },
+                {
+                    "id": "8e08ee3f-f390-42bb-9cd6-b5662352af7a",
+                    "createdAt": "2026-06-05T11:44:06.480000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "d14237c5-06a0-4354-936c-8a0c56a34c92",
+                    "createdAt": "2026-06-05T11:43:23.670000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/9161969242203569768) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "adc8cae8-09f4-4069-b300-ea60e986aa93",
+                    "createdAt": "2026-06-05T11:43:23.666000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "a4f34858-e2cf-433d-963d-83a8e6f901a0",
+                    "createdAt": "2026-06-05T11:43:14.671000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task bc5427d7dbe74ad08ca47fb932acdc86)."
+                },
+                {
+                    "id": "4e7a2c1a-8366-4968-a0fa-9c1f66929a0c",
+                    "createdAt": "2026-06-05T11:43:13.698000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task 1fe98b2346cc4a5b839404d428ddeeeb)."
+                },
+                {
+                    "id": "d6f1330d-92c1-4ad0-8e19-e9b8c4e5fb2e",
+                    "createdAt": "2026-06-05T10:58:28.408000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "332f80c9-859b-4822-ad60-2767e0485c7b",
+                    "createdAt": "2026-06-05T10:58:28.407000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/9161969242203569768) deployment completed."
+                },
+                {
+                    "id": "e03d2d21-011a-477a-9977-06c7a10e9b22",
+                    "createdAt": "2026-06-05T10:55:52.107000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "ee60a68d-d894-4944-853a-1a8a142429a0",
+                    "createdAt": "2026-06-05T10:55:10.230000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/2554991178788399055) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "b0d06b88-9212-4196-a7af-d82bc9eca5c8",
+                    "createdAt": "2026-06-05T10:55:10.225000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "133ae93d-6748-4326-a2ea-c80f74060cf4",
+                    "createdAt": "2026-06-05T10:55:01.142000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task 1fe98b2346cc4a5b839404d428ddeeeb)."
+                },
+                {
+                    "id": "c5d812da-8436-48dc-82f9-e7c255232bf2",
+                    "createdAt": "2026-06-05T10:55:00.213000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task 592dc05aa3514c3e927a562b886f31c5)."
+                },
+                {
+                    "id": "1ec7def0-70cc-468e-98b9-8990436ec49f",
+                    "createdAt": "2026-06-05T10:34:00.293000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "d2de8420-52b7-4318-8174-ba5942bcd9d0",
+                    "createdAt": "2026-06-05T10:34:00.292000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/2554991178788399055) deployment completed."
+                },
+                {
+                    "id": "0d6cf1ae-2fa0-4bb6-90f1-975160f35853",
+                    "createdAt": "2026-06-05T10:31:23.664000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "30333da0-8847-4895-b586-bb0f0cd3f6a2",
+                    "createdAt": "2026-06-05T10:30:40.840000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/1857398274654925086) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "43a12bcc-fef0-4401-bfe5-805e7604a0e9",
+                    "createdAt": "2026-06-05T10:30:40.836000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "97d6b97e-6a03-4a02-9856-c2a376368c9c",
+                    "createdAt": "2026-06-05T10:30:32.144000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task 592dc05aa3514c3e927a562b886f31c5)."
+                },
+                {
+                    "id": "d64a04fb-2b6d-4c45-b776-5e1a9e7b3245",
+                    "createdAt": "2026-06-05T10:30:31.210000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task f968107e6784461b93b64434230dc87d)."
+                },
+                {
+                    "id": "5e7fbab7-9390-4928-9790-1e44a35be7fa",
+                    "createdAt": "2026-06-05T10:23:13.308000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "711cc65e-1ba8-4843-a219-b36b36679137",
+                    "createdAt": "2026-06-05T10:23:13.307000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/1857398274654925086) deployment completed."
+                },
+                {
+                    "id": "5d8f949b-d658-4d3f-b9c6-a9038e518feb",
+                    "createdAt": "2026-06-05T10:20:48.585000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "d7f3bbaa-a552-4b11-b3cf-08d895288209",
+                    "createdAt": "2026-06-05T10:19:57.210000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task f968107e6784461b93b64434230dc87d)."
+                },
+                {
+                    "id": "4bdf4d75-5c7d-47ff-bf3d-18a3daba0fb9",
+                    "createdAt": "2026-06-05T10:18:01.397000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "ceef3c44-76f2-4bb9-ba0c-7eb1c4f46759",
+                    "createdAt": "2026-06-05T10:18:01.336000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/2104435104480852198) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "018be58b-7e67-4cfc-8ce5-69128de0ab43",
+                    "createdAt": "2026-06-05T10:18:01.330000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "ce2e3e04-9f9b-4aeb-8a0a-27f11721d18e",
+                    "createdAt": "2026-06-05T10:17:51.546000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task b80750cf5deb460c8ca1944f12dae912)."
+                },
+                {
+                    "id": "6a22ece4-7a76-4529-80f1-9973b4ce3fb7",
+                    "createdAt": "2026-06-05T10:16:08.386000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "b2760949-a7f2-4301-a48b-96ef9744e930",
+                    "createdAt": "2026-06-05T10:15:34.776000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/3861452716744014218) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "3d1c07e7-ea53-4109-9dc1-dd13f80915d9",
+                    "createdAt": "2026-06-05T10:15:34.769000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "37229441-531a-412b-bf15-642be20804d1",
+                    "createdAt": "2026-06-05T10:15:26.287000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task b80750cf5deb460c8ca1944f12dae912)."
+                },
+                {
+                    "id": "708a158e-e814-4f5b-9022-12798d493273",
+                    "createdAt": "2026-06-05T10:15:25.417000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task 665467f24b794e33b073fc2f78d71214)."
+                },
+                {
+                    "id": "a85ba226-5c33-44c4-a6a1-02bc6821e539",
+                    "createdAt": "2026-06-05T10:09:53.016000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "637213f0-70b7-4a35-9a55-9bade9ee5fb3",
+                    "createdAt": "2026-06-05T10:09:53.015000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/3861452716744014218) deployment completed."
+                },
+                {
+                    "id": "9b7135ee-f1cf-449d-b1f9-6a7cfb57be47",
+                    "createdAt": "2026-06-05T10:07:16.212000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "e7d255a0-d759-4163-aa63-3e0a341cc2c3",
+                    "createdAt": "2026-06-05T10:06:33.766000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/2424082260794099583) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "e47b25c0-86c5-42b6-a512-96ec0814fd72",
+                    "createdAt": "2026-06-05T10:06:33.761000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "bf617234-0b4a-4081-933c-ca55d61ce5e1",
+                    "createdAt": "2026-06-05T10:06:25.296000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task 665467f24b794e33b073fc2f78d71214)."
+                },
+                {
+                    "id": "e215a175-8b20-4ae2-8be6-bdae8470652d",
+                    "createdAt": "2026-06-05T10:06:24.360000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task e5dcb42b59e84bbd95721faa5f154be6)."
+                },
+                {
+                    "id": "8bddcf28-f99d-49bc-8bf2-f86ce60a7025",
+                    "createdAt": "2026-06-05T09:58:15.427000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "2055f09b-2ed9-4460-b6b4-3853c8da3a06",
+                    "createdAt": "2026-06-05T09:58:15.426000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/2424082260794099583) deployment completed."
+                },
+                {
+                    "id": "2dc1e31e-e6f2-41cd-bf8b-f841111fa39c",
+                    "createdAt": "2026-06-05T09:55:38.216000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "a9d53350-5dad-41e4-a43e-430e30875a71",
+                    "createdAt": "2026-06-05T09:55:06.169000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/1472314205817440192) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "211a098d-4c34-41a8-9090-16fa4e69e23b",
+                    "createdAt": "2026-06-05T09:55:06.163000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "2b5dba43-37b6-4c23-be94-e0c679bfdb59",
+                    "createdAt": "2026-06-05T09:54:57.032000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task e5dcb42b59e84bbd95721faa5f154be6)."
+                },
+                {
+                    "id": "acbe3e5f-ce5f-439d-a257-c28cb4902f54",
+                    "createdAt": "2026-06-05T09:54:56.121000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task 257c3458ebeb4cd6afdd193b1d9eb39a)."
+                },
+                {
+                    "id": "c9c28d69-8679-4ef1-bd74-551c30de8bba",
+                    "createdAt": "2026-06-05T04:33:13.222000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "053d8a34-b2e3-4b94-be96-94757531deb6",
+                    "createdAt": "2026-06-04T22:32:55.062000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "c45cd924-e01d-4e92-856a-50264295298c",
+                    "createdAt": "2026-06-04T16:32:14.121000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "b9bd47ad-8f65-43b3-b519-954752b45480",
+                    "createdAt": "2026-06-04T10:31:50.073000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "c59982c9-e821-43f3-a3ce-8573a5623d60",
+                    "createdAt": "2026-06-04T04:31:43.345000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "83f1ae79-4ace-4ed6-9624-396216d83eed",
+                    "createdAt": "2026-06-03T22:31:08.147000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "9f77d816-b107-4610-82b9-c4eb15cac376",
+                    "createdAt": "2026-06-03T16:31:00.453000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "d2d331b8-7080-428d-be28-f1d40940fb1f",
+                    "createdAt": "2026-06-03T16:31:00.452000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/1472314205817440192) deployment completed."
+                },
+                {
+                    "id": "1affca40-5cab-4e1b-96fd-3dc376b8f7ad",
+                    "createdAt": "2026-06-03T16:28:25.749000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "7143ae51-75d1-40a8-acb3-3048df06cec4",
+                    "createdAt": "2026-06-03T16:27:45.165000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task 257c3458ebeb4cd6afdd193b1d9eb39a)."
+                },
+                {
+                    "id": "1ea29d12-e75e-434f-9d85-e458ddf22bf8",
+                    "createdAt": "2026-06-03T16:25:29.179000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/1354045719356718523) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "68200bf0-f216-4dc4-84d0-4351806c8e66",
+                    "createdAt": "2026-06-03T16:25:19.078000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "3b849d01-4ec6-49d3-9006-6a92afe049e2",
+                    "createdAt": "2026-06-03T16:25:17.966000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task a1b7d4095428416d9a1460c540a8946a)."
+                },
+                {
+                    "id": "f27894fc-d084-4ab4-9c50-5f1274617752",
+                    "createdAt": "2026-06-03T16:23:34.702000+04:00",
+                    "message": "(service ulttra-crm-directus) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "b9a7b9ea-4903-4b27-b275-c7781eeb55b5",
+                    "createdAt": "2026-06-03T16:23:01.943000+04:00",
+                    "message": "(service ulttra-crm-directus, taskSet ecs-svc/4696983895288728729) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "35c622cd-8dd2-4bc2-8503-195dfbcb5e02",
+                    "createdAt": "2026-06-03T16:23:01.936000+04:00",
+                    "message": "(service ulttra-crm-directus) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:343218208384:targetgroup/ulttra-crm-directus-tg/c021d2413f361b28)"
+                },
+                {
+                    "id": "e2b16c1a-b997-4493-a236-bce69f1057f7",
+                    "createdAt": "2026-06-03T16:22:53.967000+04:00",
+                    "message": "(service ulttra-crm-directus) has started 1 tasks: (task a1b7d4095428416d9a1460c540a8946a)."
+                },
+                {
+                    "id": "045c343d-2a9f-48ee-b900-cbfcb9c7df11",
+                    "createdAt": "2026-06-03T16:22:53.093000+04:00",
+                    "message": "(service ulttra-crm-directus) has stopped 1 running tasks: (task 351a8826c2c44898885348831dfe4943)."
+                },
+                {
+                    "id": "0e94c412-c5ac-40b2-8d41-17a3f04b7552",
+                    "createdAt": "2026-06-03T16:20:17.843000+04:00",
+                    "message": "(service ulttra-crm-directus) has reached a steady state."
+                },
+                {
+                    "id": "804bfb1c-1f11-49a5-8d4d-89b2ecc5e9c9",
+                    "createdAt": "2026-06-03T16:20:17.842000+04:00",
+                    "message": "(service ulttra-crm-directus) (deployment ecs-svc/4696983895288728729) deployment completed."
+                }
+            ],
+            "createdAt": "2026-05-28T10:59:17.877000+04:00",
+            "currentServiceRevisions": [
+                {
+                    "arn": "arn:aws:ecs:us-east-1:343218208384:service-revision/ulttra-crm-directus/ulttra-crm-directus/7366650820873929479",
+                    "requestedTaskCount": 1,
+                    "runningTaskCount": 1,
+                    "pendingTaskCount": 0
+                }
+            ],
+            "placementConstraints": [],
+            "placementStrategy": [],
+            "networkConfiguration": {
+                "awsvpcConfiguration": {
+                    "subnets": [
+                        "subnet-06eba95e42f18e2b3",
+                        "subnet-0f03ea2432082c6d8"
+                    ],
+                    "securityGroups": [
+                        "sg-09025cd6a524ac993"
+                    ],
+                    "assignPublicIp": "DISABLED"
+                }
+            },
+            "healthCheckGracePeriodSeconds": 180,
+            "schedulingStrategy": "REPLICA",
+            "deploymentController": {
+                "type": "ECS"
+            },
+            "createdBy": "arn:aws:iam::343218208384:user/codex-presttige-deploy",
+            "enableECSManagedTags": false,
+            "propagateTags": "NONE",
+            "enableExecuteCommand": true,
+            "availabilityZoneRebalancing": "ENABLED",
+            "resourceManagementType": "CUSTOMER"
+        }
+    ],
+    "failures": []
+}

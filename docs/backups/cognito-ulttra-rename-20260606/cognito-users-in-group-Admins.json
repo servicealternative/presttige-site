@@ -1,0 +1,29 @@
+{
+    "Users": [
+        {
+            "Username": "3488e488-f0f1-7069-f75a-6279f4081acf",
+            "Attributes": [
+                {
+                    "Name": "email",
+                    "Value": "admin@ultrattek.com"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "name",
+                    "Value": "Antonio Pereira"
+                },
+                {
+                    "Name": "sub",
+                    "Value": "3488e488-f0f1-7069-f75a-6279f4081acf"
+                }
+            ],
+            "UserCreateDate": "2026-05-31T19:51:06.959000+04:00",
+            "UserLastModifiedDate": "2026-06-01T22:28:15.588000+04:00",
+            "Enabled": true,
+            "UserStatus": "RESET_REQUIRED"
+        }
+    ]
+}

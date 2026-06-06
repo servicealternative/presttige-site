@@ -1,0 +1,222 @@
+{
+  "captured_at": "2026-06-06T14:09:02Z",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:343218208384:task-definition/ulttra-crm-directus:87",
+  "family": "ulttra-crm-directus",
+  "revision": 87,
+  "taskRoleArn": "arn:aws:iam::343218208384:role/ulttra-crm-directus-task-role",
+  "executionRoleArn": "arn:aws:iam::343218208384:role/ulttra-crm-directus-execution-role",
+  "container": {
+    "name": "directus",
+    "image": "343218208384.dkr.ecr.us-east-1.amazonaws.com/ulttra-crm-directus:c1-bulk-exclude-write-f4b040b-20260606",
+    "auth_environment": [
+      {
+        "name": "AUTH_CHAIRMAN_DRIVER",
+        "value": "openid"
+      },
+      {
+        "name": "AUTH_PROVIDERS",
+        "value": "chairman,technical"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_ICON",
+        "value": "account_circle"
+      },
+      {
+        "name": "AUTH_TECHNICAL_ALLOW_PUBLIC_REGISTRATION",
+        "value": "false"
+      },
+      {
+        "name": "AUTH_COGNITO_SCOPE",
+        "value": "openid email profile"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_REQUIRE_VERIFIED_EMAIL",
+        "value": "true"
+      },
+      {
+        "name": "AUTH_COGNITO_LABEL",
+        "value": "Cognito"
+      },
+      {
+        "name": "AUTH_TECHNICAL_ISSUER_URL",
+        "value": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_s5PvTEeHv/.well-known/openid-configuration"
+      },
+      {
+        "name": "AUTH_TECHNICAL_SYNC_USER_INFO",
+        "value": "true"
+      },
+      {
+        "name": "AUTH_COGNITO_ICON",
+        "value": "account_circle"
+      },
+      {
+        "name": "AUTH_COGNITO_DRIVER",
+        "value": "openid"
+      },
+      {
+        "name": "ACCESS_TOKEN_TTL",
+        "value": "1d"
+      },
+      {
+        "name": "AUTH_COGNITO_CLIENT_ID",
+        "value": "64ipldneu6qgbe2es7tjs7m695"
+      },
+      {
+        "name": "AUTH_COGNITO_ISSUER_URL",
+        "value": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_s5PvTEeHv/.well-known/openid-configuration"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_CLIENT_ID",
+        "value": "64ipldneu6qgbe2es7tjs7m695"
+      },
+      {
+        "name": "AUTH_TECHNICAL_IDENTIFIER_KEY",
+        "value": "email"
+      },
+      {
+        "name": "AUTH_TECHNICAL_ICON",
+        "value": "account_circle"
+      },
+      {
+        "name": "AUTH_TECHNICAL_CLIENT_ID",
+        "value": "64ipldneu6qgbe2es7tjs7m695"
+      },
+      {
+        "name": "AUTH_TECHNICAL_REQUIRE_VERIFIED_EMAIL",
+        "value": "true"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_SYNC_USER_INFO",
+        "value": "true"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_SCOPE",
+        "value": "openid email profile"
+      },
+      {
+        "name": "AUTH_COGNITO_REQUIRE_VERIFIED_EMAIL",
+        "value": "true"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_DEFAULT_ROLE_ID",
+        "value": "2bb05b02-1ce2-46bf-af14-8b5697f990bf"
+      },
+      {
+        "name": "REFRESH_TOKEN_TTL",
+        "value": "7d"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_PARAMS__PROMPT",
+        "value": "login"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_IDENTIFIER_KEY",
+        "value": "email"
+      },
+      {
+        "name": "AUTH_TECHNICAL_SCOPE",
+        "value": "openid email profile"
+      },
+      {
+        "name": "AUTH_COGNITO_PARAMS",
+        "value": "{\"prompt\":\"login\"}"
+      },
+      {
+        "name": "AUTH_COGNITO_MODE",
+        "value": "session"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_ISSUER_URL",
+        "value": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_s5PvTEeHv/.well-known/openid-configuration"
+      },
+      {
+        "name": "AUTH_TECHNICAL_LABEL",
+        "value": "ULTTRA admin"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_ALLOW_PUBLIC_REGISTRATION",
+        "value": "false"
+      },
+      {
+        "name": "AUTH_COGNITO_SYNC_USER_INFO",
+        "value": "true"
+      },
+      {
+        "name": "AUTH_COGNITO_IDENTIFIER_KEY",
+        "value": "email"
+      },
+      {
+        "name": "SESSION_COOKIE_TTL",
+        "value": "1d"
+      },
+      {
+        "name": "AUTH_COGNITO_ALLOW_PUBLIC_REGISTRATION",
+        "value": "false"
+      },
+      {
+        "name": "AUTH_TECHNICAL_DEFAULT_ROLE_ID",
+        "value": "2bb05b02-1ce2-46bf-af14-8b5697f990bf"
+      },
+      {
+        "name": "AUTH_TECHNICAL_PARAMS__PROMPT",
+        "value": "login"
+      },
+      {
+        "name": "AUTH_COGNITO_DEFAULT_ROLE_ID",
+        "value": "2bb05b02-1ce2-46bf-af14-8b5697f990bf"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_LABEL",
+        "value": "ULTTRA chairman"
+      },
+      {
+        "name": "PUBLIC_URL",
+        "value": "https://crm.ulttra.net"
+      },
+      {
+        "name": "AUTH_TECHNICAL_DRIVER",
+        "value": "openid"
+      },
+      {
+        "name": "AUTH_TECHNICAL_MODE",
+        "value": "session"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_MODE",
+        "value": "session"
+      }
+    ],
+    "oidc_related_secrets_present": [
+      {
+        "name": "AUTH_COGNITO_CLIENT_SECRET",
+        "valueFrom": "__SECRET_REFERENCE_REDACTED__"
+      },
+      {
+        "name": "AUTH_CHAIRMAN_CLIENT_SECRET",
+        "valueFrom": "__SECRET_REFERENCE_REDACTED__"
+      },
+      {
+        "name": "AUTH_TECHNICAL_CLIENT_SECRET",
+        "valueFrom": "__SECRET_REFERENCE_REDACTED__"
+      }
+    ],
+    "other_secrets_present": [
+      {
+        "name": "DB_PASSWORD",
+        "valueFrom": "__SECRET_REFERENCE_REDACTED__"
+      },
+      {
+        "name": "KEY",
+        "valueFrom": "__SECRET_REFERENCE_REDACTED__"
+      },
+      {
+        "name": "SECRET",
+        "valueFrom": "__SECRET_REFERENCE_REDACTED__"
+      },
+      {
+        "name": "ADMIN_PASSWORD",
+        "valueFrom": "__SECRET_REFERENCE_REDACTED__"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+    "Groups": [
+        {
+            "GroupName": "Admins",
+            "UserPoolId": "us-east-1_s5PvTEeHv",
+            "Description": "Full internal admin access (Founder admin now, CRM later).",
+            "Precedence": 1,
+            "LastModifiedDate": "2026-05-27T16:46:07.651000+04:00",
+            "CreationDate": "2026-05-27T16:46:07.651000+04:00"
+        }
+    ]
+}

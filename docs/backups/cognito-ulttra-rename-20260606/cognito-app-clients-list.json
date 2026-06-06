@@ -1,0 +1,14 @@
+{
+    "UserPoolClients": [
+        {
+            "ClientId": "64ipldneu6qgbe2es7tjs7m695",
+            "UserPoolId": "us-east-1_s5PvTEeHv",
+            "ClientName": "ulttra-crm-directus-oidc"
+        },
+        {
+            "ClientId": "6e5jtrqjfroptv19mpu0raplkh",
+            "UserPoolId": "us-east-1_s5PvTEeHv",
+            "ClientName": "presttige-admin-spa"
+        }
+    ]
+}

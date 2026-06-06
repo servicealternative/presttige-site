@@ -1,0 +1,65 @@
+{
+  "Users": [
+    {
+      "User": {
+        "Username": "54b8e4d8-5091-70f0-b246-809de7c5900e",
+        "Attributes": [
+          {
+            "Name": "email",
+            "Value": "apereira@presttige.net"
+          },
+          {
+            "Name": "email_verified",
+            "Value": "true"
+          },
+          {
+            "Name": "sub",
+            "Value": "54b8e4d8-5091-70f0-b246-809de7c5900e"
+          }
+        ],
+        "UserCreateDate": "2026-05-31T21:37:15.972000+04:00",
+        "UserLastModifiedDate": "2026-05-31T23:08:52.368000+04:00",
+        "Enabled": true,
+        "UserStatus": "CONFIRMED"
+      },
+      "Groups": []
+    },
+    {
+      "User": {
+        "Username": "3488e488-f0f1-7069-f75a-6279f4081acf",
+        "Attributes": [
+          {
+            "Name": "email",
+            "Value": "admin@ultrattek.com"
+          },
+          {
+            "Name": "email_verified",
+            "Value": "true"
+          },
+          {
+            "Name": "name",
+            "Value": "Antonio Pereira"
+          },
+          {
+            "Name": "sub",
+            "Value": "3488e488-f0f1-7069-f75a-6279f4081acf"
+          }
+        ],
+        "UserCreateDate": "2026-05-31T19:51:06.959000+04:00",
+        "UserLastModifiedDate": "2026-06-01T22:28:15.588000+04:00",
+        "Enabled": true,
+        "UserStatus": "RESET_REQUIRED"
+      },
+      "Groups": [
+        {
+          "GroupName": "Admins",
+          "UserPoolId": "us-east-1_s5PvTEeHv",
+          "Description": "Full internal admin access (Founder admin now, CRM later).",
+          "Precedence": 1,
+          "LastModifiedDate": "2026-05-27T16:46:07.651000+04:00",
+          "CreationDate": "2026-05-27T16:46:07.651000+04:00"
+        }
+      ]
+    }
+  ]
+}
