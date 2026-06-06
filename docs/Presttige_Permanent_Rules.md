@@ -33,6 +33,7 @@ What this means in practice, always built in:
 
 - Before any structural change, back up to all three locations: local disk, Git commit, and S3 bucket `presttige-ulttra-backups-343218208384`, versioned and encrypted.
 - Confirm all three before changing anything.
+- AWS CLI output must be sanitized before it is written to disk, Git, or S3. Use `scripts/sanitize-aws-backup-json.py` for AWS backup captures. Never store presigned URLs, `X-Amz-*` query material, `Code.Location`, `logUrl`, `artifactsUrl`, screenshot URLs, `sessionToken`, or `secretAccessKey` values.
 
 ## 3. SCALABILITY
 
