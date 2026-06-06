@@ -1,26 +1,23 @@
-const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
-const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const {
+  AdminAddUserToGroupCommand,
+  AdminCreateUserCommand,
+  AdminGetUserCommand,
+  CognitoIdentityProviderClient,
+} = require("@aws-sdk/client-cognito-identity-provider");
+const crypto = require("crypto");
 
-const lambda = new LambdaClient({ region: "us-east-1" });
-const ses = new SESClient({ region: "us-east-1" });
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
+const cognito = new CognitoIdentityProviderClient({ region: "us-east-1" });
 
 const TABLE_NAME = "presttige-db";
 const UPGRADE_ELIGIBLE_UNTIL = "2026-12-31T23:59:59Z";
-const SEND_SUBSCRIBER_WELCOME_FUNCTION_NAME =
-  process.env.SEND_SUBSCRIBER_WELCOME_FUNCTION_NAME || "presttige-send-subscriber-welcome-email";
-const SEND_WELCOME_FUNCTION_NAME =
-  process.env.SEND_WELCOME_FUNCTION_NAME || "presttige-send-welcome-email";
-const RECEIPT_FROM = "Presttige <office@presttige.net>";
-const RECEIPT_REPLY_TO = "info@presttige.net";
-const PREVIEW_BANNER_TEXT =
-  "PREVIEW MODE · No payment was processed · This journey will not appear in member records";
-const PREVIEW_BANNER_HTML =
-  '<div style="margin:0 0 28px 0;padding:10px 14px;background:#353535;color:#D7D3CC;font-family:Georgia,serif;font-size:13px;line-height:1.5;font-style:italic;">' +
-  PREVIEW_BANNER_TEXT +
-  "</div>";
+const MEMBER_USER_POOL_ID = process.env.MEMBER_USER_POOL_ID || "us-east-1_hpwdNFGss";
+const MEMBER_COGNITO_POOL_NAME = process.env.MEMBER_COGNITO_POOL_NAME || "presttige-members";
+const FREE_MEMBER_GROUP = "free";
+const ACCOUNT_STATUS_PASSWORD_PENDING = "password_pending";
+const VALIDATION_STATUS_NOT_STARTED = "not_started";
 
 async function findLeadByMagicToken(token) {
   let ExclusiveStartKey;
@@ -45,189 +42,103 @@ async function findLeadByMagicToken(token) {
   return null;
 }
 
-async function invokeSubscriberWelcomeEmail(leadId) {
+function normalizeText(value) {
+  return String(value || "").trim();
+}
+
+function normalizeEmail(value) {
+  return normalizeText(value).toLowerCase();
+}
+
+function getUserAttribute(user, name) {
+  return (user?.UserAttributes || user?.Attributes || []).find((attribute) => attribute.Name === name)?.Value || "";
+}
+
+function buildTemporaryPassword() {
+  return `${crypto.randomBytes(18).toString("base64url")}Aa1!`;
+}
+
+function safeErrorType(error) {
+  return normalizeText(error?.name || error?.code || error?.constructor?.name || "Error");
+}
+
+function isSyntheticTesterRecord(lead) {
+  const tier = normalizeText(lead.tier).toLowerCase();
+  const subscriberType = normalizeText(lead.subscriber_type).toLowerCase();
+  return lead.synthetic_test === true && (tier === "tester" || subscriberType === "tester");
+}
+
+async function getCognitoUserByEmail(email) {
   try {
-    await lambda.send(
-      new InvokeCommand({
-        FunctionName: SEND_SUBSCRIBER_WELCOME_FUNCTION_NAME,
-        InvocationType: "Event",
-        Payload: Buffer.from(
-          JSON.stringify({
-            body: JSON.stringify({ lead_id: leadId }),
-          })
-        ),
+    return await cognito.send(
+      new AdminGetUserCommand({
+        UserPoolId: MEMBER_USER_POOL_ID,
+        Username: email,
       })
     );
-    return true;
   } catch (error) {
-    console.error("activate-subscriber invoke error", error);
-    return false;
+    if (error?.name === "UserNotFoundException") {
+      return null;
+    }
+    throw error;
   }
 }
 
-async function invokeWelcomeEmail(leadId) {
-  try {
-    await lambda.send(
-      new InvokeCommand({
-        FunctionName: SEND_WELCOME_FUNCTION_NAME,
-        InvocationType: "Event",
-        Payload: Buffer.from(
-          JSON.stringify({
-            body: JSON.stringify({ lead_id: leadId }),
-          })
-        ),
+async function addUserToFreeGroup(username) {
+  await cognito.send(
+    new AdminAddUserToGroupCommand({
+      UserPoolId: MEMBER_USER_POOL_ID,
+      Username: username,
+      GroupName: FREE_MEMBER_GROUP,
+    })
+  );
+}
+
+async function createOrReuseFreeMemberUser(lead) {
+  const email = normalizeEmail(lead.email);
+  if (!email) {
+    throw new Error("Lead missing email");
+  }
+
+  let user = await getCognitoUserByEmail(email);
+  let created = false;
+
+  if (!user) {
+    const displayName = normalizeText(lead.name) || email;
+    user = await cognito.send(
+      new AdminCreateUserCommand({
+        UserPoolId: MEMBER_USER_POOL_ID,
+        Username: email,
+        MessageAction: "SUPPRESS",
+        TemporaryPassword: buildTemporaryPassword(),
+        UserAttributes: [
+          { Name: "email", Value: email },
+          { Name: "email_verified", Value: "true" },
+          { Name: "name", Value: displayName },
+        ],
       })
     );
-    return true;
-  } catch (error) {
-    console.error("activate-subscriber welcome invoke error", error);
-    return false;
+    created = true;
   }
+
+  const username = user.Username || user.User?.Username || email;
+  await addUserToFreeGroup(username);
+
+  const sub = getUserAttribute(user, "sub") || getUserAttribute(user.User, "sub");
+  if (!sub) {
+    throw new Error("Cognito user sub missing");
+  }
+
+  return { sub, username, created };
 }
 
 function redirectUrl(token) {
-  return `https://presttige.net/subscriber/${token}?status=confirmed`;
-}
-
-function previewSubscriberRedirectUrl(token) {
-  return `https://presttige.net/subscriber/${token}?status=confirmed&preview=1`;
-}
-
-function previewSuccessRedirectUrl(token, tier) {
-  const query = new URLSearchParams({
-    token,
-    tier,
-    preview: "1",
-  });
-  return `https://presttige.net/preview/success/index.html?${query.toString()}`;
-}
-
-function normalizeTier(value) {
-  return String(value || "").trim().toLowerCase();
-}
-
-function titleCase(value) {
-  return String(value || "")
-    .split(/[_\s-]+/)
-    .filter(Boolean)
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(" ");
-}
-
-function receiptAmountLabel(tier) {
-  const byTier = {
-    club: "$144.44 / year",
-    premier: "$388.88 / year",
-    patron: "$999 / year",
-  };
-  return byTier[tier] || "";
-}
-
-function buildPreviewReceiptEmail(lead, tier) {
-  const tierLabel = titleCase(tier);
-  const amountLabel = receiptAmountLabel(tier);
-  const name = String(lead?.name || "Member").trim();
-  const subject = `Preview receipt — ${tierLabel} membership`;
-  const html = `
-<!DOCTYPE html>
-<html lang="en" class="notranslate">
-<head>
-  <meta name="google" content="notranslate">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
-</head>
-<body translate="no" style="margin:0;padding:0;background:#F5F2ED;color:#0A0A0A;font-family:Georgia,serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F5F2ED;">
-    <tr>
-      <td align="center" style="padding:0 16px;">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#FBF9F4;">
-          <tr>
-            <td style="padding:48px 56px 40px 56px;">
-              ${PREVIEW_BANNER_HTML}
-              <p style="margin:0 0 24px 0;color:#8A7544;font-size:11px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;">Membership · Preview receipt</p>
-              <h1 style="margin:0 0 24px 0;font-family:Georgia,'Times New Roman',serif;font-size:34px;font-style:italic;font-weight:400;line-height:1.15;">Preview receipt</h1>
-              <p style="margin:0 0 18px 0;font-size:16px;line-height:1.7;color:#4A4A4A;">${name}, your ${tierLabel} membership journey has been completed in preview mode.</p>
-              <p style="margin:0 0 18px 0;font-size:16px;line-height:1.7;color:#4A4A4A;">Membership selected: ${tierLabel}${amountLabel ? ` · ${amountLabel}` : ""}</p>
-              <p style="margin:0;font-size:16px;line-height:1.7;color:#4A4A4A;">No payment was processed, no Stripe object was created, and this record is excluded from member counts and revenue reporting.</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`.trim();
-  const text = [
-    PREVIEW_BANNER_TEXT,
-    "",
-    "Preview receipt",
-    "",
-    `${name}, your ${tierLabel} membership journey has been completed in preview mode.`,
-    `Membership selected: ${tierLabel}${amountLabel ? ` · ${amountLabel}` : ""}`,
-    "No payment was processed, no Stripe object was created, and this record is excluded from member counts and revenue reporting.",
-  ].join("\n");
-
-  return { subject, html, text };
-}
-
-async function sendPreviewReceiptEmail(lead, tier) {
-  if (!lead?.email) {
-    return false;
-  }
-
-  try {
-    const receipt = buildPreviewReceiptEmail(lead, tier);
-    await ses.send(
-      new SendEmailCommand({
-        Source: RECEIPT_FROM,
-        ReplyToAddresses: [RECEIPT_REPLY_TO],
-        Destination: {
-          ToAddresses: [lead.email],
-        },
-        Message: {
-          Subject: {
-            Data: receipt.subject,
-            Charset: "UTF-8",
-          },
-          Body: {
-            Html: {
-              Data: receipt.html,
-              Charset: "UTF-8",
-            },
-            Text: {
-              Data: receipt.text,
-              Charset: "UTF-8",
-            },
-          },
-        },
-      })
-    );
-    return true;
-  } catch (error) {
-    console.error("activate-subscriber preview receipt error", error);
-    return false;
-  }
-}
-
-async function markPreviewReceiptSent(leadId) {
-  await ddb.send(
-    new UpdateCommand({
-      TableName: TABLE_NAME,
-      Key: { lead_id: leadId },
-      UpdateExpression: "SET preview_receipt_sent_at = :sent_at",
-      ExpressionAttributeValues: {
-        ":sent_at": new Date().toISOString(),
-      },
-    })
-  );
+  return `https://presttige.net/subscriber-activated/${token}`;
 }
 
 exports.handler = async (event) => {
   const body = JSON.parse(event.body || "{}");
   const token = String(body.token || "").trim();
-  const previewTier = normalizeTier(body.preview_tier || body.tier);
-  const selectedContractKey = String(body.contract_key || body.contractKey || "").trim();
 
   if (!token) {
     return response(400, { error: "Missing token" });
@@ -243,134 +154,111 @@ exports.handler = async (event) => {
       return response(410, { error: "Token expired" });
     }
 
-    if (["club", "premier", "patron"].includes(previewTier)) {
-      if (!lead.preview_mode) {
-        return response(403, { error: "Preview mode is not enabled for this membership." });
-      }
-
-      if (lead.account_active && normalizeTier(lead.selected_tier) === previewTier) {
-        let welcomeTriggered = Boolean(lead.welcome_sent_at);
-        if (!welcomeTriggered) {
-          welcomeTriggered = await invokeWelcomeEmail(lead.lead_id);
-        }
-
-        let receiptSent = Boolean(lead.preview_receipt_sent_at);
-        if (!receiptSent) {
-          receiptSent = await sendPreviewReceiptEmail(lead, previewTier);
-          if (receiptSent) {
-            await markPreviewReceiptSent(lead.lead_id);
-          }
-        }
-
-        return response(200, {
-          activated: true,
-          preview_mode: true,
-          selected_tier: previewTier,
-          welcome_triggered: welcomeTriggered,
-          receipt_sent: receiptSent,
-          redirect_url: previewSuccessRedirectUrl(token, previewTier),
-        });
-      }
-
-      const now = new Date().toISOString();
-      await ddb.send(
-        new UpdateCommand({
-          TableName: TABLE_NAME,
-          Key: { lead_id: lead.lead_id },
-          UpdateExpression: `
-            SET selected_tier = :tier,
-                selected_tier_billing = :billing,
-                selected_contract_key = :contract_key,
-                selected_checkout_mode = :checkout_mode,
-                payment_status = :payment_status,
-                payment_status_reason = :payment_status_reason,
-                founding_rate_locked = :founding_rate_locked,
-                founding_rate_expires_at = :founding_rate_expires_at,
-                upgrade_eligible_until = :upgrade_eligible_until,
-                preview_mode_completed_at = :preview_mode_completed_at,
-                preview_receipt_sent_at = :preview_receipt_sent_at,
-                account_active = :account_active,
-                onboarded_at = if_not_exists(onboarded_at, :onboarded_at),
-                updated_at = :updated_at
-            REMOVE selected_periodicity, effective_tier, effective_tier_until, stripe_session_id, stripe_checkout_started_at, selected_price_id
-          `,
-          ExpressionAttributeValues: {
-            ":tier": previewTier,
-            ":billing": "yearly",
-            ":contract_key": selectedContractKey || `${previewTier}_yearly`,
-            ":checkout_mode": "preview",
-            ":payment_status": "preview_paid",
-            ":payment_status_reason": "preview_mode_completed",
-            ":founding_rate_locked": false,
-            ":founding_rate_expires_at": null,
-            ":upgrade_eligible_until": UPGRADE_ELIGIBLE_UNTIL,
-            ":preview_mode_completed_at": now,
-            ":preview_receipt_sent_at": null,
-            ":account_active": true,
-            ":onboarded_at": now,
-            ":updated_at": now,
-          },
-        })
-      );
-
-      const welcomeTriggered = await invokeWelcomeEmail(lead.lead_id);
-      const receiptSent = await sendPreviewReceiptEmail(lead, previewTier);
-
-      if (receiptSent) {
-        await markPreviewReceiptSent(lead.lead_id);
-      }
-
-      return response(200, {
-        activated: true,
-        preview_mode: true,
-        selected_tier: previewTier,
-        welcome_triggered: welcomeTriggered,
-        receipt_sent: receiptSent,
-        redirect_url: previewSuccessRedirectUrl(token, previewTier),
+    if (normalizeText(lead.review_status).toLowerCase() !== "approved") {
+      return response(403, {
+        activated: false,
+        account_created: false,
+        error: "not_approved",
+        message: "Membership is not ready for activation.",
       });
     }
 
-    if (lead.payment_status === "paid" || lead.account_active) {
-      return response(409, { error: "Membership already activated" });
+    if (lead.payment_status === "paid") {
+      return response(409, { error: "Membership already activated through a paid path" });
     }
 
     const now = new Date().toISOString();
+    const identity = lead.cognito_sub
+      ? { sub: lead.cognito_sub, username: normalizeEmail(lead.email), created: false, idempotent: true }
+      : await createOrReuseFreeMemberUser(lead);
+    const testerRecord = isSyntheticTesterRecord(lead);
+    const selectedTierForRecord = testerRecord ? "tester" : "subscriber";
+    const memberTierForRecord = testerRecord ? "tester" : "free";
+    const setClauses = [
+      "selected_tier = :selected_tier",
+      "selected_tier_billing = :billing",
+      "#member_tier = :member_tier",
+      "effective_tier = :member_tier",
+      "founding_rate_locked = :founding_rate_locked",
+      "founding_rate_expires_at = :founding_rate_expires_at",
+      "upgrade_eligible_until = :upgrade_eligible_until",
+      "subscriber_activated_at = if_not_exists(subscriber_activated_at, :subscriber_activated_at)",
+      "account_active = :account_active",
+      "cognito_sub = if_not_exists(cognito_sub, :cognito_sub)",
+      "cognito_pool = :cognito_pool",
+      "account_status = :account_status",
+      "validation_status = if_not_exists(validation_status, :validation_status)",
+      "signup_path = :signup_path",
+      "account_created_at = if_not_exists(account_created_at, :account_created_at)",
+      "cognito_linked_at = if_not_exists(cognito_linked_at, :cognito_linked_at)",
+      "updated_at = :updated_at",
+    ];
+
+    if (testerRecord) {
+      setClauses.splice(4, 0, "simulated_tier = :simulated_tier");
+    }
+
     await ddb.send(
       new UpdateCommand({
         TableName: TABLE_NAME,
         Key: { lead_id: lead.lead_id },
-        UpdateExpression: `
-          SET selected_tier = :tier,
-              selected_tier_billing = :billing,
-              founding_rate_locked = :founding_rate_locked,
-              founding_rate_expires_at = :founding_rate_expires_at,
-              upgrade_eligible_until = :upgrade_eligible_until,
-              subscriber_activated_at = if_not_exists(subscriber_activated_at, :subscriber_activated_at)
-          REMOVE selected_periodicity, effective_tier, effective_tier_until, stripe_session_id, stripe_checkout_started_at, selected_price_id
-        `,
+        UpdateExpression: `SET ${setClauses.join(", ")} REMOVE selected_periodicity, effective_tier_until, stripe_session_id, stripe_checkout_started_at, selected_price_id`,
+        ConditionExpression: "review_status = :approved",
+        ExpressionAttributeNames: {
+          "#member_tier": "tier",
+        },
         ExpressionAttributeValues: {
-          ":tier": "subscriber",
+          ":selected_tier": selectedTierForRecord,
+          ":member_tier": memberTierForRecord,
           ":billing": null,
           ":founding_rate_locked": false,
           ":founding_rate_expires_at": null,
           ":upgrade_eligible_until": UPGRADE_ELIGIBLE_UNTIL,
           ":subscriber_activated_at": now,
+          ":account_active": true,
+          ":cognito_sub": identity.sub,
+          ":cognito_pool": MEMBER_COGNITO_POOL_NAME,
+          ":account_status": ACCOUNT_STATUS_PASSWORD_PENDING,
+          ":validation_status": VALIDATION_STATUS_NOT_STARTED,
+          ":signup_path": "free",
+          ":account_created_at": now,
+          ":cognito_linked_at": now,
+          ":updated_at": now,
+          ":approved": "approved",
+          ...(testerRecord ? { ":simulated_tier": "free" } : {}),
         },
       })
     );
 
-    const welcomeTriggered = await invokeSubscriberWelcomeEmail(lead.lead_id);
-
     return response(200, {
       activated: true,
-      preview_mode: Boolean(lead.preview_mode),
       selected_tier: "subscriber",
-      subscriber_welcome_triggered: welcomeTriggered,
-      redirect_url: lead.preview_mode ? previewSubscriberRedirectUrl(token) : redirectUrl(token),
+      tier: "free",
+      account_created: identity.created,
+      account_status: ACCOUNT_STATUS_PASSWORD_PENDING,
+      cognito_pool: MEMBER_COGNITO_POOL_NAME,
+      cognito_sub: identity.sub,
+      idempotent: Boolean(identity.idempotent),
+      subscriber_welcome_triggered: false,
+      activation_email_step: "deferred_to_step_4",
+      record_tier: memberTierForRecord,
+      simulated_tier: testerRecord ? "free" : undefined,
+      redirect_url: redirectUrl(token),
     });
   } catch (error) {
-    console.error("activate-subscriber error", error);
-    return response(500, { error: "Internal", detail: error.message });
+    if (error?.name === "ConditionalCheckFailedException") {
+      return response(403, {
+        activated: false,
+        account_created: false,
+        error: "not_approved",
+        message: "Membership is not ready for activation.",
+      });
+    }
+    console.error("activate-subscriber error", {
+      status: "failed",
+      error_type: safeErrorType(error),
+    });
+    return response(500, { error: "Internal" });
   }
 };
 

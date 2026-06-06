@@ -44,11 +44,11 @@ jobs:
           CHANGED=""
 
           if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
-            echo "::warning::Base SHA unavailable from event payload, deploying ALL Lambdas defensively"
-            CHANGED="ALL"
+            echo "::error::Base SHA unavailable from event payload, refusing broad Lambda deployment"
+            exit 1
           elif ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
-            echo "::warning::Base SHA $BASE_SHA unavailable, deploying ALL Lambdas defensively"
-            CHANGED="ALL"
+            echo "::error::Base SHA $BASE_SHA unavailable, refusing broad Lambda deployment"
+            exit 1
           else
             CHANGED="$(git diff --name-only "$BASE_SHA" "${{ github.sha }}")"
           fi
@@ -57,7 +57,6 @@ jobs:
           echo "${CHANGED:-none}"
 
           LAMBDAS=()
-          DEPLOY_ALL=0
 
           add_lambda() {
             local lambda="$1"
@@ -68,9 +67,7 @@ jobs:
             fi
           }
 
-          if [ "$CHANGED" = "ALL" ]; then
-            mapfile -t LAMBDAS < <(printf "%s\n" "${ALL_LAMBDAS[@]}")
-          elif [ -n "$CHANGED" ]; then
+          if [ -n "$CHANGED" ]; then
             while IFS= read -r file; do
               case "$file" in
                 scripts/package-presttige-*.sh)
@@ -95,19 +92,20 @@ jobs:
                   lambda_dir="$(printf '%s\n' "$file" | cut -d/ -f3)"
                   add_lambda "presttige-${lambda_dir}"
                   ;;
+                backend/*/*)
+                  lambda_dir="$(printf '%s\n' "$file" | cut -d/ -f2)"
+                  add_lambda "presttige-${lambda_dir}"
+                  ;;
                 .github/workflows/deploy-lambdas.yml)
                   echo "Workflow changed, deploying only Lambdas selected by source/package changes."
                   ;;
-                backend/*|shared/*)
-                  echo "::warning::Broad backend/shared change ${file}, deploying all Lambdas defensively"
-                  DEPLOY_ALL=1
+                shared/*)
+                  echo "::warning::Shared change ${file} has no automatic all-Lambda fallback. Add an explicit mapping if a Lambda package needs it."
                   ;;
               esac
             done <<< "$CHANGED"
 
-            if [ "$DEPLOY_ALL" -eq 1 ]; then
-              mapfile -t LAMBDAS < <(printf "%s\n" "${ALL_LAMBDAS[@]}")
-            else
+            if [ ${#LAMBDAS[@]} -gt 0 ]; then
               mapfile -t LAMBDAS < <(printf "%s\n" "${LAMBDAS[@]}" | LC_ALL=C sort -u)
             fi
           fi
