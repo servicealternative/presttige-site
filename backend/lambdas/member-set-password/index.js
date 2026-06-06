@@ -635,6 +635,13 @@ async function reserveEmailSend(lead, kind, forceResend = false) {
   const conditionExpression = forceResend
     ? `attribute_exists(lead_id) AND ${sendingGuard}`
     : `attribute_exists(lead_id) AND attribute_not_exists(#sentAt) AND ${sendingGuard}`;
+  const expressionAttributeNames = {
+    "#status": fields.status,
+    "#startedAt": fields.startedAt,
+  };
+  if (!forceResend) {
+    expressionAttributeNames["#sentAt"] = fields.sentAt;
+  }
 
   try {
     await ddb.send(
@@ -644,11 +651,7 @@ async function reserveEmailSend(lead, kind, forceResend = false) {
         ConditionExpression: conditionExpression,
         UpdateExpression:
           "SET #status = :sending, #startedAt = :now, updated_at = :now",
-        ExpressionAttributeNames: {
-          "#sentAt": fields.sentAt,
-          "#status": fields.status,
-          "#startedAt": fields.startedAt,
-        },
+        ExpressionAttributeNames: expressionAttributeNames,
         ExpressionAttributeValues: {
           ":sending": EMAIL_STATUS_SENDING,
           ":staleBefore": staleBefore,
