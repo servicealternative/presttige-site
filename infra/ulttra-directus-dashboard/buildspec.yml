@@ -10,7 +10,12 @@ phases:
       - IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG"
   build:
     commands:
-      - docker build --pull -t "$IMAGE_URI" .
+      - |
+        BUILD_ARGS=()
+        if [ -n "${DIRECTUS_BASE_IMAGE:-}" ]; then
+          BUILD_ARGS+=(--build-arg "DIRECTUS_BASE_IMAGE=$DIRECTUS_BASE_IMAGE")
+        fi
+        docker build "${BUILD_ARGS[@]}" -t "$IMAGE_URI" .
   post_build:
     commands:
       - docker push "$IMAGE_URI"

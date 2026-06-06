@@ -1,4 +1,5 @@
-FROM directus/directus:11
+ARG DIRECTUS_BASE_IMAGE=directus/directus:11
+FROM ${DIRECTUS_BASE_IMAGE}
 
 USER root
 
@@ -11,7 +12,8 @@ RUN set -eux; \
     entry_js="$(find /directus/node_modules -path '*/@directus/app/dist/assets/index.*.entry.js' -type f | head -n 1)"; \
     test -n "$admin_index"; \
     test -n "$entry_js"; \
-    node /directus/ulttra-patches/patch-visible-directus-wording.mjs "$admin_index" "$entry_js"
+    node /directus/ulttra-patches/patch-visible-directus-wording.mjs "$admin_index" "$entry_js"; \
+    node /directus/ulttra-patches/patch-chairman-login-redirect.mjs "$admin_index" "$(dirname "$entry_js")"
 
 RUN cd /directus/extensions/directus-extension-ulttra-dashboard-endpoint \
     && npm install --omit=dev --no-audit --no-fund \
