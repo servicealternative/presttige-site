@@ -75,6 +75,18 @@ def response(status_code, body):
     }
 
 
+def short_hash(value):
+    text = str(value or "").strip().lower()
+    if not text:
+        return ""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+
+
+def log_safe(event_name, **metadata):
+    safe_metadata = {key: value for key, value in metadata.items() if value not in (None, "")}
+    print(json.dumps({"event": event_name, **safe_metadata}, sort_keys=True))
+
+
 def format_source(address):
     return f"Presttige <{address}>"
 
@@ -220,10 +232,10 @@ def delete_schedule_if_present(schedule_name):
     except ClientError as exc:
         error_code = exc.response.get("Error", {}).get("Code", "")
         if error_code not in ("ResourceNotFoundException", "ValidationException"):
-            print(f"TESTER_PURGE_WARN schedule_delete_failed name={schedule_name} error={error_code or str(exc)}")
+            log_safe("tester_purge_warn", action="schedule_delete_failed", error=error_code or type(exc).__name__)
         return False
     except Exception as exc:
-        print(f"TESTER_PURGE_WARN schedule_delete_failed name={schedule_name} error={exc}")
+        log_safe("tester_purge_warn", action="schedule_delete_failed", error=type(exc).__name__)
         return False
 
 
@@ -245,10 +257,10 @@ def delete_s3_prefix(bucket_name, prefix):
                 params["ContinuationToken"] = continuation_token
             response = s3.list_objects_v2(**params)
         except ClientError as exc:
-            print(f"TESTER_PURGE_WARN s3_list_failed bucket={bucket_name} prefix={prefix} error={exc.response.get('Error', {}).get('Code', str(exc))}")
+            log_safe("tester_purge_warn", action="s3_list_failed", bucket=bucket_name, prefix_hash=short_hash(prefix), error=exc.response.get("Error", {}).get("Code", type(exc).__name__))
             break
         except Exception as exc:
-            print(f"TESTER_PURGE_WARN s3_list_failed bucket={bucket_name} prefix={prefix} error={exc}")
+            log_safe("tester_purge_warn", action="s3_list_failed", bucket=bucket_name, prefix_hash=short_hash(prefix), error=type(exc).__name__)
             break
 
         contents = response.get("Contents") or []
@@ -261,9 +273,9 @@ def delete_s3_prefix(bucket_name, prefix):
                 )
                 deleted += len(delete_response.get("Deleted") or [])
             except ClientError as exc:
-                print(f"TESTER_PURGE_WARN s3_delete_failed bucket={bucket_name} prefix={prefix} error={exc.response.get('Error', {}).get('Code', str(exc))}")
+                log_safe("tester_purge_warn", action="s3_delete_failed", bucket=bucket_name, prefix_hash=short_hash(prefix), error=exc.response.get("Error", {}).get("Code", type(exc).__name__))
             except Exception as exc:
-                print(f"TESTER_PURGE_WARN s3_delete_failed bucket={bucket_name} prefix={prefix} error={exc}")
+                log_safe("tester_purge_warn", action="s3_delete_failed", bucket=bucket_name, prefix_hash=short_hash(prefix), error=type(exc).__name__)
 
         if not response.get("IsTruncated"):
             break
@@ -279,10 +291,10 @@ def remove_ses_suppression_if_present(email):
         error_code = exc.response.get("Error", {}).get("Code", "")
         if error_code in ("NotFoundException", "BadRequestException"):
             return False
-        print(f"TESTER_PURGE_WARN ses_get_suppression_failed email={email} error={error_code or str(exc)}")
+        log_safe("tester_purge_warn", action="ses_get_suppression_failed", email_hash=short_hash(email), error=error_code or type(exc).__name__)
         return False
     except Exception as exc:
-        print(f"TESTER_PURGE_WARN ses_get_suppression_failed email={email} error={exc}")
+        log_safe("tester_purge_warn", action="ses_get_suppression_failed", email_hash=short_hash(email), error=type(exc).__name__)
         return False
 
     try:
@@ -290,10 +302,10 @@ def remove_ses_suppression_if_present(email):
         return True
     except ClientError as exc:
         error_code = exc.response.get("Error", {}).get("Code", "")
-        print(f"TESTER_PURGE_WARN ses_delete_suppression_failed email={email} error={error_code or str(exc)}")
+        log_safe("tester_purge_warn", action="ses_delete_suppression_failed", email_hash=short_hash(email), error=error_code or type(exc).__name__)
         return False
     except Exception as exc:
-        print(f"TESTER_PURGE_WARN ses_delete_suppression_failed email={email} error={exc}")
+        log_safe("tester_purge_warn", action="ses_delete_suppression_failed", email_hash=short_hash(email), error=type(exc).__name__)
         return False
 
 
@@ -306,7 +318,7 @@ def purge_tester_records(email):
     try:
         existing_records = find_leads_by_email(email)
     except Exception as exc:
-        print(f"TESTER_PURGE_WARN lookup_failed email={email} error={exc}")
+        log_safe("tester_purge_warn", action="lookup_failed", email_hash=short_hash(email), error=type(exc).__name__)
         existing_records = []
 
     for record in existing_records:
@@ -328,14 +340,17 @@ def purge_tester_records(email):
                 table.delete_item(Key={"lead_id": lead_id})
                 deleted_records += 1
             except Exception as exc:
-                print(f"TESTER_PURGE_WARN delete_record_failed lead_id={lead_id} error={exc}")
+                log_safe("tester_purge_warn", action="delete_record_failed", lead_hash=short_hash(lead_id), error=type(exc).__name__)
 
     ses_suppression_removed = remove_ses_suppression_if_present(email)
 
-    print(
-        f"TESTER_PURGE_ON_SUBMIT email={email} deleted_records={deleted_records} "
-        f"deleted_schedules={deleted_schedules} deleted_photos={deleted_photos} "
-        f"ses_suppression_removed={str(ses_suppression_removed).lower()}"
+    log_safe(
+        "tester_purge_on_submit",
+        email_hash=short_hash(email),
+        deleted_records=deleted_records,
+        deleted_schedules=deleted_schedules,
+        deleted_photos=deleted_photos,
+        ses_suppression_removed=ses_suppression_removed,
     )
 
     return {
@@ -381,15 +396,15 @@ def lambda_handler(event, context):
             try:
                 purge_tester_records(email)
             except Exception as exc:
-                print(f"TESTER_PURGE_WARN email={email} error={exc}")
+                log_safe("tester_purge_warn", action="purge_failed", email_hash=short_hash(email), error=type(exc).__name__)
 
         if not tester_whitelisted and email_already_exists(email):
-            print(json.dumps({
-                "event": "duplicate_email_attempt",
-                "email": email,
-                "source": source,
-                "campaign_id": campaign_id,
-            }))
+            log_safe(
+                "duplicate_email_attempt",
+                email_hash=short_hash(email),
+                source=source,
+                campaign_hash=short_hash(campaign_id),
+            )
             return response(409, {
                 "error": "email_exists",
                 "message": "This email is already registered. If you need access to your existing application, contact committee@presttige.net"
@@ -397,12 +412,12 @@ def lambda_handler(event, context):
 
         phone_full = re.sub(r"[\s\-()]", "", phone)
         if not tester_whitelisted and phone_already_exists(phone_full):
-            print(json.dumps({
-                "event": "duplicate_phone_attempt",
-                "phone_full": phone_full,
-                "source": source,
-                "campaign_id": campaign_id,
-            }))
+            log_safe(
+                "duplicate_phone_attempt",
+                phone_hash=short_hash(phone_full),
+                source=source,
+                campaign_hash=short_hash(campaign_id),
+            )
             return response(409, {
                 "error": "phone_exists",
                 "message": "This phone number is already registered. If you need access to your existing application, contact committee@presttige.net"
@@ -464,13 +479,12 @@ def lambda_handler(event, context):
             "sign_off_title": "PRESTTIGE PRIVATE OFFICE",
         }
 
-        print(json.dumps({
-            "event": "verification_email_sender",
-            "lead_id": lead_id,
-            "email": email,
-            "source": FROM_EMAIL,
-            "reply_to": REPLY_TO_EMAIL,
-        }))
+        log_safe(
+            "verification_email_sender",
+            lead_hash=short_hash(lead_id),
+            email_hash=short_hash(email),
+            is_tester=tester_whitelisted,
+        )
 
         ses_response = ses.send_email(
             Source=format_source(FROM_EMAIL),
@@ -494,13 +508,13 @@ def lambda_handler(event, context):
             }
         )
 
-        print(json.dumps({
-            "event": "verification_email_sent",
-            "lead_id": lead_id,
-            "email": email,
-            "ses_message_id": ses_response.get("MessageId"),
-            "is_tester": tester_whitelisted,
-        }))
+        log_safe(
+            "verification_email_sent",
+            lead_hash=short_hash(lead_id),
+            email_hash=short_hash(email),
+            ses_message_id=ses_response.get("MessageId"),
+            is_tester=tester_whitelisted,
+        )
 
         return response(200, {
             "message": "Step 1 submitted",

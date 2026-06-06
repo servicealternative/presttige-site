@@ -71,6 +71,18 @@ function formatSource(address) {
   return `Presttige <${address}>`;
 }
 
+function shortHash(value) {
+  const text = String(value || "").trim().toLowerCase();
+  return text ? crypto.createHash("sha256").update(text).digest("hex").slice(0, 12) : "";
+}
+
+function errorSummary(error) {
+  return {
+    name: error?.name || "Error",
+    code: error?.Code || error?.code || null,
+  };
+}
+
 function loadBackfillFilters() {
   try {
     return require("../lib/backfill-filters");
@@ -240,7 +252,7 @@ exports.handler = async (event) => {
     const backfillGuardReason = getBackfillResendIneligibilityReason(lead);
     if (backfillGuardReason) {
       console.log("Backfill resend blocked for committee email", {
-        lead_id: leadId,
+        lead_hash: shortHash(leadId),
         review_status: lead.review_status || null,
         reason: backfillGuardReason,
       });
@@ -252,17 +264,17 @@ exports.handler = async (event) => {
     }
 
     if (lead.e2_sent_at) {
-      console.log("Committee email already sent", { lead_id: leadId, e2_sent_at: lead.e2_sent_at });
+      console.log("Committee email already sent", { lead_hash: shortHash(leadId), e2_sent_at: lead.e2_sent_at });
       return response(200, { already_sent: true, sent_at: lead.e2_sent_at });
     }
 
     const readyPhotos = selectReadyPhotos(lead, requestedPhotoIds);
     if (readyPhotos.length < 2 && !allowNoPhotos) {
       console.log("Committee email skipped until enough photos are ready", {
-        lead_id: leadId,
+        lead_hash: shortHash(leadId),
         ready_count: readyPhotos.length,
-        requested_photo_ids: requestedPhotoIds,
-        submitted_photo_ids: normalizePhotoIds(lead.submitted_photo_ids),
+        requested_photo_count: requestedPhotoIds.length,
+        submitted_photo_count: normalizePhotoIds(lead.submitted_photo_ids).length,
         allow_no_photos: allowNoPhotos,
       });
       return response(425, { error: "Photos not ready", ready: readyPhotos.length });
@@ -274,11 +286,9 @@ exports.handler = async (event) => {
     const html = fillTemplate(loadTemplate(), buildBodyVariables(lead, token, readyPhotos, secrets.cfPrivateKey));
     const text = buildPlainText(lead, token);
 
-    console.log("SES sender config", {
-      from: FROM_ADDRESS,
-      reply_to: REPLY_TO,
-      to: TO_ADDRESS,
-      lead_id: leadId,
+    console.log("Committee email send", {
+      lead_hash: shortHash(leadId),
+      destination_count: 1,
     });
 
     await ses.send(
@@ -318,7 +328,7 @@ exports.handler = async (event) => {
 
     return response(200, { sent: true, token_first8: token.substring(0, 8) });
   } catch (err) {
-    console.error("send-committee-email error", err);
+    console.error("send-committee-email error", errorSummary(err));
     return response(500, { error: "Internal error", detail: err.message });
   }
 };

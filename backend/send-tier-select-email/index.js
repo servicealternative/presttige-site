@@ -1,6 +1,7 @@
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -14,6 +15,18 @@ const SES_CONFIGURATION_SET = process.env.SES_CONFIGURATION_SET || "presttige-de
 
 function formatSource(address) {
   return `Presttige <${address}>`;
+}
+
+function shortHash(value) {
+  const text = String(value || "").trim().toLowerCase();
+  return text ? crypto.createHash("sha256").update(text).digest("hex").slice(0, 12) : "";
+}
+
+function errorSummary(error) {
+  return {
+    name: error?.name || "Error",
+    code: error?.Code || error?.code || null,
+  };
 }
 
 function loadTemplate() {
@@ -95,14 +108,12 @@ exports.handler = async (event) => {
       disclaimer,
     });
 
-    console.log("SES sender config", {
-      from: FROM,
-      reply_to: REPLY_TO,
-      to: [lead.email],
-      cc: [],
-      bcc: [],
-      lead_id,
-      recipient_email: lead.email,
+    console.log("Tier-select email send", {
+      lead_hash: shortHash(lead_id),
+      recipient_hash: shortHash(lead.email),
+      to_count: 1,
+      cc_count: 0,
+      bcc_count: 0,
     });
 
     const sesResponse = await ses.send(
@@ -132,8 +143,8 @@ exports.handler = async (event) => {
       })
     );
     console.log("SES tier-select email sent", {
-      lead_id,
-      recipient_email: lead.email,
+      lead_hash: shortHash(lead_id),
+      recipient_hash: shortHash(lead.email),
       message_id: sesResponse?.MessageId || null,
       to_count: 1,
       cc_count: 0,
@@ -154,7 +165,7 @@ exports.handler = async (event) => {
 
     return response(200, { sent: true });
   } catch (error) {
-    console.error("send-tier-select-email error", error);
+    console.error("send-tier-select-email error", errorSummary(error));
     return response(500, { error: "Internal", detail: error.message });
   }
 };

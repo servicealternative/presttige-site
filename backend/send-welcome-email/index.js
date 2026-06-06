@@ -5,6 +5,7 @@ const { SchedulerClient, CreateScheduleCommand, DeleteScheduleCommand } = requir
 const { SESv2Client, GetSuppressedDestinationCommand, DeleteSuppressedDestinationCommand } = require("@aws-sdk/client-sesv2");
 const { ConditionalCheckFailedException } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -47,6 +48,18 @@ function fill(template, vars) {
 
 function formatSource(address) {
   return `Presttige <${address}>`;
+}
+
+function shortHash(value) {
+  const text = String(value || "").trim().toLowerCase();
+  return text ? crypto.createHash("sha256").update(text).digest("hex").slice(0, 12) : "";
+}
+
+function errorSummary(error) {
+  return {
+    name: error?.name || "Error",
+    code: error?.Code || error?.code || null,
+  };
 }
 
 function buildPlainText({ name, bodyCopy, welcomeLink }) {
@@ -167,7 +180,7 @@ async function scheduleTesterCleanup(lead, trigger) {
   );
 
   console.log(
-    `TESTER_CLEANUP_SCHEDULED trigger=${trigger} email=${email} lead_id=${leadId} ` +
+    `TESTER_CLEANUP_SCHEDULED trigger=${trigger} email_hash=${shortHash(email)} lead_hash=${shortHash(leadId)} ` +
       `schedule_name=${scheduleName} fire_at=${scheduledAt.toISOString()} ` +
       `delay_minutes=${TESTER_PURGE_DELAY_MINUTES} already_scheduled=${String(alreadyScheduled)}`
   );
@@ -197,7 +210,7 @@ async function deleteScheduleIfPresent(scheduleName) {
   } catch (error) {
     const code = error?.name || error?.Code || error?.code || "";
     if (!["ResourceNotFoundException", "ValidationException"].includes(code)) {
-      console.log(`TESTER_PURGE_WARN schedule_delete_failed name=${scheduleName} error=${code || error.message}`);
+      console.log(`TESTER_PURGE_WARN schedule_delete_failed error=${code || error?.name || "Error"}`);
     }
     return false;
   }
@@ -223,7 +236,7 @@ async function deleteS3Prefix(bucket, prefix) {
         })
       );
     } catch (error) {
-      console.log(`TESTER_PURGE_WARN s3_list_failed bucket=${bucket} prefix=${prefix} error=${error.name || error.message}`);
+      console.log(`TESTER_PURGE_WARN s3_list_failed bucket=${bucket} prefix_hash=${shortHash(prefix)} error=${error.name || "Error"}`);
       break;
     }
 
@@ -245,7 +258,7 @@ async function deleteS3Prefix(bucket, prefix) {
         );
         deleted += (deleteResponse.Deleted || []).length;
       } catch (error) {
-        console.log(`TESTER_PURGE_WARN s3_delete_failed bucket=${bucket} prefix=${prefix} error=${error.name || error.message}`);
+        console.log(`TESTER_PURGE_WARN s3_delete_failed bucket=${bucket} prefix_hash=${shortHash(prefix)} error=${error.name || "Error"}`);
       }
     }
 
@@ -274,7 +287,7 @@ async function removeSesSuppressionIfPresent(email) {
     if (["NotFoundException", "BadRequestException"].includes(code)) {
       return false;
     }
-    console.log(`TESTER_PURGE_WARN ses_get_suppression_failed email=${email} error=${code || error.message}`);
+    console.log(`TESTER_PURGE_WARN ses_get_suppression_failed email_hash=${shortHash(email)} error=${code || error?.name || "Error"}`);
     return false;
   }
 
@@ -287,7 +300,7 @@ async function removeSesSuppressionIfPresent(email) {
     return true;
   } catch (error) {
     const code = error?.name || error?.Code || error?.code || "";
-    console.log(`TESTER_PURGE_WARN ses_delete_suppression_failed email=${email} error=${code || error.message}`);
+    console.log(`TESTER_PURGE_WARN ses_delete_suppression_failed email_hash=${shortHash(email)} error=${code || error?.name || "Error"}`);
     return false;
   }
 }
@@ -313,14 +326,14 @@ async function purgeTesterLead(lead, trigger) {
       );
       deletedRecord = true;
     } catch (error) {
-      console.log(`TESTER_PURGE_WARN delete_record_failed lead_id=${leadId} error=${error.message}`);
+      console.log(`TESTER_PURGE_WARN delete_record_failed lead_hash=${shortHash(leadId)} error=${error?.name || "Error"}`);
     }
   }
 
   const sesSuppressionRemoved = await removeSesSuppressionIfPresent(email);
 
   console.log(
-    `TESTER_PURGE_ON_FUNNEL_COMPLETE trigger=${trigger} email=${email} lead_id=${leadId} ` +
+    `TESTER_PURGE_ON_FUNNEL_COMPLETE trigger=${trigger} email_hash=${shortHash(email)} lead_hash=${shortHash(leadId)} ` +
       `deleted_record=${String(deletedRecord)} deleted_schedules=${deletedSchedules} ` +
       `deleted_photos=${deletedPhotos} ses_suppression_removed=${String(sesSuppressionRemoved)}`
   );
@@ -386,12 +399,11 @@ exports.handler = async (event) => {
       welcomeLink,
     });
 
-    console.log("SES sender config", {
-      from: FROM,
-      reply_to: REPLY_TO,
-      bcc: BCC,
-      lead_id,
-      recipient_email: lead.email,
+    console.log("Welcome email send", {
+      lead_hash: shortHash(lead_id),
+      recipient_hash: shortHash(lead.email),
+      to_count: 1,
+      bcc_count: BCC ? 1 : 0,
     });
 
     await ses.send(
@@ -449,7 +461,7 @@ exports.handler = async (event) => {
     if (error instanceof ConditionalCheckFailedException || error?.name === "ConditionalCheckFailedException") {
       return response(200, { already_gone: true, lead_id });
     }
-    console.error("send-welcome-email error", error);
+    console.error("send-welcome-email error", errorSummary(error));
     return response(500, { error: "Internal", detail: error.message });
   }
 };

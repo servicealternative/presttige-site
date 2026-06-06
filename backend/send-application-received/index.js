@@ -1,6 +1,7 @@
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -14,6 +15,18 @@ const SES_CONFIGURATION_SET = process.env.SES_CONFIGURATION_SET || "presttige-de
 
 function formatSource(address) {
   return `Presttige <${address}>`;
+}
+
+function shortHash(value) {
+  const text = String(value || "").trim().toLowerCase();
+  return text ? crypto.createHash("sha256").update(text).digest("hex").slice(0, 12) : "";
+}
+
+function errorSummary(error) {
+  return {
+    name: error?.name || "Error",
+    code: error?.Code || error?.code || null,
+  };
 }
 
 function loadTemplate() {
@@ -74,7 +87,7 @@ exports.handler = async (event) => {
     const backfillGuardReason = getBackfillResendIneligibilityReason(lead);
     if (backfillGuardReason) {
       console.log("Backfill resend blocked for application received email", {
-        lead_id,
+        lead_hash: shortHash(lead_id),
         review_status: lead.review_status || null,
         reason: backfillGuardReason,
       });
@@ -86,7 +99,7 @@ exports.handler = async (event) => {
     }
 
     if (lead.application_received_email_sent_at && !force_resend) {
-      console.log("Already sent for", lead_id);
+      console.log("Application received email already sent", { lead_hash: shortHash(lead_id) });
       return resp(200, { already_sent: true });
     }
 
@@ -94,11 +107,9 @@ exports.handler = async (event) => {
     const html = fill(loadTemplate(), { name: displayName });
     const text = buildPlainText(displayName);
 
-    console.log("SES sender config", {
-      from: FROM,
-      reply_to: REPLY_TO,
-      lead_id,
-      recipient_email: lead.email,
+    console.log("Application received email send", {
+      lead_hash: shortHash(lead_id),
+      recipient_hash: shortHash(lead.email),
       force_resend: Boolean(force_resend),
     });
 
@@ -129,7 +140,7 @@ exports.handler = async (event) => {
 
     return resp(200, { sent: true, to: lead.email });
   } catch (err) {
-    console.error("send-application-received error", err);
+    console.error("send-application-received error", errorSummary(err));
     return resp(500, { error: "Internal", detail: err.message });
   }
 };

@@ -3,6 +3,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { SchedulerClient, CreateScheduleCommand } = require("@aws-sdk/client-scheduler");
 const { ConditionalCheckFailedException } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -42,6 +43,18 @@ function fill(template, vars) {
 
 function formatSource(address) {
   return `Presttige <${address}>`;
+}
+
+function shortHash(value) {
+  const text = String(value || "").trim().toLowerCase();
+  return text ? crypto.createHash("sha256").update(text).digest("hex").slice(0, 12) : "";
+}
+
+function errorSummary(error) {
+  return {
+    name: error?.name || "Error",
+    code: error?.Code || error?.code || null,
+  };
 }
 
 function sanitizeHeader(value) {
@@ -189,7 +202,7 @@ async function scheduleTesterCleanup(lead, trigger) {
   );
 
   console.log(
-    `TESTER_CLEANUP_SCHEDULED trigger=${trigger} email=${email} lead_id=${leadId} ` +
+    `TESTER_CLEANUP_SCHEDULED trigger=${trigger} email_hash=${shortHash(email)} lead_hash=${shortHash(leadId)} ` +
       `schedule_name=${scheduleName} fire_at=${scheduledAt.toISOString()} ` +
       `delay_minutes=${TESTER_PURGE_DELAY_MINUTES} already_scheduled=${String(alreadyScheduled)}`
   );
@@ -247,11 +260,10 @@ exports.handler = async (event) => {
     });
     const text = buildSubscriberPlainText(displayName, tierSelectUrl);
 
-    console.log("SES subscriber sender config", {
-      from: FROM,
-      reply_to: REPLY_TO,
-      lead_id,
-      recipient_email: lead.email,
+    console.log("Subscriber welcome email send", {
+      lead_hash: shortHash(lead_id),
+      recipient_hash: shortHash(lead.email),
+      destination_count: 1,
     });
 
     await ses.send(
@@ -300,7 +312,7 @@ exports.handler = async (event) => {
     if (error instanceof ConditionalCheckFailedException || error?.name === "ConditionalCheckFailedException") {
       return response(200, { already_gone: true, lead_id });
     }
-    console.error("send-subscriber-welcome-email error", error);
+    console.error("send-subscriber-welcome-email error", errorSummary(error));
     return response(500, { error: "Internal", detail: error.message });
   }
 };

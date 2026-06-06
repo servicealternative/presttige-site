@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import boto3
+import hashlib
 from pathlib import Path
 from datetime import datetime
 from urllib.parse import parse_qs
@@ -26,25 +27,35 @@ BASE_URL = "https://presttige.net"
 TOKEN_SECRET = os.environ.get("TOKEN_SECRET", "").strip()
 
 
+def short_hash(value):
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+
+
+def log_verify(status, **metadata):
+    safe_metadata = {key: value for key, value in metadata.items() if value not in (None, "")}
+    print(json.dumps({"event": "verify_email", "status": status, **safe_metadata}, sort_keys=True))
+
+
 def lambda_handler(event, context):
     try:
-        print("VERIFY EMAIL EVENT:", json.dumps(event))
-
         params = event.get("queryStringParameters") or {}
         token = params.get("token")
 
-        # Fallback extra para casos em que o token não venha em queryStringParameters
+        # Some integrations pass the token through rawQueryString instead.
         if not token:
             raw_query = event.get("rawQueryString") or ""
             parsed = parse_qs(raw_query)
             token_list = parsed.get("token") or []
             token = token_list[0] if token_list else None
 
-        print("VERIFY EMAIL TOKEN:", token)
-
         if not token:
+            log_verify("missing_token")
             return redirect(f"{BASE_URL}/check-email.html?error=missing_token")
 
+        token_hash = short_hash(token)
         tester_email = get_tester_email_for_verification_token(token, TOKEN_SECRET)
         if tester_email:
             lead_id = get_tester_lead_id(tester_email)
@@ -57,6 +68,7 @@ def lambda_handler(event, context):
                     "immediate_processing": True,
                 },
             )
+            log_verify("tester_verified", token_hash=token_hash, lead_hash=short_hash(lead_id))
             return redirect(f"{BASE_URL}/access-form.html?lead_id={lead_id}")
 
         response = table.scan(
@@ -64,24 +76,23 @@ def lambda_handler(event, context):
             ConsistentRead=True
         )
 
-        print("VERIFY EMAIL SCAN RESPONSE:", json.dumps(response, default=str))
-
         items = response.get("Items", [])
 
         if not items:
+            log_verify("invalid_token", token_hash=token_hash)
             return redirect(f"{BASE_URL}/check-email.html?error=invalid_token")
 
         lead = items[0]
         lead_id = lead.get("lead_id")
         current_email_status = lead.get("email_status", "pending")
 
-        print("VERIFY EMAIL LEAD ID:", lead_id)
-        print("VERIFY EMAIL CURRENT STATUS:", current_email_status)
-
         if not lead_id:
+            log_verify("invalid_lead", token_hash=token_hash)
             return redirect(f"{BASE_URL}/check-email.html?error=invalid_lead")
 
-        # Se já estiver verificado, segue diretamente para o form
+        lead_hash = short_hash(lead_id)
+
+        # If already verified, continue directly to the form.
         if current_email_status != "verified":
             table.update_item(
                 Key={"lead_id": lead_id},
@@ -91,12 +102,14 @@ def lambda_handler(event, context):
                     ":u": datetime.utcnow().isoformat()
                 }
             )
-            print("VERIFY EMAIL UPDATED SUCCESSFULLY")
+            log_verify("verified", token_hash=token_hash, lead_hash=lead_hash)
+        else:
+            log_verify("already_verified", token_hash=token_hash, lead_hash=lead_hash)
 
         return redirect(f"{BASE_URL}/access-form.html?lead_id={lead_id}")
 
     except Exception as e:
-        print("VERIFY EMAIL ERROR:", str(e))
+        log_verify("server_error", error_type=type(e).__name__)
         return redirect(f"{BASE_URL}/check-email.html?error=server_error")
 
 
