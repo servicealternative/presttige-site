@@ -39,6 +39,7 @@ sesv2 = boto3.client("sesv2", region_name="us-east-1")
 TOKEN_SECRET = os.environ.get("TOKEN_SECRET", "")
 FROM_EMAIL = "committee@presttige.net"
 REPLY_TO_EMAIL = "committee@presttige.net"
+SES_CONFIGURATION_SET = os.environ.get("SES_CONFIGURATION_SET", "presttige-deliverability-v1")
 VERIFY_BASE_URL = "https://presttige.net/verify-email.html"
 ORIGINALS_BUCKET = os.environ.get("PHOTOS_ORIGINALS_BUCKET", "presttige-applicant-photos")
 THUMBNAILS_BUCKET = os.environ.get("PHOTOS_THUMBNAILS_BUCKET", "presttige-applicant-photos-thumbnails")
@@ -62,6 +63,10 @@ def response(status_code, body):
         "headers": CORS_HEADERS,
         "body": json.dumps(body)
     }
+
+
+def format_source(address):
+    return f"Presttige <{address}>"
 
 
 def generate_lead_id():
@@ -422,7 +427,8 @@ def lambda_handler(event, context):
         }))
 
         ses_response = ses.send_email(
-            Source=FROM_EMAIL,
+            Source=format_source(FROM_EMAIL),
+            ConfigurationSetName=SES_CONFIGURATION_SET,
             ReplyToAddresses=[REPLY_TO_EMAIL],
             Destination={
                 "ToAddresses": [email],

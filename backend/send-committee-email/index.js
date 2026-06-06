@@ -17,6 +17,7 @@ const REVIEW_BASE_URL = process.env.REVIEW_BASE_URL || "https://presttige.net/re
 const FROM_ADDRESS = "office@presttige.net";
 const REPLY_TO = "info@presttige.net";
 const TO_ADDRESS = "committee@presttige.net";
+const SES_CONFIGURATION_SET = process.env.SES_CONFIGURATION_SET || "presttige-deliverability-v1";
 const { getBackfillResendIneligibilityReason } = loadBackfillFilters();
 
 let cachedSecrets = null;
@@ -64,6 +65,10 @@ function fillTemplate(template, variables) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
     Object.prototype.hasOwnProperty.call(variables, key) ? String(variables[key]) : ""
   );
+}
+
+function formatSource(address) {
+  return `Presttige <${address}>`;
 }
 
 function loadBackfillFilters() {
@@ -173,6 +178,41 @@ function buildBodyVariables(lead, token, readyPhotos, privateKey) {
   };
 }
 
+function buildPlainText(lead, token) {
+  const reviewUrl = `${REVIEW_BASE_URL}/${token}`;
+  const displayName = lead.name || "Anonymous";
+  const fields = [
+    ["Name", displayName],
+    ["Email", lead.email],
+    ["Age", lead.age],
+    ["Country", lead.country],
+    ["City", lead.city],
+    ["Occupation", lead.occupation],
+    ["Company", lead.company],
+    ["Instagram", lead.instagram],
+    ["LinkedIn", lead.linkedin],
+    ["Website", lead.website],
+    ["Short introduction", lead.short_introduction || lead.bio],
+    ["Why Presttige", lead.why_presttige || lead.why],
+  ]
+    .filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== "")
+    .map(([label, value]) => `${label}: ${value}`)
+    .join("\n");
+
+  return [
+    `New application, ${displayName}`,
+    "",
+    "Committee review requested.",
+    "",
+    fields,
+    "",
+    `Approve: ${reviewUrl}?action=approve`,
+    `Standby: ${reviewUrl}?action=standby`,
+    `Reject: ${reviewUrl}?action=reject`,
+    `View: ${reviewUrl}`,
+  ].join("\n");
+}
+
 function assertNoReviewTokenExpiryWrite(updateExpression) {
   if (String(updateExpression || "").includes("review_token_expires_at")) {
     throw new Error("review tokens must not write review_token_expires_at");
@@ -232,6 +272,7 @@ exports.handler = async (event) => {
     const attemptId = crypto.randomBytes(8).toString("hex");
     const token = generateReviewToken(leadId, attemptId, secrets.tokenSecret);
     const html = fillTemplate(loadTemplate(), buildBodyVariables(lead, token, readyPhotos, secrets.cfPrivateKey));
+    const text = buildPlainText(lead, token);
 
     console.log("SES sender config", {
       from: FROM_ADDRESS,
@@ -242,12 +283,14 @@ exports.handler = async (event) => {
 
     await ses.send(
       new SendEmailCommand({
-        Source: FROM_ADDRESS,
+        Source: formatSource(FROM_ADDRESS),
+        ConfigurationSetName: SES_CONFIGURATION_SET,
         ReplyToAddresses: [REPLY_TO],
         Destination: { ToAddresses: [TO_ADDRESS] },
         Message: {
           Subject: { Data: `New application — ${lead.name || "Anonymous"}`, Charset: "UTF-8" },
           Body: {
+            Text: { Data: text, Charset: "UTF-8" },
             Html: { Data: html, Charset: "UTF-8" },
           },
         },

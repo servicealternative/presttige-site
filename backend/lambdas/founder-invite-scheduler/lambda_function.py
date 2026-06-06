@@ -13,6 +13,7 @@ from botocore.exceptions import ClientError
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 TABLE_NAME = os.environ.get("TABLE_NAME", "presttige-db")
 FOUNDER_EMAIL_FROM = os.environ.get("FOUNDER_EMAIL_FROM", "founders@presttige.net")
+SES_CONFIGURATION_SET = os.environ.get("SES_CONFIGURATION_SET", "presttige-deliverability-v1")
 CONFIG_PARAMETER_NAMES = {
     "initial_delay_hours": "/presttige/founder-invite/initial-delay-hours",
     "cycle": "/presttige/founder-invite/cycle",
@@ -24,6 +25,10 @@ dynamodb = boto3.resource("dynamodb", region_name=REGION)
 table = dynamodb.Table(TABLE_NAME)
 ssm = boto3.client("ssm", region_name=REGION)
 ses = boto3.client("ses", region_name=REGION)
+
+
+def format_source(address):
+    return f"Presttige <{address}>"
 
 
 def lambda_handler(event, context):
@@ -281,7 +286,8 @@ def send_founder_invitation_ready_email(founder):
     text_body = founder_invitation_ready_text(first_name)
     html_body = founder_invitation_ready_html(first_name)
     ses.send_email(
-        Source=FOUNDER_EMAIL_FROM,
+        Source=format_source(FOUNDER_EMAIL_FROM),
+        ConfigurationSetName=SES_CONFIGURATION_SET,
         ReplyToAddresses=[FOUNDER_EMAIL_FROM],
         Destination={"ToAddresses": [recipient]},
         Message={
@@ -301,7 +307,7 @@ def founder_invitation_ready_text(first_name):
             "Your Founder invitation for this cycle is ready.",
             "You may put forward one person when the Founder invitation path is opened for this cycle. One invitation is active at a time, and unused invitations do not stack.",
             "There is nothing else you need to do in this message. We will keep the process quiet and personal.",
-            "With our thanks,\nThe Presttige Committee",
+            "With our thanks,\nThe Founders' House",
         ]
     )
 
@@ -312,7 +318,7 @@ def founder_invitation_ready_html(first_name):
         "Your Founder invitation for this cycle is ready.",
         "You may put forward one person when the Founder invitation path is opened for this cycle. One invitation is active at a time, and unused invitations do not stack.",
         "There is nothing else you need to do in this message. We will keep the process quiet and personal.",
-        "With our thanks,<br>The Presttige Committee",
+        "With our thanks,<br>The Founders' House",
     ]
     return founder_email_shell(
         subject="Your Founder invitation is ready",

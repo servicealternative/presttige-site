@@ -8,3 +8,4 @@ trap 'rm -rf lib' EXIT
 rm -f dist.zip
 zip -r dist.zip index.js application-received-email.html package.json lib
 echo "SHA256: $(shasum -a 256 dist.zip | awk '{print $1}' | xxd -r -p | base64)"
+echo "Package created at $(pwd)/dist.zip"

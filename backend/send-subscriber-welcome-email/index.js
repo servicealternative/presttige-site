@@ -1,4 +1,4 @@
-const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
+const { SESClient, SendRawEmailCommand } = require("@aws-sdk/client-ses");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { SchedulerClient, CreateScheduleCommand } = require("@aws-sdk/client-scheduler");
 const { ConditionalCheckFailedException } = require("@aws-sdk/client-dynamodb");
@@ -13,6 +13,9 @@ const scheduler = new SchedulerClient({ region: "us-east-1" });
 const TABLE_NAME = "presttige-db";
 const FROM = "committee@presttige.net";
 const REPLY_TO = "info@presttige.net";
+const SES_CONFIGURATION_SET = process.env.SES_CONFIGURATION_SET || "presttige-deliverability-v1";
+const UPDATES_UNSUBSCRIBE_MAILTO =
+  "mailto:info@presttige.net?subject=Unsubscribe%20from%20Presttige%20updates";
 const SCHEDULER_GROUP_NAME = process.env.TESTER_PURGE_SCHEDULER_GROUP || "default";
 const TESTER_PURGE_DELAY_MINUTES = Math.max(1, Number(process.env.TESTER_PURGE_DELAY_MINUTES || "5"));
 const TESTER_CLEANUP_FUNCTION_ARN =
@@ -34,6 +37,85 @@ function loadTemplate() {
 function fill(template, vars) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
     vars[key] !== undefined ? String(vars[key]) : ""
+  );
+}
+
+function formatSource(address) {
+  return `Presttige <${address}>`;
+}
+
+function sanitizeHeader(value) {
+  return String(value || "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function encodeHeader(value) {
+  const clean = sanitizeHeader(value);
+  return /^[\x00-\x7F]*$/.test(clean)
+    ? clean
+    : `=?UTF-8?B?${Buffer.from(clean, "utf8").toString("base64")}?=`;
+}
+
+function base64Mime(value) {
+  return Buffer.from(String(value || ""), "utf8")
+    .toString("base64")
+    .replace(/.{1,76}/g, "$&\r\n")
+    .trim();
+}
+
+function buildSubscriberPlainText(displayName, tierSelectUrl) {
+  return [
+    `Dear ${displayName || "Member"},`,
+    "",
+    "You are now a Subscriber to Presttige, approved by our committee, on our communications list, and free to upgrade whenever you choose.",
+    "",
+    "You'll hear from us about Patron seat availability, new add-on services, and major Presttige milestones.",
+    "",
+    "When you're ready to step into the network as a member, three tiers are open to you:",
+    "",
+    "- Club, $22.22 / month, $99.99 / 6 months, or $144.44 / year",
+    "- Premier, $55.55 / month, $277.77 / 6 months, or $388.88 / year",
+    "- Patron, $999 lifetime, until 31 December 2026 or while Patron remains available",
+    "",
+    "Until then, welcome to the conversation.",
+    "",
+    "The Presttige Committee",
+    "",
+    `Return to tier selection: ${tierSelectUrl}`,
+    "",
+    "https://presttige.net",
+  ].join("\n");
+}
+
+function buildRawMultipartEmail({ to, subject, text, html, unsubscribeMailto }) {
+  const boundary = `presttige-alt-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const headers = [
+    `From: ${formatSource(FROM)}`,
+    `Reply-To: ${REPLY_TO}`,
+    `To: ${sanitizeHeader(to)}`,
+    `Subject: ${encodeHeader(subject)}`,
+    "MIME-Version: 1.0",
+    `List-Unsubscribe: <${unsubscribeMailto}>`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+  ];
+
+  return Buffer.from(
+    [
+      headers.join("\r\n"),
+      "",
+      `--${boundary}`,
+      'Content-Type: text/plain; charset="UTF-8"',
+      "Content-Transfer-Encoding: base64",
+      "",
+      base64Mime(text),
+      `--${boundary}`,
+      'Content-Type: text/html; charset="UTF-8"',
+      "Content-Transfer-Encoding: base64",
+      "",
+      base64Mime(html),
+      `--${boundary}--`,
+      "",
+    ].join("\r\n"),
+    "utf8"
   );
 }
 
@@ -163,6 +245,7 @@ exports.handler = async (event) => {
       tier_select_url: tierSelectUrl,
       name: displayName,
     });
+    const text = buildSubscriberPlainText(displayName, tierSelectUrl);
 
     console.log("SES subscriber sender config", {
       from: FROM,
@@ -172,23 +255,18 @@ exports.handler = async (event) => {
     });
 
     await ses.send(
-      new SendEmailCommand({
-        Source: FROM,
-        ReplyToAddresses: [REPLY_TO],
-        Destination: {
-          ToAddresses: [lead.email],
-        },
-        Message: {
-          Subject: {
-            Data: subject,
-            Charset: "UTF-8",
-          },
-          Body: {
-            Html: {
-              Data: html,
-              Charset: "UTF-8",
-            },
-          },
+      new SendRawEmailCommand({
+        Source: formatSource(FROM),
+        Destinations: [lead.email],
+        ConfigurationSetName: SES_CONFIGURATION_SET,
+        RawMessage: {
+          Data: buildRawMultipartEmail({
+            to: lead.email,
+            subject,
+            text,
+            html,
+            unsubscribeMailto: UPDATES_UNSUBSCRIBE_MAILTO,
+          }),
         },
       })
     );

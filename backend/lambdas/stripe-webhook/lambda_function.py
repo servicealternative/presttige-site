@@ -1,4 +1,5 @@
 import base64
+import html
 import json
 import os
 import traceback
@@ -48,6 +49,7 @@ OFFICE_NOTIFICATION_FROM = os.environ.get(
 )
 OFFICE_NOTIFICATION_TO = os.environ.get("OFFICE_NOTIFICATION_TO", "office@presttige.net")
 FOUNDER_WELCOME_EMAIL_FROM = "founders@presttige.net"
+SES_CONFIGURATION_SET = os.environ.get("SES_CONFIGURATION_SET", "presttige-deliverability-v1")
 
 TESTER_WHITELIST = {
     "antoniompereira@me.com",
@@ -127,6 +129,40 @@ scheduler = boto3.client("scheduler", region_name=REGION)
 ses = boto3.client("ses", region_name=REGION)
 
 _cached_webhook_secret = None
+
+
+def format_source(address):
+    return f"Presttige <{address}>"
+
+
+def simple_email_html(subject, paragraphs):
+    paragraph_html = "\n".join(
+        f'<p style="margin:0 0 20px 0;font-family:Georgia,serif;font-size:16px;line-height:26px;color:#0A0A0A;">{paragraph}</p>'
+        for paragraph in paragraphs
+    )
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{html.escape(subject)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F5F2ED;color:#0A0A0A;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F2ED;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background-color:#FBF9F4;">
+          <tr>
+            <td style="padding:40px 48px;">
+              <h1 style="margin:0 0 28px 0;font-family:Georgia,serif;font-weight:400;font-size:32px;line-height:40px;color:#0A0A0A;">{html.escape(subject)}</h1>
+              {paragraph_html}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
 
 
 def now_iso():
@@ -828,16 +864,31 @@ def send_founder_welcome_email_if_needed(lead):
                 "someone to Presttige, a privilege reserved for Founders."
             ),
             "We are honoured to have you with us.",
-            "The Presttige Committee",
+            "The Founders' House",
         ]
     )
+    html_body = simple_email_html(
+        "Welcome to Presttige",
+        [
+            f"Dear {html.escape(member_name)},",
+            "Your membership is confirmed. Welcome to Presttige.",
+            "You now belong to a small, deliberately limited circle of Founding Members, a distinction that remains yours for life.",
+            "In the days ahead you will receive your first invitation to introduce someone to Presttige, a privilege reserved for Founders.",
+            "We are honoured to have you with us.",
+            "The Founders' House",
+        ],
+    )
     ses_response = ses.send_email(
-        Source=FOUNDER_WELCOME_EMAIL_FROM,
+        Source=format_source(FOUNDER_WELCOME_EMAIL_FROM),
+        ConfigurationSetName=SES_CONFIGURATION_SET,
         ReplyToAddresses=[FOUNDER_WELCOME_EMAIL_FROM],
         Destination={"ToAddresses": [recipient]},
         Message={
             "Subject": {"Data": "Welcome to Presttige", "Charset": "UTF-8"},
-            "Body": {"Text": {"Data": text_body, "Charset": "UTF-8"}},
+            "Body": {
+                "Text": {"Data": text_body, "Charset": "UTF-8"},
+                "Html": {"Data": html_body, "Charset": "UTF-8"},
+            },
         },
     )
     sent_at = now_iso()
@@ -886,12 +937,20 @@ def notify_office_dispute(lead, context, dispute):
             "The lead has been marked under_dispute. Do not change tier state manually without review.",
         ]
     )
+    html_body = simple_email_html(
+        subject,
+        [html.escape(line) if line else "&nbsp;" for line in body.splitlines()],
+    )
     ses.send_email(
-        Source=OFFICE_NOTIFICATION_FROM,
+        Source=format_source(OFFICE_NOTIFICATION_FROM),
+        ConfigurationSetName=SES_CONFIGURATION_SET,
         Destination={"ToAddresses": [OFFICE_NOTIFICATION_TO]},
         Message={
             "Subject": {"Data": subject, "Charset": "UTF-8"},
-            "Body": {"Text": {"Data": body, "Charset": "UTF-8"}},
+            "Body": {
+                "Text": {"Data": body, "Charset": "UTF-8"},
+                "Html": {"Data": html_body, "Charset": "UTF-8"},
+            },
         },
     )
     return {"notified": True, "to": OFFICE_NOTIFICATION_TO}

@@ -18,6 +18,7 @@ const TABLE_NAME = "presttige-db";
 const FROM = "private@presttige.net";
 const REPLY_TO = "info@presttige.net";
 const BCC = "committee@presttige.net";
+const SES_CONFIGURATION_SET = process.env.SES_CONFIGURATION_SET || "presttige-deliverability-v1";
 const ORIGINALS_BUCKET = process.env.PHOTOS_ORIGINALS_BUCKET || "presttige-applicant-photos";
 const THUMBNAILS_BUCKET = process.env.PHOTOS_THUMBNAILS_BUCKET || "presttige-applicant-photos-thumbnails";
 const SCHEDULER_GROUP_NAME = process.env.TESTER_PURGE_SCHEDULER_GROUP || "default";
@@ -42,6 +43,27 @@ function fill(template, vars) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
     vars[key] !== undefined ? String(vars[key]) : ""
   );
+}
+
+function formatSource(address) {
+  return `Presttige <${address}>`;
+}
+
+function buildPlainText({ name, bodyCopy, welcomeLink }) {
+  return [
+    `Dear ${name || "Member"},`,
+    "",
+    "Welcome to Presttige. Your membership is active.",
+    "",
+    bodyCopy,
+    "",
+    `Enter Presttige: ${welcomeLink}`,
+    "",
+    "This link is private. If you did not expect this email, please reply to info@presttige.net immediately.",
+    "",
+    "Member Services",
+    "PRESTTIGE PRIVATE OFFICE",
+  ].join("\n");
 }
 
 function tierLabel(tier) {
@@ -347,15 +369,21 @@ exports.handler = async (event) => {
     const welcomeLink = `https://presttige.net/welcome/${lead.magic_token}`;
     const selectedTier = lead.selected_tier || "club";
     const selectedTierLabel = tierLabel(selectedTier);
+    const bodyCopy = buildWelcomeBodyCopy(selectedTierLabel, selectedTier);
     const html = fill(loadTemplate(), {
       subject: "Welcome to Presttige",
       preheader: "Your membership is active. Enter Presttige.",
       eyebrow: "MEMBERSHIP ACTIVATED",
       headline: `Welcome to Presttige, ${lead.name || "Member"}`,
-      body_copy: buildWelcomeBodyCopy(selectedTierLabel, selectedTier),
+      body_copy: bodyCopy,
       welcome_url: welcomeLink,
       disclaimer:
         "This link is private. If you did not expect this email, please reply to info@presttige.net immediately.",
+    });
+    const text = buildPlainText({
+      name: lead.name,
+      bodyCopy,
+      welcomeLink,
     });
 
     console.log("SES sender config", {
@@ -368,7 +396,8 @@ exports.handler = async (event) => {
 
     await ses.send(
       new SendEmailCommand({
-        Source: FROM,
+        Source: formatSource(FROM),
+        ConfigurationSetName: SES_CONFIGURATION_SET,
         ReplyToAddresses: [REPLY_TO],
         Destination: {
           ToAddresses: [lead.email],
@@ -380,6 +409,10 @@ exports.handler = async (event) => {
             Charset: "UTF-8",
           },
           Body: {
+            Text: {
+              Data: text,
+              Charset: "UTF-8",
+            },
             Html: {
               Data: html,
               Charset: "UTF-8",

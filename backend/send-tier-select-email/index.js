@@ -10,6 +10,11 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1"
 const TABLE_NAME = "presttige-db";
 const FROM = "committee@presttige.net";
 const REPLY_TO = "committee@presttige.net";
+const SES_CONFIGURATION_SET = process.env.SES_CONFIGURATION_SET || "presttige-deliverability-v1";
+
+function formatSource(address) {
+  return `Presttige <${address}>`;
+}
 
 function loadTemplate() {
   return fs.readFileSync(path.join(__dirname, "tier-select-email.html"), "utf8");
@@ -19,6 +24,23 @@ function fill(template, vars) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
     vars[key] !== undefined ? String(vars[key]) : ""
   );
+}
+
+function buildPlainText({ name, bodyCopy, tierSelectUrl, disclaimer }) {
+  return [
+    `Dear ${name || "Presttige Member"},`,
+    "",
+    "Welcome to Presttige. Your application has been approved.",
+    "",
+    bodyCopy,
+    "",
+    `Choose your tier: ${tierSelectUrl}`,
+    "",
+    disclaimer,
+    "",
+    "Member Services",
+    "PRESTTIGE PRIVATE OFFICE",
+  ].join("\n");
 }
 
 exports.handler = async (event) => {
@@ -53,16 +75,24 @@ exports.handler = async (event) => {
     }
 
     const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}?lead_id=${encodeURIComponent(lead.lead_id)}`;
+    const bodyCopy =
+      "Your application has been approved by the Presttige Committee. To activate your membership, please choose your preferred tier:";
+    const disclaimer =
+      "This invitation is private and time-limited. The link above expires in 7 days. If you have questions, reply to this email.";
     const html = fill(loadTemplate(), {
       subject: "Welcome to Presttige — Choose your membership",
       preheader: "Your application has been approved. Choose your preferred tier to continue.",
       eyebrow: "WELCOME — APPLICATION APPROVED",
       headline: lead.name || "Presttige Member",
-      body_copy:
-        "Your application has been approved by the Presttige Committee. To activate your membership, please choose your preferred tier:",
+      body_copy: bodyCopy,
       tier_select_url: tierSelectUrl,
-      disclaimer:
-        "This invitation is private and time-limited. The link above expires in 7 days. If you have questions, reply to this email.",
+      disclaimer,
+    });
+    const text = buildPlainText({
+      name: lead.name,
+      bodyCopy,
+      tierSelectUrl,
+      disclaimer,
     });
 
     console.log("SES sender config", {
@@ -77,7 +107,8 @@ exports.handler = async (event) => {
 
     const sesResponse = await ses.send(
       new SendEmailCommand({
-        Source: FROM,
+        Source: formatSource(FROM),
+        ConfigurationSetName: SES_CONFIGURATION_SET,
         ReplyToAddresses: [REPLY_TO],
         Destination: {
           ToAddresses: [lead.email],
@@ -88,6 +119,10 @@ exports.handler = async (event) => {
             Charset: "UTF-8",
           },
           Body: {
+            Text: {
+              Data: text,
+              Charset: "UTF-8",
+            },
             Html: {
               Data: html,
               Charset: "UTF-8",

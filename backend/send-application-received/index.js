@@ -10,6 +10,11 @@ const { getBackfillResendIneligibilityReason } = loadBackfillFilters();
 
 const FROM = "committee@presttige.net";
 const REPLY_TO = "committee@presttige.net";
+const SES_CONFIGURATION_SET = process.env.SES_CONFIGURATION_SET || "presttige-deliverability-v1";
+
+function formatSource(address) {
+  return `Presttige <${address}>`;
+}
 
 function loadTemplate() {
   return fs.readFileSync(path.join(__dirname, "application-received-email.html"), "utf8");
@@ -19,6 +24,23 @@ function fill(template, vars) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
     vars[key] !== undefined ? String(vars[key]) : ""
   );
+}
+
+function buildPlainText(name) {
+  return [
+    `Dear ${name || "there"},`,
+    "",
+    "Your application is with us.",
+    "",
+    "Thank you for submitting your application to Presttige. Our committee will review your profile with the attention it deserves, and you will hear from us within seven to fourteen days. No further action is required from you at this stage.",
+    "",
+    "We appreciate your interest in joining our private community.",
+    "",
+    "Member Services",
+    "PRESTTIGE PRIVATE OFFICE",
+    "",
+    "https://presttige.net",
+  ].join("\n");
 }
 
 function loadBackfillFilters() {
@@ -68,9 +90,9 @@ exports.handler = async (event) => {
       return resp(200, { already_sent: true });
     }
 
-    const html = fill(loadTemplate(), {
-      name: lead.name || "there",
-    });
+    const displayName = lead.name || "there";
+    const html = fill(loadTemplate(), { name: displayName });
+    const text = buildPlainText(displayName);
 
     console.log("SES sender config", {
       from: FROM,
@@ -82,12 +104,16 @@ exports.handler = async (event) => {
 
     await ses.send(
       new SendEmailCommand({
-        Source: FROM,
+        Source: formatSource(FROM),
+        ConfigurationSetName: SES_CONFIGURATION_SET,
         ReplyToAddresses: [REPLY_TO],
         Destination: { ToAddresses: [lead.email] },
         Message: {
           Subject: { Data: "Your application is with us", Charset: "UTF-8" },
-          Body: { Html: { Data: html, Charset: "UTF-8" } },
+          Body: {
+            Text: { Data: text, Charset: "UTF-8" },
+            Html: { Data: html, Charset: "UTF-8" },
+          },
         },
       })
     );

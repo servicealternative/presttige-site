@@ -39,6 +39,7 @@ FOUNDER_C2_VERIFY_URL = os.environ.get(
     "https://presttige.net/founder-c2-verify.html",
 )
 FOUNDER_EMAIL_FROM = "founders@presttige.net"
+SES_CONFIGURATION_SET = os.environ.get("SES_CONFIGURATION_SET", "presttige-deliverability-v1")
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 EMAIL_IN_TEXT_PATTERN = re.compile(r"[^\s@]+@[^\s@]+\.[^\s@]+")
 DIRECTUS_BASE_URL = os.environ.get("DIRECTUS_BASE_URL", "https://crm.ulttra.net")
@@ -71,6 +72,10 @@ table = dynamodb.Table(TABLE_NAME)
 serializer = TypeSerializer()
 _cached_founder_token_secret = None
 _cached_directus_sync_token = None
+
+
+def format_source(address):
+    return f"Presttige <{address}>"
 
 
 def lambda_handler(event, context):
@@ -644,7 +649,8 @@ def send_founder_invitee_email_if_needed(lead, invited_email, invited_name, invi
     html_body = founder_invitee_html(first_name, founder_url, invite_flow)
     text_body = founder_invitee_text(first_name, founder_url, invite_flow)
     ses_response = ses_client.send_email(
-        Source=FOUNDER_EMAIL_FROM,
+        Source=format_source(FOUNDER_EMAIL_FROM),
+        ConfigurationSetName=SES_CONFIGURATION_SET,
         ReplyToAddresses=[FOUNDER_EMAIL_FROM],
         Destination={"ToAddresses": [recipient]},
         Message={
@@ -709,7 +715,8 @@ def send_founder_inviter_email_if_needed(lead, inviter):
     html_body = founder_inviter_html(first_name)
     text_body = founder_inviter_text(first_name)
     ses_response = ses_client.send_email(
-        Source=FOUNDER_EMAIL_FROM,
+        Source=format_source(FOUNDER_EMAIL_FROM),
+        ConfigurationSetName=SES_CONFIGURATION_SET,
         ReplyToAddresses=[FOUNDER_EMAIL_FROM],
         Destination={"ToAddresses": [inviter_email]},
         Message={

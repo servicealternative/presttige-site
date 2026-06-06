@@ -17,6 +17,7 @@ REGION = os.environ.get("AWS_REGION", "us-east-1")
 TABLE_NAME = os.environ.get("TABLE_NAME", "presttige-db")
 MIRROR_TABLE_NAME = os.environ.get("MIRROR_TABLE_NAME", "presttige-eligible-inviters")
 FOUNDER_EMAIL_FROM = os.environ.get("FOUNDER_EMAIL_FROM", "committee@presttige.net")
+SES_CONFIGURATION_SET = os.environ.get("SES_CONFIGURATION_SET", "presttige-deliverability-v1")
 DIRECTUS_URL = os.environ.get("DIRECTUS_URL", "https://crm.ulttra.net").rstrip("/")
 DIRECTUS_TOKEN_PARAMETER = os.environ.get("DIRECTUS_TOKEN_PARAMETER", "/ulttra/directus/codex-token")
 TEST_DELAY_PARAMETER = os.environ.get(
@@ -42,6 +43,10 @@ mirror_table = dynamodb.Table(MIRROR_TABLE_NAME)
 ses = boto3.client("ses", region_name=REGION)
 ssm = boto3.client("ssm", region_name=REGION)
 scheduler = boto3.client("scheduler", region_name=REGION)
+
+
+def format_source(address):
+    return f"Presttige <{address}>"
 
 
 def lambda_handler(event, context):
@@ -497,16 +502,21 @@ def send_founder_welcome_email_if_needed(lead):
                 "someone to Presttige, a privilege reserved for Founders."
             ),
             "We are honoured to have you with us.",
-            "The Presttige Committee",
+            "The Founders' House",
         ]
     )
+    html_body = founder_welcome_html(member_name)
     ses_response = ses.send_email(
-        Source=FOUNDER_EMAIL_FROM,
+        Source=format_source(FOUNDER_EMAIL_FROM),
+        ConfigurationSetName=SES_CONFIGURATION_SET,
         ReplyToAddresses=[FOUNDER_EMAIL_FROM],
         Destination={"ToAddresses": [lead["email"]]},
         Message={
             "Subject": {"Data": "Welcome to Presttige", "Charset": "UTF-8"},
-            "Body": {"Text": {"Data": text_body, "Charset": "UTF-8"}},
+            "Body": {
+                "Text": {"Data": text_body, "Charset": "UTF-8"},
+                "Html": {"Data": html_body, "Charset": "UTF-8"},
+            },
         },
     )
     sent_at = now_iso()
@@ -544,7 +554,8 @@ def send_founder_invitation_ready_email(founder):
     text_body = founder_invitation_ready_text(first_name)
     html_body = founder_invitation_ready_html(first_name)
     ses.send_email(
-        Source=FOUNDER_EMAIL_FROM,
+        Source=format_source(FOUNDER_EMAIL_FROM),
+        ConfigurationSetName=SES_CONFIGURATION_SET,
         ReplyToAddresses=[FOUNDER_EMAIL_FROM],
         Destination={"ToAddresses": [founder["email"]]},
         Message={
@@ -557,6 +568,24 @@ def send_founder_invitation_ready_email(founder):
     )
 
 
+def founder_welcome_html(member_name):
+    paragraphs = [
+        f"Dear {html.escape(member_name)},",
+        "Your membership is confirmed. Welcome to Presttige.",
+        "You now belong to a small, deliberately limited circle of Founding Members, a distinction that remains yours for life.",
+        "In the days ahead you will receive your first invitation to introduce someone to Presttige, a privilege reserved for Founders.",
+        "We are honoured to have you with us.",
+        "The Founders' House",
+    ]
+    return founder_email_shell(
+        subject="Welcome to Presttige",
+        preheader="Your membership is confirmed. Welcome to Presttige.",
+        eyebrow="Founder membership",
+        headline="Welcome to Presttige",
+        paragraphs=paragraphs,
+    )
+
+
 def founder_invitation_ready_text(first_name):
     return "\n\n".join(
         [
@@ -564,7 +593,7 @@ def founder_invitation_ready_text(first_name):
             "Your Founder invitation for this cycle is ready.",
             "You may put forward one person when the Founder invitation path is opened for this cycle. One invitation is active at a time, and unused invitations do not stack.",
             "There is nothing else you need to do in this message. We will keep the process quiet and personal.",
-            "With our thanks,\nThe Presttige Committee",
+            "With our thanks,\nThe Founders' House",
         ]
     )
 
@@ -575,7 +604,7 @@ def founder_invitation_ready_html(first_name):
         "Your Founder invitation for this cycle is ready.",
         "You may put forward one person when the Founder invitation path is opened for this cycle. One invitation is active at a time, and unused invitations do not stack.",
         "There is nothing else you need to do in this message. We will keep the process quiet and personal.",
-        "With our thanks,<br>The Presttige Committee",
+        "With our thanks,<br>The Founders' House",
     ]
     return founder_email_shell(
         subject="Your Founder invitation is ready",
