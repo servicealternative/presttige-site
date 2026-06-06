@@ -29,7 +29,7 @@
       background: var(--pp-background);
       color: var(--pp-primary);
       font-family: "Source Serif Pro", Georgia, serif;
-      padding: 24px;
+      padding: 1cm;
     }
 
     .card {
@@ -79,10 +79,79 @@
       letter-spacing: 0.18em;
       text-transform: uppercase;
       text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .form {
+      display: grid;
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      color: var(--pp-accent);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: #fffdf8;
+      color: var(--pp-primary);
+      font: inherit;
+      font-size: 16px;
+      padding: 12px 14px;
+    }
+
+    .field input[readonly] {
+      color: var(--pp-muted);
+      background: rgba(217, 210, 197, 0.18);
+    }
+
+    .hint,
+    .notice {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .notice {
+      margin-top: 18px;
+      border-top: 1px solid var(--pp-hairline);
+      padding-top: 18px;
     }
 
     .error {
       color: var(--pp-error);
+    }
+
+    @media (max-width: 560px) {
+      .card {
+        padding: 32px 24px;
+      }
     }
   </style>
 </head>
@@ -98,6 +167,8 @@
       "use strict";
 
       const API_BASE = "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com";
+      const PASSWORD_ENDPOINT = `${API_BASE}/member-set-password`;
+      const LOGIN_URL = "https://presttige-members.auth.us-east-1.amazoncognito.com/login?client_id=3gdek6k48cm6oirccodgrub2k1&response_type=code&scope=email+openid+profile&redirect_uri=https%3A%2F%2Fpresttige.net%2Fmember%2F";
       const app = document.getElementById("app");
       const token = window.location.pathname.split("/").filter(Boolean).pop();
 
@@ -110,28 +181,128 @@
 
       async function validate() {
         try {
-          const response = await fetch(`${API_BASE}/tier-select-fetch?token=${encodeURIComponent(token)}`);
-          const data = await response.json();
-
-          if (!response.ok) {
-            renderError(data.error || "This link is no longer available.");
-            return;
-          }
-
-          renderSuccess(data.profile?.name || "Member");
+          const data = await passwordRequest({ action: "status", token });
+          renderPasswordState(data);
         } catch (error) {
-          renderError("Unable to validate your access right now.");
+          renderError(error.message || "Unable to validate your access right now.");
         }
       }
 
-      function renderSuccess(name) {
+      function renderPasswordState(data) {
+        if (data.account_ready) {
+          renderReady(data);
+          return;
+        }
+
+        if (data.password_ready) {
+          renderPasswordForm(data);
+          return;
+        }
+
+        renderError("This membership account is not ready for password setup.");
+      }
+
+      function renderPasswordForm(data) {
         app.innerHTML = `
           <p class="eyebrow">Presttige Subscriber</p>
-          <h1 class="title">You're on the list.</h1>
-          <p class="copy">Thank you, ${escapeHtml(name)}. Your Subscriber status is now active — you'll hear from us with Presttige updates, Patron seat availability, and curated invitations to upgrade.</p>
-          <p class="copy">When you're ready to take a tier, you can return to this link at any time:</p>
-          <a class="button" href="/tier-select/${encodeURIComponent(token)}">Return to tier selection</a>
+          <h1 class="title">Set your password.</h1>
+          <p class="copy">Your Subscriber account is ready. Choose a password to complete activation.</p>
+          <form id="password-form" class="form" novalidate>
+            <div class="field">
+              <label for="member-email">Email</label>
+              <input id="member-email" type="email" value="${escapeHtml(data.email || "")}" readonly autocomplete="username">
+            </div>
+            <div class="field">
+              <label for="member-password">Password</label>
+              <input id="member-password" type="password" minlength="14" autocomplete="new-password" required>
+              <p class="hint">Use at least 14 characters, with uppercase, lowercase, a number and a symbol.</p>
+            </div>
+            <div class="field">
+              <label for="member-password-confirm">Confirm password</label>
+              <input id="member-password-confirm" type="password" minlength="14" autocomplete="new-password" required>
+            </div>
+            <p id="password-error" class="hint error" aria-live="polite"></p>
+            <div class="actions">
+              <button id="password-submit" class="button" type="submit">Activate account</button>
+            </div>
+          </form>
         `;
+        document.getElementById("password-form").addEventListener("submit", submitPassword);
+      }
+
+      function renderReady(data) {
+        app.innerHTML = `
+          <p class="eyebrow">Presttige Subscriber</p>
+          <h1 class="title">Your account is ready.</h1>
+          <p class="copy">Your password is set and your Presttige account is active.</p>
+          <p class="notice">Email: ${escapeHtml(data.email || "")}</p>
+          <div class="actions">
+            <a class="button" href="${LOGIN_URL}">Log in</a>
+          </div>
+        `;
+      }
+
+      async function submitPassword(event) {
+        event.preventDefault();
+        const password = document.getElementById("member-password").value;
+        const confirm = document.getElementById("member-password-confirm").value;
+        const errorBox = document.getElementById("password-error");
+        const button = document.getElementById("password-submit");
+        const localErrors = validatePassword(password);
+
+        errorBox.textContent = "";
+
+        if (localErrors.length) {
+          errorBox.textContent = `Password needs ${localErrors.join(", ")}.`;
+          return;
+        }
+
+        if (password !== confirm) {
+          errorBox.textContent = "The two password fields must match.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Activating...";
+
+        try {
+          const data = await passwordRequest({ action: "set", token, password });
+          renderReady(data);
+        } catch (error) {
+          if (error.code === "already_set") {
+            renderReady(error.payload || {});
+            return;
+          }
+          errorBox.textContent = error.message || "Unable to set your password right now.";
+          button.disabled = false;
+          button.textContent = "Activate account";
+        }
+      }
+
+      function validatePassword(password) {
+        const checks = [];
+        if (password.length < 14) checks.push("14 characters");
+        if (!/[A-Z]/.test(password)) checks.push("an uppercase letter");
+        if (!/[a-z]/.test(password)) checks.push("a lowercase letter");
+        if (!/[0-9]/.test(password)) checks.push("a number");
+        if (!/[^A-Za-z0-9]/.test(password)) checks.push("a symbol");
+        return checks;
+      }
+
+      async function passwordRequest(payload) {
+        const response = await fetch(PASSWORD_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data.message || data.error || "Request failed");
+          error.code = data.error;
+          error.payload = data;
+          throw error;
+        }
+        return data;
       }
 
       function renderError(message) {
