@@ -3,6 +3,8 @@ import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
 const [indexHtmlPath, entryJsPath] = process.argv.slice(2);
+const faviconHref = '/admin/favicon.ico?v=ulttra-large-20260606';
+const brandScript = `<script>window.__ULTTRA_BRAND=function(){document.title="ULTTRA crm";var icon="${faviconHref}";document.querySelectorAll("link[rel~=icon]").forEach(function(link){if(!link.href.includes(icon)){link.remove();}});if(!document.querySelector("link[rel~=icon][href*=ulttra-large-20260606]")){var link=document.createElement("link");link.rel="icon";link.href=icon;link.sizes="any";document.head.appendChild(link);}};document.addEventListener("DOMContentLoaded",function(){window.__ULTTRA_BRAND();new MutationObserver(window.__ULTTRA_BRAND).observe(document.head,{childList:true,subtree:true});});</script>`;
 
 if (!indexHtmlPath || !entryJsPath) {
   console.error('Usage: patch-visible-directus-wording.mjs <index.html> <entry.js>');
@@ -48,9 +50,12 @@ replaceOnceAny(
     '<title>Loading&hellip;</title>',
     '<title>ULTTRA crm</title>',
     '<title>ULTTRA crm</title><link rel="icon" href="/admin/favicon.ico?v=ulttra-20260605" sizes="any">',
+    '<title>ULTTRA crm</title><link rel="icon" href="/admin/favicon.ico?v=ulttra-large-20260606" sizes="any">',
   ],
-  '<title>ULTTRA crm</title><link rel="icon" href="/admin/favicon.ico?v=ulttra-20260605" sizes="any"><script>window.__ULTTRA_BRAND=function(){document.title="ULTTRA crm";var icon="/admin/favicon.ico?v=ulttra-20260605";document.querySelectorAll("link[rel~=icon]").forEach(function(link){if(!link.href.includes(icon)){link.remove();}});if(!document.querySelector("link[rel~=icon][href*=ulttra-20260605]")){var link=document.createElement("link");link.rel="icon";link.href=icon;link.sizes="any";document.head.appendChild(link);}};document.addEventListener("DOMContentLoaded",function(){window.__ULTTRA_BRAND();new MutationObserver(window.__ULTTRA_BRAND).observe(document.head,{childList:true,subtree:true});});</script>',
+  `<title>ULTTRA crm</title><link rel="icon" href="${faviconHref}" sizes="any">${brandScript}`,
 );
+
+normalizeBrandBlock(indexHtmlPath);
 
 replaceOnceAny(entryJsPath, ['title:`Directus`', 'title:`ULTTRA crm`'], 'title:`ULTTRA crm`');
 replaceOnceAny(
@@ -64,8 +69,9 @@ replaceOnceAny(
   [
     'link:l(()=>{let e;return e=u.info?.project?.public_favicon?We(u.info.project.public_favicon):u.info?.project?.project_color?rn(u.info.project.project_color,!u.info.project.project_logo):`/favicon.ico`,[{rel:`icon`,href:e}]})',
     'link:l(()=>[{rel:`icon`,href:`/admin/favicon.ico?v=ulttra-20260605`,sizes:`any`}])',
+    'link:l(()=>[{rel:`icon`,href:`/admin/favicon.ico?v=ulttra-large-20260606`,sizes:`any`}])',
   ],
-  'link:l(()=>[{rel:`icon`,href:`/admin/favicon.ico?v=ulttra-20260605`,sizes:`any`}])',
+  'link:l(()=>[{rel:`icon`,href:`/admin/favicon.ico?v=ulttra-large-20260606`,sizes:`any`}])',
 );
 
 const entryFileName = basename(entryJsPath);
@@ -90,4 +96,18 @@ for (const targetPath of [
   if (existsSync(dirname(targetPath))) {
     copyFileSync(faviconPath, targetPath);
   }
+}
+
+function normalizeBrandBlock(filePath) {
+  let input = readFileSync(filePath, 'utf8');
+  input = input.replace(/<script>window\.__ULTTRA_BRAND=function\(\)[\s\S]*?<\/script>/g, '');
+  input = input.replace(/<link rel="icon" href="\/admin\/favicon\.ico\?v=[^"]+" sizes="any">/g, '');
+
+  const title = '<title>ULTTRA crm</title>';
+  const count = input.split(title).length - 1;
+  if (count !== 1) {
+    throw new Error(`${filePath}: expected one ULTTRA title while normalizing favicon block, found ${count}`);
+  }
+
+  writeFileSync(filePath, input.replace(title, `${title}<link rel="icon" href="${faviconHref}" sizes="any">${brandScript}`));
 }

@@ -72,12 +72,11 @@ function cacheBustAssetReferences(indexHtmlPath, jsPaths, assetName) {
 
   for (const filePath of targetFiles) {
     const input = readFileSync(filePath, 'utf8');
-    const output = input.replace(
-      new RegExp(`${escapeRegExp(assetName)}(?:\\?v=[A-Za-z0-9._-]+)?`, 'g'),
-      replacement,
-    );
+    const assetPattern = new RegExp(`${escapeRegExp(assetName)}(?:\\?v=[A-Za-z0-9._-]+)?`, 'g');
+    const matches = input.match(assetPattern) || [];
+    count += matches.length;
+    const output = input.replace(assetPattern, replacement);
     if (output !== input) {
-      count += input.split(assetName).length - 1;
       writeFileSync(filePath, output);
     }
   }
