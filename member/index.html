@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Presttige Member Login</title>
+  <title>Presttige Member Area</title>
   <script src="/assets/js/consent-banner.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,64 +15,87 @@
       --pp-paper: #FBF9F4;
       --pp-background: #F5F2ED;
       --pp-hairline: #D8D1C3;
+      --pp-hairline-strong: #BFB6A5;
       --pp-muted: #5F5B54;
+      --pp-soft: #ECE6DA;
       --pp-error: #8B1E1E;
       --pp-success-tint: rgba(140, 112, 64, 0.08);
       --pp-error-tint: rgba(139, 30, 30, 0.08);
       --pp-shadow: 0 24px 60px rgba(10, 10, 10, 0.06);
+      --pp-page-pad: max(1cm, 24px);
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html {
+      min-height: 100%;
+      background: var(--pp-background);
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 1cm;
-      background:
-        radial-gradient(circle at top left, rgba(140, 112, 64, 0.06), transparent 28%),
-        linear-gradient(180deg, #F8F5EF 0%, var(--pp-background) 100%);
+      padding: var(--pp-page-pad);
+      background: var(--pp-background);
       color: var(--pp-black);
       font-family: "Source Serif 4", Georgia, serif;
     }
 
-    .shell {
-      width: min(100%, 1040px);
+    button,
+    input {
+      font: inherit;
+    }
+
+    .page-shell {
+      width: min(100%, 1180px);
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      margin: 0 auto;
+    }
+
+    .entry-layout {
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
       display: grid;
       grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1fr);
       gap: 22px;
       align-items: stretch;
     }
 
-    .panel {
+    .panel,
+    .member-frame {
       border: 1px solid var(--pp-hairline);
       background: var(--pp-paper);
       box-shadow: var(--pp-shadow);
     }
 
-    .intro {
-      padding: 34px 30px;
-    }
-
+    .intro,
     .form-panel {
-      padding: 34px 30px;
+      padding: clamp(26px, 4vw, 38px);
     }
 
-    .brand-mark {
-      width: 86px;
-      height: 86px;
-      display: grid;
-      place-items: center;
-      margin-bottom: 24px;
-      border: 1px solid rgba(140, 112, 64, 0.42);
-      color: var(--pp-gold);
+    .brand-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .brand-lockup img {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .brand-name {
+      color: var(--pp-black);
       font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: 58px;
-      font-style: italic;
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
       line-height: 1;
+      text-transform: uppercase;
     }
 
     .eyebrow {
@@ -85,19 +108,30 @@
     }
 
     .title {
-      margin: 0 0 18px;
+      margin: 0;
       font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: clamp(42px, 6vw, 66px);
+      font-size: clamp(40px, 6vw, 66px);
       font-style: italic;
       font-weight: 500;
-      line-height: 0.96;
+      letter-spacing: 0;
+      line-height: 0.98;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(30px, 4vw, 46px);
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.08;
     }
 
     .copy {
-      margin: 0;
+      margin: 18px 0 0;
       color: var(--pp-muted);
       font-size: 17px;
       line-height: 1.8;
+      max-width: 58ch;
     }
 
     .form {
@@ -111,7 +145,8 @@
       gap: 8px;
     }
 
-    .field label {
+    .field label,
+    .meta-label {
       color: var(--pp-gold);
       font-size: 11px;
       font-weight: 600;
@@ -126,7 +161,6 @@
       border-radius: 0;
       background: #fffdf8;
       color: var(--pp-black);
-      font: inherit;
       font-size: 16px;
       padding: 12px 14px;
     }
@@ -147,7 +181,6 @@
       border: 1px solid var(--pp-gold);
       background: var(--pp-gold);
       color: var(--pp-paper);
-      font: inherit;
       font-size: 13px;
       font-weight: 600;
       letter-spacing: 0.14em;
@@ -171,7 +204,6 @@
       border: 0;
       background: transparent;
       color: var(--pp-gold);
-      font: inherit;
       font-size: 14px;
       text-decoration: underline;
       cursor: pointer;
@@ -208,25 +240,280 @@
       color: var(--pp-error);
     }
 
-    @media (max-width: 860px) {
-      .shell {
+    .member-frame {
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .member-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 24px clamp(22px, 4vw, 42px);
+      border-bottom: 1px solid var(--pp-hairline);
+    }
+
+    .member-topbar .brand-lockup {
+      margin: 0;
+    }
+
+    .member-topbar .brand-lockup img {
+      width: 44px;
+      height: 44px;
+    }
+
+    .member-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .nav-item {
+      min-height: 38px;
+      padding: 9px 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--pp-muted);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .nav-item[aria-current="page"] {
+      border-color: rgba(140, 112, 64, 0.34);
+      color: var(--pp-gold);
+    }
+
+    .nav-item:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+    }
+
+    .member-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+      gap: clamp(22px, 4vw, 44px);
+      padding: clamp(26px, 5vw, 54px);
+    }
+
+    .overview {
+      display: grid;
+      align-content: start;
+      gap: 30px;
+    }
+
+    .welcome-copy {
+      margin: 16px 0 0;
+      color: var(--pp-muted);
+      font-size: 18px;
+      line-height: 1.75;
+      max-width: 62ch;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px solid var(--pp-hairline);
+      border-left: 1px solid var(--pp-hairline);
+    }
+
+    .summary-item {
+      min-height: 126px;
+      display: grid;
+      align-content: space-between;
+      gap: 18px;
+      padding: 22px;
+      border-right: 1px solid var(--pp-hairline);
+      border-bottom: 1px solid var(--pp-hairline);
+      background: rgba(255, 253, 248, 0.72);
+    }
+
+    .meta-value {
+      margin: 0;
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.05;
+    }
+
+    .state-pill {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 8px;
+      color: var(--pp-black);
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .state-pill::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--pp-gold);
+      content: "";
+    }
+
+    .section-list {
+      display: grid;
+      gap: 1px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .section-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 20px 22px;
+      background: var(--pp-paper);
+    }
+
+    .section-row h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 25px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.12;
+    }
+
+    .section-row p {
+      margin: 6px 0 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .status-badge {
+      min-width: 92px;
+      border: 1px solid rgba(140, 112, 64, 0.26);
+      padding: 8px 10px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-align: center;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .member-side {
+      display: grid;
+      align-content: start;
+      gap: 18px;
+    }
+
+    .side-panel {
+      border: 1px solid var(--pp-hairline);
+      padding: 22px;
+      background: #fffdf8;
+    }
+
+    .side-panel h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 27px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .side-panel p {
+      margin: 12px 0 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .tier-card {
+      border-color: rgba(140, 112, 64, 0.44);
+      background: rgba(140, 112, 64, 0.08);
+    }
+
+    .tier-card.is-founder {
+      background: var(--pp-black);
+      color: var(--pp-paper);
+    }
+
+    .tier-card.is-founder p,
+    .tier-card.is-founder .meta-label {
+      color: rgba(251, 249, 244, 0.72);
+    }
+
+    @media (max-width: 960px) {
+      .entry-layout,
+      .member-body {
         grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .member-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .member-nav {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      :root {
+        --pp-page-pad: 1cm;
+      }
+
+      .brand-name {
+        font-size: 21px;
+      }
+
+      .member-body,
+      .intro,
+      .form-panel {
+        padding: 24px;
+      }
+
+      .member-topbar {
+        padding: 20px;
+      }
+
+      .section-row {
+        grid-template-columns: 1fr;
+      }
+
+      .status-badge {
+        width: fit-content;
       }
     }
   </style>
 </head>
 <body>
-  <main class="shell">
-    <section class="panel intro">
-      <div class="brand-mark" aria-hidden="true">P</div>
-      <p class="eyebrow">Presttige Members</p>
-      <h1 class="title">Private access.</h1>
-      <p class="copy">Sign in with the email and password attached to your Presttige member account.</p>
-    </section>
-    <section id="app" class="panel form-panel" aria-live="polite">
-      <p class="eyebrow">Member Login</p>
-      <h2 class="title">Checking session.</h2>
-      <p class="copy">Hold for a moment while we prepare the private login.</p>
+  <main id="app" class="page-shell" aria-live="polite">
+    <section class="entry-layout">
+      <div class="panel intro">
+        <div class="brand-lockup">
+          <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+          <span class="brand-name">Presttige</span>
+        </div>
+        <p class="eyebrow">Presttige Members</p>
+        <h1 class="title">Private access.</h1>
+        <p class="copy">Sign in with the email and password attached to your Presttige member account.</p>
+      </div>
+      <div class="panel form-panel">
+        <p class="eyebrow">Member Login</p>
+        <h2 class="title">Checking session.</h2>
+        <p class="copy">Hold for a moment while we prepare the private login.</p>
+      </div>
     </section>
   </main>
 
@@ -245,7 +532,7 @@
         try {
           const session = await api("session", {});
           if (session.ok) {
-            renderActive(session.member);
+            renderMemberArea(session.member);
             return;
           }
         } catch (error) {
@@ -257,8 +544,25 @@
         renderLogin();
       }
 
-      function renderLogin(message) {
+      function renderEntry(content) {
         app.innerHTML = `
+          <section class="entry-layout">
+            <div class="panel intro">
+              <div class="brand-lockup">
+                <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+                <span class="brand-name">Presttige</span>
+              </div>
+              <p class="eyebrow">Presttige Members</p>
+              <h1 class="title">Private access.</h1>
+              <p class="copy">Sign in with the email and password attached to your Presttige member account.</p>
+            </div>
+            <div class="panel form-panel">${content}</div>
+          </section>
+        `;
+      }
+
+      function renderLogin(message) {
+        renderEntry(`
           <p class="eyebrow">Member Login</p>
           <h2 class="title">Enter Presttige.</h2>
           <p class="copy">Use the member account created after your membership was confirmed.</p>
@@ -278,7 +582,7 @@
               <button class="link-button" type="button" data-forgot>Forgot password</button>
             </div>
           </form>
-        `;
+        `);
         document.getElementById("login-form").addEventListener("submit", submitLogin);
         app.querySelector("[data-forgot]").addEventListener("click", renderForgot);
       }
@@ -295,7 +599,7 @@
 
         try {
           const result = await api("login", { email, password });
-          renderActive(result.member);
+          renderMemberArea(result.member);
         } catch (error) {
           if (error.payload?.status === "PASSWORD_PENDING") {
             renderPasswordPending(error.payload);
@@ -307,25 +611,127 @@
         }
       }
 
-      function renderActive(member) {
+      function renderMemberArea(member) {
+        const tier = normalizeTier(member?.tier);
+        const tierLabel = tierLabelFor(tier);
+        const isFounder = tier === "founder";
+        const firstName = firstNameOf(member?.name);
+        const sections = memberSections(tier);
+
         app.innerHTML = `
-          <p class="eyebrow">Member Session</p>
-          <h2 class="title">You are signed in.</h2>
-          <p class="copy">Your Presttige session is active. The member area will open in the next step.</p>
-          <div class="notice">
-            ${escapeHtml(member?.name || "Member")}<br>
-            ${escapeHtml(titleCase(member?.tier || "member"))}
-          </div>
-          <div class="actions">
-            <button id="sign-out" class="button button--secondary" type="button">Sign out</button>
-          </div>
+          <section class="member-frame">
+            <header class="member-topbar">
+              <div class="brand-lockup">
+                <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+                <span class="brand-name">Presttige</span>
+              </div>
+              <nav class="member-nav" aria-label="Member area">
+                <button class="nav-item" type="button" aria-current="page">Overview</button>
+                <button class="nav-item" type="button" disabled>Profile</button>
+                <button class="nav-item" type="button" disabled>Photos</button>
+                <button class="nav-item" type="button" disabled>Membership</button>
+                <button class="nav-item" type="button" disabled>Privacy</button>
+              </nav>
+            </header>
+            <div class="member-body">
+              <section class="overview" aria-labelledby="member-overview-title">
+                <div>
+                  <p class="eyebrow">Member Overview</p>
+                  <h1 id="member-overview-title" class="section-title">Welcome, ${escapeHtml(firstName)}.</h1>
+                  <p class="welcome-copy">Your private Presttige area is open. This first view holds your own membership state while the next private sections are prepared.</p>
+                </div>
+                <div class="summary-grid" aria-label="Member summary">
+                  <div class="summary-item">
+                    <span class="meta-label">Member</span>
+                    <p class="meta-value">${escapeHtml(member?.name || "Member")}</p>
+                  </div>
+                  <div class="summary-item">
+                    <span class="meta-label">Tier</span>
+                    <p class="meta-value">${escapeHtml(tierLabel)}</p>
+                  </div>
+                  <div class="summary-item">
+                    <span class="meta-label">State</span>
+                    <p class="meta-value"><span class="state-pill">${escapeHtml(statusLabel(member?.account_status))}</span></p>
+                  </div>
+                </div>
+                <div>
+                  <p class="eyebrow">Next Sections</p>
+                  <div class="section-list">
+                    ${sections.map(renderSectionRow).join("")}
+                  </div>
+                </div>
+              </section>
+              <aside class="member-side" aria-label="Membership details">
+                <div class="side-panel tier-card ${isFounder ? "is-founder" : ""}">
+                  <span class="meta-label">Current Tier</span>
+                  <h3>${escapeHtml(tierLabel)}</h3>
+                  <p>${escapeHtml(tierDescription(tier))}</p>
+                </div>
+                <div class="side-panel">
+                  <span class="meta-label">Access</span>
+                  <h3>${escapeHtml(statusLabel(member?.account_status))}</h3>
+                  <p>Your session is active. Your access is personal to this account.</p>
+                </div>
+                <div class="actions">
+                  <button id="sign-out" class="button button--secondary" type="button">Sign out</button>
+                </div>
+              </aside>
+            </div>
+          </section>
         `;
         document.getElementById("sign-out").addEventListener("click", signOut);
       }
 
+      function renderSectionRow(section) {
+        return `
+          <article class="section-row">
+            <div>
+              <h3>${escapeHtml(section.title)}</h3>
+              <p>${escapeHtml(section.copy)}</p>
+            </div>
+            <span class="status-badge">${escapeHtml(section.status)}</span>
+          </article>
+        `;
+      }
+
+      function memberSections(tier) {
+        const base = [
+          {
+            title: "Profile",
+            copy: "Your member details will appear here as the profile area opens.",
+            status: "Coming",
+          },
+          {
+            title: "Photos",
+            copy: "Your photos will appear here when the photo area opens.",
+            status: "Coming",
+          },
+          {
+            title: "Membership",
+            copy: "Tier details and access state are visible here first.",
+            status: "Prepared",
+          },
+          {
+            title: "Privacy",
+            copy: "Privacy controls will appear here when the privacy area opens.",
+            status: "Coming",
+          },
+        ];
+
+        if (tier === "founder") {
+          base.splice(2, 0, {
+            title: "Founder",
+            copy: "Founder-specific access will open here in the dedicated Founder step.",
+            status: "Coming",
+          });
+        }
+
+        return base;
+      }
+
       function renderPasswordPending(payload) {
         const activationUrl = payload.activation_url || "";
-        app.innerHTML = `
+        renderEntry(`
           <p class="eyebrow">Account Setup</p>
           <h2 class="title">Password pending.</h2>
           <p class="copy">Your account setup is not complete yet. Complete the password step before entering the member area.</p>
@@ -333,12 +739,12 @@
             ${activationUrl ? `<a class="button" href="${escapeHtml(activationUrl)}">Set password</a>` : ""}
             <button class="button button--secondary" type="button" data-login>Back to login</button>
           </div>
-        `;
+        `);
         app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
       }
 
       function renderForgot() {
-        app.innerHTML = `
+        renderEntry(`
           <p class="eyebrow">Password Reset</p>
           <h2 class="title">Reset access.</h2>
           <p class="copy">Enter your member email. If the account can be reset, instructions will be sent.</p>
@@ -357,7 +763,7 @@
             Already have a reset code?
             <button class="link-button" type="button" data-reset-code>Enter code</button>
           </div>
-        `;
+        `);
         document.getElementById("forgot-form").addEventListener("submit", submitForgot);
         app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
         app.querySelector("[data-reset-code]").addEventListener("click", renderResetCode);
@@ -382,7 +788,7 @@
       }
 
       function renderResetCode() {
-        app.innerHTML = `
+        renderEntry(`
           <p class="eyebrow">Password Reset</p>
           <h2 class="title">Enter reset code.</h2>
           <p class="copy">Use the code sent to your email and choose a new password.</p>
@@ -406,7 +812,7 @@
               <button class="button button--secondary" type="button" data-login>Back to login</button>
             </div>
           </form>
-        `;
+        `);
         document.getElementById("reset-form").addEventListener("submit", submitReset);
         app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
       }
@@ -465,6 +871,47 @@
         if (!/[0-9]/.test(password)) checks.push("a number");
         if (!/[^A-Za-z0-9]/.test(password)) checks.push("a symbol");
         return checks;
+      }
+
+      function firstNameOf(value) {
+        return String(value || "Member").trim().split(/\s+/)[0] || "Member";
+      }
+
+      function normalizeTier(value) {
+        return String(value || "free").trim().toLowerCase().replace(/_/g, "-");
+      }
+
+      function tierLabelFor(tier) {
+        const labels = {
+          subscriber: "Subscriber",
+          free: "Subscriber",
+          club: "Club",
+          premier: "Premier",
+          patron: "Patron",
+          founder: "Founder",
+          tester: "Tester",
+        };
+        return labels[tier] || titleCase(tier || "member");
+      }
+
+      function tierDescription(tier) {
+        const descriptions = {
+          subscriber: "Your membership is active at the Subscriber level.",
+          free: "Your membership is active at the Subscriber level.",
+          club: "Your Club membership is active.",
+          premier: "Your Premier membership is active.",
+          patron: "Your Patron membership is active.",
+          founder: "Your Founder identity is active. Founder-specific controls follow in the dedicated Founder step.",
+          tester: "Your Tester membership is active.",
+        };
+        return descriptions[tier] || "Your Presttige membership is active.";
+      }
+
+      function statusLabel(value) {
+        const status = String(value || "").trim().toLowerCase();
+        if (status === "active") return "Active";
+        if (status === "password_pending") return "Password pending";
+        return titleCase(status || "Active");
       }
 
       function titleCase(value) {
