@@ -1,0 +1,28 @@
+  codex/activation-window                   68c6c18 [origin/main: behind 70] backend: extend approval link validity to 21 days
+  codex/ana-checkout-review-r2              e1d2ff3 fix: apply ana checkout review round 2
+  codex/c2-optional-main                    5285ee7 Fix C2 optional fields and form layout
+  codex/c2-prod-main                        36c8b3d Add Founder C2 invitee form
+  codex/c2-validation-prod                  c30443b Fix C2 validation flow
+  codex/c2-verify-email                     7122de7 Require email match on C2 verification
+  codex/checkout-review-v11                 b5989d9 [origin/main: behind 79] fix(routes): bridge subscriber and payment-failed paths
+  codex/english-lock-site                   1044d6d chore: lock html surfaces to english
+  codex/founder-gate-own-email              00aa8a3 Remove typed inviter from Founder gate
+  codex/founder-layout-prod                 1b31094 Reorganize Founder payment layout
+  codex/founder-step2-deploy                cc2f7b2 [origin/main: behind 65] feat: Founder checkbox + payment + hardened webhook activation
+  codex/identity-step4a-main-deploy         aaa682a [origin/main: behind 27] sync main lambda sanitation state [skip ci]
+  codex/no-refund-notice-main               504d7f5 Add Founder payment no-refund notice
+  codex/onboarding-round3                   3160902 fix: italicize express interest modal title
+  codex/preview-mode                        61df45e fix: route preview success to deployed asset
+* codex/remove-brand-fonts                  9026450 [origin/main: behind 67] fix: restore dark input text in Express Interest modal on cream panel, colour-only
+  codex/tier-select-live-fix                e0870f1 [origin/main: behind 81] fix(tier-select): remove founder surface
++ feat/M-R6.2.M-prices-v4                   6468531 (/Users/antonio/Desktop/presttige-site) Reconcile identity drift and harden founder guard
+  feat/M-R6.2.N-stripe-price-id-cutover     1bae4f8 refactor(M-R6.2.N): rename semi-annual SSM params for clarity
+  feat/M-R6.2.P-welcome-flow-and-ui-fixes   ad91f14 [origin/main: behind 82] merge: M-R6.2.Q tier-select-fetch live keys hotfix
+  feat/M-R6.2.Q-tier-select-fetch-live-keys c63da96 [origin/feat/M-R6.2.Q-tier-select-fetch-live-keys] fix(M-R6.2.Q): point tier-select-fetch at live v4 contracts
+  fix/M-R6.2.O-s1-s2-country-carryover      2015c0a fix(M-R6.2.O): harden S2 country resolution with DynamoDB fallback and remove silent US default
+  main                                      2b9def5 [origin/main] Align main source with live identity code [skip ci]
+  main-step5a-publish                       a70a8ca Add member login and session foundation
+  main-step5b-publish                       76b743d Add authenticated member area shell
+  main-step5c-publish                       c9f1a44 Fix validation setter JSON boolean output
+  main-step6b-publish                       2708f4d [origin/main: behind 9] Add Founder photo rules
+  parking/in-progress-2026-05-29            9772352 WIP: parked, not reviewed, do not deploy

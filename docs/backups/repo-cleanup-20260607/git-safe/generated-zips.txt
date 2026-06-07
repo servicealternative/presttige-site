@@ -1,0 +1,29 @@
+backend/photo-upload-status/dist.zip
+backend/lambdas/cookie-diag/dist.zip
+backend/lambdas/review-action/dist.zip
+backend/magic-link-verify/dist.zip
+backend/create-checkout-session/dist 3.zip
+backend/create-checkout-session/dist 2.zip
+backend/create-checkout-session/dist.zip
+backend/account-create/dist 2.zip
+backend/account-create/dist.zip
+backend/checkout-context/dist 3.zip
+backend/checkout-context/dist 2.zip
+backend/checkout-context/dist 6.zip
+backend/checkout-context/dist 5.zip
+backend/checkout-context/dist 4.zip
+backend/checkout-context/dist.zip
+backend/send-committee-email/dist.zip
+backend/checkout-status/dist.zip
+backend/tier-select-fetch/dist.zip
+backend/tester-cleanup/dist.zip
+backend/send-application-received/dist.zip
+backend/photo-upload-init/dist.zip
+backend/send-tier-select-email/dist.zip
+backend/thumbnail-generator/dist.zip
+backend/send-welcome-email/dist 2.zip
+backend/send-welcome-email/dist.zip
+backend/send-subscriber-welcome-email/dist 2.zip
+backend/send-subscriber-welcome-email/dist.zip
+backend/activate-subscriber/dist.zip
+backend/review-fetch/dist.zip
