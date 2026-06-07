@@ -11,6 +11,7 @@ const secrets = new SecretsManagerClient({ region: "us-east-1" });
 const TABLE_NAME = "presttige-db";
 const MAGIC_LINK_SECRET_ID = "presttige-magic-link-secret";
 const SEND_TIER_EMAIL_FUNCTION = "presttige-send-tier-select-email";
+const MAGIC_LINK_TTL_DAYS = 21;
 
 let cachedSecret = null;
 
@@ -62,7 +63,9 @@ exports.handler = async (event) => {
       .digest("hex");
 
     const issuedAt = new Date().toISOString();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(
+      Date.now() + MAGIC_LINK_TTL_DAYS * 24 * 60 * 60 * 1000
+    ).toISOString();
 
     await ddb.send(
       new UpdateCommand({
