@@ -672,6 +672,221 @@
       overflow-wrap: anywhere;
     }
 
+    .discovery-panel {
+      border-color: rgba(140, 112, 64, 0.44);
+      background: var(--pp-black);
+      color: var(--pp-paper);
+    }
+
+    .discovery-panel h2,
+    .discovery-panel h3 {
+      color: var(--pp-paper);
+    }
+
+    .discovery-panel p,
+    .discovery-panel .hint {
+      color: rgba(245, 242, 237, 0.74);
+    }
+
+    .discovery-panel .eyebrow,
+    .discovery-panel .meta-label {
+      color: #B59C72;
+    }
+
+    .discovery-toolbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 22px;
+      padding: 18px;
+      border: 1px solid rgba(181, 156, 114, 0.34);
+      background: rgba(181, 156, 114, 0.1);
+    }
+
+    .discovery-toolbar h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 27px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .discovery-layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 0.82fr) minmax(0, 1.18fr);
+      gap: 18px;
+      margin-top: 22px;
+      align-items: start;
+    }
+
+    .circle-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .discovery-card,
+    .discovery-profile-card,
+    .match-card,
+    .message-card {
+      border: 1px solid rgba(181, 156, 114, 0.28);
+      background: rgba(245, 242, 237, 0.06);
+    }
+
+    .discovery-card {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 13px;
+      width: 100%;
+      padding: 12px;
+      color: var(--pp-paper);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .discovery-card:hover,
+    .discovery-card:focus-visible {
+      border-color: rgba(140, 112, 64, 0.58);
+      outline: none;
+    }
+
+    .discovery-card-photo,
+    .discovery-profile-hero {
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(181, 156, 114, 0.28);
+      background: rgba(245, 242, 237, 0.08);
+      color: rgba(245, 242, 237, 0.68);
+    }
+
+    .discovery-card-photo {
+      width: 70px;
+      aspect-ratio: 1;
+    }
+
+    .discovery-card-photo img,
+    .discovery-profile-hero img,
+    .discovery-photo-strip img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .discovery-card h3,
+    .match-card h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.08;
+    }
+
+    .discovery-card p,
+    .match-card p,
+    .message-card p {
+      margin: 6px 0 0;
+      color: rgba(245, 242, 237, 0.68);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .discovery-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .discovery-pill {
+      border: 1px solid rgba(181, 156, 114, 0.34);
+      padding: 5px 8px;
+      color: #B59C72;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .discovery-profile-card {
+      padding: 18px;
+    }
+
+    .discovery-profile-hero {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      margin-bottom: 18px;
+    }
+
+    .discovery-profile-card h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(32px, 4vw, 46px);
+      font-weight: 500;
+      line-height: 1.04;
+    }
+
+    .discovery-profile-meta {
+      margin-top: 8px;
+      color: #B59C72;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .discovery-photo-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .discovery-photo-strip a {
+      overflow: hidden;
+      aspect-ratio: 1;
+      border: 1px solid rgba(181, 156, 114, 0.28);
+      background: rgba(245, 242, 237, 0.08);
+    }
+
+    .discovery-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .matches-panel {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid var(--pp-hairline);
+    }
+
+    .match-list,
+    .message-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .match-card,
+    .message-card {
+      padding: 14px;
+    }
+
+    .message-card.is-self {
+      border-color: rgba(181, 156, 114, 0.48);
+      background: rgba(181, 156, 114, 0.12);
+    }
+
+    .message-form {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
     .concierge-progress {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -903,6 +1118,7 @@
       .photo-summary,
       .photo-grid,
       .photo-grid.is-founder,
+      .discovery-layout,
       .concierge-progress,
       .concierge-options,
       .totp-layout,
@@ -937,6 +1153,22 @@
 
       .member-topbar {
         padding: 20px;
+      }
+
+      .discovery-toolbar {
+        display: grid;
+      }
+
+      .discovery-card {
+        grid-template-columns: 58px 1fr;
+      }
+
+      .discovery-card-photo {
+        width: 58px;
+      }
+
+      .discovery-photo-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .section-row {
@@ -984,6 +1216,9 @@
       const DSAR_ERASURE_CONFIRMATION = "ERASE MY ACCOUNT";
       const FOUNDER_TOTP_LABEL = "Presttige, Founder";
       let currentMember = null;
+      let currentDiscoveryStatus = { master_enabled: false };
+      let discoveryStatusRefreshInFlight = false;
+      let currentDiscoveryMatchId = "";
 
       loadSession();
 
@@ -1262,6 +1497,7 @@
 
       function renderMemberShell(member, activeSectionKey) {
         currentMember = member;
+        currentDiscoveryStatus = normalizeDiscoveryStatus(member?.discovery || currentDiscoveryStatus);
         const tier = normalizeTier(member?.tier);
         const tierLabel = tierLabelFor(tier);
         const isFounder = tier === "founder";
@@ -1346,6 +1582,9 @@
         if (document.getElementById("founder-concierge-panel")) {
           loadFounderConcierge(member);
         }
+        if (document.getElementById("discovery-panel")) {
+          loadDiscoveryPanel(member);
+        }
         const exportButton = document.getElementById("privacy-export");
         if (exportButton) {
           exportButton.addEventListener("click", () => downloadDataExport(member));
@@ -1354,6 +1593,7 @@
         if (eraseForm) {
           eraseForm.addEventListener("submit", submitErasureRequest);
         }
+        refreshDiscoveryStatus(member, activeSectionKey);
       }
 
       function renderNavItem(section, isValidated, activeSectionKey) {
@@ -1394,6 +1634,9 @@
         }
         if (section.key === "founder") {
           return renderFounderConciergePanel(member);
+        }
+        if (section.key === "discovery") {
+          return renderDiscoveryPanel(member);
         }
         if (section.key === "privacy") {
           return renderPrivacyPanel(member);
@@ -1450,6 +1693,18 @@
             title: "Founder",
             copy: "Your Concierge profile is built here.",
             openCopy: "Shape the preferences that guide your Premium Concierge profile.",
+            status: "Open",
+            requiresValidation: true,
+          });
+        }
+
+        if (currentDiscoveryStatus.master_enabled === true) {
+          const insertAt = tier === "founder" ? 3 : 2;
+          base.splice(insertAt, 0, {
+            key: "discovery",
+            title: "Circle",
+            copy: "Discover active, validated Presttige members when the private Circle is open.",
+            openCopy: "The private Circle is open to active, validated members only.",
             status: "Open",
             requiresValidation: true,
           });
@@ -1794,6 +2049,386 @@
           }
         });
         return answers;
+      }
+
+      async function refreshDiscoveryStatus(member, activeSectionKey) {
+        if (discoveryStatusRefreshInFlight) {
+          return;
+        }
+        discoveryStatusRefreshInFlight = true;
+        const previousEnabled = currentDiscoveryStatus.master_enabled === true;
+        try {
+          const result = await api("discovery", { mode: "status" });
+          currentDiscoveryStatus = normalizeDiscoveryStatus(result.discovery || {});
+          const nextEnabled = currentDiscoveryStatus.master_enabled === true;
+          if (currentMember) {
+            currentMember = {
+              ...currentMember,
+              discovery: currentDiscoveryStatus,
+            };
+          }
+          if (previousEnabled !== nextEnabled) {
+            const nextSection = nextEnabled ? activeSectionKey : "overview";
+            renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, nextSection);
+          }
+        } catch (error) {
+          if (error.payload?.status === "DISCOVERY_DISABLED") {
+            currentDiscoveryStatus = normalizeDiscoveryStatus(error.payload.discovery || { master_enabled: false });
+            if (previousEnabled) {
+              renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, "overview");
+            }
+          }
+        } finally {
+          discoveryStatusRefreshInFlight = false;
+        }
+      }
+
+      function renderDiscoveryPanel(member) {
+        const discovery = normalizeDiscoveryStatus(currentDiscoveryStatus);
+        const founderControl = discovery.founder_visibility_control === true;
+        return `
+          <div id="discovery-panel" class="section-panel discovery-panel" aria-live="polite">
+            <p class="eyebrow">Circle</p>
+            <h2>Private member Circle</h2>
+            <p>Visible profiles are active, validated members only. Direct contact opens after both members show interest.</p>
+            ${founderControl ? renderFounderDiscoveryControl(discovery) : ""}
+            <div id="discovery-content">
+              <p class="hint">Loading the private Circle.</p>
+            </div>
+            <div id="discovery-matches" class="matches-panel"></div>
+            <p id="discovery-status" class="hint" aria-live="polite"></p>
+          </div>
+        `;
+      }
+
+      function renderFounderDiscoveryControl(discovery) {
+        const visible = discovery.visible === true;
+        return `
+          <div class="discovery-toolbar">
+            <div>
+              <h3>Founder visibility</h3>
+              <p>Founders can see the Circle. Founders remain invisible unless they choose to appear.</p>
+            </div>
+            <button
+              id="discovery-founder-visibility"
+              class="button ${visible ? "button--secondary" : ""}"
+              type="button"
+              data-visible="${visible ? "false" : "true"}"
+            >${visible ? "Hide profile" : "Become visible"}</button>
+          </div>
+        `;
+      }
+
+      async function loadDiscoveryPanel(member) {
+        const host = document.getElementById("discovery-content");
+        const matchHost = document.getElementById("discovery-matches");
+        const status = document.getElementById("discovery-status");
+        const visibilityButton = document.getElementById("discovery-founder-visibility");
+        if (!host) {
+          return;
+        }
+
+        if (visibilityButton) {
+          visibilityButton.addEventListener("click", () => saveDiscoveryVisibility(visibilityButton.dataset.visible === "true"));
+        }
+
+        try {
+          const [circleResult, matchResult] = await Promise.all([
+            api("discovery", { mode: "circle" }),
+            api("discovery", { mode: "matches" }),
+          ]);
+          currentDiscoveryStatus = normalizeDiscoveryStatus(circleResult.discovery || currentDiscoveryStatus);
+          host.innerHTML = renderDiscoveryContent(circleResult.members || []);
+          bindDiscoveryProfileButtons();
+          if (matchHost) {
+            matchHost.innerHTML = renderDiscoveryMatches(matchResult.matches || []);
+            bindDiscoveryMatchButtons();
+          }
+          if (status) status.textContent = "";
+        } catch (error) {
+          if (error.payload?.status === "DISCOVERY_DISABLED") {
+            currentDiscoveryStatus = normalizeDiscoveryStatus(error.payload.discovery || { master_enabled: false });
+            renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, "overview");
+            return;
+          }
+          host.innerHTML = "";
+          if (matchHost) matchHost.innerHTML = "";
+          if (status) status.textContent = "The private Circle is not available right now.";
+        }
+      }
+
+      function renderDiscoveryContent(members) {
+        if (!members.length) {
+          return `
+            <div class="notice">
+              The Circle is quiet for now. Active, validated members will appear here when they are visible.
+            </div>
+          `;
+        }
+        return `
+          <div class="discovery-layout">
+            <div class="circle-grid" aria-label="Visible members">
+              ${members.map(renderDiscoveryCard).join("")}
+            </div>
+            <div id="discovery-profile">
+              <div class="discovery-profile-card">
+                <p class="eyebrow">Profile</p>
+                <h3>Select a member.</h3>
+                <p>Open a profile to see the shared, validated discovery details.</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderDiscoveryCard(member) {
+        const location = [member.city, member.country].filter(Boolean).join(", ");
+        return `
+          <button class="discovery-card" type="button" data-discovery-profile="${escapeAttr(member.member_id)}">
+            <span class="discovery-card-photo">
+              ${member.face_photo_url
+                ? `<img src="${escapeAttr(member.face_photo_url)}" alt="">`
+                : '<span class="photo-placeholder">Photo</span>'}
+            </span>
+            <span>
+              <h3>${escapeHtml(member.name || "Member")}</h3>
+              <p>${escapeHtml([member.tier_badge, location].filter(Boolean).join(", "))}</p>
+              ${renderDiscoveryPills(member.interests || [])}
+            </span>
+          </button>
+        `;
+      }
+
+      function bindDiscoveryProfileButtons() {
+        document.querySelectorAll("[data-discovery-profile]").forEach((button) => {
+          button.addEventListener("click", () => openDiscoveryProfile(button.dataset.discoveryProfile));
+        });
+      }
+
+      async function openDiscoveryProfile(memberId) {
+        const host = document.getElementById("discovery-profile");
+        const status = document.getElementById("discovery-status");
+        if (!host) {
+          return;
+        }
+        if (status) status.textContent = "";
+        host.innerHTML = '<div class="discovery-profile-card"><p class="hint">Loading profile.</p></div>';
+        try {
+          const result = await api("discovery", { mode: "profile", member_id: memberId });
+          host.innerHTML = renderDiscoveryProfile(result.profile);
+          bindDiscoveryProfileActions();
+        } catch (error) {
+          host.innerHTML = "";
+          if (status) status.textContent = "This profile is no longer available.";
+        }
+      }
+
+      function renderDiscoveryProfile(profile) {
+        const location = [profile.city, profile.country].filter(Boolean).join(", ");
+        return `
+          <article class="discovery-profile-card">
+            <div class="discovery-profile-hero">
+              ${profile.face_photo_url
+                ? `<img src="${escapeAttr(profile.face_photo_url)}" alt="">`
+                : '<span class="photo-placeholder">Validated profile</span>'}
+            </div>
+            <p class="eyebrow">${escapeHtml(profile.tier_badge || "Member")}</p>
+            <h3>${escapeHtml(profile.name || "Member")}</h3>
+            <div class="discovery-profile-meta">${escapeHtml([location, profile.age ? `${profile.age}` : ""].filter(Boolean).join(", "))}</div>
+            ${profile.bio ? `<p>${escapeHtml(profile.bio)}</p>` : ""}
+            ${renderDiscoveryPills(profile.interests || [])}
+            ${renderDiscoveryPhotoStrip(profile.photos || [])}
+            <div class="discovery-actions">
+              <button class="button" type="button" data-discovery-action="like" data-member-id="${escapeAttr(profile.member_id)}">Like</button>
+              <button class="button button--secondary" type="button" data-discovery-action="pass" data-member-id="${escapeAttr(profile.member_id)}">Pass</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderDiscoveryPills(items) {
+        const values = Array.isArray(items) ? items.filter(Boolean).slice(0, 6) : [];
+        if (!values.length) {
+          return "";
+        }
+        return `<span class="discovery-pill-row">${values.map((item) => `<span class="discovery-pill">${escapeHtml(item)}</span>`).join("")}</span>`;
+      }
+
+      function renderDiscoveryPhotoStrip(photos) {
+        const visible = Array.isArray(photos) ? photos.filter((photo) => photo.thumbnail_url).slice(0, 4) : [];
+        if (!visible.length) {
+          return "";
+        }
+        return `
+          <div class="discovery-photo-strip" aria-label="Member photos">
+            ${visible.map((photo) => `
+              <a href="${escapeAttr(photo.thumbnail_url)}" target="_blank" rel="noreferrer">
+                <img src="${escapeAttr(photo.thumbnail_url)}" alt="">
+              </a>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      function bindDiscoveryProfileActions() {
+        document.querySelectorAll("[data-discovery-action]").forEach((button) => {
+          button.addEventListener("click", () => submitDiscoveryAction(button.dataset.discoveryAction, button.dataset.memberId));
+        });
+      }
+
+      async function submitDiscoveryAction(mode, memberId) {
+        const status = document.getElementById("discovery-status");
+        if (status) status.textContent = "";
+        try {
+          const result = await api("discovery", { mode, member_id: memberId });
+          if (status) {
+            status.textContent = result.matched
+              ? "A mutual match is open. You can now exchange messages."
+              : mode === "like" ? "Interest saved." : "Profile passed.";
+          }
+          if (result.matched) {
+            await loadDiscoveryMatches();
+          }
+        } catch (error) {
+          if (status) status.textContent = "The action could not be completed.";
+        }
+      }
+
+      async function loadDiscoveryMatches() {
+        const matchHost = document.getElementById("discovery-matches");
+        if (!matchHost) {
+          return;
+        }
+        try {
+          const result = await api("discovery", { mode: "matches" });
+          matchHost.innerHTML = renderDiscoveryMatches(result.matches || []);
+          bindDiscoveryMatchButtons();
+        } catch (error) {
+          matchHost.innerHTML = "";
+        }
+      }
+
+      function renderDiscoveryMatches(matches) {
+        return `
+          <p class="eyebrow">Matches</p>
+          <h2>Mutual connections</h2>
+          ${matches.length
+            ? `<div class="match-list">${matches.map(renderDiscoveryMatch).join("")}</div>`
+            : '<p class="hint">Messages open after both members show interest.</p>'}
+          <div id="discovery-thread"></div>
+        `;
+      }
+
+      function renderDiscoveryMatch(match) {
+        const profile = match.matched_member || {};
+        return `
+          <article class="match-card">
+            <h3>${escapeHtml(profile.name || "Member")}</h3>
+            <p>${escapeHtml([profile.tier_badge, profile.city, profile.country].filter(Boolean).join(", "))}</p>
+            <div class="actions">
+              <button class="button button--small" type="button" data-discovery-match="${escapeAttr(match.match_id)}">Open messages</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function bindDiscoveryMatchButtons() {
+        document.querySelectorAll("[data-discovery-match]").forEach((button) => {
+          button.addEventListener("click", () => openDiscoveryMessages(button.dataset.discoveryMatch));
+        });
+      }
+
+      async function openDiscoveryMessages(matchId) {
+        const thread = document.getElementById("discovery-thread");
+        if (!thread) {
+          return;
+        }
+        currentDiscoveryMatchId = matchId;
+        thread.innerHTML = '<p class="hint">Loading messages.</p>';
+        try {
+          const result = await api("discovery", { mode: "messages", match_id: matchId });
+          thread.innerHTML = renderDiscoveryThread(result.match, result.messages || []);
+          const form = document.getElementById("discovery-message-form");
+          form?.addEventListener("submit", submitDiscoveryMessage);
+        } catch (error) {
+          thread.innerHTML = '<p class="hint error-text">Messages are not available right now.</p>';
+        }
+      }
+
+      function renderDiscoveryThread(match, messages) {
+        const profile = match?.matched_member || {};
+        return `
+          <div class="message-list" aria-label="Messages with ${escapeAttr(profile.name || "member")}">
+            ${messages.length
+              ? messages.map(renderDiscoveryMessage).join("")
+              : '<p class="hint">No messages yet.</p>'}
+          </div>
+          <form id="discovery-message-form" class="message-form" novalidate>
+            <div class="field">
+              <label for="discovery-message">Message</label>
+              <textarea id="discovery-message" maxlength="1000" required></textarea>
+            </div>
+            <div class="actions">
+              <button id="discovery-message-submit" class="button" type="submit">Send message</button>
+            </div>
+            <p id="discovery-message-status" class="hint" aria-live="polite"></p>
+          </form>
+        `;
+      }
+
+      function renderDiscoveryMessage(message) {
+        return `
+          <article class="message-card ${message.sender_is_self ? "is-self" : ""}">
+            <p>${escapeHtml(message.message)}</p>
+            <p>${escapeHtml(message.sender_is_self ? "You" : "Member")}, ${escapeHtml(message.sent_at || "")}</p>
+          </article>
+        `;
+      }
+
+      async function submitDiscoveryMessage(event) {
+        event.preventDefault();
+        const message = readFormValue("discovery-message");
+        const status = document.getElementById("discovery-message-status");
+        const button = document.getElementById("discovery-message-submit");
+        if (status) status.textContent = "";
+        if (!message) {
+          if (status) status.textContent = "Enter a message.";
+          return;
+        }
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Sending...";
+        }
+        try {
+          await api("discovery", {
+            mode: "send-message",
+            match_id: currentDiscoveryMatchId,
+            message,
+          });
+          await openDiscoveryMessages(currentDiscoveryMatchId);
+        } catch (error) {
+          if (status) status.textContent = "Message could not be sent.";
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Send message";
+          }
+        }
+      }
+
+      async function saveDiscoveryVisibility(visible) {
+        const status = document.getElementById("discovery-status");
+        if (status) status.textContent = "";
+        try {
+          const result = await api("discovery", {
+            mode: "visibility",
+            visible,
+          });
+          currentDiscoveryStatus = normalizeDiscoveryStatus(result.discovery || currentDiscoveryStatus);
+          renderMemberShell({ ...currentMember, discovery: currentDiscoveryStatus }, "discovery");
+        } catch (error) {
+          if (status) status.textContent = "Visibility could not be changed.";
+        }
       }
 
       function renderPrivacyPanel(member) {
@@ -2314,6 +2949,18 @@
       function isMemberValidated(member) {
         return member?.validation?.is_validated === true ||
           String(member?.validation_status || "").toLowerCase() === "validated";
+      }
+
+      function normalizeDiscoveryStatus(value) {
+        const status = value && typeof value === "object" ? value : {};
+        return {
+          master_enabled: status.master_enabled === true,
+          eligible: status.eligible === true,
+          visible: status.visible === true,
+          member_id: String(status.member_id || ""),
+          founder_invisible_by_default: status.founder_invisible_by_default === true,
+          founder_visibility_control: status.founder_visibility_control === true,
+        };
       }
 
       function renderPasswordPending(payload) {

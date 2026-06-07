@@ -2,7 +2,7 @@
 
 const crypto = require("crypto");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, PutCommand, QueryCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, DeleteCommand, GetCommand, PutCommand, QueryCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const { InvokeCommand, LambdaClient } = require("@aws-sdk/client-lambda");
 const { DeleteObjectCommand, GetObjectCommand, S3Client } = require("@aws-sdk/client-s3");
 const {
@@ -20,6 +20,7 @@ const {
   VerifySoftwareTokenCommand,
 } = require("@aws-sdk/client-cognito-identity-provider");
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
+const { GetParameterCommand, SSMClient } = require("@aws-sdk/client-ssm");
 
 const REGION = process.env.AWS_REGION || "us-east-1";
 const TABLE_NAME = process.env.TABLE_NAME || "presttige-db";
@@ -39,6 +40,15 @@ const MEMBER_HOME_URL = process.env.MEMBER_HOME_URL || "https://presttige.net/me
 const PHOTO_UPLOAD_INIT_FUNCTION = process.env.PHOTO_UPLOAD_INIT_FUNCTION || "presttige-photo-upload-init";
 const PHOTO_ORIGINALS_BUCKET = process.env.PHOTO_ORIGINALS_BUCKET || "presttige-applicant-photos";
 const PHOTO_THUMBNAILS_BUCKET = process.env.PHOTO_THUMBNAILS_BUCKET || "presttige-applicant-photos-thumbnails";
+const MEMBER_DISCOVERY_SWITCH_PARAMETER = process.env.MEMBER_DISCOVERY_SWITCH_PARAMETER || "/presttige/member-discovery/enabled";
+const MEMBER_DISCOVERY_STATE_TABLE = process.env.MEMBER_DISCOVERY_STATE_TABLE || "presttige-member-discovery-state";
+const MEMBER_DISCOVERY_STATE_INDEX = process.env.MEMBER_DISCOVERY_STATE_INDEX || "visibility-index";
+const MEMBER_CONNECTIONS_TABLE = process.env.MEMBER_CONNECTIONS_TABLE || "presttige-member-connections";
+const MEMBER_CONNECTIONS_TARGET_INDEX = process.env.MEMBER_CONNECTIONS_TARGET_INDEX || "target-index";
+const MEMBER_MATCHES_TABLE = process.env.MEMBER_MATCHES_TABLE || "presttige-member-matches";
+const MEMBER_MATCHES_MEMBER_A_INDEX = process.env.MEMBER_MATCHES_MEMBER_A_INDEX || "member-a-index";
+const MEMBER_MATCHES_MEMBER_B_INDEX = process.env.MEMBER_MATCHES_MEMBER_B_INDEX || "member-b-index";
+const MEMBER_MESSAGES_TABLE = process.env.MEMBER_MESSAGES_TABLE || "presttige-member-messages";
 const DSAR_ERASURE_CONFIRMATION = "ERASE MY ACCOUNT";
 const FOUNDER_TOTP_LABEL = "Presttige, Founder";
 const FOUNDER_TOTP_COOKIE_MAX_AGE_SECONDS = Number(process.env.FOUNDER_TOTP_COOKIE_MAX_AGE_SECONDS || 600);
@@ -70,6 +80,10 @@ const FOUNDER_PHOTO_SLOT_MIN = 1;
 const FOUNDER_PHOTO_SLOT_MAX = 6;
 const MEMBER_PHOTO_MAX_SIZE = 10 * 1024 * 1024;
 const MEMBER_PHOTO_TYPES = new Set(["image/jpeg", "image/png"]);
+const DISCOVERY_VISIBLE_PARTITION_PREFIX = "visible#active#validated";
+const DISCOVERY_LIST_LIMIT = 24;
+const DISCOVERY_MESSAGE_LIMIT = 1000;
+const DISCOVERY_MESSAGE_PAGE_LIMIT = 50;
 const VALIDATION_REQUIRED_ACTIONS = new Set([
   "profile",
   "photos",
@@ -384,6 +398,7 @@ const cognito = new CognitoIdentityProviderClient({ region: REGION });
 const ses = new SESClient({ region: REGION });
 const lambda = new LambdaClient({ region: REGION });
 const s3 = new S3Client({ region: REGION });
+const ssm = new SSMClient({ region: REGION });
 
 exports.handler = async (event) => {
   try {
@@ -428,8 +443,14 @@ exports.handler = async (event) => {
     if (route === "concierge") {
       return handleFounderConcierge(event);
     }
+    if (route === "discovery") {
+      return handleMemberDiscovery(event);
+    }
     if (route === "photo-thumbnail") {
       return handleMemberPhotoThumbnail(event);
+    }
+    if (route === "discovery-photo") {
+      return handleMemberDiscoveryPhoto(event);
     }
     if (route === "dsar") {
       return handleMemberDsar(event);
@@ -1165,6 +1186,197 @@ async function handleFounderConcierge(event) {
   }, cookiesToSet);
 }
 
+async function handleMemberDiscovery(event) {
+  const body = parseBody(event);
+  const mode = normalizeText(body.mode || "status").toLowerCase();
+  const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
+
+  if (!session.ok) {
+    logAuth("member_discovery", session.status || "invalid", {
+      sub_hash: hashIdentifier(session.cognito_sub),
+    });
+    return response(event, session.statusCode || 401, session, clearSessionCookies());
+  }
+
+  const cookiesToSet = refreshedTokens
+    ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
+    : [];
+  const switchState = await memberDiscoverySwitch();
+
+  if (!switchState.enabled) {
+    logAuth("member_discovery", "switch_off", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      mode_hash: hashIdentifier(mode),
+    });
+    return response(event, mode === "status" ? 200 : 403, {
+      ok: mode === "status",
+      status: "DISCOVERY_DISABLED",
+      discovery: publicDiscoverySwitchState(switchState),
+    }, cookiesToSet);
+  }
+
+  if (!isDiscoveryEligibleMember(session.member)) {
+    logAuth("member_discovery", "unavailable", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      mode_hash: hashIdentifier(mode),
+    });
+    return response(event, 403, {
+      ok: false,
+      status: "ACTION_UNAVAILABLE",
+    }, cookiesToSet);
+  }
+
+  const actor = await upsertMemberDiscoveryState(session.member);
+
+  if (mode === "status") {
+    return response(event, 200, {
+      ok: true,
+      status: "DISCOVERY_READY",
+      discovery: publicOwnDiscoveryStatus(actor, switchState),
+    }, cookiesToSet);
+  }
+
+  if (mode === "visibility") {
+    if (!isFounderMember(session.member)) {
+      return response(event, 403, {
+        ok: false,
+        status: "ACTION_UNAVAILABLE",
+      }, cookiesToSet);
+    }
+    const updatedLead = await saveMemberDiscoveryVisibility(session.member, body.visible === true);
+    const updatedState = await upsertMemberDiscoveryState(updatedLead);
+    await writeMemberAudit(updatedLead, "member_discovery_visibility_changed", {
+      category: "member_discovery",
+      visible: updatedState.visible === true,
+    });
+    logAuth("member_discovery", "visibility_saved", {
+      lead_hash: hashIdentifier(updatedLead.lead_id),
+      visible: updatedState.visible === true,
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "DISCOVERY_VISIBILITY_SAVED",
+      discovery: publicOwnDiscoveryStatus(updatedState, switchState),
+    }, cookiesToSet);
+  }
+
+  if (mode === "circle" || mode === "list") {
+    const members = await listDiscoveryMembers(actor);
+    logAuth("member_discovery", "listed", {
+      lead_hash: hashIdentifier(actor.member_id),
+      result_count: members.length,
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "DISCOVERY_LIST_READY",
+      discovery: publicOwnDiscoveryStatus(actor, switchState),
+      members,
+    }, cookiesToSet);
+  }
+
+  if (mode === "profile") {
+    const target = await getViewableDiscoveryTarget(actor, body.member_id);
+    if (!target) {
+      return response(event, 404, {
+        ok: false,
+        status: "DISCOVERY_PROFILE_NOT_FOUND",
+      }, cookiesToSet);
+    }
+    return response(event, 200, {
+      ok: true,
+      status: "DISCOVERY_PROFILE_READY",
+      profile: publicDiscoveryProfile(target),
+    }, cookiesToSet);
+  }
+
+  if (mode === "like" || mode === "pass") {
+    const target = await getViewableDiscoveryTarget(actor, body.member_id);
+    if (!target) {
+      return response(event, 404, {
+        ok: false,
+        status: "DISCOVERY_TARGET_NOT_FOUND",
+      }, cookiesToSet);
+    }
+    const result = mode === "like"
+      ? await saveMemberDiscoveryLike(actor, target)
+      : await saveMemberDiscoveryPass(actor, target);
+    await writeMemberAudit(session.member, `member_discovery_${mode}`, {
+      category: "member_discovery",
+      target_hash: hashIdentifier(target.member_id),
+      matched: result.matched === true,
+    });
+    logAuth("member_discovery", mode === "like" ? "liked" : "passed", {
+      lead_hash: hashIdentifier(actor.member_id),
+      target_hash: hashIdentifier(target.member_id),
+      matched: result.matched === true,
+    });
+    return response(event, 200, {
+      ok: true,
+      status: result.matched ? "DISCOVERY_MATCHED" : mode === "like" ? "DISCOVERY_LIKED" : "DISCOVERY_PASSED",
+      matched: result.matched === true,
+      match: result.match ? publicDiscoveryMatch(result.match, actor.member_id) : null,
+    }, cookiesToSet);
+  }
+
+  if (mode === "matches") {
+    const matches = await listDiscoveryMatches(actor);
+    return response(event, 200, {
+      ok: true,
+      status: "DISCOVERY_MATCHES_READY",
+      matches,
+    }, cookiesToSet);
+  }
+
+  if (mode === "messages") {
+    const match = await getDiscoveryMatchForMember(actor.member_id, body.match_id);
+    if (!match) {
+      return response(event, 403, {
+        ok: false,
+        status: "MATCH_NOT_AVAILABLE",
+      }, cookiesToSet);
+    }
+    const messages = await listDiscoveryMessages(match.match_id, actor.member_id);
+    return response(event, 200, {
+      ok: true,
+      status: "DISCOVERY_MESSAGES_READY",
+      match: publicDiscoveryMatch(match, actor.member_id),
+      messages,
+    }, cookiesToSet);
+  }
+
+  if (mode === "send-message") {
+    const match = await getDiscoveryMatchForMember(actor.member_id, body.match_id);
+    const messageText = trimToLimit(body.message, DISCOVERY_MESSAGE_LIMIT);
+    if (!match || !messageText) {
+      return response(event, 400, {
+        ok: false,
+        status: "MESSAGE_NOT_AVAILABLE",
+      }, cookiesToSet);
+    }
+    const message = await saveDiscoveryMessage(match, actor, messageText);
+    await writeMemberAudit(session.member, "member_discovery_message_sent", {
+      category: "member_discovery",
+      match_hash: hashIdentifier(match.match_id),
+      message_hash: hashIdentifier(message.message_id),
+    });
+    logAuth("member_discovery", "message_sent", {
+      lead_hash: hashIdentifier(actor.member_id),
+      match_hash: hashIdentifier(match.match_id),
+      message_hash: hashIdentifier(message.message_id),
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "DISCOVERY_MESSAGE_SENT",
+      message: publicDiscoveryMessage(message, actor.member_id),
+    }, cookiesToSet);
+  }
+
+  return response(event, 400, {
+    ok: false,
+    status: "INVALID_DISCOVERY_ACTION",
+  }, cookiesToSet);
+}
+
 async function handleMemberPhotoThumbnail(event) {
   const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
 
@@ -1218,6 +1430,75 @@ async function handleMemberPhotoThumbnail(event) {
   return binaryResponse(event, 200, buffer, object.ContentType || "image/jpeg", cookiesToSet);
 }
 
+async function handleMemberDiscoveryPhoto(event) {
+  const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
+
+  if (!session.ok) {
+    logAuth("member_discovery_photo", session.status || "invalid", {
+      sub_hash: hashIdentifier(session.cognito_sub),
+    });
+    return response(event, session.statusCode || 401, session, clearSessionCookies());
+  }
+
+  const cookiesToSet = refreshedTokens
+    ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
+    : [];
+  const switchState = await memberDiscoverySwitch();
+
+  if (!switchState.enabled || !isDiscoveryEligibleMember(session.member)) {
+    logAuth("member_discovery_photo", "unavailable", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+    });
+    return response(event, 403, {
+      ok: false,
+      status: "ACTION_UNAVAILABLE",
+    }, cookiesToSet);
+  }
+
+  const actor = await upsertMemberDiscoveryState(session.member);
+  const memberId = normalizeText(event?.queryStringParameters?.member_id || safeParseBody(event).member_id);
+  const photoId = normalizeText(event?.queryStringParameters?.photo_id || safeParseBody(event).photo_id);
+  const target = memberId === actor.member_id
+    ? actor
+    : await getViewableDiscoveryTarget(actor, memberId);
+
+  if (!target || !photoId) {
+    return response(event, 404, {
+      ok: false,
+      status: "PHOTO_NOT_FOUND",
+    }, cookiesToSet);
+  }
+
+  const lead = await findLeadByLeadId(target.member_id);
+  const thumbKey = lead ? thumbnailKeyForMemberPhoto(lead, photoId) : "";
+  const allowedPhoto = discoveryPhotosForLead(lead).some((photo) => photo.photo_id === photoId);
+
+  if (!thumbKey || !allowedPhoto) {
+    logAuth("member_discovery_photo", "not_found", {
+      lead_hash: hashIdentifier(actor.member_id),
+      target_hash: hashIdentifier(target.member_id),
+      photo_hash: hashIdentifier(photoId),
+    });
+    return response(event, 404, {
+      ok: false,
+      status: "PHOTO_NOT_FOUND",
+    }, cookiesToSet);
+  }
+
+  const object = await s3.send(new GetObjectCommand({
+    Bucket: PHOTO_THUMBNAILS_BUCKET,
+    Key: thumbKey,
+  }));
+  const buffer = Buffer.concat(await streamToChunks(object.Body));
+  logAuth("member_discovery_photo", "served", {
+    lead_hash: hashIdentifier(actor.member_id),
+    target_hash: hashIdentifier(target.member_id),
+    photo_hash: hashIdentifier(photoId),
+  });
+
+  return binaryResponse(event, 200, buffer, object.ContentType || "image/jpeg", cookiesToSet);
+}
+
 async function handleMemberDsar(event) {
   const body = parseBody(event);
   const mode = normalizeText(body.mode || "export").toLowerCase();
@@ -1238,7 +1519,7 @@ async function handleMemberDsar(event) {
     const audit = await writeMemberAudit(session.member, "member_dsar_export", {
       category: "access_export",
     });
-    const exportPayload = buildMemberDataExport(session.member, audit);
+    const exportPayload = await buildMemberDataExport(session.member, audit);
 
     logAuth("member_dsar", "exported", {
       lead_hash: hashIdentifier(session.member.lead_id),
@@ -1645,6 +1926,7 @@ function publicMember(lead) {
     interests: publicInterests(lead),
     photos: publicPhotosForMember(lead),
     concierge_profile: isFounderMember(lead) ? publicFounderConciergeProfile(lead) : null,
+    discovery: publicOwnDiscoveryStatus(discoveryStateFromLead(lead), { enabled: false }),
     security: {
       founder_totp_required: isFounderMember(lead),
       founder_totp_enabled: isFounderTotpEnabled(lead),
@@ -1818,7 +2100,646 @@ async function saveFounderConciergeProfile(lead, profile) {
   return result.Attributes || lead;
 }
 
-function buildMemberDataExport(lead, audit) {
+async function memberDiscoverySwitch() {
+  try {
+    const result = await ssm.send(new GetParameterCommand({
+      Name: MEMBER_DISCOVERY_SWITCH_PARAMETER,
+      WithDecryption: false,
+    }));
+    const value = normalizeText(result.Parameter?.Value).toLowerCase();
+    return {
+      enabled: ["true", "1", "on", "enabled", "yes"].includes(value),
+      parameter_name: MEMBER_DISCOVERY_SWITCH_PARAMETER,
+    };
+  } catch (error) {
+    if (safeErrorType(error) !== "ParameterNotFound") {
+      logAuth("member_discovery", "switch_read_failed", {
+        error_type: safeErrorType(error),
+      });
+    }
+    return {
+      enabled: false,
+      parameter_name: MEMBER_DISCOVERY_SWITCH_PARAMETER,
+    };
+  }
+}
+
+function publicDiscoverySwitchState(switchState) {
+  return {
+    master_enabled: switchState?.enabled === true,
+    switch_parameter: MEMBER_DISCOVERY_SWITCH_PARAMETER,
+  };
+}
+
+function publicOwnDiscoveryStatus(state, switchState) {
+  const normalized = state || {};
+  return {
+    ...publicDiscoverySwitchState(switchState),
+    member_id: normalizeText(normalized.member_id),
+    eligible: normalized.eligible === true,
+    visible: normalized.visible === true,
+    founder_invisible_by_default: normalized.is_founder === true,
+    founder_visibility_control: normalized.is_founder === true,
+  };
+}
+
+function discoveryStateFromLead(lead) {
+  const eligible = isDiscoveryEligibleMember(lead);
+  const visible = eligible && memberDiscoveryVisibleByPreference(lead);
+  return {
+    member_id: normalizeText(lead?.lead_id),
+    audience: discoveryAudience(lead),
+    eligible,
+    visible,
+    is_founder: isFounderMember(lead),
+  };
+}
+
+function isDiscoveryEligibleMember(lead) {
+  return Boolean(
+    lead &&
+    normalizeText(lead.lead_id) &&
+    normalizeText(lead.cognito_sub) &&
+    normalizeText(lead.account_status).toLowerCase() === ACTIVE_ACCOUNT_STATUS &&
+    normalizeText(lead.access_status).toLowerCase() === ACTIVE_ACCOUNT_STATUS &&
+    isMemberValidated(lead) &&
+    lead.erased !== true
+  );
+}
+
+function memberDiscoveryVisibleByPreference(lead) {
+  const preference = normalizeText(lead?.member_discovery_visibility).toLowerCase();
+  if (isFounderMember(lead)) {
+    return preference === "visible";
+  }
+  return preference !== "hidden";
+}
+
+async function saveMemberDiscoveryVisibility(lead, visible) {
+  const now = new Date().toISOString();
+  const result = await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        lead_id: normalizeText(lead.lead_id),
+      },
+      UpdateExpression: "SET member_discovery_visibility = :visibility, member_discovery_visibility_updated_at = :now, updated_at = :now",
+      ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
+      ExpressionAttributeValues: {
+        ":lead_id": normalizeText(lead.lead_id),
+        ":cognito_sub": normalizeText(lead.cognito_sub),
+        ":visibility": visible ? "visible" : "hidden",
+        ":now": now,
+      },
+      ReturnValues: "ALL_NEW",
+    })
+  );
+  return result.Attributes || lead;
+}
+
+async function upsertMemberDiscoveryState(lead) {
+  const state = discoveryStateFromLead(lead);
+  const now = new Date().toISOString();
+  const item = {
+    member_id: state.member_id,
+    audience: state.audience,
+    eligible: state.eligible,
+    visible: state.visible,
+    is_founder: state.is_founder,
+    synthetic_test: lead.synthetic_test === true,
+    visibility_partition: state.visible ? discoveryVisiblePartition(state.audience) : `hidden#${state.audience}`,
+    sort_key: discoverySortKey(lead),
+    public_profile: discoveryPublicProfile(lead),
+    updated_at: now,
+  };
+
+  await ddb.send(new PutCommand({
+    TableName: MEMBER_DISCOVERY_STATE_TABLE,
+    Item: item,
+  }));
+  return item;
+}
+
+async function findLeadByLeadId(leadId) {
+  const id = normalizeText(leadId);
+  if (!id) {
+    return null;
+  }
+  const result = await ddb.send(new GetCommand({
+    TableName: TABLE_NAME,
+    Key: {
+      lead_id: id,
+    },
+  }));
+  return result.Item || null;
+}
+
+function discoveryAudience(leadOrState) {
+  return leadOrState?.synthetic_test === true || normalizeText(leadOrState?.audience) === "test"
+    ? "test"
+    : "real";
+}
+
+function discoveryVisiblePartition(audience) {
+  return `${DISCOVERY_VISIBLE_PARTITION_PREFIX}#${normalizeText(audience) || "real"}`;
+}
+
+function discoverySortKey(lead) {
+  const tier = canonicalTier(lead);
+  const name = normalizeText(lead?.name).toLowerCase();
+  return `${String(tierRank(tier)).padStart(2, "0")}#${name}#${normalizeText(lead?.lead_id)}`;
+}
+
+function tierRank(tier) {
+  const ranks = {
+    founder: 1,
+    patron: 2,
+    premier: 3,
+    club: 4,
+    free: 5,
+    tester: 6,
+  };
+  return ranks[normalizeText(tier).toLowerCase()] || 9;
+}
+
+function tierLabel(tier) {
+  const labels = {
+    founder: "FOUNDER",
+    patron: "PATRON",
+    premier: "PREMIER",
+    club: "CLUB",
+    free: "FREE",
+    tester: "TESTER",
+  };
+  const normalized = normalizeText(tier).toLowerCase();
+  return labels[normalized] || normalizeText(tier).toUpperCase();
+}
+
+function discoveryPublicProfile(lead) {
+  const tier = canonicalTier(lead);
+  const photos = discoveryPhotosForLead(lead);
+  const face = photos.find((photo) => photo.is_face) || photos[0] || null;
+  return {
+    member_id: normalizeText(lead.lead_id),
+    name: normalizeText(lead.name),
+    tier,
+    tier_badge: tierLabel(tier),
+    age: normalizeText(lead.age),
+    city: normalizeText(lead.city),
+    country: normalizeText(lead.country),
+    bio: trimToLimit(lead.bio || lead.short_introduction, 480),
+    interests: discoveryInterestPills(lead),
+    face_photo_id: normalizeText(face?.photo_id),
+    face_photo_url: face ? discoveryPhotoUrl(lead.lead_id, face.photo_id, face.updated_at) : "",
+    photos,
+  };
+}
+
+function discoveryPhotosForLead(lead) {
+  if (!lead || !isMemberValidated(lead)) {
+    return [];
+  }
+  const photos = normalizePhotosForMember(lead);
+  return photos.visible_slots
+    .map((slot) => {
+      const photoId = normalizeText(slot.photo_id);
+      const photoMeta = photoId ? (lead.photo_uploads?.[photoId] || {}) : {};
+      const status = normalizeText(photoMeta.status || slot.status).toLowerCase();
+      return {
+        photo_id: photoId,
+        status,
+        is_face: Boolean(photoId && photoId === photos.face_photo_id && status === "ready"),
+        updated_at: normalizeText(photoMeta.processed_at || slot.updated_at),
+      };
+    })
+    .filter((photo) => photo.photo_id && photo.status === "ready")
+    .map((photo) => ({
+      ...photo,
+      thumbnail_url: discoveryPhotoUrl(lead.lead_id, photo.photo_id, photo.updated_at),
+    }));
+}
+
+function discoveryPhotoUrl(memberId, photoId, version) {
+  return `/member-api/discovery-photo?member_id=${encodeURIComponent(normalizeText(memberId))}&photo_id=${encodeURIComponent(normalizeText(photoId))}&v=${encodeURIComponent(normalizeText(version))}`;
+}
+
+function discoveryInterestPills(lead) {
+  const interests = publicInterests(lead);
+  return Object.values(interests)
+    .flatMap((value) => normalizeText(value).split(/[,\n]/))
+    .map((value) => trimToLimit(value, 36))
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+async function listDiscoveryMembers(actor) {
+  const members = [];
+  let ExclusiveStartKey;
+  do {
+    const result = await ddb.send(new QueryCommand({
+      TableName: MEMBER_DISCOVERY_STATE_TABLE,
+      IndexName: MEMBER_DISCOVERY_STATE_INDEX,
+      KeyConditionExpression: "visibility_partition = :partition",
+      ExpressionAttributeValues: {
+        ":partition": discoveryVisiblePartition(actor.audience),
+      },
+      ExclusiveStartKey,
+      Limit: DISCOVERY_LIST_LIMIT,
+    }));
+    (result.Items || []).forEach((item) => {
+      if (canViewDiscoveryTarget(actor, item)) {
+        members.push(publicDiscoveryCard(item));
+      }
+    });
+    ExclusiveStartKey = result.LastEvaluatedKey;
+  } while (ExclusiveStartKey && members.length < DISCOVERY_LIST_LIMIT);
+  return members.slice(0, DISCOVERY_LIST_LIMIT);
+}
+
+function publicDiscoveryCard(state) {
+  const profile = state.public_profile || {};
+  return {
+    member_id: normalizeText(state.member_id),
+    name: normalizeText(profile.name),
+    tier: normalizeText(profile.tier),
+    tier_badge: normalizeText(profile.tier_badge),
+    age: normalizeText(profile.age),
+    city: normalizeText(profile.city),
+    country: normalizeText(profile.country),
+    interests: Array.isArray(profile.interests) ? profile.interests.slice(0, 5) : [],
+    face_photo_url: normalizeText(profile.face_photo_url),
+  };
+}
+
+function publicDiscoveryProfile(state) {
+  const profile = state.public_profile || {};
+  return {
+    ...publicDiscoveryCard(state),
+    bio: normalizeText(profile.bio),
+    photos: Array.isArray(profile.photos)
+      ? profile.photos.map((photo) => ({
+          photo_id: normalizeText(photo.photo_id),
+          thumbnail_url: normalizeText(photo.thumbnail_url),
+          is_face: photo.is_face === true,
+        }))
+      : [],
+  };
+}
+
+async function getViewableDiscoveryTarget(actor, targetMemberId) {
+  const target = await getDiscoveryState(targetMemberId);
+  return canViewDiscoveryTarget(actor, target) ? target : null;
+}
+
+async function getDiscoveryState(memberId) {
+  const id = normalizeText(memberId);
+  if (!id) {
+    return null;
+  }
+  const result = await ddb.send(new GetCommand({
+    TableName: MEMBER_DISCOVERY_STATE_TABLE,
+    Key: {
+      member_id: id,
+    },
+  }));
+  return result.Item || null;
+}
+
+function canViewDiscoveryTarget(actor, target) {
+  if (!actor || !target) {
+    return false;
+  }
+  return Boolean(
+    actor.eligible === true &&
+    target.eligible === true &&
+    target.visible === true &&
+    normalizeText(actor.member_id) !== normalizeText(target.member_id) &&
+    normalizeText(actor.audience) === normalizeText(target.audience)
+  );
+}
+
+async function saveMemberDiscoveryLike(actor, target) {
+  const now = new Date().toISOString();
+  const matchId = discoveryMatchId(actor.member_id, target.member_id);
+  await ddb.send(new PutCommand({
+    TableName: MEMBER_CONNECTIONS_TABLE,
+    Item: {
+      actor_member_id: actor.member_id,
+      target_member_id: target.member_id,
+      action: "like",
+      match_id: matchId,
+      created_at: now,
+      updated_at: now,
+    },
+  }));
+
+  const reverse = await getDiscoveryConnection(target.member_id, actor.member_id);
+  if (reverse?.action === "like") {
+    const match = await saveDiscoveryMatch(actor, target, matchId, now);
+    return { matched: true, match };
+  }
+  return { matched: false };
+}
+
+async function saveMemberDiscoveryPass(actor, target) {
+  const now = new Date().toISOString();
+  await ddb.send(new PutCommand({
+    TableName: MEMBER_CONNECTIONS_TABLE,
+    Item: {
+      actor_member_id: actor.member_id,
+      target_member_id: target.member_id,
+      action: "pass",
+      created_at: now,
+      updated_at: now,
+    },
+  }));
+  return { matched: false };
+}
+
+async function getDiscoveryConnection(actorMemberId, targetMemberId) {
+  const result = await ddb.send(new GetCommand({
+    TableName: MEMBER_CONNECTIONS_TABLE,
+    Key: {
+      actor_member_id: normalizeText(actorMemberId),
+      target_member_id: normalizeText(targetMemberId),
+    },
+  }));
+  return result.Item || null;
+}
+
+async function saveDiscoveryMatch(actor, target, matchId, timestamp) {
+  const [memberAId, memberBId] = sortedMemberPair(actor.member_id, target.member_id);
+  const memberAProfile = memberAId === actor.member_id ? publicDiscoveryCard(actor) : publicDiscoveryCard(target);
+  const memberBProfile = memberBId === actor.member_id ? publicDiscoveryCard(actor) : publicDiscoveryCard(target);
+  const item = {
+    match_id: matchId,
+    member_a_id: memberAId,
+    member_b_id: memberBId,
+    member_a_profile: memberAProfile,
+    member_b_profile: memberBProfile,
+    status: "active",
+    created_at: timestamp,
+    updated_at: timestamp,
+  };
+  await ddb.send(new PutCommand({
+    TableName: MEMBER_MATCHES_TABLE,
+    Item: item,
+  }));
+  return item;
+}
+
+function discoveryMatchId(leftMemberId, rightMemberId) {
+  return `match#${sortedMemberPair(leftMemberId, rightMemberId).join("#")}`;
+}
+
+function sortedMemberPair(leftMemberId, rightMemberId) {
+  return [normalizeText(leftMemberId), normalizeText(rightMemberId)].sort();
+}
+
+async function listDiscoveryMatches(actor) {
+  const [left, right] = await Promise.all([
+    queryMatchesByMember(MEMBER_MATCHES_MEMBER_A_INDEX, "member_a_id", actor.member_id),
+    queryMatchesByMember(MEMBER_MATCHES_MEMBER_B_INDEX, "member_b_id", actor.member_id),
+  ]);
+  const matches = [...left, ...right]
+    .filter((match) => normalizeText(match.status) === "active")
+    .sort((a, b) => normalizeText(b.updated_at).localeCompare(normalizeText(a.updated_at)));
+  return matches.map((match) => publicDiscoveryMatch(match, actor.member_id));
+}
+
+async function queryMatchesByMember(indexName, keyName, memberId) {
+  const result = await ddb.send(new QueryCommand({
+    TableName: MEMBER_MATCHES_TABLE,
+    IndexName: indexName,
+    KeyConditionExpression: `${keyName} = :member_id`,
+    ExpressionAttributeValues: {
+      ":member_id": normalizeText(memberId),
+    },
+  }));
+  return result.Items || [];
+}
+
+async function getDiscoveryMatchForMember(memberId, matchId) {
+  const result = await ddb.send(new GetCommand({
+    TableName: MEMBER_MATCHES_TABLE,
+    Key: {
+      match_id: normalizeText(matchId),
+    },
+  }));
+  const match = result.Item || null;
+  if (!match || normalizeText(match.status) !== "active") {
+    return null;
+  }
+  const id = normalizeText(memberId);
+  return normalizeText(match.member_a_id) === id || normalizeText(match.member_b_id) === id ? match : null;
+}
+
+function publicDiscoveryMatch(match, actorMemberId) {
+  const actorId = normalizeText(actorMemberId);
+  const otherProfile = normalizeText(match.member_a_id) === actorId
+    ? match.member_b_profile
+    : match.member_a_profile;
+  return {
+    match_id: normalizeText(match.match_id),
+    matched_member: otherProfile || {},
+    created_at: normalizeText(match.created_at),
+    updated_at: normalizeText(match.updated_at),
+  };
+}
+
+async function listDiscoveryMessages(matchId, actorMemberId = "") {
+  const result = await ddb.send(new QueryCommand({
+    TableName: MEMBER_MESSAGES_TABLE,
+    KeyConditionExpression: "match_id = :match_id",
+    ExpressionAttributeValues: {
+      ":match_id": normalizeText(matchId),
+    },
+    Limit: DISCOVERY_MESSAGE_PAGE_LIMIT,
+    ScanIndexForward: true,
+  }));
+  return (result.Items || []).map((message) => publicDiscoveryMessage(message, actorMemberId));
+}
+
+async function saveDiscoveryMessage(match, actor, messageText) {
+  const now = new Date().toISOString();
+  const messageId = crypto.randomUUID();
+  const item = {
+    match_id: normalizeText(match.match_id),
+    message_sort: `${now}#${messageId}`,
+    message_id: messageId,
+    sender_member_id: normalizeText(actor.member_id),
+    recipient_member_id: normalizeText(match.member_a_id) === normalizeText(actor.member_id)
+      ? normalizeText(match.member_b_id)
+      : normalizeText(match.member_a_id),
+    message: messageText,
+    sent_at: now,
+  };
+  await ddb.send(new PutCommand({
+    TableName: MEMBER_MESSAGES_TABLE,
+    Item: item,
+  }));
+  await ddb.send(new UpdateCommand({
+    TableName: MEMBER_MATCHES_TABLE,
+    Key: {
+      match_id: normalizeText(match.match_id),
+    },
+    UpdateExpression: "SET updated_at = :now",
+    ExpressionAttributeValues: {
+      ":now": now,
+    },
+  }));
+  return item;
+}
+
+function publicDiscoveryMessage(message, actorMemberId = "") {
+  const actorId = normalizeText(actorMemberId);
+  return {
+    message_id: normalizeText(message.message_id),
+    match_id: normalizeText(message.match_id),
+    sender_member_id: normalizeText(message.sender_member_id),
+    sender_is_self: Boolean(actorId && normalizeText(message.sender_member_id) === actorId),
+    message: normalizeText(message.message),
+    sent_at: normalizeText(message.sent_at),
+  };
+}
+
+async function exportMemberDiscoveryData(lead) {
+  const memberId = normalizeText(lead.lead_id);
+  const state = await getDiscoveryState(memberId);
+  const outgoing = await queryConnectionsByActor(memberId);
+  const incoming = await queryConnectionsByTarget(memberId);
+  const matches = [
+    ...(await queryMatchesByMember(MEMBER_MATCHES_MEMBER_A_INDEX, "member_a_id", memberId)),
+    ...(await queryMatchesByMember(MEMBER_MATCHES_MEMBER_B_INDEX, "member_b_id", memberId)),
+  ];
+  const messages = [];
+  for (const match of matches) {
+    messages.push(...(await listDiscoveryMessages(match.match_id)));
+  }
+  return {
+    switch_parameter: MEMBER_DISCOVERY_SWITCH_PARAMETER,
+    own_visibility_state: state ? {
+      eligible: state.eligible === true,
+      visible: state.visible === true,
+      is_founder: state.is_founder === true,
+      updated_at: normalizeText(state.updated_at),
+    } : null,
+    likes_or_passes_sent: outgoing.map(publicDiscoveryConnection),
+    likes_or_passes_received: incoming.map(publicDiscoveryConnection),
+    matches: matches.map((match) => ({
+      match_id: normalizeText(match.match_id),
+      member_a_id: normalizeText(match.member_a_id),
+      member_b_id: normalizeText(match.member_b_id),
+      status: normalizeText(match.status),
+      created_at: normalizeText(match.created_at),
+      updated_at: normalizeText(match.updated_at),
+    })),
+    messages,
+  };
+}
+
+function publicDiscoveryConnection(connection) {
+  return {
+    actor_member_id: normalizeText(connection.actor_member_id),
+    target_member_id: normalizeText(connection.target_member_id),
+    action: normalizeText(connection.action),
+    match_id: normalizeText(connection.match_id),
+    created_at: normalizeText(connection.created_at),
+    updated_at: normalizeText(connection.updated_at),
+  };
+}
+
+async function queryConnectionsByActor(memberId) {
+  const result = await ddb.send(new QueryCommand({
+    TableName: MEMBER_CONNECTIONS_TABLE,
+    KeyConditionExpression: "actor_member_id = :member_id",
+    ExpressionAttributeValues: {
+      ":member_id": normalizeText(memberId),
+    },
+  }));
+  return result.Items || [];
+}
+
+async function queryConnectionsByTarget(memberId) {
+  const result = await ddb.send(new QueryCommand({
+    TableName: MEMBER_CONNECTIONS_TABLE,
+    IndexName: MEMBER_CONNECTIONS_TARGET_INDEX,
+    KeyConditionExpression: "target_member_id = :member_id",
+    ExpressionAttributeValues: {
+      ":member_id": normalizeText(memberId),
+    },
+  }));
+  return result.Items || [];
+}
+
+async function eraseMemberDiscoveryData(lead) {
+  const memberId = normalizeText(lead.lead_id);
+  if (!memberId) {
+    return { deleted: 0 };
+  }
+  let deleted = 0;
+  await ddb.send(new DeleteCommand({
+    TableName: MEMBER_DISCOVERY_STATE_TABLE,
+    Key: {
+      member_id: memberId,
+    },
+  }));
+  deleted += 1;
+
+  const connections = [
+    ...(await queryConnectionsByActor(memberId)),
+    ...(await queryConnectionsByTarget(memberId)),
+  ];
+  for (const connection of connections) {
+    await ddb.send(new DeleteCommand({
+      TableName: MEMBER_CONNECTIONS_TABLE,
+      Key: {
+        actor_member_id: normalizeText(connection.actor_member_id),
+        target_member_id: normalizeText(connection.target_member_id),
+      },
+    }));
+    deleted += 1;
+  }
+
+  const matches = [
+    ...(await queryMatchesByMember(MEMBER_MATCHES_MEMBER_A_INDEX, "member_a_id", memberId)),
+    ...(await queryMatchesByMember(MEMBER_MATCHES_MEMBER_B_INDEX, "member_b_id", memberId)),
+  ];
+  for (const match of matches) {
+    const messages = await listRawDiscoveryMessages(match.match_id);
+    for (const message of messages) {
+      await ddb.send(new DeleteCommand({
+        TableName: MEMBER_MESSAGES_TABLE,
+        Key: {
+          match_id: normalizeText(message.match_id),
+          message_sort: normalizeText(message.message_sort),
+        },
+      }));
+      deleted += 1;
+    }
+    await ddb.send(new DeleteCommand({
+      TableName: MEMBER_MATCHES_TABLE,
+      Key: {
+        match_id: normalizeText(match.match_id),
+      },
+    }));
+    deleted += 1;
+  }
+  return { deleted };
+}
+
+async function listRawDiscoveryMessages(matchId) {
+  const result = await ddb.send(new QueryCommand({
+    TableName: MEMBER_MESSAGES_TABLE,
+    KeyConditionExpression: "match_id = :match_id",
+    ExpressionAttributeValues: {
+      ":match_id": normalizeText(matchId),
+    },
+  }));
+  return result.Items || [];
+}
+
+async function buildMemberDataExport(lead, audit) {
   const generatedAt = new Date().toISOString();
   return {
     schema_version: 1,
@@ -1858,6 +2779,7 @@ function buildMemberDataExport(lead, audit) {
     interests: publicInterests(lead),
     founder_concierge: isFounderMember(lead) ? publicFounderConciergeProfile(lead) : null,
     photos: exportMemberPhotoReferences(lead),
+    discovery_connections: await exportMemberDiscoveryData(lead),
     consents: collectFieldsByName(lead, [
       "consent",
       "privacy",
@@ -1944,18 +2866,21 @@ async function eraseMemberData(lead) {
     category: "erasure",
   });
   const erasedAt = new Date().toISOString();
+  const discoveryDeletion = await eraseMemberDiscoveryData(lead);
   const photoDeletion = await deleteMemberPhotoObjects(lead);
   const cognitoResult = await eraseCognitoUser(lead);
   const updated = await markMemberErased(lead, {
     audit_id: requestedAudit.audit_id,
     erased_at: erasedAt,
     deleted_objects: photoDeletion.deleted,
+    deleted_discovery_items: discoveryDeletion.deleted,
     cognito_status: cognitoResult.status,
   });
   const completedAudit = await writeMemberAudit(updated, "member_dsar_erasure_completed", {
     category: "erasure",
     requested_audit_id: requestedAudit.audit_id,
     deleted_photo_objects: photoDeletion.deleted,
+    deleted_discovery_items: discoveryDeletion.deleted,
     cognito_status: cognitoResult.status,
   });
   await sendErasureConfirmation(lead, erasedAt);
@@ -2090,6 +3015,7 @@ async function markMemberErased(lead, erasure) {
     erasure_contact_hash: hashIdentifier(lead.email),
     erasure_subject_ref: subjectRef,
     erasure_deleted_photo_objects: Number(erasure.deleted_objects || 0),
+    erasure_deleted_discovery_items: Number(erasure.deleted_discovery_items || 0),
     erasure_cognito_status: normalizeText(erasure.cognito_status),
     dsar_backups_retained_until_expiry: true,
     dsar_legal_financial_audit_retained: true,
@@ -2131,6 +3057,8 @@ async function markMemberErased(lead, erasure) {
     "member_photos",
     "member_photos_updated_at",
     "photo_uploads",
+    "member_discovery_visibility",
+    "member_discovery_visibility_updated_at",
     "photos",
     "avatar",
     "profile_photo",
@@ -3169,7 +4097,7 @@ function binaryResponse(event, statusCode, buffer, contentType, cookies = []) {
 function routeName(event) {
   const path = normalizeText(event?.rawPath || event?.requestContext?.http?.path);
   const segment = path.split("/").filter(Boolean).pop() || "";
-  if (["login", "session", "logout", "forgot", "confirm-reset", "totp-verify", "totp-challenge", "totp-recover", "member-action", "profile", "photos", "concierge", "photo-thumbnail", "dsar"].includes(segment)) {
+  if (["login", "session", "logout", "forgot", "confirm-reset", "totp-verify", "totp-challenge", "totp-recover", "member-action", "profile", "photos", "concierge", "discovery", "photo-thumbnail", "discovery-photo", "dsar"].includes(segment)) {
     return segment;
   }
   const body = safeParseBody(event);
