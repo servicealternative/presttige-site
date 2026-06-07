@@ -1,0 +1,20 @@
+f94cd4e Restructure member area into membership and profile
+466a82b Backup identity E1 member structure state [skip ci]
+1521c05 Clean repo loose state before manual testing [skip ci]
+e2054e4 Extend repo cleanup backup for ignored extras [skip ci]
+5b06769 Backup repo cleanup loose state [skip ci]
+6468531 Reconcile identity drift and harden founder guard
+bd88ca6 Backup reconcile drift state
+a31f4a3 Enforce fresh discovery eligibility
+d66d85d Build member discovery behind off switch
+f2f39e1 Backup identity step7 visibility state
+f594b75 Avoid Concierge legend resize overflow
+831c993 Fix Concierge mobile legend wrapping
+8836fb7 Add Founder Concierge questionnaire
+7161501 Backup identity step6c Concierge state
+dab2e8d Add Founder photo rules
+f44ac41 Backup identity step6b Founder photo state
+61bdf4d Add Founder TOTP enforcement
+3b7e42b Backup identity step6a founder TOTP state
+935705b Fix member privacy mobile wrapping
+2c098f5 Add member DSAR self-service
