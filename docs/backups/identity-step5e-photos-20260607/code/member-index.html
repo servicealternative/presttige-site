@@ -513,113 +513,6 @@
       text-transform: uppercase;
     }
 
-    .photo-summary {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1px;
-      margin-top: 22px;
-      border: 1px solid var(--pp-hairline);
-      background: var(--pp-hairline);
-    }
-
-    .photo-summary-item {
-      min-height: 104px;
-      display: grid;
-      align-content: space-between;
-      gap: 12px;
-      padding: 18px;
-      background: var(--pp-paper);
-    }
-
-    .photo-summary-item strong {
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: 30px;
-      font-weight: 500;
-      line-height: 1;
-    }
-
-    .photo-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      margin-top: 22px;
-    }
-
-    .photo-slot {
-      display: grid;
-      gap: 14px;
-      border: 1px solid var(--pp-hairline);
-      background: var(--pp-paper);
-      padding: 16px;
-    }
-
-    .photo-slot.is-internal {
-      background: #F0ECE4;
-    }
-
-    .photo-frame {
-      position: relative;
-      overflow: hidden;
-      width: 100%;
-      aspect-ratio: 4 / 5;
-      display: grid;
-      place-items: center;
-      border: 1px solid rgba(140, 112, 64, 0.2);
-      background: #fffdf8;
-      color: var(--pp-muted);
-    }
-
-    .photo-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .photo-placeholder {
-      padding: 18px;
-      color: var(--pp-muted);
-      font-size: 14px;
-      line-height: 1.6;
-      text-align: center;
-    }
-
-    .photo-slot-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .photo-slot-title {
-      margin: 0;
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: 23px;
-      font-weight: 500;
-      line-height: 1.1;
-    }
-
-    .photo-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .button--small {
-      min-height: 38px;
-      padding: 9px 12px;
-      font-size: 11px;
-    }
-
-    .photo-input {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-      white-space: nowrap;
-    }
-
     .member-side {
       display: grid;
       align-content: start;
@@ -674,11 +567,6 @@
       }
 
       .profile-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .photo-summary,
-      .photo-grid {
         grid-template-columns: 1fr;
       }
 
@@ -750,9 +638,6 @@
         : "/member-api";
       const app = document.getElementById("app");
       const VALIDATION_REQUIRED_SECTIONS = new Set(["profile", "photos", "privacy", "founder"]);
-      const PHOTO_TYPES = new Set(["image/jpeg", "image/png"]);
-      const PHOTO_MAX_SIZE = 10 * 1024 * 1024;
-      let currentMember = null;
 
       loadSession();
 
@@ -844,7 +729,6 @@
       }
 
       function renderMemberShell(member, activeSectionKey) {
-        currentMember = member;
         const tier = normalizeTier(member?.tier);
         const tierLabel = tierLabelFor(tier);
         const isFounder = tier === "founder";
@@ -923,9 +807,6 @@
           profileForm.addEventListener("submit", (event) => submitProfile(event, member));
           document.getElementById("profile-cancel")?.addEventListener("click", () => renderMemberShell(member, "profile"));
         }
-        if (document.getElementById("photos-panel")) {
-          loadMemberPhotos(member);
-        }
       }
 
       function renderNavItem(section, isValidated, activeSectionKey) {
@@ -961,9 +842,6 @@
         if (section.key === "profile") {
           return renderProfilePanel(member);
         }
-        if (section.key === "photos") {
-          return renderPhotosPanel(member);
-        }
 
         return `
           <div class="section-panel" aria-live="polite">
@@ -987,8 +865,8 @@
           {
             key: "photos",
             title: "Photos",
-            copy: "Your private photo set is held here.",
-            openCopy: "Review and maintain your private member photos.",
+            copy: "Your photos will appear here when the photo area opens.",
+            openCopy: "This private photo area is prepared for the photo step.",
             status: "Open",
             requiresValidation: true,
           },
@@ -1160,239 +1038,6 @@
             </form>
           </div>
         `;
-      }
-
-      function renderPhotosPanel(member) {
-        if (normalizeTier(member?.tier) === "founder") {
-          return `
-            <div class="section-panel" aria-live="polite">
-              <p class="eyebrow">Photos</p>
-              <h2>Founder photos</h2>
-              <p>The Founder photo area follows in the dedicated Founder step.</p>
-            </div>
-          `;
-        }
-
-        return `
-          <div id="photos-panel" class="section-panel" aria-live="polite">
-            <p class="eyebrow">Photos</p>
-            <h2>Member photos</h2>
-            <p>Your photo set is private to your account. Two application references are held internally and are not shown here.</p>
-            <div id="photos-content">
-              <p class="hint">Loading photos.</p>
-            </div>
-            <p id="photos-error" class="hint error-text" aria-live="polite"></p>
-          </div>
-        `;
-      }
-
-      async function loadMemberPhotos(member) {
-        const host = document.getElementById("photos-content");
-        const errorBox = document.getElementById("photos-error");
-        if (!host || normalizeTier(member?.tier) === "founder") {
-          return;
-        }
-
-        try {
-          const result = await api("photos", { mode: "list" });
-          host.innerHTML = renderPhotosContent(result.photos || member?.photos || {});
-          bindPhotoActions(result.photos || member?.photos || {});
-          if (errorBox) errorBox.textContent = "";
-        } catch (error) {
-          host.innerHTML = "";
-          if (errorBox) errorBox.textContent = "Photos are not available right now.";
-        }
-      }
-
-      function renderPhotosContent(photos) {
-        const visibleSlots = Array.isArray(photos.visible_slots) ? photos.visible_slots : [];
-        const completeCount = Number(photos.complete_count || 0);
-        const requiredCount = Number(photos.required_count || 6);
-        const faceSet = Boolean(photos.face_photo_id);
-        return `
-          <div class="photo-summary" aria-label="Photo summary">
-            <div class="photo-summary-item">
-              <span class="meta-label">Total</span>
-              <strong>${escapeHtml(String(completeCount))}/${escapeHtml(String(requiredCount))}</strong>
-            </div>
-            <div class="photo-summary-item">
-              <span class="meta-label">Internal</span>
-              <strong>${escapeHtml(String(photos.seeded_internal_count || 2))}</strong>
-            </div>
-            <div class="photo-summary-item">
-              <span class="meta-label">Face</span>
-              <strong>${faceSet ? "Set" : "Choose"}</strong>
-            </div>
-          </div>
-          <div class="photo-grid">
-            ${renderInternalPhotoSlot(1)}
-            ${renderInternalPhotoSlot(2)}
-            ${visibleSlots.map(renderVisiblePhotoSlot).join("")}
-          </div>
-        `;
-      }
-
-      function renderInternalPhotoSlot(slot) {
-        return `
-          <article class="photo-slot is-internal">
-            <div class="photo-slot-header">
-              <h3 class="photo-slot-title">Photo ${slot}</h3>
-              <span class="status-badge">Internal</span>
-            </div>
-            <div class="photo-frame">
-              <span class="photo-placeholder">Application reference held privately.</span>
-            </div>
-          </article>
-        `;
-      }
-
-      function renderVisiblePhotoSlot(slot) {
-        const status = String(slot.status || "empty").toLowerCase();
-        const hasPhoto = Boolean(slot.photo_id);
-        const isReady = status === "ready";
-        const actionLabel = hasPhoto ? "Replace" : "Add photo";
-        const statusLabel = slot.is_face ? "Face" : isReady ? "Ready" : hasPhoto ? "Preparing" : "Empty";
-        return `
-          <article class="photo-slot" data-photo-slot="${escapeAttr(slot.slot)}">
-            <div class="photo-slot-header">
-              <h3 class="photo-slot-title">Photo ${escapeHtml(String(slot.slot))}</h3>
-              <span class="status-badge">${escapeHtml(statusLabel)}</span>
-            </div>
-            <div class="photo-frame">
-              ${slot.thumbnail_url
-                ? `<img src="${escapeAttr(slot.thumbnail_url)}" alt="">`
-                : `<span class="photo-placeholder">${hasPhoto ? "Thumbnail preparing." : "Add a private member photo."}</span>`}
-            </div>
-            <div class="photo-actions">
-              <button class="button button--small" type="button" data-photo-upload="${escapeAttr(slot.slot)}">${escapeHtml(actionLabel)}</button>
-              <input class="photo-input" type="file" accept="image/jpeg,image/png" data-photo-input="${escapeAttr(slot.slot)}">
-              <button class="button button--small button--secondary" type="button" data-photo-face="${escapeAttr(slot.photo_id)}" ${isReady && !slot.is_face ? "" : "disabled"}>Set face</button>
-            </div>
-          </article>
-        `;
-      }
-
-      function bindPhotoActions(photos) {
-        document.querySelectorAll("[data-photo-upload]").forEach((button) => {
-          button.addEventListener("click", () => {
-            const input = document.querySelector(`[data-photo-input="${button.dataset.photoUpload}"]`);
-            input?.click();
-          });
-        });
-        document.querySelectorAll("[data-photo-input]").forEach((input) => {
-          input.addEventListener("change", () => {
-            const file = input.files?.[0];
-            if (file) {
-              uploadMemberPhoto(input.dataset.photoInput, file);
-            }
-            input.value = "";
-          });
-        });
-        document.querySelectorAll("[data-photo-face]").forEach((button) => {
-          button.addEventListener("click", () => setMemberPhotoFace(button.dataset.photoFace));
-        });
-      }
-
-      async function uploadMemberPhoto(slot, file) {
-        const errorBox = document.getElementById("photos-error");
-        if (errorBox) errorBox.textContent = "";
-
-        if (!PHOTO_TYPES.has(file.type)) {
-          if (errorBox) errorBox.textContent = "Use a JPEG or PNG image.";
-          return;
-        }
-        if (file.size > PHOTO_MAX_SIZE) {
-          if (errorBox) errorBox.textContent = "Use an image under 10 MB.";
-          return;
-        }
-
-        setPhotoButtonsDisabled(true);
-        try {
-          const result = await api("photos", {
-            mode: "init-upload",
-            slot: Number(slot),
-            content_type: file.type,
-            file_size: file.size,
-          });
-          await postPhotoToS3(result.upload, file);
-          await refreshPhotosUntilReady(result.upload.photo_id);
-        } catch (error) {
-          if (errorBox) errorBox.textContent = "Photo could not be saved.";
-          setPhotoButtonsDisabled(false);
-        }
-      }
-
-      async function postPhotoToS3(upload, file) {
-        const formData = new FormData();
-        Object.entries(upload.upload_fields || {}).forEach(([key, value]) => {
-          formData.append(key, value);
-        });
-        formData.append("file", file);
-        const result = await fetch(upload.upload_url, {
-          method: "POST",
-          body: formData,
-        });
-        if (!result.ok) {
-          throw new Error("Photo upload failed");
-        }
-      }
-
-      async function refreshPhotosUntilReady(photoId) {
-        const host = document.getElementById("photos-content");
-        for (let attempt = 0; attempt < 6; attempt += 1) {
-          await sleep(attempt === 0 ? 1200 : 2500);
-          const result = await api("photos", { mode: "list" });
-          host.innerHTML = renderPhotosContent(result.photos || {});
-          bindPhotoActions(result.photos || {});
-          const slot = (result.photos?.visible_slots || []).find((item) => item.photo_id === photoId);
-          if (slot?.status === "ready") {
-            return;
-          }
-        }
-        setPhotoButtonsDisabled(false);
-      }
-
-      async function setMemberPhotoFace(photoId) {
-        const errorBox = document.getElementById("photos-error");
-        if (!photoId) {
-          return;
-        }
-        if (errorBox) errorBox.textContent = "";
-        setPhotoButtonsDisabled(true);
-        try {
-          const result = await api("photos", {
-            mode: "set-face",
-            photo_id: photoId,
-          });
-          document.getElementById("photos-content").innerHTML = renderPhotosContent(result.photos || {});
-          bindPhotoActions(result.photos || {});
-        } catch (error) {
-          if (errorBox) errorBox.textContent = "Face photo could not be set.";
-          setPhotoButtonsDisabled(false);
-        }
-      }
-
-      function setPhotoButtonsDisabled(disabled) {
-        document.querySelectorAll("[data-photo-upload]").forEach((button) => {
-          button.disabled = disabled;
-        });
-        if (disabled) {
-          document.querySelectorAll("[data-photo-face]").forEach((button) => {
-            if (!button.disabled) {
-              button.dataset.reenable = "true";
-              button.disabled = true;
-            }
-          });
-          return;
-        }
-        document.querySelectorAll("[data-photo-face][data-reenable='true']").forEach((button) => {
-          button.disabled = false;
-          delete button.dataset.reenable;
-        });
-      }
-
-      function sleep(ms) {
-        return new Promise((resolve) => window.setTimeout(resolve, ms));
       }
 
       async function submitProfile(event, member) {

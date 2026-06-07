@@ -1,0 +1,49 @@
+{
+    "Parameters": [
+        {
+            "Name": "/presttige/photos/cloudfront-distribution-id",
+            "Type": "String",
+            "Value": "EPU4BRNGY6CN4",
+            "Version": 1,
+            "LastModifiedDate": "2026-04-26T10:45:29.653000+04:00",
+            "ARN": "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/photos/cloudfront-distribution-id",
+            "DataType": "text"
+        },
+        {
+            "Name": "/presttige/photos/cloudfront-domain",
+            "Type": "String",
+            "Value": "d2arhx2eclkhy0.cloudfront.net",
+            "Version": 1,
+            "LastModifiedDate": "2026-04-26T10:45:28.445000+04:00",
+            "ARN": "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/photos/cloudfront-domain",
+            "DataType": "text"
+        },
+        {
+            "Name": "/presttige/photos/kms-key-arn",
+            "Type": "String",
+            "Value": "arn:aws:kms:us-east-1:343218208384:key/723bb788-9911-4c49-bf1d-792b73685e7c",
+            "Version": 1,
+            "LastModifiedDate": "2026-04-26T10:45:24.858000+04:00",
+            "ARN": "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/photos/kms-key-arn",
+            "DataType": "text"
+        },
+        {
+            "Name": "/presttige/photos/originals-bucket",
+            "Type": "String",
+            "Value": "presttige-applicant-photos",
+            "Version": 1,
+            "LastModifiedDate": "2026-04-26T10:45:26.020000+04:00",
+            "ARN": "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/photos/originals-bucket",
+            "DataType": "text"
+        },
+        {
+            "Name": "/presttige/photos/thumbnails-bucket",
+            "Type": "String",
+            "Value": "presttige-applicant-photos-thumbnails",
+            "Version": 1,
+            "LastModifiedDate": "2026-04-26T10:45:27.241000+04:00",
+            "ARN": "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/photos/thumbnails-bucket",
+            "DataType": "text"
+        }
+    ]
+}

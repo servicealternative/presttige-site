@@ -2,7 +2,6 @@ const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/clien
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const sharp = require("sharp");
-const crypto = require("crypto");
 
 const s3 = new S3Client({ region: "us-east-1" });
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
@@ -15,17 +14,11 @@ exports.handler = async (event) => {
   for (const record of event.Records || []) {
     try {
       const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, " "));
-      console.log("thumbnail-generator", {
-        status: "processing",
-        key_hash: hashIdentifier(key),
-      });
+      console.log("Processing", key);
 
       const parts = key.split("/");
       if (parts.length !== 3 || parts[1] !== "original") {
-        console.log("thumbnail-generator", {
-          status: "skip_non_original",
-          key_hash: hashIdentifier(key),
-        });
+        console.log("Skipping non-original key", key);
         continue;
       }
 
@@ -36,11 +29,7 @@ exports.handler = async (event) => {
       const existingPhoto = leadBeforeProcessing.photo_uploads?.[photo_id] || {};
 
       if (existingPhoto.status === "removed") {
-        console.log("thumbnail-generator", {
-          status: "skip_removed",
-          lead_hash: hashIdentifier(lead_id),
-          photo_hash: hashIdentifier(photo_id),
-        });
+        console.log("Skipping thumbnail processing for removed photo", { lead_id, photo_id });
         continue;
       }
 
@@ -93,26 +82,15 @@ exports.handler = async (event) => {
         }));
       } catch (err) {
         if (err.name === "ConditionalCheckFailedException") {
-          console.log("thumbnail-generator", {
-            status: "skip_removed_before_ready",
-            lead_hash: hashIdentifier(lead_id),
-            photo_hash: hashIdentifier(photo_id),
-          });
+          console.log("Skipped ready update because photo was removed before processing completed", { lead_id, photo_id });
           continue;
         }
         throw err;
       }
 
-      console.log("thumbnail-generator", {
-        status: "ready",
-        lead_hash: hashIdentifier(lead_id),
-        photo_hash: hashIdentifier(photo_id),
-      });
+      console.log("Thumbnails created for", photo_id);
     } catch (err) {
-      console.error("thumbnail-generator", {
-        status: "error",
-        error_type: safeErrorType(err),
-      });
+      console.error("Error processing record", record, err);
     }
   }
 
@@ -128,16 +106,4 @@ async function streamToChunks(stream) {
 async function getLead(lead_id) {
   const result = await ddb.send(new GetCommand({ TableName: "presttige-db", Key: { lead_id } }));
   return result.Item || {};
-}
-
-function hashIdentifier(value) {
-  const normalized = String(value || "").trim();
-  if (!normalized) {
-    return "";
-  }
-  return crypto.createHash("sha256").update(normalized).digest("hex").slice(0, 16);
-}
-
-function safeErrorType(error) {
-  return String(error?.name || error?.code || error?.constructor?.name || "Error").trim();
 }
