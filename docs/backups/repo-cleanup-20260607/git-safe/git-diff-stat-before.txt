@@ -1,0 +1,11 @@
+ AGENTS.md                           |  13 +++++++++++++
+ android-chrome-192x192.png          | Bin 25201 -> 10700 bytes
+ android-chrome-512x512.png          | Bin 112932 -> 33300 bytes
+ apple-touch-icon.png                | Bin 23766 -> 9910 bytes
+ assets/images/presttige-favicon.png | Bin 22570 -> 2895 bytes
+ backend/lib/stripe-tier-contract.js |   1 +
+ favicon-16x16.png                   | Bin 1820 -> 488 bytes
+ favicon-32x32.png                   | Bin 2719 -> 1215 bytes
+ favicon.ico                         | Bin 4577 -> 7055 bytes
+ presttige-favicon.png               | Bin 3879 -> 2895 bytes
+ 10 files changed, 14 insertions(+)

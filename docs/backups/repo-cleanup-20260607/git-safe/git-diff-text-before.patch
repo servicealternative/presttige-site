@@ -1,0 +1,36 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index ab1da24..bae780b 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -41,6 +41,19 @@ Reports may reference Matriz sections directly, for example `Matriz §R4` or `Ma
+ 
+ ---
+ 
++## Working language and English coaching
++
++- The working language is English.
++- All instructions, orders, reports, and handoffs are written in English.
++- Antonio is improving his everyday English and wants brief corrections.
++- When Antonio writes something with a clear error, such as wrong verb tense,
++  wrong word choice, misspelling, or awkward phrasing, briefly show the
++  corrected version and explain the fix in one short line.
++- Keep corrections short and kind.
++- Do not derail the task: correct quickly, then continue the work.
++
++---
++
+ ## Scope of application
+ 
+ These rules apply to:
+diff --git a/backend/lib/stripe-tier-contract.js b/backend/lib/stripe-tier-contract.js
+index 2b470c9..ddf1820 100644
+--- a/backend/lib/stripe-tier-contract.js
++++ b/backend/lib/stripe-tier-contract.js
+@@ -211,6 +211,7 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
+     billing: "lifetime",
+     chargeType: "entry",
+     priceParameter: "/presttige/stripe/founder-lifetime-price-id",
++    stripeProductId: "prod_URrwkKbbICL760",
+     amountUsdCents: 999900,
+     checkoutMode: "payment",
+     tierVisibility: "founder_only",

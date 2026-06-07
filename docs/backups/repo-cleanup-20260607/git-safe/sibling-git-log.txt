@@ -1,0 +1,20 @@
+9026450 fix: restore dark input text in Express Interest modal on cream panel, colour-only
+96ca6fc fix: restore home page cream scheme (background, text, tokens), colour-only, fonts unchanged
+064f7cd fix: remove brand-fonts.css override, restore Cormorant Garamond font system, cover .title/.card-title/.verify-title/.confirm-title
+68c6c18 backend: extend approval link validity to 21 days
+3160902 fix: italicize express interest modal title
+fe7540c fix: round 3 onboarding review
+61df45e fix: route preview success to deployed asset
+f0508af fix: harden preview success and email retries
+b917c7f fix: restore preview mode helper import order
+1bffc6b feat: add preview mode membership flow
+e1d2ff3 fix: apply ana checkout review round 2
+1044d6d chore: lock html surfaces to english
+b5989d9 fix(routes): bridge subscriber and payment-failed paths
+120ce1c feat(checkout-review): ship v1.1 copy and failure updates
+e0870f1 fix(tier-select): remove founder surface
+ad91f14 merge: M-R6.2.Q tier-select-fetch live keys hotfix
+c63da96 fix(M-R6.2.Q): point tier-select-fetch at live v4 contracts
+22b419a merge: M-R6.2.P welcome flow restored, logo and italic fixes
+a2926cb merge: M-R6.2.O S1-S2 country carryover fix
+a96a978 fix(M-R6.2.P): remove italic styling from S1 name field
