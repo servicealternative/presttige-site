@@ -64,6 +64,10 @@ const NORMAL_MEMBER_PHOTO_REQUIRED_COUNT = 6;
 const INTERNAL_SEEDED_PHOTO_COUNT = 2;
 const MEMBER_PHOTO_SLOT_MIN = 3;
 const MEMBER_PHOTO_SLOT_MAX = 6;
+const FOUNDER_PHOTO_MIN_COUNT = 1;
+const FOUNDER_PHOTO_MAX_COUNT = 6;
+const FOUNDER_PHOTO_SLOT_MIN = 1;
+const FOUNDER_PHOTO_SLOT_MAX = 6;
 const MEMBER_PHOTO_MAX_SIZE = 10 * 1024 * 1024;
 const MEMBER_PHOTO_TYPES = new Set(["image/jpeg", "image/png"]);
 const VALIDATION_REQUIRED_ACTIONS = new Set([
@@ -660,7 +664,7 @@ async function handleMemberPhotos(event) {
     ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
     : [];
 
-  if (!canUseNormalMemberPhotos(session.member)) {
+  if (!canUseMemberPhotos(session.member)) {
     logAuth("member_photos", "unavailable", {
       lead_hash: hashIdentifier(session.member.lead_id),
       mode_hash: hashIdentifier(mode),
@@ -678,12 +682,12 @@ async function handleMemberPhotos(event) {
     return response(event, 200, {
       ok: true,
       status: "PHOTOS_READY",
-      photos: publicMemberPhotos(session.member),
+      photos: publicPhotosForMember(session.member),
     }, cookiesToSet);
   }
 
   if (mode === "init-upload") {
-    const normalized = normalizePhotoUploadRequest(body);
+    const normalized = normalizePhotoUploadRequest(session.member, body);
     if (normalized.errors.length) {
       logAuth("member_photos", "invalid_upload", {
         lead_hash: hashIdentifier(session.member.lead_id),
@@ -704,7 +708,7 @@ async function handleMemberPhotos(event) {
     return response(event, 200, {
       ok: true,
       status: "PHOTO_UPLOAD_READY",
-      photos: publicMemberPhotos(result.member),
+      photos: publicPhotosForMember(result.member),
       upload: result.upload,
     }, cookiesToSet);
   }
@@ -730,7 +734,32 @@ async function handleMemberPhotos(event) {
     return response(event, 200, {
       ok: true,
       status: "FACE_PHOTO_SET",
-      photos: publicMemberPhotos(updated),
+      photos: publicPhotosForMember(updated),
+    }, cookiesToSet);
+  }
+
+  if (mode === "remove") {
+    const photoId = normalizeText(body.photo_id);
+    const updated = await removeMemberPhoto(session.member, photoId);
+    if (!updated) {
+      logAuth("member_photos", "invalid_remove", {
+        lead_hash: hashIdentifier(session.member.lead_id),
+        photo_hash: hashIdentifier(photoId),
+      });
+      return response(event, 400, {
+        ok: false,
+        status: "INVALID_PHOTO_REMOVE",
+      }, cookiesToSet);
+    }
+
+    logAuth("member_photos", "removed", {
+      lead_hash: hashIdentifier(updated.lead_id),
+      photo_hash: hashIdentifier(photoId),
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "PHOTO_REMOVED",
+      photos: publicPhotosForMember(updated),
     }, cookiesToSet);
   }
 
@@ -754,7 +783,7 @@ async function handleMemberPhotoThumbnail(event) {
     ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
     : [];
 
-  if (!canUseNormalMemberPhotos(session.member)) {
+  if (!canUseMemberPhotos(session.member)) {
     logAuth("member_photo_thumbnail", "unavailable", {
       lead_hash: hashIdentifier(session.member.lead_id),
     });
@@ -1218,7 +1247,7 @@ function publicMember(lead) {
     },
     profile: publicProfile(lead),
     interests: publicInterests(lead),
-    photos: canUseNormalMemberPhotos(lead) ? publicMemberPhotos(lead) : lockedMemberPhotos(),
+    photos: publicPhotosForMember(lead),
     security: {
       founder_totp_required: isFounderMember(lead),
       founder_totp_enabled: isFounderTotpEnabled(lead),
@@ -1345,10 +1374,13 @@ function collectFieldsByName(source, fragments) {
 }
 
 function exportMemberPhotoReferences(lead) {
-  const photos = normalizeMemberPhotos(lead);
+  const photos = normalizePhotosForMember(lead);
   return {
     schema_version: photos.schema_version,
+    photo_model: normalizeText(photos.photo_model || "normal_always_six"),
     required_count: photos.required_count,
+    min_count: photos.min_count,
+    max_count: photos.max_count,
     seeded_internal_count: photos.seeded_internal_count,
     visible_required_count: photos.visible_required_count,
     face_photo_id: normalizeText(photos.face_photo_id),
@@ -1920,13 +1952,31 @@ function canUseNormalMemberPhotos(lead) {
   return isMemberValidated(lead) && canonicalTier(lead) !== "founder";
 }
 
-function normalizePhotoUploadRequest(body) {
+function canUseMemberPhotos(lead) {
+  return isMemberValidated(lead);
+}
+
+function publicPhotosForMember(lead) {
+  if (!canUseMemberPhotos(lead)) {
+    return lockedPhotosForMember(lead);
+  }
+  return isFounderMember(lead) ? publicFounderPhotos(lead) : publicMemberPhotos(lead);
+}
+
+function lockedPhotosForMember(lead) {
+  return isFounderMember(lead) ? lockedFounderPhotos() : lockedMemberPhotos();
+}
+
+function normalizePhotoUploadRequest(lead, body) {
+  const founder = isFounderMember(lead);
+  const slotMin = founder ? FOUNDER_PHOTO_SLOT_MIN : MEMBER_PHOTO_SLOT_MIN;
+  const slotMax = founder ? FOUNDER_PHOTO_SLOT_MAX : MEMBER_PHOTO_SLOT_MAX;
   const slot = Number(body.slot);
   const contentType = normalizeText(body.content_type).toLowerCase();
   const fileSize = Number(body.file_size || 0);
   const errors = [];
 
-  if (!Number.isInteger(slot) || slot < MEMBER_PHOTO_SLOT_MIN || slot > MEMBER_PHOTO_SLOT_MAX) {
+  if (!Number.isInteger(slot) || slot < slotMin || slot > slotMax) {
     errors.push("slot");
   }
   if (!MEMBER_PHOTO_TYPES.has(contentType)) {
@@ -1934,6 +1984,13 @@ function normalizePhotoUploadRequest(body) {
   }
   if (!Number.isFinite(fileSize) || fileSize <= 0 || fileSize > MEMBER_PHOTO_MAX_SIZE) {
     errors.push("file_size");
+  }
+  if (founder && !errors.includes("slot")) {
+    const photos = normalizeFounderPhotos(lead);
+    const replacing = photos.visible_slots.some((item) => item.slot === slot && item.photo_id);
+    if (!replacing && photos.visible_slots.length >= FOUNDER_PHOTO_MAX_COUNT) {
+      errors.push("max_count");
+    }
   }
 
   return {
@@ -1993,6 +2050,10 @@ async function invokePhotoUploadInit(lead, normalized) {
 }
 
 async function recordMemberPhotoSlot(lead, photo) {
+  if (isFounderMember(lead)) {
+    return recordFounderPhotoSlot(lead, photo);
+  }
+
   const now = new Date().toISOString();
   const photos = normalizeMemberPhotos(lead);
   const previousSlot = photos.visible_slots.find((slot) => slot.slot === photo.slot);
@@ -2030,12 +2091,43 @@ async function recordMemberPhotoSlot(lead, photo) {
   return saveMemberPhotos(lead, updatedPhotos);
 }
 
+async function recordFounderPhotoSlot(lead, photo) {
+  const now = new Date().toISOString();
+  const photos = normalizeFounderPhotos(lead);
+  const previousSlot = photos.visible_slots.find((slot) => slot.slot === photo.slot);
+  const wasFace = previousSlot?.photo_id && previousSlot.photo_id === photos.face_photo_id;
+  const visibleSlots = [
+    ...photos.visible_slots.filter((slot) => slot.slot !== photo.slot),
+    {
+      slot: photo.slot,
+      source: "founder_upload",
+      photo_id: photo.photo_id,
+      original_key: photo.original_key,
+      content_type: photo.content_type,
+      file_size: photo.file_size,
+      status: "awaiting_upload",
+      created_at: previousSlot?.created_at || now,
+      updated_at: now,
+    },
+  ].sort((left, right) => left.slot - right.slot);
+  const currentFaceExists = visibleSlots.some((slot) => slot.photo_id === photos.face_photo_id);
+  const facePhotoId = wasFace || !photos.face_photo_id || !currentFaceExists
+    ? photo.photo_id
+    : photos.face_photo_id;
+  return saveMemberPhotos(lead, founderPhotosPayload({
+    ...photos,
+    face_photo_id: facePhotoId,
+    visible_slots: visibleSlots,
+    updated_at: now,
+  }));
+}
+
 async function setMemberFacePhoto(lead, photoId) {
   const id = normalizeText(photoId);
   if (!id) {
     return null;
   }
-  const photos = normalizeMemberPhotos(lead);
+  const photos = normalizePhotosForMember(lead);
   const ownsPhoto = photos.visible_slots.some((slot) => slot.photo_id === id);
   const photoMeta = lead.photo_uploads?.[id] || {};
   if (!ownsPhoto || photoMeta.status !== "ready") {
@@ -2048,6 +2140,41 @@ async function setMemberFacePhoto(lead, photoId) {
     updated_at: new Date().toISOString(),
   };
   return saveMemberPhotos(lead, updatedPhotos);
+}
+
+async function removeMemberPhoto(lead, photoId) {
+  if (!isFounderMember(lead)) {
+    return null;
+  }
+  const id = normalizeText(photoId);
+  if (!id) {
+    return null;
+  }
+  const photos = normalizeFounderPhotos(lead);
+  const activeSlots = photos.visible_slots.filter((slot) => slot.photo_id);
+  const target = activeSlots.find((slot) => slot.photo_id === id);
+  if (!target || activeSlots.length <= FOUNDER_PHOTO_MIN_COUNT) {
+    return null;
+  }
+
+  const remaining = activeSlots.filter((slot) => slot.photo_id !== id);
+  if (remaining.length < FOUNDER_PHOTO_MIN_COUNT) {
+    return null;
+  }
+
+  const currentFaceExists = remaining.some((slot) => slot.photo_id === photos.face_photo_id);
+  const facePhotoId = currentFaceExists ? photos.face_photo_id : remaining[0].photo_id;
+  const updatedPhotos = founderPhotosPayload({
+    ...photos,
+    face_photo_id: facePhotoId,
+    visible_slots: remaining,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (!lead.photo_uploads?.[id]) {
+    return saveMemberPhotos(lead, updatedPhotos);
+  }
+  return saveMemberPhotosWithRemovedUpload(lead, updatedPhotos, id);
 }
 
 async function saveMemberPhotos(lead, photos) {
@@ -2071,6 +2198,46 @@ async function saveMemberPhotos(lead, photos) {
   );
 
   return result.Attributes || lead;
+}
+
+async function saveMemberPhotosWithRemovedUpload(lead, photos, photoId) {
+  const now = new Date().toISOString();
+  const result = await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        lead_id: normalizeText(lead.lead_id),
+      },
+      UpdateExpression: [
+        "SET member_photos = :photos",
+        "member_photos_updated_at = :now",
+        "updated_at = :now",
+        "photo_uploads.#pid.#status = :removed",
+        "photo_uploads.#pid.removed_at = :now",
+        "photo_uploads.#pid.selected_for_committee = :selected",
+      ].join(", "),
+      ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
+      ExpressionAttributeNames: {
+        "#pid": photoId,
+        "#status": "status",
+      },
+      ExpressionAttributeValues: {
+        ":lead_id": normalizeText(lead.lead_id),
+        ":cognito_sub": normalizeText(lead.cognito_sub),
+        ":photos": photos,
+        ":now": now,
+        ":removed": "removed",
+        ":selected": false,
+      },
+      ReturnValues: "ALL_NEW",
+    })
+  );
+
+  return result.Attributes || lead;
+}
+
+function normalizePhotosForMember(lead) {
+  return isFounderMember(lead) ? normalizeFounderPhotos(lead) : normalizeMemberPhotos(lead);
 }
 
 function normalizeMemberPhotos(lead) {
@@ -2118,6 +2285,71 @@ function normalizeMemberPhotos(lead) {
   };
 }
 
+function normalizeFounderPhotos(lead) {
+  const raw = lead?.member_photos && typeof lead.member_photos === "object"
+    ? lead.member_photos
+    : {};
+  const existingSlots = Array.isArray(raw.visible_slots)
+    ? raw.visible_slots
+    : [];
+  const slotsByNumber = new Map();
+
+  existingSlots.forEach((slot) => {
+    const slotNumber = Number(slot.slot);
+    if (!Number.isInteger(slotNumber) || slotNumber < FOUNDER_PHOTO_SLOT_MIN || slotNumber > FOUNDER_PHOTO_SLOT_MAX) {
+      return;
+    }
+    const photoId = normalizeText(slot.photo_id);
+    if (!photoId) {
+      return;
+    }
+    const uploadStatus = normalizeText(lead?.photo_uploads?.[photoId]?.status).toLowerCase();
+    if (uploadStatus === "removed") {
+      return;
+    }
+    slotsByNumber.set(slotNumber, {
+      slot: slotNumber,
+      source: "founder_upload",
+      photo_id: photoId,
+      original_key: normalizeText(slot.original_key),
+      content_type: normalizeText(slot.content_type),
+      file_size: Number(slot.file_size || 0),
+      status: uploadStatus || normalizeText(slot.status || "empty").toLowerCase() || "empty",
+      created_at: normalizeText(slot.created_at),
+      updated_at: normalizeText(slot.updated_at),
+    });
+  });
+
+  const visibleSlots = Array.from(slotsByNumber.values()).sort((left, right) => left.slot - right.slot);
+  const facePhotoId = normalizeText(raw.face_photo_id);
+  const faceExists = visibleSlots.some((slot) => slot.photo_id === facePhotoId);
+  const fallbackFace = visibleSlots.find((slot) => slot.status === "ready")?.photo_id || visibleSlots[0]?.photo_id || "";
+  return founderPhotosPayload({
+    face_photo_id: faceExists ? facePhotoId : fallbackFace,
+    visible_slots: visibleSlots,
+    updated_at: normalizeText(raw.updated_at),
+  });
+}
+
+function founderPhotosPayload(value) {
+  return {
+    schema_version: 1,
+    photo_model: "founder_optional",
+    required_count: FOUNDER_PHOTO_MIN_COUNT,
+    min_count: FOUNDER_PHOTO_MIN_COUNT,
+    max_count: FOUNDER_PHOTO_MAX_COUNT,
+    seeded_internal_count: 0,
+    visible_required_count: FOUNDER_PHOTO_MIN_COUNT,
+    face_photo_id: normalizeText(value.face_photo_id),
+    visible_slots: Array.isArray(value.visible_slots)
+      ? value.visible_slots
+          .filter((slot) => normalizeText(slot.photo_id))
+          .slice(0, FOUNDER_PHOTO_MAX_COUNT)
+      : [],
+    updated_at: normalizeText(value.updated_at),
+  };
+}
+
 function publicMemberPhotos(lead) {
   const photos = normalizeMemberPhotos(lead);
   const slots = photos.visible_slots.map((slot) => publicMemberPhotoSlot(lead, photos, slot));
@@ -2125,6 +2357,7 @@ function publicMemberPhotos(lead) {
   const faceReady = slots.some((slot) => slot.photo_id && slot.photo_id === photos.face_photo_id && slot.status === "ready");
 
   return {
+    photo_model: "normal_always_six",
     required_count: photos.required_count,
     seeded_internal_count: photos.seeded_internal_count,
     visible_required_count: photos.visible_required_count,
@@ -2140,6 +2373,42 @@ function publicMemberPhotos(lead) {
   };
 }
 
+function publicFounderPhotos(lead) {
+  const photos = normalizeFounderPhotos(lead);
+  const slots = photos.visible_slots.map((slot) => publicMemberPhotoSlot(lead, photos, slot));
+  const readySlots = slots.filter((slot) => slot.status === "ready");
+  const faceReady = readySlots.some((slot) => slot.photo_id === photos.face_photo_id);
+  const nextAvailableSlot = nextFounderPhotoSlot(photos);
+
+  return {
+    photo_model: "founder_optional",
+    required_count: FOUNDER_PHOTO_MIN_COUNT,
+    min_count: FOUNDER_PHOTO_MIN_COUNT,
+    max_count: FOUNDER_PHOTO_MAX_COUNT,
+    seeded_internal_count: 0,
+    visible_required_count: FOUNDER_PHOTO_MIN_COUNT,
+    complete_count: readySlots.length,
+    is_complete: readySlots.length >= FOUNDER_PHOTO_MIN_COUNT && faceReady,
+    face_photo_id: faceReady ? photos.face_photo_id : "",
+    can_add: Boolean(nextAvailableSlot),
+    next_available_slot: nextAvailableSlot,
+    can_remove: slots.length > FOUNDER_PHOTO_MIN_COUNT,
+    internal_slots: [],
+    visible_slots: slots,
+    updated_at: photos.updated_at,
+  };
+}
+
+function nextFounderPhotoSlot(photos) {
+  const used = new Set(photos.visible_slots.map((slot) => Number(slot.slot)));
+  for (let slot = FOUNDER_PHOTO_SLOT_MIN; slot <= FOUNDER_PHOTO_SLOT_MAX; slot += 1) {
+    if (!used.has(slot)) {
+      return slot;
+    }
+  }
+  return 0;
+}
+
 function lockedMemberPhotos() {
   const visibleSlots = [];
   for (let slot = MEMBER_PHOTO_SLOT_MIN; slot <= MEMBER_PHOTO_SLOT_MAX; slot += 1) {
@@ -2153,6 +2422,7 @@ function lockedMemberPhotos() {
     });
   }
   return {
+    photo_model: "normal_always_six",
     required_count: NORMAL_MEMBER_PHOTO_REQUIRED_COUNT,
     seeded_internal_count: INTERNAL_SEEDED_PHOTO_COUNT,
     visible_required_count: NORMAL_MEMBER_PHOTO_REQUIRED_COUNT - INTERNAL_SEEDED_PHOTO_COUNT,
@@ -2164,6 +2434,26 @@ function lockedMemberPhotos() {
       { slot: 2, status: "internal_seeded" },
     ],
     visible_slots: visibleSlots,
+    updated_at: "",
+  };
+}
+
+function lockedFounderPhotos() {
+  return {
+    photo_model: "founder_optional",
+    required_count: FOUNDER_PHOTO_MIN_COUNT,
+    min_count: FOUNDER_PHOTO_MIN_COUNT,
+    max_count: FOUNDER_PHOTO_MAX_COUNT,
+    seeded_internal_count: 0,
+    visible_required_count: FOUNDER_PHOTO_MIN_COUNT,
+    complete_count: 0,
+    is_complete: false,
+    face_photo_id: "",
+    can_add: false,
+    next_available_slot: 0,
+    can_remove: false,
+    internal_slots: [],
+    visible_slots: [],
     updated_at: "",
   };
 }
@@ -2191,7 +2481,7 @@ function thumbnailKeyForMemberPhoto(lead, photoId) {
   if (!id) {
     return "";
   }
-  const photos = normalizeMemberPhotos(lead);
+  const photos = normalizePhotosForMember(lead);
   const ownsPhoto = photos.visible_slots.some((slot) => slot.photo_id === id);
   if (!ownsPhoto) {
     return "";
