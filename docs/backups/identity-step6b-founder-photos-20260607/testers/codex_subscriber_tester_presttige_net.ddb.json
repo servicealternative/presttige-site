@@ -1,0 +1,264 @@
+{
+  "ConsumedCapacity": null,
+  "Count": 1,
+  "Items": [
+    {
+      "access_status": {
+        "S": "active"
+      },
+      "account_active": {
+        "BOOL": true
+      },
+      "account_created_at": {
+        "S": "2026-06-06T17:23:11.324Z"
+      },
+      "account_status": {
+        "S": "active"
+      },
+      "activation_email_message_id": {
+        "S": "0100019e9ec2a497-12675cfb-6c64-41f7-b2f4-846e91ec06bf-000000"
+      },
+      "activation_email_recipient_hash": {
+        "S": "e2f7a45a7cf5ac0f"
+      },
+      "activation_email_started_at": {
+        "S": "2026-06-06T21:06:56.641Z"
+      },
+      "activation_email_status": {
+        "S": "sent"
+      },
+      "cancel_at_period_end": {
+        "BOOL": false
+      },
+      "cognito_linked_at": {
+        "S": "2026-06-06T17:23:11.324Z"
+      },
+      "cognito_pool": {
+        "S": "presttige-members"
+      },
+      "cognito_sub": {
+        "S": "b4e894b8-0001-70b4-4fde-a1cf2f795209"
+      },
+      "confirmed_payment_at": {
+        "S": "2026-06-06T20:18:58.755563+00:00"
+      },
+      "created_at": {
+        "S": "2026-06-05T11:03:50.420299Z"
+      },
+      "effective_tier": {
+        "S": "free"
+      },
+      "email": {
+        "S": "codex.subscriber.tester@presttige.net"
+      },
+      "email_status": {
+        "S": "erased"
+      },
+      "first_name": {
+        "S": "Codex"
+      },
+      "founder_activated_at": {
+        "S": "2026-06-06T20:18:58.755563+00:00"
+      },
+      "founder_eligible": {
+        "BOOL": false
+      },
+      "founder_lifetime": {
+        "BOOL": true
+      },
+      "founding_rate_expires_at": {
+        "NULL": true
+      },
+      "founding_rate_locked": {
+        "BOOL": false
+      },
+      "internal_test_role": {
+        "S": "presttige_free_member_founder_permissions_tester"
+      },
+      "is_test": {
+        "BOOL": true
+      },
+      "last_event_id": {
+        "S": "evt_identity_step3c_founder_1780777134"
+      },
+      "last_event_type": {
+        "S": "payment_intent.succeeded"
+      },
+      "last_name": {
+        "S": "Subscriber Tester"
+      },
+      "last_payment_at": {
+        "S": "2026-06-06T20:18:58.755559+00:00"
+      },
+      "lead_id": {
+        "S": "fdm_test_codex_subscriber_tester"
+      },
+      "magic_token_expires_at": {
+        "S": "2026-07-06T17:22:42Z"
+      },
+      "magic_token_issued_at": {
+        "S": "2026-06-06T17:22:42Z"
+      },
+      "magic_token_status": {
+        "S": "active"
+      },
+      "marketing_consent": {
+        "BOOL": false
+      },
+      "name": {
+        "S": "Codex Subscriber Tester"
+      },
+      "notes": {
+        "S": "Authorised by Antonio on 2026-06-05. Codex must not create any other test records without explicit authorisation."
+      },
+      "password_set_at": {
+        "S": "2026-06-07T01:23:04Z"
+      },
+      "password_setup_token_type": {
+        "S": "magic"
+      },
+      "payment_status": {
+        "S": "free"
+      },
+      "payment_status_reason": {
+        "S": "founder_payment_succeeded"
+      },
+      "privacy_accepted": {
+        "BOOL": true
+      },
+      "profile_status": {
+        "S": "profile_submitted"
+      },
+      "profile_updated_at": {
+        "S": "2026-06-07T00:14:41.465Z"
+      },
+      "review_status": {
+        "S": "approved"
+      },
+      "scope": {
+        "S": "invite_and_experience"
+      },
+      "selected_contract_key": {
+        "S": "founder_lifetime"
+      },
+      "selected_tier": {
+        "S": "free"
+      },
+      "selected_tier_billing": {
+        "S": "lifetime"
+      },
+      "signup_path": {
+        "S": "free"
+      },
+      "simulated_tier": {
+        "S": "free"
+      },
+      "source": {
+        "S": "codex_authorised_test_tier"
+      },
+      "stripe_checkout_completed_at": {
+        "S": "2026-06-06T20:11:21.229126+00:00"
+      },
+      "stripe_customer_id": {
+        "S": "cus_identity_step3c_1780777134"
+      },
+      "stripe_event_type": {
+        "S": "payment_intent.succeeded"
+      },
+      "stripe_last_event_id": {
+        "S": "evt_identity_step3c_founder_1780777134"
+      },
+      "stripe_payment_intent_id": {
+        "S": "pi_identity_step3c_1780777134"
+      },
+      "stripe_subscription_id": {
+        "S": "sub_identity_step3b_1780776676"
+      },
+      "subscriber_activated_at": {
+        "S": "2026-06-06T17:23:11.324Z"
+      },
+      "subscriber_type": {
+        "S": "test"
+      },
+      "subscription_cancel_at_period_end": {
+        "BOOL": false
+      },
+      "subscription_current_period_end": {
+        "S": "2026-07-06T20:11:16+00:00"
+      },
+      "subscription_current_period_start": {
+        "S": "2026-06-06T20:11:16+00:00"
+      },
+      "subscription_status": {
+        "S": "none"
+      },
+      "synthetic_test": {
+        "BOOL": true
+      },
+      "terms_accepted": {
+        "BOOL": true
+      },
+      "test_founder_inviter": {
+        "BOOL": true
+      },
+      "test_founder_permission_scope": {
+        "S": "invite_and_experience"
+      },
+      "test_founder_permission_source": {
+        "S": "tester_tier_20260606"
+      },
+      "test_founder_permissions": {
+        "BOOL": true
+      },
+      "test_scope": {
+        "S": "invite_and_experience"
+      },
+      "test_simulated_tier": {
+        "S": "free"
+      },
+      "test_tier": {
+        "BOOL": true
+      },
+      "test_tier_default": {
+        "S": "free"
+      },
+      "tier": {
+        "S": "tester"
+      },
+      "token_status": {
+        "S": "active"
+      },
+      "updated_at": {
+        "S": "2026-06-07T01:25:32Z"
+      },
+      "updated_reason": {
+        "S": "formalize_presttige_tester_tier_20260606"
+      },
+      "upgrade_eligible_until": {
+        "S": "2026-12-31T23:59:59Z"
+      },
+      "validation_status": {
+        "S": "not_started"
+      },
+      "validation_status_updated_at": {
+        "S": "2026-06-07T00:37:36Z"
+      },
+      "validation_status_updated_by": {
+        "S": "codex-step5e-browser-restore"
+      },
+      "welcome_email_message_id": {
+        "S": "0100019e9ef30a73-5168ab01-f5e5-4d5f-8583-6b166fc1ed77-000000"
+      },
+      "welcome_email_recipient_hash": {
+        "S": "e2f7a45a7cf5ac0f"
+      },
+      "welcome_email_started_at": {
+        "S": "2026-06-06T21:59:48.523Z"
+      },
+      "welcome_email_status": {
+        "S": "sent"
+      }
+    }
+  ],
+  "ScannedCount": 1
+}
