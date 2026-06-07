@@ -1,0 +1,5 @@
+Identity Step 6a Founder TOTP backup, 2026-06-07.
+Captured before enabling Founder flow-level mandatory TOTP.
+Includes member-auth code, member UI, package script, Cognito pool/app client/domain config, Lambda role/policy, and four authorized tester records.
+AWS output sanitized with scripts/sanitize-aws-backup-json.py.
+Passwords, TOTP secrets, and recovery codes are not exportable and are not stored.
