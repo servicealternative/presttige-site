@@ -179,7 +179,9 @@
       resize: vertical;
     }
 
-    .field input[readonly] {
+    .field input[readonly],
+    .field input:disabled,
+    .field textarea:disabled {
       background: #F0ECE4;
       color: var(--pp-muted);
     }
@@ -325,14 +327,14 @@
     }
 
     .member-body {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-      gap: clamp(22px, 4vw, 44px);
+      display: block;
       padding: clamp(26px, 5vw, 54px);
     }
 
     .member-body > *,
     .overview,
+    .membership-view,
+    .profile-view,
     .section-list,
     .section-row,
     .section-panel,
@@ -340,6 +342,173 @@
     .side-panel,
     .privacy-card {
       min-width: 0;
+    }
+
+    .membership-view,
+    .profile-view {
+      display: grid;
+      align-content: start;
+      gap: clamp(24px, 4vw, 38px);
+    }
+
+    .membership-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+      gap: clamp(22px, 4vw, 40px);
+      align-items: start;
+    }
+
+    .membership-main,
+    .profile-main {
+      display: grid;
+      gap: clamp(24px, 4vw, 34px);
+      min-width: 0;
+    }
+
+    .membership-header {
+      display: grid;
+      gap: 14px;
+    }
+
+    .membership-name {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .membership-copy {
+      margin: 0;
+      max-width: 62ch;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.75;
+    }
+
+    .membership-status-grid,
+    .membership-data-grid,
+    .profile-identity-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .membership-data-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .readonly-field,
+    .profile-identity-item {
+      min-width: 0;
+      min-height: 104px;
+      display: grid;
+      align-content: space-between;
+      gap: 14px;
+      padding: 18px;
+      background: rgba(255, 253, 248, 0.76);
+    }
+
+    .readonly-value,
+    .profile-identity-value {
+      margin: 0;
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(23px, 3vw, 30px);
+      font-weight: 500;
+      line-height: 1.08;
+      overflow-wrap: anywhere;
+    }
+
+    .membership-aside {
+      display: grid;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .main-photo-card,
+    .profile-subpanel,
+    .privacy-panel--discreet {
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+      padding: 22px;
+      min-width: 0;
+    }
+
+    .main-photo-frame {
+      overflow: hidden;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      display: grid;
+      place-items: center;
+      margin-top: 14px;
+      border: 1px solid rgba(140, 112, 64, 0.2);
+      background: var(--pp-paper);
+      color: var(--pp-muted);
+    }
+
+    .main-photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .profile-subpanel {
+      margin-top: 0;
+    }
+
+    .profile-subpanel.is-silent-locked {
+      background: #F0ECE4;
+      color: #A39B90;
+    }
+
+    .profile-subpanel.is-silent-locked h2,
+    .profile-subpanel.is-silent-locked p,
+    .profile-subpanel.is-silent-locked .hint {
+      color: #A39B90;
+    }
+
+    .locked-photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .locked-photo-slot {
+      min-height: 170px;
+      border: 1px solid rgba(140, 112, 64, 0.2);
+      background: rgba(255, 253, 248, 0.42);
+    }
+
+    .privacy-panel--discreet {
+      padding: 18px;
+    }
+
+    .privacy-panel--discreet h2 {
+      font-size: 27px;
+    }
+
+    .privacy-panel--discreet p,
+    .privacy-panel--discreet .hint,
+    .privacy-panel--discreet .privacy-confirm-row {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .privacy-panel--discreet .privacy-card h3 {
+      font-size: 22px;
+    }
+
+    .profile-form.is-silent-locked {
+      opacity: 0.58;
+    }
+
+    .profile-form.is-silent-locked input,
+    .profile-form.is-silent-locked textarea {
+      cursor: not-allowed;
     }
 
     .overview {
@@ -1103,11 +1272,14 @@
 
     @media (max-width: 960px) {
       .entry-layout,
-      .member-body {
+      .membership-layout {
         grid-template-columns: 1fr;
       }
 
-      .summary-grid {
+      .summary-grid,
+      .membership-status-grid,
+      .membership-data-grid,
+      .profile-identity-grid {
         grid-template-columns: 1fr;
       }
 
@@ -1118,6 +1290,7 @@
       .photo-summary,
       .photo-grid,
       .photo-grid.is-founder,
+      .locked-photo-grid,
       .discovery-layout,
       .concierge-progress,
       .concierge-options,
@@ -1492,21 +1665,17 @@
       }
 
       function renderMemberArea(member) {
-        renderMemberShell(member, "overview");
+        renderMemberShell(member, "membership");
       }
 
       function renderMemberShell(member, activeSectionKey) {
         currentMember = member;
         currentDiscoveryStatus = normalizeDiscoveryStatus(member?.discovery || currentDiscoveryStatus);
         const tier = normalizeTier(member?.tier);
-        const tierLabel = tierLabelFor(tier);
-        const isFounder = tier === "founder";
-        const firstName = firstNameOf(member?.name);
         const isValidated = isMemberValidated(member);
         const sections = memberSections(tier);
-        const activeSection = activeSectionKey === "overview"
-          ? null
-          : sections.find((section) => section.key === activeSectionKey);
+        const activeSection = sections.find((section) => section.key === activeSectionKey) || sections[0];
+        const activeKey = activeSection.key;
 
         app.innerHTML = `
           <section class="member-frame">
@@ -1516,70 +1685,27 @@
                 <span class="brand-name">Presttige</span>
               </div>
               <nav class="member-nav" aria-label="Member area">
-                <button class="nav-item" type="button" data-section="overview" ${activeSection ? "" : 'aria-current="page"'}>Overview</button>
-                ${sections.map((section) => renderNavItem(section, isValidated, activeSectionKey)).join("")}
+                ${sections.map((section) => renderNavItem(section, isValidated, activeKey)).join("")}
               </nav>
             </header>
             <div class="member-body">
-              <section class="overview" aria-labelledby="member-overview-title">
-                <div>
-                  <p class="eyebrow">Member Overview</p>
-                  <h1 id="member-overview-title" class="section-title">Welcome, ${escapeHtml(firstName)}.</h1>
-                  <p class="welcome-copy">Your private Presttige area is open. This first view holds your own membership state while the next private sections are prepared.</p>
-                </div>
-                <div class="summary-grid" aria-label="Member summary">
-                  <div class="summary-item">
-                    <span class="meta-label">Member</span>
-                    <p class="meta-value">${escapeHtml(member?.name || "Member")}</p>
-                  </div>
-                  <div class="summary-item">
-                    <span class="meta-label">Tier</span>
-                    <p class="meta-value">${escapeHtml(tierLabel)}</p>
-                  </div>
-                  <div class="summary-item">
-                    <span class="meta-label">State</span>
-                    <p class="meta-value"><span class="state-pill">${escapeHtml(statusLabel(member?.account_status))}</span></p>
-                  </div>
-                </div>
-                <div>
-                  <p class="eyebrow">Next Sections</p>
-                  <div class="section-list">
-                    ${sections.map((section) => renderSectionRow(section, isValidated, activeSectionKey)).join("")}
-                  </div>
-                </div>
-                ${activeSection ? renderSectionPanel(activeSection, member) : ""}
-              </section>
-              <aside class="member-side" aria-label="Membership details">
-                <div class="side-panel tier-card ${isFounder ? "is-founder" : ""}">
-                  <span class="meta-label">Current Tier</span>
-                  <h3>${escapeHtml(tierLabel)}</h3>
-                  <p>${escapeHtml(tierDescription(tier))}</p>
-                </div>
-                <div class="side-panel">
-                  <span class="meta-label">Access</span>
-                  <h3>${escapeHtml(statusLabel(member?.account_status))}</h3>
-                  <p>Your session is active. Your access is personal to this account.</p>
-                </div>
-                <div class="actions">
-                  <button id="sign-out" class="button button--secondary" type="button">Sign out</button>
-                </div>
-              </aside>
+              ${renderSectionPanel(activeSection, member)}
             </div>
           </section>
         `;
-        document.getElementById("sign-out").addEventListener("click", signOut);
+        document.getElementById("sign-out")?.addEventListener("click", signOut);
         app.querySelectorAll("[data-section]").forEach((button) => {
           button.addEventListener("click", () => openMemberSection(member, button.dataset.section));
         });
         const profileForm = document.getElementById("profile-form");
-        if (profileForm) {
+        if (profileForm && profileForm.dataset.locked !== "true") {
           profileForm.addEventListener("submit", (event) => submitProfile(event, member));
           document.getElementById("profile-cancel")?.addEventListener("click", () => renderMemberShell(member, "profile"));
         }
-        if (document.getElementById("photos-panel")) {
+        if (document.getElementById("photos-panel") && isValidated) {
           loadMemberPhotos(member);
         }
-        if (document.getElementById("founder-concierge-panel")) {
+        if (document.getElementById("founder-concierge-panel") && isValidated) {
           loadFounderConcierge(member);
         }
         if (document.getElementById("discovery-panel")) {
@@ -1593,17 +1719,16 @@
         if (eraseForm) {
           eraseForm.addEventListener("submit", submitErasureRequest);
         }
-        refreshDiscoveryStatus(member, activeSectionKey);
+        refreshDiscoveryStatus(member, activeKey);
       }
 
       function renderNavItem(section, isValidated, activeSectionKey) {
-        const locked = isSectionLocked(section, isValidated);
         const current = activeSectionKey === section.key;
         return `
           <button
-            class="nav-item ${locked ? "is-silent-locked" : ""}"
+            class="nav-item"
             type="button"
-            ${locked ? "disabled" : `data-section="${escapeHtml(section.key)}"`}
+            data-section="${escapeHtml(section.key)}"
             ${current ? 'aria-current="page"' : ""}
           >${escapeHtml(section.title)}</button>
         `;
@@ -1626,20 +1751,11 @@
       }
 
       function renderSectionPanel(section, member) {
+        if (section.key === "membership") {
+          return renderMembershipPanel(member);
+        }
         if (section.key === "profile") {
           return renderProfilePanel(member);
-        }
-        if (section.key === "photos") {
-          return renderPhotosPanel(member);
-        }
-        if (section.key === "founder") {
-          return renderFounderConciergePanel(member);
-        }
-        if (section.key === "discovery") {
-          return renderDiscoveryPanel(member);
-        }
-        if (section.key === "privacy") {
-          return renderPrivacyPanel(member);
         }
 
         return `
@@ -1652,129 +1768,157 @@
       }
 
       function memberSections(tier) {
-        const base = [
-          {
-            key: "profile",
-            title: "Profile",
-            copy: "Your member profile and interests are held privately here.",
-            openCopy: "Review and edit your private profile and interests.",
-            status: "Open",
-            requiresValidation: true,
-          },
-          {
-            key: "photos",
-            title: "Photos",
-            copy: "Your private photo set is held here.",
-            openCopy: "Review and maintain your private member photos.",
-            status: "Open",
-            requiresValidation: true,
-          },
+        return [
           {
             key: "membership",
             title: "Membership",
-            copy: "Tier details and access state are visible here first.",
-            openCopy: "Your membership summary is available in this shell.",
+            copy: "Your private relationship with the Presttige platform.",
+            openCopy: "Your membership record, access state, private identity, and data rights.",
             status: "View",
             requiresValidation: false,
           },
           {
-            key: "privacy",
-            title: "Privacy",
-            copy: "Access your own data, request corrections, and control erasure.",
-            openCopy: "Access your own data, request corrections, and control erasure.",
+            key: "profile",
+            title: "Profile",
+            copy: "Your presence in the Presttige app and Circle.",
+            openCopy: "Review and edit your app profile, interests, photos, and tier-specific profile details.",
             status: "Open",
             requiresValidation: false,
           },
         ];
-
-        if (tier === "founder") {
-          base.splice(2, 0, {
-            key: "founder",
-            title: "Founder",
-            copy: "Your Concierge profile is built here.",
-            openCopy: "Shape the preferences that guide your Premium Concierge profile.",
-            status: "Open",
-            requiresValidation: true,
-          });
-        }
-
-        if (currentDiscoveryStatus.master_enabled === true) {
-          const insertAt = tier === "founder" ? 3 : 2;
-          base.splice(insertAt, 0, {
-            key: "discovery",
-            title: "Circle",
-            copy: "Discover active, validated Presttige members when the private Circle is open.",
-            openCopy: "The private Circle is open to active, validated members only.",
-            status: "Open",
-            requiresValidation: true,
-          });
-        }
-
-        return base;
       }
 
       async function openMemberSection(member, sectionKey) {
-        if (sectionKey === "overview") {
-          renderMemberShell(member, "overview");
-          return;
-        }
-
         const tier = normalizeTier(member?.tier);
         const section = memberSections(tier).find((item) => item.key === sectionKey);
-        if (!section || isSectionLocked(section, isMemberValidated(member))) {
+        if (!section) {
           return;
         }
 
-        if (section.requiresValidation) {
+        if (section.key === "profile" && isMemberValidated(member)) {
           await api("member-action", { section: section.key });
         }
         renderMemberShell(member, section.key);
       }
 
-      function renderProfilePanel(member) {
+      function renderMembershipPanel(member) {
         const profile = profileOf(member);
-        const interests = interestsOf(member);
+        const tier = normalizeTier(member?.tier);
+        const tierLabel = tierLabelFor(tier);
+        const accessLabel = statusLabel(member?.account_status || member?.access_status);
         return `
-          <div class="section-panel" aria-live="polite">
-            <p class="eyebrow">Profile</p>
-            <h2>Profile and interests</h2>
-            <p>Keep your private member profile current. Your email and account base remain fixed.</p>
-            <form id="profile-form" class="profile-form" novalidate>
-              <div class="profile-group">
-                <p class="profile-group-title">Identity</p>
-                <div class="profile-grid">
-                  <div class="field">
-                    <label for="profile-name">Name</label>
-                    <input id="profile-name" type="text" value="${escapeAttr(profile.name)}" readonly>
+          <section class="membership-view" aria-labelledby="membership-title">
+            <div class="membership-header">
+              <p class="eyebrow">Membership</p>
+              <h1 id="membership-title" class="section-title membership-name">${escapeHtml(member?.name || profile.name || "Member")}</h1>
+              <p class="membership-copy">This is your private relationship with Presttige, visible only to you and Presttige.</p>
+            </div>
+            <div class="membership-layout">
+              <div class="membership-main">
+                <div class="membership-status-grid" aria-label="Membership status">
+                  <div class="readonly-field">
+                    <span class="meta-label">Tier</span>
+                    <p class="readonly-value">${escapeHtml(tierLabel)}</p>
                   </div>
-                  <div class="field">
-                    <label for="profile-email">Email</label>
-                    <input id="profile-email" type="email" value="${escapeAttr(profile.email)}" readonly>
+                  <div class="readonly-field">
+                    <span class="meta-label">Access</span>
+                    <p class="readonly-value"><span class="state-pill">${escapeHtml(accessLabel)}</span></p>
+                  </div>
+                </div>
+                <div>
+                  <p class="eyebrow">Personal Data</p>
+                  <div class="membership-data-grid" aria-label="Personal data">
+                    ${renderReadonlyField("Full legal name", profile.name || member?.name || "")}
+                    ${renderReadonlyField("Email", profile.email || member?.email || "")}
+                    ${renderReadonlyField("Phone", [profile.phone_country, profile.phone].filter(Boolean).join(" "))}
+                    ${renderReadonlyField("Country", profile.country)}
+                    ${renderReadonlyField("City", profile.city)}
                   </div>
                 </div>
               </div>
+              <aside class="membership-aside" aria-label="Private membership actions">
+                ${renderMainPhotoCard(member)}
+                <div class="actions">
+                  <button id="sign-out" class="button button--secondary" type="button">Sign out</button>
+                </div>
+              </aside>
+            </div>
+            ${renderPrivacyPanel(member, true)}
+          </section>
+        `;
+      }
+
+      function renderReadonlyField(label, value) {
+        return `
+          <div class="readonly-field">
+            <span class="meta-label">${escapeHtml(label)}</span>
+            <p class="readonly-value">${escapeHtml(value || "Not set")}</p>
+          </div>
+        `;
+      }
+
+      function renderMainPhotoCard(member) {
+        const photo = mainPhotoOf(member);
+        return `
+          <article class="main-photo-card">
+            <p class="eyebrow">Main Photo</p>
+            <div class="main-photo-frame">
+              ${photo?.thumbnail_url
+                ? `<img src="${escapeAttr(photo.thumbnail_url)}" alt="">`
+                : '<span class="photo-placeholder">Main photo</span>'}
+            </div>
+          </article>
+        `;
+      }
+
+      function mainPhotoOf(member) {
+        const photos = member?.photos || {};
+        const slots = Array.isArray(photos.visible_slots) ? photos.visible_slots : [];
+        const facePhotoId = String(photos.face_photo_id || "");
+        return slots.find((slot) => slot.photo_id && slot.photo_id === facePhotoId && slot.thumbnail_url) ||
+          slots.find((slot) => slot.photo_id && slot.thumbnail_url) ||
+          null;
+      }
+
+      function renderProfilePanel(member) {
+        const profile = profileOf(member);
+        const interests = interestsOf(member);
+        const tier = normalizeTier(member?.tier);
+        const isFounder = tier === "founder";
+        const isValidated = isMemberValidated(member);
+        const disabled = isValidated ? "" : "disabled";
+        const lockedClass = isValidated ? "" : "is-silent-locked";
+        return `
+          <section class="profile-view" aria-labelledby="profile-title">
+            <div>
+              <p class="eyebrow">Profile</p>
+              <h1 id="profile-title" class="section-title">Your app profile.</h1>
+              <p class="membership-copy">This is the presence prepared for the Presttige app and, when the Circle opens, for other validated members.</p>
+            </div>
+            <div class="profile-identity-grid" aria-label="Shared identity">
+              <div class="profile-identity-item">
+                <span class="meta-label">Age</span>
+                <p class="profile-identity-value">${escapeHtml(profile.age || "Not set")}</p>
+              </div>
+              <div class="profile-identity-item">
+                <span class="meta-label">City</span>
+                <p class="profile-identity-value">${escapeHtml(profile.city || "Not set")}</p>
+              </div>
+            </div>
+            <form id="profile-form" class="profile-form ${lockedClass}" data-locked="${isValidated ? "false" : "true"}" novalidate>
+              <input id="profile-phone-country" type="hidden" value="${escapeAttr(profile.phone_country)}">
+              <input id="profile-phone" type="hidden" value="${escapeAttr(profile.phone)}">
+              <input id="profile-country" type="hidden" value="${escapeAttr(profile.country)}">
               <div class="profile-group">
-                <p class="profile-group-title">Contact and location</p>
+                <p class="profile-group-title">Shared identity</p>
                 <div class="profile-grid">
                   <div class="field">
-                    <label for="profile-phone-country">Phone code</label>
-                    <input id="profile-phone-country" type="text" value="${escapeAttr(profile.phone_country)}" autocomplete="tel-country-code" required>
-                  </div>
-                  <div class="field">
-                    <label for="profile-phone">Phone</label>
-                    <input id="profile-phone" type="tel" value="${escapeAttr(profile.phone)}" autocomplete="tel" required>
-                  </div>
-                  <div class="field">
                     <label for="profile-age">Age</label>
-                    <input id="profile-age" type="text" inputmode="numeric" value="${escapeAttr(profile.age)}" required>
-                  </div>
-                  <div class="field">
-                    <label for="profile-country">Country</label>
-                    <input id="profile-country" type="text" value="${escapeAttr(profile.country)}" autocomplete="country-name" required>
+                    <input id="profile-age" type="text" inputmode="numeric" value="${escapeAttr(profile.age)}" ${disabled} required>
                   </div>
                   <div class="field">
                     <label for="profile-city">City</label>
-                    <input id="profile-city" type="text" value="${escapeAttr(profile.city)}" autocomplete="address-level2" required>
+                    <input id="profile-city" type="text" value="${escapeAttr(profile.city)}" autocomplete="address-level2" ${disabled} required>
                   </div>
                 </div>
               </div>
@@ -1783,31 +1927,31 @@
                 <div class="profile-grid">
                   <div class="field">
                     <label for="profile-instagram">Instagram</label>
-                    <input id="profile-instagram" type="text" value="${escapeAttr(profile.instagram)}" required>
+                    <input id="profile-instagram" type="text" value="${escapeAttr(profile.instagram)}" ${disabled} required>
                   </div>
                   <div class="field">
                     <label for="profile-linkedin">LinkedIn</label>
-                    <input id="profile-linkedin" type="url" value="${escapeAttr(profile.linkedin)}">
+                    <input id="profile-linkedin" type="url" value="${escapeAttr(profile.linkedin)}" ${disabled}>
                   </div>
                   <div class="field">
                     <label for="profile-tiktok">TikTok</label>
-                    <input id="profile-tiktok" type="text" value="${escapeAttr(profile.tiktok)}">
+                    <input id="profile-tiktok" type="text" value="${escapeAttr(profile.tiktok)}" ${disabled}>
                   </div>
                   <div class="field">
                     <label for="profile-website">Website</label>
-                    <input id="profile-website" type="url" value="${escapeAttr(profile.website)}">
+                    <input id="profile-website" type="url" value="${escapeAttr(profile.website)}" ${disabled}>
                   </div>
                   <div class="field">
                     <label for="profile-occupation">Occupation</label>
-                    <input id="profile-occupation" type="text" value="${escapeAttr(profile.occupation)}">
+                    <input id="profile-occupation" type="text" value="${escapeAttr(profile.occupation)}" ${disabled}>
                   </div>
                   <div class="field">
                     <label for="profile-company">Company</label>
-                    <input id="profile-company" type="text" value="${escapeAttr(profile.company)}">
+                    <input id="profile-company" type="text" value="${escapeAttr(profile.company)}" ${disabled}>
                   </div>
                   <div class="field field--wide">
                     <label for="profile-bio">Short introduction</label>
-                    <textarea id="profile-bio" required>${escapeHtml(profile.bio)}</textarea>
+                    <textarea id="profile-bio" ${disabled} required>${escapeHtml(profile.bio)}</textarea>
                     <p class="hint">Use at least 50 characters.</p>
                   </div>
                 </div>
@@ -1817,37 +1961,44 @@
                 <div class="profile-grid">
                   <div class="field">
                     <label for="interest-lifestyle">Lifestyle</label>
-                    <textarea id="interest-lifestyle">${escapeHtml(interests.lifestyle)}</textarea>
+                    <textarea id="interest-lifestyle" ${disabled}>${escapeHtml(interests.lifestyle)}</textarea>
                   </div>
                   <div class="field">
                     <label for="interest-business">Business</label>
-                    <textarea id="interest-business">${escapeHtml(interests.business)}</textarea>
+                    <textarea id="interest-business" ${disabled}>${escapeHtml(interests.business)}</textarea>
                   </div>
                   <div class="field">
                     <label for="interest-travel">Travel</label>
-                    <textarea id="interest-travel">${escapeHtml(interests.travel)}</textarea>
+                    <textarea id="interest-travel" ${disabled}>${escapeHtml(interests.travel)}</textarea>
                   </div>
                   <div class="field">
                     <label for="interest-culture">Culture</label>
-                    <textarea id="interest-culture">${escapeHtml(interests.culture)}</textarea>
+                    <textarea id="interest-culture" ${disabled}>${escapeHtml(interests.culture)}</textarea>
                   </div>
                   <div class="field">
                     <label for="interest-wellbeing">Wellbeing</label>
-                    <textarea id="interest-wellbeing">${escapeHtml(interests.wellbeing)}</textarea>
+                    <textarea id="interest-wellbeing" ${disabled}>${escapeHtml(interests.wellbeing)}</textarea>
                   </div>
                   <div class="field">
                     <label for="interest-notes">Notes</label>
-                    <textarea id="interest-notes">${escapeHtml(interests.notes)}</textarea>
+                    <textarea id="interest-notes" ${disabled}>${escapeHtml(interests.notes)}</textarea>
                   </div>
                 </div>
               </div>
               <p id="profile-error" class="hint error-text" aria-live="polite"></p>
-              <div class="actions">
-                <button id="profile-submit" class="button" type="submit">Save profile</button>
-                <button id="profile-cancel" class="button button--secondary" type="button">Cancel</button>
-              </div>
+              ${isValidated
+                ? `<div class="actions">
+                    <button id="profile-submit" class="button" type="submit">Save profile</button>
+                    <button id="profile-cancel" class="button button--secondary" type="button">Cancel</button>
+                  </div>`
+                : ""}
             </form>
-          </div>
+            ${isValidated ? renderPhotosPanel(member) : renderLockedPhotosPanel(member)}
+            ${isFounder
+              ? (isValidated ? renderFounderConciergePanel(member) : renderLockedFounderConciergePanel())
+              : ""}
+            ${currentDiscoveryStatus.master_enabled === true && isValidated ? renderDiscoveryPanel(member) : ""}
+          </section>
         `;
       }
 
@@ -1855,7 +2006,7 @@
         const isFounder = normalizeTier(member?.tier) === "founder";
 
         return `
-          <div id="photos-panel" class="section-panel" aria-live="polite">
+          <div id="photos-panel" class="section-panel profile-subpanel" aria-live="polite">
             <p class="eyebrow">Photos</p>
             <h2>${isFounder ? "Founder photos" : "Member photos"}</h2>
             <p>${isFounder
@@ -1869,9 +2020,23 @@
         `;
       }
 
+      function renderLockedPhotosPanel(member) {
+        const isFounder = normalizeTier(member?.tier) === "founder";
+        const slots = Array.from({ length: 6 });
+        return `
+          <div class="section-panel profile-subpanel is-silent-locked" aria-live="polite">
+            <p class="eyebrow">Photos</p>
+            <h2>${isFounder ? "Founder photos" : "Member photos"}</h2>
+            <div class="locked-photo-grid" aria-label="Photo management locked">
+              ${slots.map(() => '<div class="locked-photo-slot"></div>').join("")}
+            </div>
+          </div>
+        `;
+      }
+
       function renderFounderConciergePanel(member) {
         return `
-          <div id="founder-concierge-panel" class="section-panel" aria-live="polite">
+          <div id="founder-concierge-panel" class="section-panel profile-subpanel" aria-live="polite">
             <p class="eyebrow">Founder Concierge</p>
             <h2>Concierge profile</h2>
             <p>Your answers help Presttige understand where discretion, access, timing, and taste matter most. Share only what you wish, this profile can remain partial.</p>
@@ -1879,6 +2044,15 @@
               <p class="hint">Loading Concierge profile.</p>
             </div>
             <p id="founder-concierge-error" class="hint error-text" aria-live="polite"></p>
+          </div>
+        `;
+      }
+
+      function renderLockedFounderConciergePanel() {
+        return `
+          <div class="section-panel profile-subpanel is-silent-locked" aria-live="polite">
+            <p class="eyebrow">Founder Concierge</p>
+            <h2>Concierge profile</h2>
           </div>
         `;
       }
@@ -2068,14 +2242,14 @@
             };
           }
           if (previousEnabled !== nextEnabled) {
-            const nextSection = nextEnabled ? activeSectionKey : "overview";
+            const nextSection = activeSectionKey === "profile" ? "profile" : "membership";
             renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, nextSection);
           }
         } catch (error) {
           if (error.payload?.status === "DISCOVERY_DISABLED") {
             currentDiscoveryStatus = normalizeDiscoveryStatus(error.payload.discovery || { master_enabled: false });
             if (previousEnabled) {
-              renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, "overview");
+              renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, "membership");
             }
           }
         } finally {
@@ -2087,7 +2261,7 @@
         const discovery = normalizeDiscoveryStatus(currentDiscoveryStatus);
         const founderControl = discovery.founder_visibility_control === true;
         return `
-          <div id="discovery-panel" class="section-panel discovery-panel" aria-live="polite">
+          <div id="discovery-panel" class="section-panel profile-subpanel discovery-panel" aria-live="polite">
             <p class="eyebrow">Circle</p>
             <h2>Private member Circle</h2>
             <p>Visible profiles are active, validated members only. Direct contact opens after both members show interest.</p>
@@ -2148,7 +2322,7 @@
         } catch (error) {
           if (error.payload?.status === "DISCOVERY_DISABLED") {
             currentDiscoveryStatus = normalizeDiscoveryStatus(error.payload.discovery || { master_enabled: false });
-            renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, "overview");
+            renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, "membership");
             return;
           }
           host.innerHTML = "";
@@ -2425,16 +2599,17 @@
             visible,
           });
           currentDiscoveryStatus = normalizeDiscoveryStatus(result.discovery || currentDiscoveryStatus);
-          renderMemberShell({ ...currentMember, discovery: currentDiscoveryStatus }, "discovery");
+          renderMemberShell({ ...currentMember, discovery: currentDiscoveryStatus }, "profile");
         } catch (error) {
           if (status) status.textContent = "Visibility could not be changed.";
         }
       }
 
-      function renderPrivacyPanel(member) {
+      function renderPrivacyPanel(member, discreet = false) {
         const email = profileOf(member).email || member?.email || "";
+        const panelClass = discreet ? "section-panel privacy-panel--discreet" : "section-panel";
         return `
-          <div class="section-panel" aria-live="polite">
+          <div class="${panelClass}" aria-live="polite">
             <p class="eyebrow">Privacy</p>
             <h2>Data rights</h2>
             <p>This private area is available to your authenticated account even while silent validation is pending.</p>
@@ -2867,7 +3042,7 @@
         event.preventDefault();
         const button = document.getElementById("profile-submit");
         const errorBox = document.getElementById("profile-error");
-        const payload = profilePayloadFromForm();
+        const payload = profilePayloadFromForm(member);
         const errors = validateProfilePayload(payload);
 
         errorBox.textContent = "";
@@ -2888,14 +3063,15 @@
         }
       }
 
-      function profilePayloadFromForm() {
+      function profilePayloadFromForm(member) {
+        const current = profileOf(member);
         return {
           profile: {
-            phone_country: readFormValue("profile-phone-country"),
-            phone: readFormValue("profile-phone"),
-            age: readFormValue("profile-age"),
-            country: readFormValue("profile-country"),
-            city: readFormValue("profile-city"),
+            phone_country: readFormValue("profile-phone-country") || current.phone_country,
+            phone: readFormValue("profile-phone") || current.phone,
+            age: readFormValue("profile-age") || current.age,
+            country: readFormValue("profile-country") || current.country,
+            city: readFormValue("profile-city") || current.city,
             instagram: readFormValue("profile-instagram"),
             linkedin: readFormValue("profile-linkedin"),
             tiktok: readFormValue("profile-tiktok"),
