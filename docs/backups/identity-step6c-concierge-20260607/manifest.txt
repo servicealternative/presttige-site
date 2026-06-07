@@ -1,0 +1,18 @@
+Presttige identity Step 6c Founder Concierge questionnaire backup
+Date: 2026-06-07
+Purpose: pre-change backup for Founder Concierge questionnaire
+Contains: member-auth source, member page, Lambda config, authorized tester records
+Sanitizer: scripts/sanitize-aws-backup-json.py
+No presigned URLs or AWS secret values intentionally stored.
+docs/backups/identity-step6c-concierge-20260607/aws/member-auth-lambda-config.json
+docs/backups/identity-step6c-concierge-20260607/aws/member-auth-lambda.json
+docs/backups/identity-step6c-concierge-20260607/code/member-auth-index.js
+docs/backups/identity-step6c-concierge-20260607/code/member-auth-package.json
+docs/backups/identity-step6c-concierge-20260607/code/member-index.html
+docs/backups/identity-step6c-concierge-20260607/code/package-presttige-member-auth.sh
+docs/backups/identity-step6c-concierge-20260607/manifest.txt
+docs/backups/identity-step6c-concierge-20260607/testers/analuisasf_gmail_com.ddb.json
+docs/backups/identity-step6c-concierge-20260607/testers/antoniompereira_me_com.ddb.json
+docs/backups/identity-step6c-concierge-20260607/testers/codex_subscriber_tester.cognito.json
+docs/backups/identity-step6c-concierge-20260607/testers/codex_subscriber_tester_presttige_net.ddb.json
+docs/backups/identity-step6c-concierge-20260607/testers/fq_freequenza_net.ddb.json
