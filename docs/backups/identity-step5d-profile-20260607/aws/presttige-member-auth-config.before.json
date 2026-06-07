@@ -1,0 +1,55 @@
+{
+  "Architectures": [
+    "x86_64"
+  ],
+  "CodeSha256": "RE08nWq7HnHHDh0/9tWRcRqLAYpCx0AuglZ9eNc+H5A=",
+  "CodeSize": 5308,
+  "Description": "",
+  "Environment": {
+    "Variables": {
+      "COGNITO_SUB_INDEX_NAME": "cognito_sub-index",
+      "EMAIL_INDEX_NAME": "email-index",
+      "MEMBER_CLIENT_ID": "3gdek6k48cm6oirccodgrub2k1",
+      "MEMBER_COGNITO_POOL_NAME": "presttige-members",
+      "MEMBER_EMAIL_FROM": "private@presttige.net",
+      "MEMBER_EMAIL_REPLY_TO": "info@presttige.net",
+      "MEMBER_HOME_URL": "https://presttige.net/member/",
+      "MEMBER_USER_POOL_ID": "us-east-1_hpwdNFGss",
+      "REFRESH_COOKIE_MAX_AGE_SECONDS": "2592000",
+      "SESSION_COOKIE_MAX_AGE_SECONDS": "3600",
+      "SES_CONFIGURATION_SET": "presttige-deliverability-v1",
+      "TABLE_NAME": "presttige-db",
+      "TEST_SEND_RECIPIENT": "fq@freequenza.net"
+    }
+  },
+  "EphemeralStorage": {
+    "Size": 512
+  },
+  "FunctionArn": "arn:aws:lambda:us-east-1:343218208384:function:presttige-member-auth",
+  "FunctionName": "presttige-member-auth",
+  "Handler": "index.handler",
+  "LastModified": "2026-06-06T23:52:49.000+0000",
+  "LastUpdateStatus": "Successful",
+  "LoggingConfig": {
+    "LogFormat": "Text",
+    "LogGroup": "/aws/lambda/presttige-member-auth"
+  },
+  "MemorySize": 256,
+  "PackageType": "Zip",
+  "RevisionId": "b196ff0f-44e8-4f11-a72c-f963577a5544",
+  "Role": "arn:aws:iam::343218208384:role/presttige-member-auth-role",
+  "Runtime": "nodejs20.x",
+  "RuntimeVersionConfig": {
+    "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:18671876e7cc385452255180c58ca50cf8763398a4248ae92ed14410d196b942"
+  },
+  "SnapStart": {
+    "ApplyOn": "None",
+    "OptimizationStatus": "Off"
+  },
+  "State": "Active",
+  "Timeout": 10,
+  "TracingConfig": {
+    "Mode": "PassThrough"
+  },
+  "Version": "$LATEST"
+}
