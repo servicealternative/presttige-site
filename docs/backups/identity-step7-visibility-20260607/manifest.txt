@@ -1,0 +1,6 @@
+Backup: identity-step7-visibility-20260607
+Created: 2026-06-07T02:30:31Z
+Scope: Identity Step 7 member-to-member visibility pre-change backup.
+Contains: member-auth Lambda source/package, member page, packaging script, sanitized Lambda config/get-function, Lambda role metadata, presttige-db table description, master switch pre-state, four authorized tester records.
+Sanitizer: scripts/sanitize-aws-backup-json.py
+No presigned URLs, AWS token material, or secret values are intentionally stored.

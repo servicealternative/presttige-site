@@ -1,0 +1,5 @@
+{
+  "parameter_name": "/presttige/member-discovery/enabled",
+  "state_before_step7": "absent",
+  "effective_default": "false"
+}
