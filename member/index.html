@@ -672,6 +672,100 @@
       overflow-wrap: anywhere;
     }
 
+    .concierge-progress {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 24px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .concierge-section-list {
+      display: grid;
+      gap: 28px;
+      margin-top: 30px;
+    }
+
+    .concierge-section {
+      display: grid;
+      gap: 18px;
+      padding-top: 22px;
+      border-top: 1px solid var(--pp-hairline);
+    }
+
+    .concierge-section h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 31px;
+      font-weight: 500;
+      line-height: 1.08;
+    }
+
+    .concierge-question {
+      display: grid;
+      gap: 14px;
+      padding: 18px 0;
+      border: 0;
+      border-top: 1px solid rgba(140, 112, 64, 0.14);
+    }
+
+    .concierge-question legend {
+      padding: 0;
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 23px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .concierge-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .concierge-option {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      padding: 13px 14px;
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+    }
+
+    .concierge-option-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--pp-black);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .concierge-option input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: var(--pp-gold);
+    }
+
+    .concierge-free-text {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: var(--pp-paper);
+      padding: 9px 10px;
+      color: var(--pp-black);
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .concierge-free-text:disabled {
+      opacity: 0.45;
+    }
+
     .privacy-confirm {
       display: grid;
       gap: 12px;
@@ -806,6 +900,8 @@
       .photo-summary,
       .photo-grid,
       .photo-grid.is-founder,
+      .concierge-progress,
+      .concierge-options,
       .totp-layout,
       .recovery-grid {
         grid-template-columns: 1fr;
@@ -1244,6 +1340,9 @@
         if (document.getElementById("photos-panel")) {
           loadMemberPhotos(member);
         }
+        if (document.getElementById("founder-concierge-panel")) {
+          loadFounderConcierge(member);
+        }
         const exportButton = document.getElementById("privacy-export");
         if (exportButton) {
           exportButton.addEventListener("click", () => downloadDataExport(member));
@@ -1289,6 +1388,9 @@
         }
         if (section.key === "photos") {
           return renderPhotosPanel(member);
+        }
+        if (section.key === "founder") {
+          return renderFounderConciergePanel(member);
         }
         if (section.key === "privacy") {
           return renderPrivacyPanel(member);
@@ -1343,8 +1445,8 @@
           base.splice(2, 0, {
             key: "founder",
             title: "Founder",
-            copy: "Founder-specific access will open here in the dedicated Founder step.",
-            openCopy: "This private Founder area is prepared for the dedicated Founder step.",
+            copy: "Your Concierge profile is built here.",
+            openCopy: "Shape the preferences that guide your Premium Concierge profile.",
             status: "Open",
             requiresValidation: true,
           });
@@ -1507,6 +1609,187 @@
             <p id="photos-error" class="hint error-text" aria-live="polite"></p>
           </div>
         `;
+      }
+
+      function renderFounderConciergePanel(member) {
+        return `
+          <div id="founder-concierge-panel" class="section-panel" aria-live="polite">
+            <p class="eyebrow">Founder Concierge</p>
+            <h2>Concierge profile</h2>
+            <p>Your answers help Presttige understand where discretion, access, timing, and taste matter most. Share only what you wish, this profile can remain partial.</p>
+            <div id="founder-concierge-content">
+              <p class="hint">Loading Concierge profile.</p>
+            </div>
+            <p id="founder-concierge-error" class="hint error-text" aria-live="polite"></p>
+          </div>
+        `;
+      }
+
+      async function loadFounderConcierge(member) {
+        const host = document.getElementById("founder-concierge-content");
+        const errorBox = document.getElementById("founder-concierge-error");
+        if (!host || normalizeTier(member?.tier) !== "founder") {
+          return;
+        }
+
+        try {
+          const result = await api("concierge", { mode: "list" });
+          host.innerHTML = renderFounderConciergeForm(result.definition, result.concierge_profile);
+          bindFounderConciergeActions(result.definition);
+          if (errorBox) errorBox.textContent = "";
+        } catch (error) {
+          host.innerHTML = "";
+          if (errorBox) errorBox.textContent = "Concierge profile is not available right now.";
+        }
+      }
+
+      function renderFounderConciergeForm(definition, profile) {
+        const progress = profile?.progress || {};
+        const answered = Number(progress.answered_questions || 0);
+        const total = Number(progress.total_questions || definition?.total_questions || 22);
+        const percent = Number(progress.completion_percent || 0);
+        const sections = Array.isArray(definition?.sections) ? definition.sections : [];
+        return `
+          <form id="founder-concierge-form" novalidate>
+            <div class="concierge-progress" aria-label="Concierge profile progress">
+              <div class="photo-summary-item">
+                <span class="meta-label">Answered</span>
+                <strong>${escapeHtml(String(answered))}/${escapeHtml(String(total))}</strong>
+              </div>
+              <div class="photo-summary-item">
+                <span class="meta-label">Progress</span>
+                <strong>${escapeHtml(String(percent))}%</strong>
+              </div>
+            </div>
+            <div class="concierge-section-list">
+              ${sections.map((section) => renderFounderConciergeSection(section, profile)).join("")}
+            </div>
+            <div class="actions">
+              <button id="founder-concierge-submit" class="button" type="submit">Save Concierge profile</button>
+            </div>
+          </form>
+        `;
+      }
+
+      function renderFounderConciergeSection(section, profile) {
+        const questions = Array.isArray(section.questions) ? section.questions : [];
+        return `
+          <section class="concierge-section" data-concierge-section="${escapeAttr(section.id)}">
+            <div>
+              <p class="eyebrow">${escapeHtml(section.title)}</p>
+              <h3>${escapeHtml(section.title)}</h3>
+            </div>
+            ${questions.map((question) => renderFounderConciergeQuestion(question, profile)).join("")}
+          </section>
+        `;
+      }
+
+      function renderFounderConciergeQuestion(question, profile) {
+        const answer = profile?.answers?.[question.id] || {};
+        const selected = new Set(Array.isArray(answer.selected) ? answer.selected : []);
+        const options = Array.isArray(question.options) ? question.options : [];
+        return `
+          <fieldset class="concierge-question" data-concierge-question="${escapeAttr(question.id)}">
+            <legend>${escapeHtml(question.label)}</legend>
+            <div class="concierge-options">
+              ${options.map((item) => renderFounderConciergeOption(question.id, item, selected, answer.free_text || {})).join("")}
+            </div>
+          </fieldset>
+        `;
+      }
+
+      function renderFounderConciergeOption(questionId, item, selected, freeText) {
+        const checked = selected.has(item.value);
+        const inputId = `concierge-${questionId}-${item.value}`;
+        const freeTextValue = freeText?.[item.value] || "";
+        return `
+          <label class="concierge-option" for="${escapeAttr(inputId)}">
+            <span class="concierge-option-row">
+              <input
+                id="${escapeAttr(inputId)}"
+                type="checkbox"
+                value="${escapeAttr(item.value)}"
+                data-concierge-option="${escapeAttr(questionId)}"
+                data-free-text="${item.free_text ? "true" : "false"}"
+                ${checked ? "checked" : ""}
+              >
+              <span>${escapeHtml(item.label)}</span>
+            </span>
+            ${item.free_text
+              ? `<input class="concierge-free-text" type="text" maxlength="240" value="${escapeAttr(freeTextValue)}" data-concierge-free-text="${escapeAttr(questionId)}" data-option-value="${escapeAttr(item.value)}" placeholder="${escapeAttr(item.label)}" ${checked ? "" : "disabled"}>`
+              : ""}
+          </label>
+        `;
+      }
+
+      function bindFounderConciergeActions(definition) {
+        const form = document.getElementById("founder-concierge-form");
+        if (!form) {
+          return;
+        }
+        form.querySelectorAll("[data-concierge-option]").forEach((checkbox) => {
+          checkbox.addEventListener("change", () => {
+            const freeText = form.querySelector(`[data-concierge-free-text="${escapeAttr(checkbox.dataset.conciergeOption)}"][data-option-value="${escapeAttr(checkbox.value)}"]`);
+            if (!freeText) {
+              return;
+            }
+            freeText.disabled = !checkbox.checked;
+            if (!checkbox.checked) {
+              freeText.value = "";
+            }
+          });
+        });
+        form.addEventListener("submit", (event) => submitFounderConcierge(event, definition));
+      }
+
+      async function submitFounderConcierge(event, definition) {
+        event.preventDefault();
+        const errorBox = document.getElementById("founder-concierge-error");
+        const button = document.getElementById("founder-concierge-submit");
+        if (errorBox) errorBox.textContent = "";
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Saving...";
+        }
+        try {
+          const payload = {
+            mode: "save",
+            answers: founderConciergePayloadFromForm(definition),
+          };
+          const result = await api("concierge", payload);
+          document.getElementById("founder-concierge-content").innerHTML = renderFounderConciergeForm(result.definition, result.concierge_profile);
+          bindFounderConciergeActions(result.definition);
+          if (errorBox) errorBox.textContent = "Concierge profile saved.";
+        } catch (error) {
+          if (errorBox) errorBox.textContent = "Concierge profile could not be saved.";
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Save Concierge profile";
+          }
+        }
+      }
+
+      function founderConciergePayloadFromForm(definition) {
+        const answers = {};
+        const questions = (definition?.sections || []).flatMap((section) => section.questions || []);
+        questions.forEach((question) => {
+          const selected = Array.from(document.querySelectorAll(`[data-concierge-option="${escapeAttr(question.id)}"]:checked`))
+            .map((item) => item.value);
+          const freeText = {};
+          selected.forEach((value) => {
+            const input = document.querySelector(`[data-concierge-free-text="${escapeAttr(question.id)}"][data-option-value="${escapeAttr(value)}"]`);
+            if (input && input.value.trim()) {
+              freeText[value] = input.value.trim();
+            }
+          });
+          if (selected.length) {
+            answers[question.id] = {
+              selected,
+              free_text: freeText,
+            };
+          }
+        });
+        return answers;
       }
 
       function renderPrivacyPanel(member) {

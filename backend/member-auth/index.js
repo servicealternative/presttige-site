@@ -75,6 +75,309 @@ const VALIDATION_REQUIRED_ACTIONS = new Set([
   "photos",
   "founder",
 ]);
+const FOUNDER_CONCIERGE_SCHEMA_VERSION = 1;
+const FOUNDER_CONCIERGE_DEFINITION = [
+  {
+    id: "travel_presence",
+    title: "Travel & Presence",
+    questions: [
+      {
+        id: "cities_time",
+        label: "Cities you spend the most time in",
+        options: [
+          option("london", "London"),
+          option("dubai", "Dubai"),
+          option("monaco", "Monaco"),
+          option("paris", "Paris"),
+          option("new_york", "New York"),
+          option("geneva", "Geneva"),
+          option("milan", "Milan"),
+          option("singapore", "Singapore"),
+          option("other", "Other", true),
+        ],
+      },
+      {
+        id: "travel_frequency",
+        label: "How often do you travel",
+        options: [
+          option("almost_weekly", "Almost weekly"),
+          option("few_times_month", "A few times a month"),
+          option("monthly", "Monthly"),
+          option("few_times_year", "A few times a year"),
+        ],
+      },
+      {
+        id: "stay_preference",
+        label: "How do you prefer to stay",
+        options: [
+          option("grand_palace_hotels", "Grand palace hotels"),
+          option("boutique_hotels", "Boutique hotels"),
+          option("private_villas", "Private villas"),
+          option("yacht_charter", "Yacht / charter"),
+          option("private_residences", "Private residences"),
+        ],
+      },
+      {
+        id: "flight_preference",
+        label: "How do you usually fly",
+        options: [
+          option("private_jet", "Private jet"),
+          option("first_class", "First class"),
+          option("business_class", "Business class"),
+          option("helicopter_transfers", "Helicopter transfers"),
+        ],
+      },
+      {
+        id: "travel_companions",
+        label: "Who usually travels with you",
+        options: [
+          option("solo", "Solo"),
+          option("partner", "Partner"),
+          option("family_children", "Family / children"),
+          option("friends", "Friends"),
+          option("business_associates", "Business associates"),
+        ],
+      },
+    ],
+  },
+  {
+    id: "gastronomy",
+    title: "Gastronomy",
+    questions: [
+      {
+        id: "cuisines",
+        label: "Cuisines you enjoy most",
+        options: [
+          option("french", "French"),
+          option("italian", "Italian"),
+          option("japanese", "Japanese"),
+          option("mediterranean", "Mediterranean"),
+          option("middle_eastern", "Middle Eastern"),
+          option("indian", "Indian"),
+          option("steakhouse", "Steakhouse"),
+          option("plant_based", "Plant-based"),
+          option("other", "Other", true),
+        ],
+      },
+      {
+        id: "dining_setting",
+        label: "Dining setting you prefer",
+        options: [
+          option("discreet_private", "Discreet & private"),
+          option("chefs_table", "Chef's table"),
+          option("vibrant_social", "Vibrant & social"),
+          option("michelin_fine_dining", "Michelin fine dining"),
+          option("hidden_gems", "Hidden gems"),
+        ],
+      },
+      {
+        id: "drinks",
+        label: "What you enjoy drinking",
+        options: [
+          option("fine_wine", "Fine wine"),
+          option("champagne", "Champagne"),
+          option("whisky", "Whisky"),
+          option("cognac", "Cognac"),
+          option("cocktails", "Cocktails"),
+          option("non_alcoholic", "Non-alcoholic"),
+        ],
+      },
+      {
+        id: "dietary",
+        label: "Dietary preferences or restrictions",
+        options: [
+          option("none", "None"),
+          option("vegetarian", "Vegetarian"),
+          option("vegan", "Vegan"),
+          option("halal", "Halal"),
+          option("kosher", "Kosher"),
+          option("gluten_free", "Gluten-free"),
+          option("allergies", "Allergies", true),
+        ],
+      },
+    ],
+  },
+  {
+    id: "culture_events",
+    title: "Culture & Events",
+    questions: [
+      {
+        id: "experiences",
+        label: "Experiences that move you most",
+        options: [
+          option("art_galleries", "Art & galleries"),
+          option("live_music", "Live music"),
+          option("opera_ballet", "Opera & ballet"),
+          option("theatre", "Theatre"),
+          option("fashion_couture", "Fashion & couture"),
+          option("motorsport", "Motorsport"),
+          option("film_premieres", "Film & premieres"),
+          option("design_architecture", "Design & architecture"),
+        ],
+      },
+      {
+        id: "marquee_events",
+        label: "Marquee events that interest you",
+        options: [
+          option("art_basel", "Art Basel"),
+          option("monaco_grand_prix", "Monaco Grand Prix"),
+          option("cannes_film_festival", "Cannes Film Festival"),
+          option("fashion_weeks", "Fashion Weeks"),
+          option("wimbledon", "Wimbledon"),
+          option("venice_biennale", "Venice Biennale"),
+          option("davos", "Davos"),
+          option("other", "Other", true),
+        ],
+      },
+      {
+        id: "event_style",
+        label: "How you like to experience events",
+        options: [
+          option("vip_private_box", "VIP / private box"),
+          option("backstage_access", "Backstage access"),
+          option("intimate_gatherings", "Intimate gatherings"),
+          option("large_prestige_events", "Large prestige events"),
+        ],
+      },
+    ],
+  },
+  {
+    id: "passions_collecting",
+    title: "Passions & Collecting",
+    questions: [
+      {
+        id: "collecting",
+        label: "Do you collect",
+        options: [
+          option("art", "Art"),
+          option("watches", "Watches"),
+          option("cars", "Cars"),
+          option("fine_wine", "Fine wine"),
+          option("jewellery", "Jewellery"),
+          option("rare_books", "Rare books"),
+          option("memorabilia", "Memorabilia"),
+          option("other", "Other", true),
+        ],
+      },
+      {
+        id: "sports",
+        label: "Sports you follow or practise",
+        options: [
+          option("golf", "Golf"),
+          option("tennis", "Tennis"),
+          option("sailing", "Sailing"),
+          option("equestrian_polo", "Equestrian / polo"),
+          option("skiing", "Skiing"),
+          option("formula_1", "Formula 1"),
+          option("football", "Football"),
+          option("other", "Other", true),
+        ],
+      },
+      {
+        id: "personal_passions",
+        label: "Personal passions",
+        options: [
+          option("philanthropy", "Philanthropy"),
+          option("technology", "Technology"),
+          option("entrepreneurship", "Entrepreneurship"),
+          option("real_estate", "Real estate"),
+          option("nature_outdoors", "Nature & outdoors"),
+          option("gastronomy", "Gastronomy"),
+        ],
+      },
+    ],
+  },
+  {
+    id: "wellbeing_lifestyle",
+    title: "Wellbeing & Lifestyle",
+    questions: [
+      {
+        id: "wellness",
+        label: "Wellness experiences that appeal",
+        options: [
+          option("spa_thermal", "Spa & thermal"),
+          option("wellness_retreats", "Wellness retreats"),
+          option("private_fitness", "Private fitness"),
+          option("longevity_clinics", "Longevity clinics"),
+          option("mindfulness", "Mindfulness"),
+          option("not_priority", "Not a priority"),
+        ],
+      },
+      {
+        id: "free_time",
+        label: "How you prefer to spend free time",
+        options: [
+          option("reserved_private", "Reserved & private"),
+          option("social_connected", "Social & connected"),
+          option("active_outdoors", "Active & outdoors"),
+          option("cultural_immersion", "Cultural immersion"),
+        ],
+      },
+      {
+        id: "house_styles",
+        label: "House styles you identify with",
+        options: [
+          option("heritage_luxury", "Heritage luxury"),
+          option("contemporary_design", "Contemporary design"),
+          option("understated_elegance", "Understated elegance"),
+          option("bold_statement", "Bold & statement"),
+        ],
+      },
+    ],
+  },
+  {
+    id: "your_concierge",
+    title: "Your Concierge",
+    questions: [
+      {
+        id: "concierge_support",
+        label: "Where you most value concierge support",
+        options: [
+          option("restaurant_reservations", "Restaurant reservations"),
+          option("event_access_tickets", "Event access & tickets"),
+          option("travel_planning", "Travel planning"),
+          option("private_transport", "Private transport"),
+          option("gifting", "Gifting"),
+          option("personal_shopping", "Personal shopping"),
+          option("last_minute_requests", "Last-minute requests"),
+          option("introductions", "Introductions"),
+        ],
+      },
+      {
+        id: "contact_preference",
+        label: "How you prefer to be contacted",
+        options: [
+          option("whatsapp", "WhatsApp"),
+          option("email", "Email"),
+          option("phone_call", "Phone call"),
+          option("in_app_message", "In-app message"),
+        ],
+      },
+      {
+        id: "service_language",
+        label: "Preferred language for service",
+        options: [
+          option("english", "English"),
+          option("portuguese", "Portuguese"),
+          option("french", "French"),
+          option("spanish", "Spanish"),
+          option("arabic", "Arabic"),
+          option("other", "Other", true),
+        ],
+      },
+      {
+        id: "contact_time",
+        label: "When you are most receptive to contact",
+        options: [
+          option("mornings", "Mornings"),
+          option("afternoons", "Afternoons"),
+          option("evenings", "Evenings"),
+          option("anytime", "Anytime"),
+        ],
+      },
+    ],
+  },
+];
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: REGION }));
 const cognito = new CognitoIdentityProviderClient({ region: REGION });
@@ -121,6 +424,9 @@ exports.handler = async (event) => {
     }
     if (route === "photos") {
       return handleMemberPhotos(event);
+    }
+    if (route === "concierge") {
+      return handleFounderConcierge(event);
     }
     if (route === "photo-thumbnail") {
       return handleMemberPhotoThumbnail(event);
@@ -587,6 +893,17 @@ async function handleMemberAction(event) {
     }, cookiesToSet);
   }
 
+  if (section === "founder" && !isFounderMember(session.member)) {
+    logAuth("member_action", "founder_unavailable", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      action_hash: actionHash,
+    });
+    return response(event, 403, {
+      ok: false,
+      status: "ACTION_UNAVAILABLE",
+    }, cookiesToSet);
+  }
+
   logAuth("member_action", "available", {
     lead_hash: hashIdentifier(session.member.lead_id),
     action_hash: actionHash,
@@ -766,6 +1083,85 @@ async function handleMemberPhotos(event) {
   return response(event, 400, {
     ok: false,
     status: "INVALID_PHOTO_ACTION",
+  }, cookiesToSet);
+}
+
+async function handleFounderConcierge(event) {
+  const body = parseBody(event);
+  const mode = normalizeText(body.mode || "list").toLowerCase();
+  const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
+
+  if (!session.ok) {
+    logAuth("founder_concierge", session.status || "invalid", {
+      sub_hash: hashIdentifier(session.cognito_sub),
+    });
+    return response(event, session.statusCode || 401, session, clearSessionCookies());
+  }
+
+  const cookiesToSet = refreshedTokens
+    ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
+    : [];
+
+  if (!isFounderMember(session.member) || !isMemberValidated(session.member)) {
+    logAuth("founder_concierge", "unavailable", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      mode_hash: hashIdentifier(mode),
+    });
+    return response(event, 403, {
+      ok: false,
+      status: "ACTION_UNAVAILABLE",
+    }, cookiesToSet);
+  }
+
+  if (mode === "list") {
+    logAuth("founder_concierge", "listed", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "FOUNDER_CONCIERGE_READY",
+      definition: publicFounderConciergeDefinition(),
+      concierge_profile: publicFounderConciergeProfile(session.member),
+    }, cookiesToSet);
+  }
+
+  if (mode === "save") {
+    const normalized = normalizeFounderConciergePayload(body);
+    if (normalized.errors.length) {
+      logAuth("founder_concierge", "invalid", {
+        lead_hash: hashIdentifier(session.member.lead_id),
+        error_count: normalized.errors.length,
+      });
+      return response(event, 400, {
+        ok: false,
+        status: "INVALID_CONCIERGE_PROFILE",
+        errors: normalized.errors,
+      }, cookiesToSet);
+    }
+
+    const updated = await saveFounderConciergeProfile(session.member, normalized.profile);
+    await writeMemberAudit(updated, "member_founder_concierge_saved", {
+      category: "founder_concierge",
+      answered_questions: normalized.profile.progress.answered_questions,
+      total_questions: normalized.profile.progress.total_questions,
+      completion_percent: normalized.profile.progress.completion_percent,
+    });
+    logAuth("founder_concierge", "saved", {
+      lead_hash: hashIdentifier(updated.lead_id),
+      answered_questions: normalized.profile.progress.answered_questions,
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "FOUNDER_CONCIERGE_SAVED",
+      definition: publicFounderConciergeDefinition(),
+      concierge_profile: publicFounderConciergeProfile(updated),
+      member: publicMember(updated),
+    }, cookiesToSet);
+  }
+
+  return response(event, 400, {
+    ok: false,
+    status: "INVALID_CONCIERGE_ACTION",
   }, cookiesToSet);
 }
 
@@ -1248,6 +1644,7 @@ function publicMember(lead) {
     profile: publicProfile(lead),
     interests: publicInterests(lead),
     photos: publicPhotosForMember(lead),
+    concierge_profile: isFounderMember(lead) ? publicFounderConciergeProfile(lead) : null,
     security: {
       founder_totp_required: isFounderMember(lead),
       founder_totp_enabled: isFounderTotpEnabled(lead),
@@ -1281,6 +1678,144 @@ function publicInterests(lead) {
     ? lead.member_interests
     : {};
   return normalizeInterests(stored);
+}
+
+function option(value, label, freeText = false) {
+  return {
+    value,
+    label,
+    free_text: Boolean(freeText),
+  };
+}
+
+function publicFounderConciergeDefinition() {
+  return {
+    schema_version: FOUNDER_CONCIERGE_SCHEMA_VERSION,
+    total_questions: founderConciergeQuestionList().length,
+    sections: FOUNDER_CONCIERGE_DEFINITION,
+  };
+}
+
+function publicFounderConciergeProfile(lead) {
+  const raw = lead?.concierge_profile && typeof lead.concierge_profile === "object"
+    ? lead.concierge_profile
+    : {};
+  const normalized = normalizeFounderConciergeAnswers(raw.answers || {});
+  return {
+    schema_version: FOUNDER_CONCIERGE_SCHEMA_VERSION,
+    answers: normalized.answers,
+    progress: normalized.progress,
+    updated_at: normalizeText(raw.updated_at || lead?.concierge_profile_updated_at),
+  };
+}
+
+function normalizeFounderConciergePayload(body) {
+  const source = body.answers && typeof body.answers === "object"
+    ? body.answers
+    : {};
+  const normalized = normalizeFounderConciergeAnswers(source);
+  return {
+    profile: {
+      schema_version: FOUNDER_CONCIERGE_SCHEMA_VERSION,
+      answers: normalized.answers,
+      progress: normalized.progress,
+      updated_at: new Date().toISOString(),
+    },
+    errors: normalized.errors,
+  };
+}
+
+function normalizeFounderConciergeAnswers(source) {
+  const answers = {};
+  const errors = [];
+  const questionList = founderConciergeQuestionList();
+
+  questionList.forEach((question) => {
+    const incoming = source?.[question.id] && typeof source[question.id] === "object"
+      ? source[question.id]
+      : {};
+    const allowedOptions = new Map(question.options.map((item) => [item.value, item]));
+    const selected = uniqueStrings(incoming.selected)
+      .filter((value) => allowedOptions.has(value));
+    const freeText = {};
+    const incomingFreeText = incoming.free_text && typeof incoming.free_text === "object"
+      ? incoming.free_text
+      : {};
+
+    selected.forEach((value) => {
+      const optionConfig = allowedOptions.get(value);
+      if (!optionConfig?.free_text) {
+        return;
+      }
+      const text = trimToLimit(incomingFreeText[value], 240);
+      if (text) {
+        freeText[value] = text;
+      }
+    });
+
+    if (selected.length) {
+      answers[question.id] = {
+        section: question.section_id,
+        selected,
+        free_text: freeText,
+      };
+    }
+  });
+
+  const answeredQuestions = Object.keys(answers).length;
+  const totalQuestions = questionList.length;
+  return {
+    answers,
+    progress: {
+      answered_questions: answeredQuestions,
+      total_questions: totalQuestions,
+      completion_percent: totalQuestions ? Math.round((answeredQuestions / totalQuestions) * 100) : 0,
+      is_complete: answeredQuestions === totalQuestions,
+      partial_allowed: true,
+    },
+    errors,
+  };
+}
+
+function founderConciergeQuestionList() {
+  return FOUNDER_CONCIERGE_DEFINITION.flatMap((section) => (
+    section.questions.map((question) => ({
+      ...question,
+      section_id: section.id,
+    }))
+  ));
+}
+
+function uniqueStrings(value) {
+  const values = Array.isArray(value) ? value : [];
+  return Array.from(new Set(values.map((item) => normalizeText(item)).filter(Boolean)));
+}
+
+async function saveFounderConciergeProfile(lead, profile) {
+  const now = new Date().toISOString();
+  const storedProfile = {
+    ...profile,
+    updated_at: now,
+  };
+  const result = await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        lead_id: normalizeText(lead.lead_id),
+      },
+      UpdateExpression: "SET concierge_profile = :profile, concierge_profile_updated_at = :now, updated_at = :now",
+      ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
+      ExpressionAttributeValues: {
+        ":lead_id": normalizeText(lead.lead_id),
+        ":cognito_sub": normalizeText(lead.cognito_sub),
+        ":profile": storedProfile,
+        ":now": now,
+      },
+      ReturnValues: "ALL_NEW",
+    })
+  );
+
+  return result.Attributes || lead;
 }
 
 function buildMemberDataExport(lead, audit) {
@@ -1321,6 +1856,7 @@ function buildMemberDataExport(lead, audit) {
     ]),
     contact_and_profile: publicProfile(lead),
     interests: publicInterests(lead),
+    founder_concierge: isFounderMember(lead) ? publicFounderConciergeProfile(lead) : null,
     photos: exportMemberPhotoReferences(lead),
     consents: collectFieldsByName(lead, [
       "consent",
@@ -1590,6 +2126,8 @@ async function markMemberErased(lead, erasure) {
     "short_introduction",
     "member_interests",
     "member_interests_updated_at",
+    "concierge_profile",
+    "concierge_profile_updated_at",
     "member_photos",
     "member_photos_updated_at",
     "photo_uploads",
@@ -2631,7 +3169,7 @@ function binaryResponse(event, statusCode, buffer, contentType, cookies = []) {
 function routeName(event) {
   const path = normalizeText(event?.rawPath || event?.requestContext?.http?.path);
   const segment = path.split("/").filter(Boolean).pop() || "";
-  if (["login", "session", "logout", "forgot", "confirm-reset", "totp-verify", "totp-challenge", "totp-recover", "member-action", "profile", "photos", "photo-thumbnail", "dsar"].includes(segment)) {
+  if (["login", "session", "logout", "forgot", "confirm-reset", "totp-verify", "totp-challenge", "totp-recover", "member-action", "profile", "photos", "concierge", "photo-thumbnail", "dsar"].includes(segment)) {
     return segment;
   }
   const body = safeParseBody(event);
