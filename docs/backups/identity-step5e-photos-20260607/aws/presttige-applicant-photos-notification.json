@@ -1,0 +1,21 @@
+{
+    "LambdaFunctionConfigurations": [
+        {
+            "Id": "ThumbnailGenerator",
+            "LambdaFunctionArn": "arn:aws:lambda:us-east-1:343218208384:function:presttige-thumbnail-generator",
+            "Events": [
+                "s3:ObjectCreated:*"
+            ],
+            "Filter": {
+                "Key": {
+                    "FilterRules": [
+                        {
+                            "Name": "Prefix",
+                            "Value": ""
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

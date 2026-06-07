@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Member Area</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-black: #0A0A0A;
+      --pp-gold: #8C7040;
+      --pp-paper: #FBF9F4;
+      --pp-background: #F5F2ED;
+      --pp-hairline: #D8D1C3;
+      --pp-hairline-strong: #BFB6A5;
+      --pp-muted: #5F5B54;
+      --pp-soft: #ECE6DA;
+      --pp-error: #8B1E1E;
+      --pp-success-tint: rgba(140, 112, 64, 0.08);
+      --pp-error-tint: rgba(139, 30, 30, 0.08);
+      --pp-shadow: 0 24px 60px rgba(10, 10, 10, 0.06);
+      --pp-page-pad: max(1cm, 24px);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--pp-background);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: var(--pp-page-pad);
+      background: var(--pp-background);
+      color: var(--pp-black);
+      font-family: "Source Serif 4", Georgia, serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .page-shell {
+      width: min(100%, 1180px);
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      margin: 0 auto;
+    }
+
+    .entry-layout {
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      display: grid;
+      grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .panel,
+    .member-frame {
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      box-shadow: var(--pp-shadow);
+    }
+
+    .intro,
+    .form-panel {
+      padding: clamp(26px, 4vw, 38px);
+    }
+
+    .brand-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .brand-lockup img {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .brand-name {
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(40px, 6vw, 66px);
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 0.98;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(30px, 4vw, 46px);
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.08;
+    }
+
+    .copy {
+      margin: 18px 0 0;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.8;
+      max-width: 58ch;
+    }
+
+    .form {
+      display: grid;
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label,
+    .meta-label {
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: #fffdf8;
+      color: var(--pp-black);
+      font-size: 16px;
+      padding: 12px 14px;
+    }
+
+    .field input,
+    .field select {
+      min-height: 48px;
+    }
+
+    .field textarea {
+      min-height: 132px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    .field input[readonly] {
+      background: #F0ECE4;
+      color: var(--pp-muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 13px 18px;
+      border: 1px solid var(--pp-gold);
+      background: var(--pp-gold);
+      color: var(--pp-paper);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .button--secondary {
+      background: transparent;
+      color: var(--pp-gold);
+    }
+
+    .link-button {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--pp-gold);
+      font-size: 14px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .notice,
+    .failure {
+      margin-top: 22px;
+      padding: 16px 18px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .notice {
+      border: 1px solid rgba(140, 112, 64, 0.18);
+      background: var(--pp-success-tint);
+      color: var(--pp-black);
+    }
+
+    .failure {
+      border: 1px solid rgba(139, 30, 30, 0.2);
+      background: var(--pp-error-tint);
+      color: var(--pp-error);
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .error-text {
+      color: var(--pp-error);
+    }
+
+    .member-frame {
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .member-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 24px clamp(22px, 4vw, 42px);
+      border-bottom: 1px solid var(--pp-hairline);
+    }
+
+    .member-topbar .brand-lockup {
+      margin: 0;
+    }
+
+    .member-topbar .brand-lockup img {
+      width: 44px;
+      height: 44px;
+    }
+
+    .member-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .nav-item {
+      min-height: 38px;
+      padding: 9px 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--pp-muted);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .nav-item:not(:disabled) {
+      cursor: pointer;
+    }
+
+    .nav-item[aria-current="page"] {
+      border-color: rgba(140, 112, 64, 0.34);
+      color: var(--pp-gold);
+    }
+
+    .nav-item:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+    }
+
+    .nav-item.is-silent-locked {
+      color: #A9A196;
+      opacity: 1;
+    }
+
+    .member-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+      gap: clamp(22px, 4vw, 44px);
+      padding: clamp(26px, 5vw, 54px);
+    }
+
+    .overview {
+      display: grid;
+      align-content: start;
+      gap: 30px;
+    }
+
+    .welcome-copy {
+      margin: 16px 0 0;
+      color: var(--pp-muted);
+      font-size: 18px;
+      line-height: 1.75;
+      max-width: 62ch;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px solid var(--pp-hairline);
+      border-left: 1px solid var(--pp-hairline);
+    }
+
+    .summary-item {
+      min-height: 126px;
+      display: grid;
+      align-content: space-between;
+      gap: 18px;
+      padding: 22px;
+      border-right: 1px solid var(--pp-hairline);
+      border-bottom: 1px solid var(--pp-hairline);
+      background: rgba(255, 253, 248, 0.72);
+    }
+
+    .meta-value {
+      margin: 0;
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.05;
+    }
+
+    .state-pill {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 8px;
+      color: var(--pp-black);
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .state-pill::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--pp-gold);
+      content: "";
+    }
+
+    .section-list {
+      display: grid;
+      gap: 1px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .section-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 20px 22px;
+      background: var(--pp-paper);
+    }
+
+    .section-row.is-silent-locked {
+      background: #F0ECE4;
+      color: #A39B90;
+    }
+
+    .section-row.is-silent-locked h3,
+    .section-row.is-silent-locked p {
+      color: #A39B90;
+    }
+
+    .section-row h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 25px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.12;
+    }
+
+    .section-row p {
+      margin: 6px 0 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .status-badge {
+      min-width: 92px;
+      border: 1px solid rgba(140, 112, 64, 0.26);
+      padding: 8px 10px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-align: center;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .status-badge:empty {
+      display: none;
+    }
+
+    .status-badge.action-badge {
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .status-badge.action-badge:focus-visible {
+      outline: 1px solid var(--pp-gold);
+      outline-offset: 3px;
+    }
+
+    .section-row.is-active {
+      border-left: 2px solid var(--pp-gold);
+    }
+
+    .section-panel {
+      border: 1px solid var(--pp-hairline);
+      padding: 24px;
+      background: #fffdf8;
+    }
+
+    .section-panel h2 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 34px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .section-panel p {
+      margin: 12px 0 0;
+      color: var(--pp-muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .profile-form {
+      display: grid;
+      gap: 28px;
+      margin-top: 26px;
+    }
+
+    .profile-group {
+      display: grid;
+      gap: 16px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .profile-grid .field--wide {
+      grid-column: 1 / -1;
+    }
+
+    .profile-group-title {
+      margin: 0;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .member-side {
+      display: grid;
+      align-content: start;
+      gap: 18px;
+    }
+
+    .side-panel {
+      border: 1px solid var(--pp-hairline);
+      padding: 22px;
+      background: #fffdf8;
+    }
+
+    .side-panel h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 27px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .side-panel p {
+      margin: 12px 0 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .tier-card {
+      border-color: rgba(140, 112, 64, 0.44);
+      background: rgba(140, 112, 64, 0.08);
+    }
+
+    .tier-card.is-founder {
+      background: var(--pp-black);
+      color: var(--pp-paper);
+    }
+
+    .tier-card.is-founder p,
+    .tier-card.is-founder .meta-label {
+      color: rgba(251, 249, 244, 0.72);
+    }
+
+    @media (max-width: 960px) {
+      .entry-layout,
+      .member-body {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .member-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .member-nav {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      :root {
+        --pp-page-pad: 1cm;
+      }
+
+      .brand-name {
+        font-size: 21px;
+      }
+
+      .member-body,
+      .intro,
+      .form-panel {
+        padding: 24px;
+      }
+
+      .member-topbar {
+        padding: 20px;
+      }
+
+      .section-row {
+        grid-template-columns: 1fr;
+      }
+
+      .status-badge {
+        width: fit-content;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="app" class="page-shell" aria-live="polite">
+    <section class="entry-layout">
+      <div class="panel intro">
+        <div class="brand-lockup">
+          <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+          <span class="brand-name">Presttige</span>
+        </div>
+        <p class="eyebrow">Presttige Members</p>
+        <h1 class="title">Private access.</h1>
+        <p class="copy">Sign in with the email and password attached to your Presttige member account.</p>
+      </div>
+      <div class="panel form-panel">
+        <p class="eyebrow">Member Login</p>
+        <h2 class="title">Checking session.</h2>
+        <p class="copy">Hold for a moment while we prepare the private login.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = window.location.hostname === "localhost"
+        ? "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/member-auth"
+        : "/member-api";
+      const app = document.getElementById("app");
+      const VALIDATION_REQUIRED_SECTIONS = new Set(["profile", "photos", "privacy", "founder"]);
+
+      loadSession();
+
+      async function loadSession() {
+        try {
+          const session = await api("session", {});
+          if (session.ok) {
+            renderMemberArea(session.member);
+            return;
+          }
+        } catch (error) {
+          if (error.payload?.status === "PASSWORD_PENDING") {
+            renderPasswordPending(error.payload);
+            return;
+          }
+        }
+        renderLogin();
+      }
+
+      function renderEntry(content) {
+        app.innerHTML = `
+          <section class="entry-layout">
+            <div class="panel intro">
+              <div class="brand-lockup">
+                <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+                <span class="brand-name">Presttige</span>
+              </div>
+              <p class="eyebrow">Presttige Members</p>
+              <h1 class="title">Private access.</h1>
+              <p class="copy">Sign in with the email and password attached to your Presttige member account.</p>
+            </div>
+            <div class="panel form-panel">${content}</div>
+          </section>
+        `;
+      }
+
+      function renderLogin(message) {
+        renderEntry(`
+          <p class="eyebrow">Member Login</p>
+          <h2 class="title">Enter Presttige.</h2>
+          <p class="copy">Use the member account created after your membership was confirmed.</p>
+          ${message ? `<div class="notice">${escapeHtml(message)}</div>` : ""}
+          <form id="login-form" class="form" novalidate>
+            <div class="field">
+              <label for="member-email">Email</label>
+              <input id="member-email" type="email" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label for="member-password">Password</label>
+              <input id="member-password" type="password" autocomplete="current-password" required>
+            </div>
+            <p id="login-error" class="hint error-text"></p>
+            <div class="actions">
+              <button id="login-submit" class="button" type="submit">Sign in</button>
+              <button class="link-button" type="button" data-forgot>Forgot password</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("login-form").addEventListener("submit", submitLogin);
+        app.querySelector("[data-forgot]").addEventListener("click", renderForgot);
+      }
+
+      async function submitLogin(event) {
+        event.preventDefault();
+        const email = document.getElementById("member-email").value.trim();
+        const password = document.getElementById("member-password").value;
+        const errorBox = document.getElementById("login-error");
+        const button = document.getElementById("login-submit");
+        errorBox.textContent = "";
+        button.disabled = true;
+        button.textContent = "Signing in...";
+
+        try {
+          const result = await api("login", { email, password });
+          renderMemberArea(result.member);
+        } catch (error) {
+          if (error.payload?.status === "PASSWORD_PENDING") {
+            renderPasswordPending(error.payload);
+            return;
+          }
+          errorBox.textContent = "Sign-in could not be completed.";
+          button.disabled = false;
+          button.textContent = "Sign in";
+        }
+      }
+
+      function renderMemberArea(member) {
+        renderMemberShell(member, "overview");
+      }
+
+      function renderMemberShell(member, activeSectionKey) {
+        const tier = normalizeTier(member?.tier);
+        const tierLabel = tierLabelFor(tier);
+        const isFounder = tier === "founder";
+        const firstName = firstNameOf(member?.name);
+        const isValidated = isMemberValidated(member);
+        const sections = memberSections(tier);
+        const activeSection = activeSectionKey === "overview"
+          ? null
+          : sections.find((section) => section.key === activeSectionKey);
+
+        app.innerHTML = `
+          <section class="member-frame">
+            <header class="member-topbar">
+              <div class="brand-lockup">
+                <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+                <span class="brand-name">Presttige</span>
+              </div>
+              <nav class="member-nav" aria-label="Member area">
+                <button class="nav-item" type="button" data-section="overview" ${activeSection ? "" : 'aria-current="page"'}>Overview</button>
+                ${sections.map((section) => renderNavItem(section, isValidated, activeSectionKey)).join("")}
+              </nav>
+            </header>
+            <div class="member-body">
+              <section class="overview" aria-labelledby="member-overview-title">
+                <div>
+                  <p class="eyebrow">Member Overview</p>
+                  <h1 id="member-overview-title" class="section-title">Welcome, ${escapeHtml(firstName)}.</h1>
+                  <p class="welcome-copy">Your private Presttige area is open. This first view holds your own membership state while the next private sections are prepared.</p>
+                </div>
+                <div class="summary-grid" aria-label="Member summary">
+                  <div class="summary-item">
+                    <span class="meta-label">Member</span>
+                    <p class="meta-value">${escapeHtml(member?.name || "Member")}</p>
+                  </div>
+                  <div class="summary-item">
+                    <span class="meta-label">Tier</span>
+                    <p class="meta-value">${escapeHtml(tierLabel)}</p>
+                  </div>
+                  <div class="summary-item">
+                    <span class="meta-label">State</span>
+                    <p class="meta-value"><span class="state-pill">${escapeHtml(statusLabel(member?.account_status))}</span></p>
+                  </div>
+                </div>
+                <div>
+                  <p class="eyebrow">Next Sections</p>
+                  <div class="section-list">
+                    ${sections.map((section) => renderSectionRow(section, isValidated, activeSectionKey)).join("")}
+                  </div>
+                </div>
+                ${activeSection ? renderSectionPanel(activeSection, member) : ""}
+              </section>
+              <aside class="member-side" aria-label="Membership details">
+                <div class="side-panel tier-card ${isFounder ? "is-founder" : ""}">
+                  <span class="meta-label">Current Tier</span>
+                  <h3>${escapeHtml(tierLabel)}</h3>
+                  <p>${escapeHtml(tierDescription(tier))}</p>
+                </div>
+                <div class="side-panel">
+                  <span class="meta-label">Access</span>
+                  <h3>${escapeHtml(statusLabel(member?.account_status))}</h3>
+                  <p>Your session is active. Your access is personal to this account.</p>
+                </div>
+                <div class="actions">
+                  <button id="sign-out" class="button button--secondary" type="button">Sign out</button>
+                </div>
+              </aside>
+            </div>
+          </section>
+        `;
+        document.getElementById("sign-out").addEventListener("click", signOut);
+        app.querySelectorAll("[data-section]").forEach((button) => {
+          button.addEventListener("click", () => openMemberSection(member, button.dataset.section));
+        });
+        const profileForm = document.getElementById("profile-form");
+        if (profileForm) {
+          profileForm.addEventListener("submit", (event) => submitProfile(event, member));
+          document.getElementById("profile-cancel")?.addEventListener("click", () => renderMemberShell(member, "profile"));
+        }
+      }
+
+      function renderNavItem(section, isValidated, activeSectionKey) {
+        const locked = isSectionLocked(section, isValidated);
+        const current = activeSectionKey === section.key;
+        return `
+          <button
+            class="nav-item ${locked ? "is-silent-locked" : ""}"
+            type="button"
+            ${locked ? "disabled" : `data-section="${escapeHtml(section.key)}"`}
+            ${current ? 'aria-current="page"' : ""}
+          >${escapeHtml(section.title)}</button>
+        `;
+      }
+
+      function renderSectionRow(section, isValidated, activeSectionKey) {
+        const locked = isSectionLocked(section, isValidated);
+        const current = activeSectionKey === section.key;
+        return `
+          <article class="section-row ${locked ? "is-silent-locked" : ""} ${current ? "is-active" : ""}">
+            <div>
+              <h3>${escapeHtml(section.title)}</h3>
+              <p>${escapeHtml(section.copy)}</p>
+            </div>
+            ${locked
+              ? '<span class="status-badge"></span>'
+              : `<button class="status-badge action-badge" type="button" data-section="${escapeHtml(section.key)}">${escapeHtml(section.status)}</button>`}
+          </article>
+        `;
+      }
+
+      function renderSectionPanel(section, member) {
+        if (section.key === "profile") {
+          return renderProfilePanel(member);
+        }
+
+        return `
+          <div class="section-panel" aria-live="polite">
+            <p class="eyebrow">${escapeHtml(section.title)}</p>
+            <h2>${escapeHtml(section.title)}</h2>
+            <p>${escapeHtml(section.openCopy)}</p>
+          </div>
+        `;
+      }
+
+      function memberSections(tier) {
+        const base = [
+          {
+            key: "profile",
+            title: "Profile",
+            copy: "Your member profile and interests are held privately here.",
+            openCopy: "Review and edit your private profile and interests.",
+            status: "Open",
+            requiresValidation: true,
+          },
+          {
+            key: "photos",
+            title: "Photos",
+            copy: "Your photos will appear here when the photo area opens.",
+            openCopy: "This private photo area is prepared for the photo step.",
+            status: "Open",
+            requiresValidation: true,
+          },
+          {
+            key: "membership",
+            title: "Membership",
+            copy: "Tier details and access state are visible here first.",
+            openCopy: "Your membership summary is available in this shell.",
+            status: "View",
+            requiresValidation: false,
+          },
+          {
+            key: "privacy",
+            title: "Privacy",
+            copy: "Privacy controls will appear here when the privacy area opens.",
+            openCopy: "This private privacy area is prepared for the privacy step.",
+            status: "Open",
+            requiresValidation: true,
+          },
+        ];
+
+        if (tier === "founder") {
+          base.splice(2, 0, {
+            key: "founder",
+            title: "Founder",
+            copy: "Founder-specific access will open here in the dedicated Founder step.",
+            openCopy: "This private Founder area is prepared for the dedicated Founder step.",
+            status: "Open",
+            requiresValidation: true,
+          });
+        }
+
+        return base;
+      }
+
+      async function openMemberSection(member, sectionKey) {
+        if (sectionKey === "overview") {
+          renderMemberShell(member, "overview");
+          return;
+        }
+
+        const tier = normalizeTier(member?.tier);
+        const section = memberSections(tier).find((item) => item.key === sectionKey);
+        if (!section || isSectionLocked(section, isMemberValidated(member))) {
+          return;
+        }
+
+        if (section.requiresValidation) {
+          await api("member-action", { section: section.key });
+        }
+        renderMemberShell(member, section.key);
+      }
+
+      function renderProfilePanel(member) {
+        const profile = profileOf(member);
+        const interests = interestsOf(member);
+        return `
+          <div class="section-panel" aria-live="polite">
+            <p class="eyebrow">Profile</p>
+            <h2>Profile and interests</h2>
+            <p>Keep your private member profile current. Your email and account base remain fixed.</p>
+            <form id="profile-form" class="profile-form" novalidate>
+              <div class="profile-group">
+                <p class="profile-group-title">Identity</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-name">Name</label>
+                    <input id="profile-name" type="text" value="${escapeAttr(profile.name)}" readonly>
+                  </div>
+                  <div class="field">
+                    <label for="profile-email">Email</label>
+                    <input id="profile-email" type="email" value="${escapeAttr(profile.email)}" readonly>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Contact and location</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-phone-country">Phone code</label>
+                    <input id="profile-phone-country" type="text" value="${escapeAttr(profile.phone_country)}" autocomplete="tel-country-code" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-phone">Phone</label>
+                    <input id="profile-phone" type="tel" value="${escapeAttr(profile.phone)}" autocomplete="tel" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-age">Age</label>
+                    <input id="profile-age" type="text" inputmode="numeric" value="${escapeAttr(profile.age)}" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-country">Country</label>
+                    <input id="profile-country" type="text" value="${escapeAttr(profile.country)}" autocomplete="country-name" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-city">City</label>
+                    <input id="profile-city" type="text" value="${escapeAttr(profile.city)}" autocomplete="address-level2" required>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Public profile details</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-instagram">Instagram</label>
+                    <input id="profile-instagram" type="text" value="${escapeAttr(profile.instagram)}" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-linkedin">LinkedIn</label>
+                    <input id="profile-linkedin" type="url" value="${escapeAttr(profile.linkedin)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-tiktok">TikTok</label>
+                    <input id="profile-tiktok" type="text" value="${escapeAttr(profile.tiktok)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-website">Website</label>
+                    <input id="profile-website" type="url" value="${escapeAttr(profile.website)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-occupation">Occupation</label>
+                    <input id="profile-occupation" type="text" value="${escapeAttr(profile.occupation)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-company">Company</label>
+                    <input id="profile-company" type="text" value="${escapeAttr(profile.company)}">
+                  </div>
+                  <div class="field field--wide">
+                    <label for="profile-bio">Short introduction</label>
+                    <textarea id="profile-bio" required>${escapeHtml(profile.bio)}</textarea>
+                    <p class="hint">Use at least 50 characters.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Interests</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="interest-lifestyle">Lifestyle</label>
+                    <textarea id="interest-lifestyle">${escapeHtml(interests.lifestyle)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-business">Business</label>
+                    <textarea id="interest-business">${escapeHtml(interests.business)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-travel">Travel</label>
+                    <textarea id="interest-travel">${escapeHtml(interests.travel)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-culture">Culture</label>
+                    <textarea id="interest-culture">${escapeHtml(interests.culture)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-wellbeing">Wellbeing</label>
+                    <textarea id="interest-wellbeing">${escapeHtml(interests.wellbeing)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-notes">Notes</label>
+                    <textarea id="interest-notes">${escapeHtml(interests.notes)}</textarea>
+                  </div>
+                </div>
+              </div>
+              <p id="profile-error" class="hint error-text" aria-live="polite"></p>
+              <div class="actions">
+                <button id="profile-submit" class="button" type="submit">Save profile</button>
+                <button id="profile-cancel" class="button button--secondary" type="button">Cancel</button>
+              </div>
+            </form>
+          </div>
+        `;
+      }
+
+      async function submitProfile(event, member) {
+        event.preventDefault();
+        const button = document.getElementById("profile-submit");
+        const errorBox = document.getElementById("profile-error");
+        const payload = profilePayloadFromForm();
+        const errors = validateProfilePayload(payload);
+
+        errorBox.textContent = "";
+        if (errors.length) {
+          errorBox.textContent = `Profile needs ${errors.join(", ")}.`;
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Saving...";
+        try {
+          const result = await api("profile", payload);
+          renderMemberShell(result.member || member, "profile");
+        } catch (error) {
+          errorBox.textContent = "Profile could not be saved.";
+          button.disabled = false;
+          button.textContent = "Save profile";
+        }
+      }
+
+      function profilePayloadFromForm() {
+        return {
+          profile: {
+            phone_country: readFormValue("profile-phone-country"),
+            phone: readFormValue("profile-phone"),
+            age: readFormValue("profile-age"),
+            country: readFormValue("profile-country"),
+            city: readFormValue("profile-city"),
+            instagram: readFormValue("profile-instagram"),
+            linkedin: readFormValue("profile-linkedin"),
+            tiktok: readFormValue("profile-tiktok"),
+            website: readFormValue("profile-website"),
+            occupation: readFormValue("profile-occupation"),
+            company: readFormValue("profile-company"),
+            bio: readFormValue("profile-bio"),
+          },
+          interests: {
+            lifestyle: readFormValue("interest-lifestyle"),
+            business: readFormValue("interest-business"),
+            travel: readFormValue("interest-travel"),
+            culture: readFormValue("interest-culture"),
+            wellbeing: readFormValue("interest-wellbeing"),
+            notes: readFormValue("interest-notes"),
+          },
+        };
+      }
+
+      function validateProfilePayload(payload) {
+        const profile = payload.profile || {};
+        const required = [
+          ["phone_country", "phone code"],
+          ["phone", "phone"],
+          ["age", "age"],
+          ["country", "country"],
+          ["city", "city"],
+          ["instagram", "Instagram"],
+          ["bio", "short introduction"],
+        ];
+        const errors = required
+          .filter(([key]) => !String(profile[key] || "").trim())
+          .map(([, label]) => label);
+
+        if (profile.bio && profile.bio.length < 50) {
+          errors.push("a longer short introduction");
+        }
+        if (profile.website && !isHttpUrl(profile.website)) {
+          errors.push("a valid website URL");
+        }
+        if (profile.linkedin && !isHttpUrl(profile.linkedin)) {
+          errors.push("a valid LinkedIn URL");
+        }
+        return errors;
+      }
+
+      function isSectionLocked(section, isValidated) {
+        return Boolean(section.requiresValidation || VALIDATION_REQUIRED_SECTIONS.has(section.key)) && !isValidated;
+      }
+
+      function isMemberValidated(member) {
+        return member?.validation?.is_validated === true ||
+          String(member?.validation_status || "").toLowerCase() === "validated";
+      }
+
+      function renderPasswordPending(payload) {
+        const activationUrl = payload.activation_url || "";
+        renderEntry(`
+          <p class="eyebrow">Account Setup</p>
+          <h2 class="title">Complete setup.</h2>
+          <p class="copy">Your account setup is not complete yet. Complete the password step before entering the member area.</p>
+          <div class="actions">
+            ${activationUrl ? `<a class="button" href="${escapeHtml(activationUrl)}">Set password</a>` : ""}
+            <button class="button button--secondary" type="button" data-login>Back to login</button>
+          </div>
+        `);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+      }
+
+      function renderForgot() {
+        renderEntry(`
+          <p class="eyebrow">Password Reset</p>
+          <h2 class="title">Reset access.</h2>
+          <p class="copy">Enter your member email. If the account can be reset, instructions will be sent.</p>
+          <form id="forgot-form" class="form" novalidate>
+            <div class="field">
+              <label for="forgot-email">Email</label>
+              <input id="forgot-email" type="email" autocomplete="username" required>
+            </div>
+            <p id="forgot-message" class="hint"></p>
+            <div class="actions">
+              <button id="forgot-submit" class="button" type="submit">Send reset</button>
+              <button class="button button--secondary" type="button" data-login>Back to login</button>
+            </div>
+          </form>
+          <div class="notice">
+            Already have a reset code?
+            <button class="link-button" type="button" data-reset-code>Enter code</button>
+          </div>
+        `);
+        document.getElementById("forgot-form").addEventListener("submit", submitForgot);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+        app.querySelector("[data-reset-code]").addEventListener("click", renderResetCode);
+      }
+
+      async function submitForgot(event) {
+        event.preventDefault();
+        const email = document.getElementById("forgot-email").value.trim();
+        const message = document.getElementById("forgot-message");
+        const button = document.getElementById("forgot-submit");
+        button.disabled = true;
+        button.textContent = "Sending...";
+        try {
+          const result = await api("forgot", { email });
+          message.textContent = result.message || "If this account can be reset, instructions have been sent.";
+        } catch (error) {
+          message.textContent = "If this account can be reset, instructions have been sent.";
+        } finally {
+          button.disabled = false;
+          button.textContent = "Send reset";
+        }
+      }
+
+      function renderResetCode() {
+        renderEntry(`
+          <p class="eyebrow">Password Reset</p>
+          <h2 class="title">Enter reset code.</h2>
+          <p class="copy">Use the code sent to your email and choose a new password.</p>
+          <form id="reset-form" class="form" novalidate>
+            <div class="field">
+              <label for="reset-email">Email</label>
+              <input id="reset-email" type="email" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label for="reset-code">Reset code</label>
+              <input id="reset-code" type="text" inputmode="numeric" autocomplete="one-time-code" required>
+            </div>
+            <div class="field">
+              <label for="reset-password">New password</label>
+              <input id="reset-password" type="password" autocomplete="new-password" minlength="14" required>
+              <p class="hint">Use at least 14 characters, with uppercase, lowercase, a number and a symbol.</p>
+            </div>
+            <p id="reset-error" class="hint error-text"></p>
+            <div class="actions">
+              <button id="reset-submit" class="button" type="submit">Reset password</button>
+              <button class="button button--secondary" type="button" data-login>Back to login</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("reset-form").addEventListener("submit", submitReset);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+      }
+
+      async function submitReset(event) {
+        event.preventDefault();
+        const email = document.getElementById("reset-email").value.trim();
+        const code = document.getElementById("reset-code").value.trim();
+        const password = document.getElementById("reset-password").value;
+        const errorBox = document.getElementById("reset-error");
+        const button = document.getElementById("reset-submit");
+        const errors = validatePassword(password);
+        errorBox.textContent = "";
+        if (errors.length) {
+          errorBox.textContent = `Password needs ${errors.join(", ")}.`;
+          return;
+        }
+        button.disabled = true;
+        button.textContent = "Resetting...";
+        try {
+          await api("confirm-reset", { email, code, password });
+          renderLogin("Password reset complete. You can sign in now.");
+        } catch (error) {
+          errorBox.textContent = "Password reset could not be completed.";
+          button.disabled = false;
+          button.textContent = "Reset password";
+        }
+      }
+
+      async function signOut() {
+        await api("logout", {});
+        renderLogin("You have signed out.");
+      }
+
+      async function api(path, payload) {
+        const response = await fetch(`${API_BASE}/${path}`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload || {}),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data.message || "Request failed");
+          error.payload = data;
+          throw error;
+        }
+        return data;
+      }
+
+      function validatePassword(password) {
+        const checks = [];
+        if (password.length < 14) checks.push("14 characters");
+        if (!/[A-Z]/.test(password)) checks.push("an uppercase letter");
+        if (!/[a-z]/.test(password)) checks.push("a lowercase letter");
+        if (!/[0-9]/.test(password)) checks.push("a number");
+        if (!/[^A-Za-z0-9]/.test(password)) checks.push("a symbol");
+        return checks;
+      }
+
+      function firstNameOf(value) {
+        return String(value || "Member").trim().split(/\s+/)[0] || "Member";
+      }
+
+      function normalizeTier(value) {
+        return String(value || "free").trim().toLowerCase().replace(/_/g, "-");
+      }
+
+      function tierLabelFor(tier) {
+        const labels = {
+          subscriber: "Subscriber",
+          free: "Subscriber",
+          club: "Club",
+          premier: "Premier",
+          patron: "Patron",
+          founder: "Founder",
+          tester: "Tester",
+        };
+        return labels[tier] || titleCase(tier || "member");
+      }
+
+      function tierDescription(tier) {
+        const descriptions = {
+          subscriber: "Your membership is active at the Subscriber level.",
+          free: "Your membership is active at the Subscriber level.",
+          club: "Your Club membership is active.",
+          premier: "Your Premier membership is active.",
+          patron: "Your Patron membership is active.",
+          founder: "Your Founder identity is active. Founder-specific controls follow in the dedicated Founder step.",
+          tester: "Your Tester membership is active.",
+        };
+        return descriptions[tier] || "Your Presttige membership is active.";
+      }
+
+      function statusLabel(value) {
+        const status = String(value || "").trim().toLowerCase();
+        if (status === "active") return "Active";
+        if (status === "password_pending") return "Complete setup";
+        return titleCase(status || "Active");
+      }
+
+      function profileOf(member) {
+        const profile = member?.profile || {};
+        return {
+          name: profile.name || member?.name || "",
+          email: profile.email || member?.email || "",
+          phone_country: profile.phone_country || "",
+          phone: profile.phone || "",
+          age: profile.age || "",
+          country: profile.country || "",
+          city: profile.city || "",
+          occupation: profile.occupation || "",
+          company: profile.company || "",
+          website: profile.website || "",
+          linkedin: profile.linkedin || "",
+          instagram: profile.instagram || "",
+          tiktok: profile.tiktok || "",
+          bio: profile.bio || "",
+        };
+      }
+
+      function interestsOf(member) {
+        const interests = member?.interests || {};
+        return {
+          lifestyle: interests.lifestyle || "",
+          business: interests.business || "",
+          travel: interests.travel || "",
+          culture: interests.culture || "",
+          wellbeing: interests.wellbeing || "",
+          notes: interests.notes || "",
+        };
+      }
+
+      function readFormValue(id) {
+        return String(document.getElementById(id)?.value || "").trim();
+      }
+
+      function isHttpUrl(value) {
+        try {
+          const url = new URL(value);
+          return url.protocol === "https:" || url.protocol === "http:";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function titleCase(value) {
+        return String(value || "")
+          .split(/[_\s-]+/)
+          .filter(Boolean)
+          .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(" ");
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function escapeAttr(value) {
+        return escapeHtml(value);
+      }
+    })();
+  </script>
+</body>
+</html>

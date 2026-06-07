@@ -1,0 +1,21 @@
+{
+    "CORSRules": [
+        {
+            "AllowedHeaders": [
+                "*"
+            ],
+            "AllowedMethods": [
+                "POST",
+                "PUT"
+            ],
+            "AllowedOrigins": [
+                "https://presttige.net",
+                "https://www.presttige.net"
+            ],
+            "ExposeHeaders": [
+                "ETag"
+            ],
+            "MaxAgeSeconds": 3000
+        }
+    ]
+}
