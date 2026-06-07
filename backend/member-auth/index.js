@@ -2,7 +2,7 @@
 
 const crypto = require("crypto");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, QueryCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const {
   AdminInitiateAuthCommand,
   ConfirmForgotPasswordCommand,
@@ -75,6 +75,9 @@ exports.handler = async (event) => {
     }
     if (route === "member-action") {
       return handleMemberAction(event);
+    }
+    if (route === "profile") {
+      return handleProfileSave(event);
     }
 
     return response(event, 404, { ok: false, status: "NOT_FOUND" }, []);
@@ -237,6 +240,56 @@ async function handleMemberAction(event) {
     ok: true,
     status: "ACTION_AVAILABLE",
     section,
+  }, cookiesToSet);
+}
+
+async function handleProfileSave(event) {
+  const body = parseBody(event);
+  const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
+
+  if (!session.ok) {
+    logAuth("profile_save", session.status || "invalid", {
+      sub_hash: hashIdentifier(session.cognito_sub),
+    });
+    return response(event, session.statusCode || 401, session, clearSessionCookies());
+  }
+
+  const cookiesToSet = refreshedTokens
+    ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
+    : [];
+
+  if (!isMemberValidated(session.member)) {
+    logAuth("profile_save", "unavailable", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+    });
+    return response(event, 403, {
+      ok: false,
+      status: "ACTION_UNAVAILABLE",
+    }, cookiesToSet);
+  }
+
+  const normalized = normalizeProfilePayload(body);
+  if (normalized.errors.length) {
+    logAuth("profile_save", "invalid", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      error_count: normalized.errors.length,
+    });
+    return response(event, 400, {
+      ok: false,
+      status: "INVALID_PROFILE",
+      errors: normalized.errors,
+    }, cookiesToSet);
+  }
+
+  const updated = await saveMemberProfile(session.member, normalized);
+  logAuth("profile_save", "saved", {
+    lead_hash: hashIdentifier(updated.lead_id),
+  });
+
+  return response(event, 200, {
+    ok: true,
+    status: "PROFILE_SAVED",
+    member: publicMember(updated),
   }, cookiesToSet);
 }
 
@@ -581,8 +634,36 @@ function publicMember(lead) {
     validation: {
       is_validated: isMemberValidated(lead),
     },
+    profile: publicProfile(lead),
+    interests: publicInterests(lead),
     member_area_ready: true,
   };
+}
+
+function publicProfile(lead) {
+  return {
+    name: normalizeText(lead.name),
+    email: normalizeEmail(lead.email),
+    phone_country: normalizeText(lead.phone_country),
+    phone: normalizeText(lead.phone || lead.phone_full),
+    age: normalizeText(lead.age),
+    country: normalizeText(lead.country),
+    city: normalizeText(lead.city),
+    occupation: normalizeText(lead.occupation),
+    company: normalizeText(lead.company),
+    website: normalizeText(lead.website),
+    linkedin: normalizeText(lead.linkedin),
+    instagram: normalizeText(lead.instagram),
+    tiktok: normalizeText(lead.tiktok),
+    bio: normalizeText(lead.bio || lead.short_introduction),
+  };
+}
+
+function publicInterests(lead) {
+  const stored = lead.member_interests && typeof lead.member_interests === "object"
+    ? lead.member_interests
+    : {};
+  return normalizeInterests(stored);
 }
 
 function isMemberValidated(lead) {
@@ -608,6 +689,116 @@ function activationUrlForLead(lead) {
   }
 
   return null;
+}
+
+function normalizeProfilePayload(body) {
+  const profile = body.profile && typeof body.profile === "object" ? body.profile : {};
+  const interests = body.interests && typeof body.interests === "object" ? body.interests : {};
+  const normalizedProfile = {
+    phone_country: trimToLimit(profile.phone_country, 12),
+    phone: trimToLimit(profile.phone, 40),
+    age: trimToLimit(profile.age, 8),
+    country: trimToLimit(profile.country, 120),
+    city: trimToLimit(profile.city, 120),
+    occupation: trimToLimit(profile.occupation, 160),
+    company: trimToLimit(profile.company, 160),
+    website: trimToLimit(profile.website, 240),
+    linkedin: trimToLimit(profile.linkedin, 240),
+    instagram: trimToLimit(profile.instagram, 160),
+    tiktok: trimToLimit(profile.tiktok, 160),
+    bio: trimToLimit(profile.bio, 1200),
+  };
+  const normalizedInterests = normalizeInterests(interests);
+  const errors = [];
+
+  for (const field of ["phone_country", "phone", "age", "country", "city", "instagram", "bio"]) {
+    if (!normalizedProfile[field]) {
+      errors.push(field);
+    }
+  }
+
+  if (normalizedProfile.bio && normalizedProfile.bio.length < 50) {
+    errors.push("bio_length");
+  }
+
+  for (const field of ["website", "linkedin"]) {
+    if (normalizedProfile[field] && !isHttpUrl(normalizedProfile[field])) {
+      errors.push(`${field}_url`);
+    }
+  }
+
+  return {
+    profile: normalizedProfile,
+    interests: normalizedInterests,
+    errors,
+  };
+}
+
+function normalizeInterests(value) {
+  return {
+    lifestyle: trimToLimit(value.lifestyle, 400),
+    business: trimToLimit(value.business, 400),
+    travel: trimToLimit(value.travel, 400),
+    culture: trimToLimit(value.culture, 400),
+    wellbeing: trimToLimit(value.wellbeing, 400),
+    notes: trimToLimit(value.notes, 600),
+  };
+}
+
+async function saveMemberProfile(lead, normalized) {
+  const now = new Date().toISOString();
+  const fields = {
+    ...normalized.profile,
+    member_interests: normalized.interests,
+    profile_updated_at: now,
+    member_interests_updated_at: now,
+    updated_at: now,
+  };
+  const names = {};
+  const values = {
+    ":lead_id": normalizeText(lead.lead_id),
+    ":cognito_sub": normalizeText(lead.cognito_sub),
+  };
+  const assignments = [];
+
+  Object.entries(fields).forEach(([key, value]) => {
+    names[`#${key}`] = key;
+    values[`:${key}`] = value;
+    assignments.push(`#${key} = :${key}`);
+  });
+
+  const result = await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        lead_id: normalizeText(lead.lead_id),
+      },
+      UpdateExpression: `SET ${assignments.join(", ")}`,
+      ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
+      ExpressionAttributeNames: names,
+      ExpressionAttributeValues: values,
+      ReturnValues: "ALL_NEW",
+    })
+  );
+
+  return result.Attributes || lead;
+}
+
+function trimToLimit(value, maxLength) {
+  const normalized = normalizeText(value).replace(/\s+/g, " ");
+  if (!normalized) {
+    return "";
+  }
+  return normalized.slice(0, maxLength);
+}
+
+function isHttpUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch (error) {
+    return false;
+  }
 }
 
 function sessionCookies(tokens) {
@@ -663,7 +854,7 @@ function response(event, statusCode, body, cookies = []) {
 function routeName(event) {
   const path = normalizeText(event?.rawPath || event?.requestContext?.http?.path);
   const segment = path.split("/").filter(Boolean).pop() || "";
-  if (["login", "session", "logout", "forgot", "confirm-reset", "member-action"].includes(segment)) {
+  if (["login", "session", "logout", "forgot", "confirm-reset", "member-action", "profile"].includes(segment)) {
     return segment;
   }
   const body = safeParseBody(event);

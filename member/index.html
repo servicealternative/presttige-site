@@ -44,7 +44,9 @@
     }
 
     button,
-    input {
+    input,
+    select,
+    textarea {
       font: inherit;
     }
 
@@ -154,15 +156,32 @@
       text-transform: uppercase;
     }
 
-    .field input {
+    .field input,
+    .field select,
+    .field textarea {
       width: 100%;
-      min-height: 48px;
       border: 1px solid var(--pp-hairline);
       border-radius: 0;
       background: #fffdf8;
       color: var(--pp-black);
       font-size: 16px;
       padding: 12px 14px;
+    }
+
+    .field input,
+    .field select {
+      min-height: 48px;
+    }
+
+    .field textarea {
+      min-height: 132px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    .field input[readonly] {
+      background: #F0ECE4;
+      color: var(--pp-muted);
     }
 
     .actions {
@@ -464,6 +483,36 @@
       line-height: 1.7;
     }
 
+    .profile-form {
+      display: grid;
+      gap: 28px;
+      margin-top: 26px;
+    }
+
+    .profile-group {
+      display: grid;
+      gap: 16px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .profile-grid .field--wide {
+      grid-column: 1 / -1;
+    }
+
+    .profile-group-title {
+      margin: 0;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
     .member-side {
       display: grid;
       align-content: start;
@@ -514,6 +563,10 @@
       }
 
       .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-grid {
         grid-template-columns: 1fr;
       }
 
@@ -725,7 +778,7 @@
                     ${sections.map((section) => renderSectionRow(section, isValidated, activeSectionKey)).join("")}
                   </div>
                 </div>
-                ${activeSection ? renderSectionPanel(activeSection) : ""}
+                ${activeSection ? renderSectionPanel(activeSection, member) : ""}
               </section>
               <aside class="member-side" aria-label="Membership details">
                 <div class="side-panel tier-card ${isFounder ? "is-founder" : ""}">
@@ -749,6 +802,11 @@
         app.querySelectorAll("[data-section]").forEach((button) => {
           button.addEventListener("click", () => openMemberSection(member, button.dataset.section));
         });
+        const profileForm = document.getElementById("profile-form");
+        if (profileForm) {
+          profileForm.addEventListener("submit", (event) => submitProfile(event, member));
+          document.getElementById("profile-cancel")?.addEventListener("click", () => renderMemberShell(member, "profile"));
+        }
       }
 
       function renderNavItem(section, isValidated, activeSectionKey) {
@@ -780,7 +838,11 @@
         `;
       }
 
-      function renderSectionPanel(section) {
+      function renderSectionPanel(section, member) {
+        if (section.key === "profile") {
+          return renderProfilePanel(member);
+        }
+
         return `
           <div class="section-panel" aria-live="polite">
             <p class="eyebrow">${escapeHtml(section.title)}</p>
@@ -795,8 +857,8 @@
           {
             key: "profile",
             title: "Profile",
-            copy: "Your member details will appear here as the profile area opens.",
-            openCopy: "This private profile area is prepared for the profile step.",
+            copy: "Your member profile and interests are held privately here.",
+            openCopy: "Review and edit your private profile and interests.",
             status: "Open",
             requiresValidation: true,
           },
@@ -856,6 +918,205 @@
           await api("member-action", { section: section.key });
         }
         renderMemberShell(member, section.key);
+      }
+
+      function renderProfilePanel(member) {
+        const profile = profileOf(member);
+        const interests = interestsOf(member);
+        return `
+          <div class="section-panel" aria-live="polite">
+            <p class="eyebrow">Profile</p>
+            <h2>Profile and interests</h2>
+            <p>Keep your private member profile current. Your email and account base remain fixed.</p>
+            <form id="profile-form" class="profile-form" novalidate>
+              <div class="profile-group">
+                <p class="profile-group-title">Identity</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-name">Name</label>
+                    <input id="profile-name" type="text" value="${escapeAttr(profile.name)}" readonly>
+                  </div>
+                  <div class="field">
+                    <label for="profile-email">Email</label>
+                    <input id="profile-email" type="email" value="${escapeAttr(profile.email)}" readonly>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Contact and location</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-phone-country">Phone code</label>
+                    <input id="profile-phone-country" type="text" value="${escapeAttr(profile.phone_country)}" autocomplete="tel-country-code" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-phone">Phone</label>
+                    <input id="profile-phone" type="tel" value="${escapeAttr(profile.phone)}" autocomplete="tel" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-age">Age</label>
+                    <input id="profile-age" type="text" inputmode="numeric" value="${escapeAttr(profile.age)}" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-country">Country</label>
+                    <input id="profile-country" type="text" value="${escapeAttr(profile.country)}" autocomplete="country-name" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-city">City</label>
+                    <input id="profile-city" type="text" value="${escapeAttr(profile.city)}" autocomplete="address-level2" required>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Public profile details</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-instagram">Instagram</label>
+                    <input id="profile-instagram" type="text" value="${escapeAttr(profile.instagram)}" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-linkedin">LinkedIn</label>
+                    <input id="profile-linkedin" type="url" value="${escapeAttr(profile.linkedin)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-tiktok">TikTok</label>
+                    <input id="profile-tiktok" type="text" value="${escapeAttr(profile.tiktok)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-website">Website</label>
+                    <input id="profile-website" type="url" value="${escapeAttr(profile.website)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-occupation">Occupation</label>
+                    <input id="profile-occupation" type="text" value="${escapeAttr(profile.occupation)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-company">Company</label>
+                    <input id="profile-company" type="text" value="${escapeAttr(profile.company)}">
+                  </div>
+                  <div class="field field--wide">
+                    <label for="profile-bio">Short introduction</label>
+                    <textarea id="profile-bio" required>${escapeHtml(profile.bio)}</textarea>
+                    <p class="hint">Use at least 50 characters.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Interests</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="interest-lifestyle">Lifestyle</label>
+                    <textarea id="interest-lifestyle">${escapeHtml(interests.lifestyle)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-business">Business</label>
+                    <textarea id="interest-business">${escapeHtml(interests.business)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-travel">Travel</label>
+                    <textarea id="interest-travel">${escapeHtml(interests.travel)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-culture">Culture</label>
+                    <textarea id="interest-culture">${escapeHtml(interests.culture)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-wellbeing">Wellbeing</label>
+                    <textarea id="interest-wellbeing">${escapeHtml(interests.wellbeing)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-notes">Notes</label>
+                    <textarea id="interest-notes">${escapeHtml(interests.notes)}</textarea>
+                  </div>
+                </div>
+              </div>
+              <p id="profile-error" class="hint error-text" aria-live="polite"></p>
+              <div class="actions">
+                <button id="profile-submit" class="button" type="submit">Save profile</button>
+                <button id="profile-cancel" class="button button--secondary" type="button">Cancel</button>
+              </div>
+            </form>
+          </div>
+        `;
+      }
+
+      async function submitProfile(event, member) {
+        event.preventDefault();
+        const button = document.getElementById("profile-submit");
+        const errorBox = document.getElementById("profile-error");
+        const payload = profilePayloadFromForm();
+        const errors = validateProfilePayload(payload);
+
+        errorBox.textContent = "";
+        if (errors.length) {
+          errorBox.textContent = `Profile needs ${errors.join(", ")}.`;
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Saving...";
+        try {
+          const result = await api("profile", payload);
+          renderMemberShell(result.member || member, "profile");
+        } catch (error) {
+          errorBox.textContent = "Profile could not be saved.";
+          button.disabled = false;
+          button.textContent = "Save profile";
+        }
+      }
+
+      function profilePayloadFromForm() {
+        return {
+          profile: {
+            phone_country: readFormValue("profile-phone-country"),
+            phone: readFormValue("profile-phone"),
+            age: readFormValue("profile-age"),
+            country: readFormValue("profile-country"),
+            city: readFormValue("profile-city"),
+            instagram: readFormValue("profile-instagram"),
+            linkedin: readFormValue("profile-linkedin"),
+            tiktok: readFormValue("profile-tiktok"),
+            website: readFormValue("profile-website"),
+            occupation: readFormValue("profile-occupation"),
+            company: readFormValue("profile-company"),
+            bio: readFormValue("profile-bio"),
+          },
+          interests: {
+            lifestyle: readFormValue("interest-lifestyle"),
+            business: readFormValue("interest-business"),
+            travel: readFormValue("interest-travel"),
+            culture: readFormValue("interest-culture"),
+            wellbeing: readFormValue("interest-wellbeing"),
+            notes: readFormValue("interest-notes"),
+          },
+        };
+      }
+
+      function validateProfilePayload(payload) {
+        const profile = payload.profile || {};
+        const required = [
+          ["phone_country", "phone code"],
+          ["phone", "phone"],
+          ["age", "age"],
+          ["country", "country"],
+          ["city", "city"],
+          ["instagram", "Instagram"],
+          ["bio", "short introduction"],
+        ];
+        const errors = required
+          .filter(([key]) => !String(profile[key] || "").trim())
+          .map(([, label]) => label);
+
+        if (profile.bio && profile.bio.length < 50) {
+          errors.push("a longer short introduction");
+        }
+        if (profile.website && !isHttpUrl(profile.website)) {
+          errors.push("a valid website URL");
+        }
+        if (profile.linkedin && !isHttpUrl(profile.linkedin)) {
+          errors.push("a valid LinkedIn URL");
+        }
+        return errors;
       }
 
       function isSectionLocked(section, isValidated) {
@@ -1052,6 +1313,51 @@
         return titleCase(status || "Active");
       }
 
+      function profileOf(member) {
+        const profile = member?.profile || {};
+        return {
+          name: profile.name || member?.name || "",
+          email: profile.email || member?.email || "",
+          phone_country: profile.phone_country || "",
+          phone: profile.phone || "",
+          age: profile.age || "",
+          country: profile.country || "",
+          city: profile.city || "",
+          occupation: profile.occupation || "",
+          company: profile.company || "",
+          website: profile.website || "",
+          linkedin: profile.linkedin || "",
+          instagram: profile.instagram || "",
+          tiktok: profile.tiktok || "",
+          bio: profile.bio || "",
+        };
+      }
+
+      function interestsOf(member) {
+        const interests = member?.interests || {};
+        return {
+          lifestyle: interests.lifestyle || "",
+          business: interests.business || "",
+          travel: interests.travel || "",
+          culture: interests.culture || "",
+          wellbeing: interests.wellbeing || "",
+          notes: interests.notes || "",
+        };
+      }
+
+      function readFormValue(id) {
+        return String(document.getElementById(id)?.value || "").trim();
+      }
+
+      function isHttpUrl(value) {
+        try {
+          const url = new URL(value);
+          return url.protocol === "https:" || url.protocol === "http:";
+        } catch (error) {
+          return false;
+        }
+      }
+
       function titleCase(value) {
         return String(value || "")
           .split(/[_\s-]+/)
@@ -1067,6 +1373,10 @@
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#39;");
+      }
+
+      function escapeAttr(value) {
+        return escapeHtml(value);
       }
     })();
   </script>
