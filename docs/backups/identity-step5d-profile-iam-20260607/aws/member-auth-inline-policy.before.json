@@ -1,0 +1,53 @@
+{
+  "PolicyDocument": {
+    "Statement": [
+      {
+        "Action": [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:logs:us-east-1:343218208384:*",
+        "Sid": "CloudWatchLogs"
+      },
+      {
+        "Action": [
+          "dynamodb:Query"
+        ],
+        "Effect": "Allow",
+        "Resource": [
+          "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db/index/cognito_sub-index",
+          "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db/index/email-index"
+        ],
+        "Sid": "ReadPresttigeMemberRecords"
+      },
+      {
+        "Action": [
+          "cognito-idp:AdminInitiateAuth",
+          "cognito-idp:GetUser",
+          "cognito-idp:InitiateAuth",
+          "cognito-idp:ForgotPassword",
+          "cognito-idp:ConfirmForgotPassword"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:cognito-idp:us-east-1:343218208384:userpool/us-east-1_hpwdNFGss",
+        "Sid": "MemberPoolPasswordAuth"
+      },
+      {
+        "Action": "ses:SendEmail",
+        "Condition": {
+          "StringEquals": {
+            "ses:FromAddress": "private@presttige.net"
+          }
+        },
+        "Effect": "Allow",
+        "Resource": "*",
+        "Sid": "SyntheticResetNoticeToFQ"
+      }
+    ],
+    "Version": "2012-10-17"
+  },
+  "PolicyName": "presttige-member-auth-policy",
+  "RoleName": "presttige-member-auth-role"
+}
