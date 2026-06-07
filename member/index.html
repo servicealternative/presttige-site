@@ -711,10 +711,8 @@
       border-top: 1px solid rgba(140, 112, 64, 0.14);
     }
 
-    .concierge-question legend {
-      display: block;
-      width: 100%;
-      max-width: 100%;
+    .concierge-question-title {
+      margin: 0;
       padding: 0;
       color: var(--pp-black);
       font-family: "Cormorant Garamond", Georgia, serif;
@@ -1693,13 +1691,14 @@
         const answer = profile?.answers?.[question.id] || {};
         const selected = new Set(Array.isArray(answer.selected) ? answer.selected : []);
         const options = Array.isArray(question.options) ? question.options : [];
+        const questionTitleId = `concierge-title-${question.id}`;
         return `
-          <fieldset class="concierge-question" data-concierge-question="${escapeAttr(question.id)}">
-            <legend>${escapeHtml(question.label)}</legend>
+          <div class="concierge-question" data-concierge-question="${escapeAttr(question.id)}" role="group" aria-labelledby="${escapeAttr(questionTitleId)}">
+            <p id="${escapeAttr(questionTitleId)}" class="concierge-question-title">${escapeHtml(question.label)}</p>
             <div class="concierge-options">
               ${options.map((item) => renderFounderConciergeOption(question.id, item, selected, answer.free_text || {})).join("")}
             </div>
-          </fieldset>
+          </div>
         `;
       }
 
