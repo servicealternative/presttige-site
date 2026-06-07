@@ -1,0 +1,12 @@
+backups/presttige-db-snapshot-2026-04-22-summary.txt
+backups/presttige-db-snapshot-2026-04-22.json
+reports/block-2c-amplify-custom-rules-result.md
+frontend/.DS_Store
+./.DS_Store
+./.git/.DS_Store
+./assets/.DS_Store
+./assets/images/.DS_Store
+./backend/.DS_Store
+./frontend/.DS_Store
+index.html.pre-T3-backup
+assets/images/presttige_premium_wallet_cards_1074x1344_png.zip
