@@ -195,6 +195,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      max-width: 100%;
       min-height: 48px;
       padding: 13px 18px;
       border: 1px solid var(--pp-gold);
@@ -205,6 +206,8 @@
       letter-spacing: 0.14em;
       text-transform: uppercase;
       text-decoration: none;
+      overflow-wrap: anywhere;
+      white-space: normal;
       cursor: pointer;
     }
 
@@ -326,6 +329,17 @@
       grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
       gap: clamp(22px, 4vw, 44px);
       padding: clamp(26px, 5vw, 54px);
+    }
+
+    .member-body > *,
+    .overview,
+    .section-list,
+    .section-row,
+    .section-panel,
+    .member-side,
+    .side-panel,
+    .privacy-card {
+      min-width: 0;
     }
 
     .overview {
@@ -481,6 +495,7 @@
       color: var(--pp-muted);
       font-size: 16px;
       line-height: 1.7;
+      overflow-wrap: anywhere;
     }
 
     .profile-form {
@@ -643,6 +658,7 @@
 
     .privacy-card p {
       margin: 10px 0 0;
+      overflow-wrap: anywhere;
     }
 
     .privacy-confirm {
