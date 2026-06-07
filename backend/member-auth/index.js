@@ -2346,11 +2346,12 @@ async function listDiscoveryMembers(actor) {
       ExclusiveStartKey,
       Limit: DISCOVERY_LIST_LIMIT,
     }));
-    (result.Items || []).forEach((item) => {
-      if (canViewDiscoveryTarget(actor, item)) {
-        members.push(publicDiscoveryCard(item));
+    for (const item of result.Items || []) {
+      const fresh = await freshDiscoveryState(item.member_id);
+      if (canViewDiscoveryTarget(actor, fresh)) {
+        members.push(publicDiscoveryCard(fresh));
       }
-    });
+    }
     ExclusiveStartKey = result.LastEvaluatedKey;
   } while (ExclusiveStartKey && members.length < DISCOVERY_LIST_LIMIT);
   return members.slice(0, DISCOVERY_LIST_LIMIT);
@@ -2387,8 +2388,13 @@ function publicDiscoveryProfile(state) {
 }
 
 async function getViewableDiscoveryTarget(actor, targetMemberId) {
-  const target = await getDiscoveryState(targetMemberId);
+  const target = await freshDiscoveryState(targetMemberId);
   return canViewDiscoveryTarget(actor, target) ? target : null;
+}
+
+async function freshDiscoveryState(memberId) {
+  const lead = await findLeadByLeadId(memberId);
+  return lead ? upsertMemberDiscoveryState(lead) : null;
 }
 
 async function getDiscoveryState(memberId) {
