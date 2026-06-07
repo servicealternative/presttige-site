@@ -1,0 +1,22 @@
+Presttige identity Step 6b Founder photo rules backup
+Date: 2026-06-07
+Purpose: pre-change backup for Founder min-1 photo rules
+Contains: member-auth source, member page, Lambda config, photo bucket config, authorized tester records
+Sanitizer: scripts/sanitize-aws-backup-json.py
+No presigned URLs or AWS secret values intentionally stored.
+docs/backups/identity-step6b-founder-photos-20260607/aws/member-auth-lambda-config.json
+docs/backups/identity-step6b-founder-photos-20260607/aws/member-auth-lambda.json
+docs/backups/identity-step6b-founder-photos-20260607/aws/presttige-applicant-photos-encryption.json
+docs/backups/identity-step6b-founder-photos-20260607/aws/presttige-applicant-photos-public-access.json
+docs/backups/identity-step6b-founder-photos-20260607/aws/presttige-applicant-photos-thumbnails-encryption.json
+docs/backups/identity-step6b-founder-photos-20260607/aws/presttige-applicant-photos-thumbnails-public-access.json
+docs/backups/identity-step6b-founder-photos-20260607/code/member-auth-index.js
+docs/backups/identity-step6b-founder-photos-20260607/code/member-auth-package.json
+docs/backups/identity-step6b-founder-photos-20260607/code/member-index.html
+docs/backups/identity-step6b-founder-photos-20260607/code/package-presttige-member-auth.sh
+docs/backups/identity-step6b-founder-photos-20260607/manifest.txt
+docs/backups/identity-step6b-founder-photos-20260607/testers/analuisasf_gmail_com.ddb.json
+docs/backups/identity-step6b-founder-photos-20260607/testers/antoniompereira_me_com.ddb.json
+docs/backups/identity-step6b-founder-photos-20260607/testers/codex_subscriber_tester.cognito.json
+docs/backups/identity-step6b-founder-photos-20260607/testers/codex_subscriber_tester_presttige_net.ddb.json
+docs/backups/identity-step6b-founder-photos-20260607/testers/fq_freequenza_net.ddb.json
