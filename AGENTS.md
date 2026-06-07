@@ -41,6 +41,19 @@ Reports may reference Matriz sections directly, for example `Matriz §R4` or `Ma
 
 ---
 
+## Working language and English coaching
+
+- The working language is English.
+- All instructions, orders, reports, and handoffs are written in English.
+- Antonio is improving his everyday English and wants brief corrections.
+- When Antonio writes something with a clear error, such as wrong verb tense,
+  wrong word choice, misspelling, or awkward phrasing, briefly show the
+  corrected version and explain the fix in one short line.
+- Keep corrections short and kind.
+- Do not derail the task: correct quickly, then continue the work.
+
+---
+
 ## Scope of application
 
 These rules apply to:

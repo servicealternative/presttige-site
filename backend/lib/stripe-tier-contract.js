@@ -211,6 +211,7 @@ const STRIPE_TIER_CONTRACT = Object.freeze({
     billing: "lifetime",
     chargeType: "entry",
     priceParameter: "/presttige/stripe/founder-lifetime-price-id",
+    stripeProductId: "prod_URrwkKbbICL760",
     amountUsdCents: 999900,
     checkoutMode: "payment",
     tierVisibility: "founder_only",
