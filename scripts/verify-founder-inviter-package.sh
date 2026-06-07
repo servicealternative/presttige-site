@@ -11,7 +11,7 @@ fail() {
 
 require_zip_entry() {
   local entry="$1"
-  if ! unzip -Z1 "$ZIP_PATH" | grep -qx "$entry"; then
+  if ! awk -v expected="$entry" '$0 == expected { found = 1 } END { exit found ? 0 : 1 }' <<< "$ZIP_ENTRIES"; then
     fail "missing ${entry}"
   fi
 }
@@ -19,6 +19,8 @@ require_zip_entry() {
 if [ ! -f "$ZIP_PATH" ]; then
   fail "package zip not found at ${ZIP_PATH}"
 fi
+
+ZIP_ENTRIES="$(unzip -Z1 "$ZIP_PATH")" || fail "unable to list package entries"
 
 case "$LAMBDA_NAME" in
   presttige-checkout-context|presttige-create-checkout-session)
@@ -28,14 +30,14 @@ case "$LAMBDA_NAME" in
     INDEX_CONTENT="$(unzip -p "$ZIP_PATH" index.js)"
     HELPER_CONTENT="$(unzip -p "$ZIP_PATH" lib/founder-inviter-eligibility.js)"
 
-    printf "%s" "$INDEX_CONTENT" | grep -q "loadFounderInviterEligibilityModule" \
+    grep -q "loadFounderInviterEligibilityModule" <<< "$INDEX_CONTENT" \
       || fail "index.js does not load the shared Founder inviter helper"
-    printf "%s" "$INDEX_CONTENT" | grep -q "isEligibleFounderInviter" \
+    grep -q "isEligibleFounderInviter" <<< "$INDEX_CONTENT" \
       || fail "index.js does not call isEligibleFounderInviter"
-    printf "%s" "$HELPER_CONTENT" | grep -q "async function isEligibleFounderInviter" \
+    grep -q "async function isEligibleFounderInviter" <<< "$HELPER_CONTENT" \
       || fail "helper does not export the expected Founder inviter function"
 
-    if printf "%s" "$INDEX_CONTENT" | grep -q "normalizeString(invitedRecord.inviter_lead_id) !== normalizeString(inviterRecord.lead_id)"; then
+    if grep -q "normalizeString(invitedRecord.inviter_lead_id) !== normalizeString(inviterRecord.lead_id)" <<< "$INDEX_CONTENT"; then
       fail "old inviter_lead_id equality gate is present"
     fi
     ;;

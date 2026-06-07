@@ -1,8 +1,9 @@
-const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
+const { SESClient, SendRawEmailCommand } = require("@aws-sdk/client-ses");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { SchedulerClient, CreateScheduleCommand } = require("@aws-sdk/client-scheduler");
 const { ConditionalCheckFailedException } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -11,8 +12,11 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1"
 const scheduler = new SchedulerClient({ region: "us-east-1" });
 
 const TABLE_NAME = "presttige-db";
-const FROM = "Presttige <committee@presttige.net>";
+const FROM = "committee@presttige.net";
 const REPLY_TO = "info@presttige.net";
+const SES_CONFIGURATION_SET = process.env.SES_CONFIGURATION_SET || "presttige-deliverability-v1";
+const UPDATES_UNSUBSCRIBE_MAILTO =
+  "mailto:info@presttige.net?subject=Unsubscribe%20from%20Presttige%20updates";
 const SCHEDULER_GROUP_NAME = process.env.TESTER_PURGE_SCHEDULER_GROUP || "default";
 const TESTER_PURGE_DELAY_MINUTES = Math.max(1, Number(process.env.TESTER_PURGE_DELAY_MINUTES || "5"));
 const TESTER_CLEANUP_FUNCTION_ARN =
@@ -21,8 +25,11 @@ const TESTER_CLEANUP_FUNCTION_ARN =
 const TESTER_CLEANUP_SCHEDULER_ROLE_ARN =
   process.env.TESTER_CLEANUP_SCHEDULER_ROLE_ARN ||
   "arn:aws:iam::343218208384:role/presttige-scheduler-invoke-tester-cleanup-role";
-const PREVIEW_BANNER_HTML =
-  '<div style="margin:0 0 28px 0;padding:10px 14px;background:#353535;color:#D7D3CC;font-family:Georgia,serif;font-size:13px;line-height:1.5;font-style:italic;">PREVIEW MODE · No payment was processed · This journey will not appear in member records</div>';
+const TESTER_WHITELIST = new Set([
+  "antoniompereira@me.com",
+  "alternativeservice@gmail.com",
+  "analuisasf@gmail.com",
+]);
 
 function loadTemplate() {
   return fs.readFileSync(path.join(__dirname, "subscriber-welcome-email.html"), "utf8");
@@ -34,8 +41,103 @@ function fill(template, vars) {
   );
 }
 
+function formatSource(address) {
+  return `Presttige <${address}>`;
+}
+
+function shortHash(value) {
+  const text = String(value || "").trim().toLowerCase();
+  return text ? crypto.createHash("sha256").update(text).digest("hex").slice(0, 12) : "";
+}
+
+function errorSummary(error) {
+  return {
+    name: error?.name || "Error",
+    code: error?.Code || error?.code || null,
+  };
+}
+
+function sanitizeHeader(value) {
+  return String(value || "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function encodeHeader(value) {
+  const clean = sanitizeHeader(value);
+  return /^[\x00-\x7F]*$/.test(clean)
+    ? clean
+    : `=?UTF-8?B?${Buffer.from(clean, "utf8").toString("base64")}?=`;
+}
+
+function base64Mime(value) {
+  return Buffer.from(String(value || ""), "utf8")
+    .toString("base64")
+    .replace(/.{1,76}/g, "$&\r\n")
+    .trim();
+}
+
+function buildSubscriberPlainText(displayName, tierSelectUrl) {
+  return [
+    `Dear ${displayName || "Member"},`,
+    "",
+    "You are now a Subscriber to Presttige, approved by our committee, on our communications list, and free to upgrade whenever you choose.",
+    "",
+    "You'll hear from us about Patron seat availability, new add-on services, and major Presttige milestones.",
+    "",
+    "When you're ready to step into the network as a member, three tiers are open to you:",
+    "",
+    "- Club, $22.22 / month, $99.99 / 6 months, or $144.44 / year",
+    "- Premier, $55.55 / month, $277.77 / 6 months, or $388.88 / year",
+    "- Patron, $999 lifetime, until 31 December 2026 or while Patron remains available",
+    "",
+    "Until then, welcome to the conversation.",
+    "",
+    "The Presttige Committee",
+    "",
+    `Return to tier selection: ${tierSelectUrl}`,
+    "",
+    "https://presttige.net",
+  ].join("\n");
+}
+
+function buildRawMultipartEmail({ to, subject, text, html, unsubscribeMailto }) {
+  const boundary = `presttige-alt-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const headers = [
+    `From: ${formatSource(FROM)}`,
+    `Reply-To: ${REPLY_TO}`,
+    `To: ${sanitizeHeader(to)}`,
+    `Subject: ${encodeHeader(subject)}`,
+    "MIME-Version: 1.0",
+    `List-Unsubscribe: <${unsubscribeMailto}>`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+  ];
+
+  return Buffer.from(
+    [
+      headers.join("\r\n"),
+      "",
+      `--${boundary}`,
+      'Content-Type: text/plain; charset="UTF-8"',
+      "Content-Transfer-Encoding: base64",
+      "",
+      base64Mime(text),
+      `--${boundary}`,
+      'Content-Type: text/html; charset="UTF-8"',
+      "Content-Transfer-Encoding: base64",
+      "",
+      base64Mime(html),
+      `--${boundary}--`,
+      "",
+    ].join("\r\n"),
+    "utf8"
+  );
+}
+
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
+}
+
+function isTesterEmail(email) {
+  return TESTER_WHITELIST.has(normalizeEmail(email));
 }
 
 function buildTesterCleanupScheduleName(leadId) {
@@ -100,7 +202,7 @@ async function scheduleTesterCleanup(lead, trigger) {
   );
 
   console.log(
-    `TESTER_CLEANUP_SCHEDULED trigger=${trigger} email=${email} lead_id=${leadId} ` +
+    `TESTER_CLEANUP_SCHEDULED trigger=${trigger} email_hash=${shortHash(email)} lead_hash=${shortHash(leadId)} ` +
       `schedule_name=${scheduleName} fire_at=${scheduledAt.toISOString()} ` +
       `delay_minutes=${TESTER_PURGE_DELAY_MINUTES} already_scheduled=${String(alreadyScheduled)}`
   );
@@ -137,18 +239,17 @@ exports.handler = async (event) => {
       return response(400, { error: "Lead missing email or magic token" });
     }
 
-    const cleanupEligible = Boolean(lead.is_test) && !Boolean(lead.preview_mode);
+    const testerLead = Boolean(lead.is_test) || isTesterEmail(lead.email);
 
     if (lead.subscriber_welcome_email_sent_at) {
-      if (cleanupEligible) {
+      if (testerLead) {
         const cleanupSchedule = await scheduleTesterCleanup(lead, "e5_sub_sent");
         return response(200, { already_sent: true, tester_cleanup_scheduled: true, cleanup_schedule: cleanupSchedule });
       }
       return response(200, { already_sent: true });
     }
 
-    const previewSuffix = lead.preview_mode ? "&preview=1" : "";
-    const tierSelectUrl = `https://presttige.net/memberships/?token=${encodeURIComponent(lead.magic_token)}&lead_id=${encodeURIComponent(lead.lead_id)}${previewSuffix}`;
+    const tierSelectUrl = `https://presttige.net/tier-select/${lead.magic_token}`;
     const displayName = lead.name || "Member";
     const subject = `Welcome to Presttige, ${displayName}`;
     const html = fill(loadTemplate(), {
@@ -156,34 +257,28 @@ exports.handler = async (event) => {
       headline: `Welcome, ${displayName}.`,
       tier_select_url: tierSelectUrl,
       name: displayName,
-      preview_banner: lead.preview_mode ? PREVIEW_BANNER_HTML : "",
     });
+    const text = buildSubscriberPlainText(displayName, tierSelectUrl);
 
-    console.log("SES subscriber sender config", {
-      from: FROM,
-      reply_to: REPLY_TO,
-      lead_id,
-      recipient_email: lead.email,
+    console.log("Subscriber welcome email send", {
+      lead_hash: shortHash(lead_id),
+      recipient_hash: shortHash(lead.email),
+      destination_count: 1,
     });
 
     await ses.send(
-      new SendEmailCommand({
-        Source: FROM,
-        ReplyToAddresses: [REPLY_TO],
-        Destination: {
-          ToAddresses: [lead.email],
-        },
-        Message: {
-          Subject: {
-            Data: subject,
-            Charset: "UTF-8",
-          },
-          Body: {
-            Html: {
-              Data: html,
-              Charset: "UTF-8",
-            },
-          },
+      new SendRawEmailCommand({
+        Source: formatSource(FROM),
+        Destinations: [lead.email],
+        ConfigurationSetName: SES_CONFIGURATION_SET,
+        RawMessage: {
+          Data: buildRawMultipartEmail({
+            to: lead.email,
+            subject,
+            text,
+            html,
+            unsubscribeMailto: UPDATES_UNSUBSCRIBE_MAILTO,
+          }),
         },
       })
     );
@@ -201,7 +296,7 @@ exports.handler = async (event) => {
       })
     );
 
-    if (cleanupEligible) {
+    if (testerLead) {
       const cleanupSchedule = await scheduleTesterCleanup(
         {
           ...lead,
@@ -217,7 +312,7 @@ exports.handler = async (event) => {
     if (error instanceof ConditionalCheckFailedException || error?.name === "ConditionalCheckFailedException") {
       return response(200, { already_gone: true, lead_id });
     }
-    console.error("send-subscriber-welcome-email error", error);
+    console.error("send-subscriber-welcome-email error", errorSummary(error));
     return response(500, { error: "Internal", detail: error.message });
   }
 };

@@ -5,6 +5,7 @@ const { SchedulerClient, CreateScheduleCommand, DeleteScheduleCommand } = requir
 const { SESv2Client, GetSuppressedDestinationCommand, DeleteSuppressedDestinationCommand } = require("@aws-sdk/client-sesv2");
 const { ConditionalCheckFailedException } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -15,9 +16,10 @@ const scheduler = new SchedulerClient({ region: "us-east-1" });
 const sesv2 = new SESv2Client({ region: "us-east-1" });
 
 const TABLE_NAME = "presttige-db";
-const FROM = "Presttige <private@presttige.net>";
+const FROM = "private@presttige.net";
 const REPLY_TO = "info@presttige.net";
 const BCC = "committee@presttige.net";
+const SES_CONFIGURATION_SET = process.env.SES_CONFIGURATION_SET || "presttige-deliverability-v1";
 const ORIGINALS_BUCKET = process.env.PHOTOS_ORIGINALS_BUCKET || "presttige-applicant-photos";
 const THUMBNAILS_BUCKET = process.env.PHOTOS_THUMBNAILS_BUCKET || "presttige-applicant-photos-thumbnails";
 const SCHEDULER_GROUP_NAME = process.env.TESTER_PURGE_SCHEDULER_GROUP || "default";
@@ -28,8 +30,11 @@ const TESTER_CLEANUP_FUNCTION_ARN =
 const TESTER_CLEANUP_SCHEDULER_ROLE_ARN =
   process.env.TESTER_CLEANUP_SCHEDULER_ROLE_ARN ||
   "arn:aws:iam::343218208384:role/presttige-scheduler-invoke-tester-cleanup-role";
-const PREVIEW_BANNER_HTML =
-  '<div style="margin:0 0 28px 0;padding:10px 14px;background:#353535;color:#D7D3CC;font-family:Georgia,serif;font-size:13px;line-height:1.5;font-style:italic;">PREVIEW MODE · No payment was processed · This journey will not appear in member records</div>';
+const TESTER_WHITELIST = new Set([
+  "antoniompereira@me.com",
+  "alternativeservice@gmail.com",
+  "analuisasf@gmail.com",
+]);
 
 function loadTemplate() {
   return fs.readFileSync(path.join(__dirname, "welcome-email.html"), "utf8");
@@ -39,6 +44,39 @@ function fill(template, vars) {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
     vars[key] !== undefined ? String(vars[key]) : ""
   );
+}
+
+function formatSource(address) {
+  return `Presttige <${address}>`;
+}
+
+function shortHash(value) {
+  const text = String(value || "").trim().toLowerCase();
+  return text ? crypto.createHash("sha256").update(text).digest("hex").slice(0, 12) : "";
+}
+
+function errorSummary(error) {
+  return {
+    name: error?.name || "Error",
+    code: error?.Code || error?.code || null,
+  };
+}
+
+function buildPlainText({ name, bodyCopy, welcomeLink }) {
+  return [
+    `Dear ${name || "Member"},`,
+    "",
+    "Welcome to Presttige. Your membership is active.",
+    "",
+    bodyCopy,
+    "",
+    `Enter Presttige: ${welcomeLink}`,
+    "",
+    "This link is private. If you did not expect this email, please reply to info@presttige.net immediately.",
+    "",
+    "Member Services",
+    "PRESTTIGE PRIVATE OFFICE",
+  ].join("\n");
 }
 
 function tierLabel(tier) {
@@ -74,6 +112,10 @@ function buildWelcomeBodyCopy(tierLabelValue, selectedTier) {
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
+}
+
+function isTesterEmail(email) {
+  return TESTER_WHITELIST.has(normalizeEmail(email));
 }
 
 function buildTesterCleanupScheduleName(leadId) {
@@ -138,7 +180,7 @@ async function scheduleTesterCleanup(lead, trigger) {
   );
 
   console.log(
-    `TESTER_CLEANUP_SCHEDULED trigger=${trigger} email=${email} lead_id=${leadId} ` +
+    `TESTER_CLEANUP_SCHEDULED trigger=${trigger} email_hash=${shortHash(email)} lead_hash=${shortHash(leadId)} ` +
       `schedule_name=${scheduleName} fire_at=${scheduledAt.toISOString()} ` +
       `delay_minutes=${TESTER_PURGE_DELAY_MINUTES} already_scheduled=${String(alreadyScheduled)}`
   );
@@ -168,7 +210,7 @@ async function deleteScheduleIfPresent(scheduleName) {
   } catch (error) {
     const code = error?.name || error?.Code || error?.code || "";
     if (!["ResourceNotFoundException", "ValidationException"].includes(code)) {
-      console.log(`TESTER_PURGE_WARN schedule_delete_failed name=${scheduleName} error=${code || error.message}`);
+      console.log(`TESTER_PURGE_WARN schedule_delete_failed error=${code || error?.name || "Error"}`);
     }
     return false;
   }
@@ -194,7 +236,7 @@ async function deleteS3Prefix(bucket, prefix) {
         })
       );
     } catch (error) {
-      console.log(`TESTER_PURGE_WARN s3_list_failed bucket=${bucket} prefix=${prefix} error=${error.name || error.message}`);
+      console.log(`TESTER_PURGE_WARN s3_list_failed bucket=${bucket} prefix_hash=${shortHash(prefix)} error=${error.name || "Error"}`);
       break;
     }
 
@@ -216,7 +258,7 @@ async function deleteS3Prefix(bucket, prefix) {
         );
         deleted += (deleteResponse.Deleted || []).length;
       } catch (error) {
-        console.log(`TESTER_PURGE_WARN s3_delete_failed bucket=${bucket} prefix=${prefix} error=${error.name || error.message}`);
+        console.log(`TESTER_PURGE_WARN s3_delete_failed bucket=${bucket} prefix_hash=${shortHash(prefix)} error=${error.name || "Error"}`);
       }
     }
 
@@ -245,7 +287,7 @@ async function removeSesSuppressionIfPresent(email) {
     if (["NotFoundException", "BadRequestException"].includes(code)) {
       return false;
     }
-    console.log(`TESTER_PURGE_WARN ses_get_suppression_failed email=${email} error=${code || error.message}`);
+    console.log(`TESTER_PURGE_WARN ses_get_suppression_failed email_hash=${shortHash(email)} error=${code || error?.name || "Error"}`);
     return false;
   }
 
@@ -258,7 +300,7 @@ async function removeSesSuppressionIfPresent(email) {
     return true;
   } catch (error) {
     const code = error?.name || error?.Code || error?.code || "";
-    console.log(`TESTER_PURGE_WARN ses_delete_suppression_failed email=${email} error=${code || error.message}`);
+    console.log(`TESTER_PURGE_WARN ses_delete_suppression_failed email_hash=${shortHash(email)} error=${code || error?.name || "Error"}`);
     return false;
   }
 }
@@ -284,14 +326,14 @@ async function purgeTesterLead(lead, trigger) {
       );
       deletedRecord = true;
     } catch (error) {
-      console.log(`TESTER_PURGE_WARN delete_record_failed lead_id=${leadId} error=${error.message}`);
+      console.log(`TESTER_PURGE_WARN delete_record_failed lead_hash=${shortHash(leadId)} error=${error?.name || "Error"}`);
     }
   }
 
   const sesSuppressionRemoved = await removeSesSuppressionIfPresent(email);
 
   console.log(
-    `TESTER_PURGE_ON_FUNNEL_COMPLETE trigger=${trigger} email=${email} lead_id=${leadId} ` +
+    `TESTER_PURGE_ON_FUNNEL_COMPLETE trigger=${trigger} email_hash=${shortHash(email)} lead_hash=${shortHash(leadId)} ` +
       `deleted_record=${String(deletedRecord)} deleted_schedules=${deletedSchedules} ` +
       `deleted_photos=${deletedPhotos} ses_suppression_removed=${String(sesSuppressionRemoved)}`
   );
@@ -327,42 +369,47 @@ exports.handler = async (event) => {
       return response(400, { error: "Lead missing email or magic token" });
     }
 
-    const cleanupEligible = Boolean(lead.is_test) && !Boolean(lead.preview_mode);
+    const testerLead = Boolean(lead.is_test) || isTesterEmail(lead.email);
 
     if (lead.welcome_sent_at) {
-      if (cleanupEligible) {
+      if (testerLead) {
         const cleanupSchedule = await scheduleTesterCleanup(lead, "e5_sent");
         return response(200, { already_sent: true, tester_cleanup_scheduled: true, cleanup_schedule: cleanupSchedule });
       }
       return response(200, { already_sent: true });
     }
 
-    const welcomeLink = `https://presttige.net/welcome/${lead.magic_token}${lead.preview_mode ? "?preview=1" : ""}`;
+    const welcomeLink = `https://presttige.net/welcome/${lead.magic_token}`;
     const selectedTier = lead.selected_tier || "club";
     const selectedTierLabel = tierLabel(selectedTier);
+    const bodyCopy = buildWelcomeBodyCopy(selectedTierLabel, selectedTier);
     const html = fill(loadTemplate(), {
       subject: "Welcome to Presttige",
       preheader: "Your membership is active. Enter Presttige.",
       eyebrow: "MEMBERSHIP ACTIVATED",
       headline: `Welcome to Presttige, ${lead.name || "Member"}`,
-      body_copy: buildWelcomeBodyCopy(selectedTierLabel, selectedTier),
+      body_copy: bodyCopy,
       welcome_url: welcomeLink,
       disclaimer:
         "This link is private. If you did not expect this email, please reply to info@presttige.net immediately.",
-      preview_banner: lead.preview_mode ? PREVIEW_BANNER_HTML : "",
+    });
+    const text = buildPlainText({
+      name: lead.name,
+      bodyCopy,
+      welcomeLink,
     });
 
-    console.log("SES sender config", {
-      from: FROM,
-      reply_to: REPLY_TO,
-      bcc: BCC,
-      lead_id,
-      recipient_email: lead.email,
+    console.log("Welcome email send", {
+      lead_hash: shortHash(lead_id),
+      recipient_hash: shortHash(lead.email),
+      to_count: 1,
+      bcc_count: BCC ? 1 : 0,
     });
 
     await ses.send(
       new SendEmailCommand({
-        Source: FROM,
+        Source: formatSource(FROM),
+        ConfigurationSetName: SES_CONFIGURATION_SET,
         ReplyToAddresses: [REPLY_TO],
         Destination: {
           ToAddresses: [lead.email],
@@ -374,6 +421,10 @@ exports.handler = async (event) => {
             Charset: "UTF-8",
           },
           Body: {
+            Text: {
+              Data: text,
+              Charset: "UTF-8",
+            },
             Html: {
               Data: html,
               Charset: "UTF-8",
@@ -396,7 +447,7 @@ exports.handler = async (event) => {
       })
     );
 
-    if (cleanupEligible) {
+    if (testerLead) {
       const refreshedLead = {
         ...lead,
         welcome_sent_at: new Date().toISOString(),
@@ -410,7 +461,7 @@ exports.handler = async (event) => {
     if (error instanceof ConditionalCheckFailedException || error?.name === "ConditionalCheckFailedException") {
       return response(200, { already_gone: true, lead_id });
     }
-    console.error("send-welcome-email error", error);
+    console.error("send-welcome-email error", errorSummary(error));
     return response(500, { error: "Internal", detail: error.message });
   }
 };

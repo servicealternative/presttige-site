@@ -1,68 +1,84 @@
 import hashlib
 import hmac
 import json
-import os
 from datetime import datetime, timezone
 
 # TODO (follow-up when source lands):
 # - add tester guard to the missing Stripe checkout session-creation lambda
 # - add tester guard to the missing Stripe Connect split routing logic
 
-PREVIEW_MODE_EMAILS_ENV = "PREVIEW_MODE_EMAILS"
-PREVIEW_MODE_BANNER_TEXT = (
-    "PREVIEW MODE · No payment was processed · "
-    "This journey will not appear in member records"
+AUTHORIZED_TEST_EMAILS = (
+    "antoniompereira@me.com",
+    "codex.subscriber.tester@presttige.net",
+    "analuisasf@gmail.com",
+    "fq@freequenza.net",
 )
+TESTER_EMAILS = list(AUTHORIZED_TEST_EMAILS)
+CODEX_TESTER_EMAIL = "codex.subscriber.tester@presttige.net"
+TEST_SEND_RECEIVE_EMAIL = "fq@freequenza.net"
+TESTER_TIER = "tester"
+DEFAULT_SIMULATED_TIER = "free"
+
+TESTER_SKIP_MARKER = "Skipped DynamoDB, CAPI, LinkedIn, GA4"
 
 
 def normalize_email(email):
     return (email or "").strip().lower()
 
 
-def parse_preview_mode_emails(raw_value=None):
-    raw = raw_value if raw_value is not None else os.environ.get(PREVIEW_MODE_EMAILS_ENV, "")
-    normalized = []
-    seen = set()
-
-    for item in str(raw or "").split(","):
-        email = normalize_email(item)
-        if not email or email in seen:
-            continue
-        seen.add(email)
-        normalized.append(email)
-
-    return normalized
+def hash_identifier(value):
+    normalized = normalize_email(value)
+    if not normalized:
+        return ""
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:12]
 
 
-TESTER_EMAILS = parse_preview_mode_emails()
+SENSITIVE_LOG_KEY_PARTS = ("email", "phone", "token", "name", "lead_id")
 
-TESTER_SKIP_MARKER = "Skipped DynamoDB, CAPI, LinkedIn, GA4"
+
+def sanitize_log_value(key, value):
+    normalized_key = str(key or "").lower()
+    if isinstance(value, dict):
+        return {nested_key: sanitize_log_value(nested_key, nested_value) for nested_key, nested_value in value.items()}
+    if isinstance(value, list):
+        return [sanitize_log_value(key, item) for item in value]
+    if any(part in normalized_key for part in SENSITIVE_LOG_KEY_PARTS):
+        return hash_identifier(value)
+    return value
+
+
+def sanitize_log_mapping(mapping):
+    if not mapping:
+        return None
+    return {key: sanitize_log_value(key, value) for key, value in mapping.items()}
 
 
 def is_tester_email(email):
-    return normalize_email(email) in [normalize_email(item) for item in TESTER_EMAILS]
+    return is_authorized_test_email(email)
 
 
-def is_preview_mode_email(email):
-    return is_tester_email(email)
+def is_authorized_test_email(email):
+    return normalize_email(email) in {normalize_email(item) for item in AUTHORIZED_TEST_EMAILS}
 
 
-def is_preview_mode_lead(lead):
-    return bool((lead or {}).get("preview_mode"))
-
-
-def build_preview_banner_html():
-    return (
-        '<div style="margin:0 0 28px 0;padding:10px 14px;'
-        'background:#353535;color:#D7D3CC;font-family:Georgia,serif;'
-        'font-size:13px;line-height:1.5;font-style:italic;">'
-        f"{PREVIEW_MODE_BANNER_TEXT}"
-        "</div>"
+def assert_authorized_test_email(email, context="test record"):
+    if is_authorized_test_email(email):
+        return
+    raise ValueError(
+        f"{context} is restricted to the four authorized Presttige tester addresses."
     )
 
 
-def build_preview_banner_text():
-    return PREVIEW_MODE_BANNER_TEXT
+def is_test_send_receive_email(email):
+    return normalize_email(email) == TEST_SEND_RECEIVE_EMAIL
+
+
+def assert_test_send_receive_email(email, context="test email send"):
+    if is_test_send_receive_email(email):
+        return
+    raise ValueError(
+        f"{context} is restricted to {TEST_SEND_RECEIVE_EMAIL}."
+    )
 
 
 def get_tester_lead_id(email):
@@ -137,15 +153,17 @@ def build_tester_log_payload(event_name, email="", metadata=None, extra=None):
     payload = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "event": event_name,
-        "email": normalize_email(email),
+        "email_hash": hash_identifier(email),
         "marker": TESTER_SKIP_MARKER,
     }
 
-    if metadata:
-        payload["metadata"] = metadata
+    safe_metadata = sanitize_log_mapping(metadata)
+    if safe_metadata:
+        payload["metadata"] = safe_metadata
 
-    if extra:
-        payload["extra"] = extra
+    safe_extra = sanitize_log_mapping(extra)
+    if safe_extra:
+        payload["extra"] = safe_extra
 
     return payload
 
