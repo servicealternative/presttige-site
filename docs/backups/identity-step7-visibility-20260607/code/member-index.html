@@ -1,0 +1,2580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Member Area</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-black: #0A0A0A;
+      --pp-gold: #8C7040;
+      --pp-paper: #FBF9F4;
+      --pp-background: #F5F2ED;
+      --pp-hairline: #D8D1C3;
+      --pp-hairline-strong: #BFB6A5;
+      --pp-muted: #5F5B54;
+      --pp-soft: #ECE6DA;
+      --pp-error: #8B1E1E;
+      --pp-success-tint: rgba(140, 112, 64, 0.08);
+      --pp-error-tint: rgba(139, 30, 30, 0.08);
+      --pp-shadow: 0 24px 60px rgba(10, 10, 10, 0.06);
+      --pp-page-pad: max(1cm, 24px);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--pp-background);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: var(--pp-page-pad);
+      background: var(--pp-background);
+      color: var(--pp-black);
+      font-family: "Source Serif 4", Georgia, serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .page-shell {
+      width: min(100%, 1180px);
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      margin: 0 auto;
+    }
+
+    .entry-layout {
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      display: grid;
+      grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .panel,
+    .member-frame {
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      box-shadow: var(--pp-shadow);
+    }
+
+    .intro,
+    .form-panel {
+      padding: clamp(26px, 4vw, 38px);
+    }
+
+    .brand-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .brand-lockup img {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .brand-name {
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(40px, 6vw, 66px);
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 0.98;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(30px, 4vw, 46px);
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.08;
+    }
+
+    .copy {
+      margin: 18px 0 0;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.8;
+      max-width: 58ch;
+    }
+
+    .form {
+      display: grid;
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label,
+    .meta-label {
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: #fffdf8;
+      color: var(--pp-black);
+      font-size: 16px;
+      padding: 12px 14px;
+    }
+
+    .field input,
+    .field select {
+      min-height: 48px;
+    }
+
+    .field textarea {
+      min-height: 132px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    .field input[readonly] {
+      background: #F0ECE4;
+      color: var(--pp-muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 100%;
+      min-height: 48px;
+      padding: 13px 18px;
+      border: 1px solid var(--pp-gold);
+      background: var(--pp-gold);
+      color: var(--pp-paper);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      cursor: pointer;
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .button--secondary {
+      background: transparent;
+      color: var(--pp-gold);
+    }
+
+    .link-button {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--pp-gold);
+      font-size: 14px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .notice,
+    .failure {
+      margin-top: 22px;
+      padding: 16px 18px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .notice {
+      border: 1px solid rgba(140, 112, 64, 0.18);
+      background: var(--pp-success-tint);
+      color: var(--pp-black);
+    }
+
+    .failure {
+      border: 1px solid rgba(139, 30, 30, 0.2);
+      background: var(--pp-error-tint);
+      color: var(--pp-error);
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .error-text {
+      color: var(--pp-error);
+    }
+
+    .member-frame {
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .member-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 24px clamp(22px, 4vw, 42px);
+      border-bottom: 1px solid var(--pp-hairline);
+    }
+
+    .member-topbar .brand-lockup {
+      margin: 0;
+    }
+
+    .member-topbar .brand-lockup img {
+      width: 44px;
+      height: 44px;
+    }
+
+    .member-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .nav-item {
+      min-height: 38px;
+      padding: 9px 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--pp-muted);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .nav-item:not(:disabled) {
+      cursor: pointer;
+    }
+
+    .nav-item[aria-current="page"] {
+      border-color: rgba(140, 112, 64, 0.34);
+      color: var(--pp-gold);
+    }
+
+    .nav-item:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+    }
+
+    .nav-item.is-silent-locked {
+      color: #A9A196;
+      opacity: 1;
+    }
+
+    .member-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+      gap: clamp(22px, 4vw, 44px);
+      padding: clamp(26px, 5vw, 54px);
+    }
+
+    .member-body > *,
+    .overview,
+    .section-list,
+    .section-row,
+    .section-panel,
+    .member-side,
+    .side-panel,
+    .privacy-card {
+      min-width: 0;
+    }
+
+    .overview {
+      display: grid;
+      align-content: start;
+      gap: 30px;
+    }
+
+    .welcome-copy {
+      margin: 16px 0 0;
+      color: var(--pp-muted);
+      font-size: 18px;
+      line-height: 1.75;
+      max-width: 62ch;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px solid var(--pp-hairline);
+      border-left: 1px solid var(--pp-hairline);
+    }
+
+    .summary-item {
+      min-height: 126px;
+      display: grid;
+      align-content: space-between;
+      gap: 18px;
+      padding: 22px;
+      border-right: 1px solid var(--pp-hairline);
+      border-bottom: 1px solid var(--pp-hairline);
+      background: rgba(255, 253, 248, 0.72);
+    }
+
+    .meta-value {
+      margin: 0;
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.05;
+    }
+
+    .state-pill {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 8px;
+      color: var(--pp-black);
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .state-pill::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--pp-gold);
+      content: "";
+    }
+
+    .section-list {
+      display: grid;
+      gap: 1px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .section-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 20px 22px;
+      background: var(--pp-paper);
+    }
+
+    .section-row.is-silent-locked {
+      background: #F0ECE4;
+      color: #A39B90;
+    }
+
+    .section-row.is-silent-locked h3,
+    .section-row.is-silent-locked p {
+      color: #A39B90;
+    }
+
+    .section-row h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 25px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.12;
+    }
+
+    .section-row p {
+      margin: 6px 0 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .status-badge {
+      min-width: 92px;
+      border: 1px solid rgba(140, 112, 64, 0.26);
+      padding: 8px 10px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-align: center;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .status-badge:empty {
+      display: none;
+    }
+
+    .status-badge.action-badge {
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .status-badge.action-badge:focus-visible {
+      outline: 1px solid var(--pp-gold);
+      outline-offset: 3px;
+    }
+
+    .section-row.is-active {
+      border-left: 2px solid var(--pp-gold);
+    }
+
+    .section-panel {
+      border: 1px solid var(--pp-hairline);
+      padding: 24px;
+      background: #fffdf8;
+    }
+
+    .section-panel h2 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 34px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .section-panel p {
+      margin: 12px 0 0;
+      color: var(--pp-muted);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .profile-form {
+      display: grid;
+      gap: 28px;
+      margin-top: 26px;
+    }
+
+    .profile-group {
+      display: grid;
+      gap: 16px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .profile-grid .field--wide {
+      grid-column: 1 / -1;
+    }
+
+    .profile-group-title {
+      margin: 0;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .photo-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 22px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .photo-summary-item {
+      min-height: 104px;
+      display: grid;
+      align-content: space-between;
+      gap: 12px;
+      padding: 18px;
+      background: var(--pp-paper);
+    }
+
+    .photo-summary-item strong {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .photo-grid.is-founder {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .photo-slot {
+      display: grid;
+      gap: 14px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      padding: 16px;
+    }
+
+    .photo-slot.is-internal {
+      background: #F0ECE4;
+    }
+
+    .photo-slot.is-add {
+      align-content: center;
+      min-height: 320px;
+      border-style: dashed;
+      background: #fffdf8;
+    }
+
+    .photo-frame {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(140, 112, 64, 0.2);
+      background: #fffdf8;
+      color: var(--pp-muted);
+    }
+
+    .photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-placeholder {
+      padding: 18px;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .photo-slot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .photo-slot-title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 23px;
+      font-weight: 500;
+      line-height: 1.1;
+    }
+
+    .photo-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .button--small {
+      min-height: 38px;
+      padding: 9px 12px;
+      font-size: 11px;
+    }
+
+    .photo-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .privacy-actions {
+      display: grid;
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .privacy-card {
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      padding: 18px;
+    }
+
+    .privacy-card h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 27px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .privacy-card p {
+      margin: 10px 0 0;
+      overflow-wrap: anywhere;
+    }
+
+    .concierge-progress {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 24px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .concierge-section-list {
+      display: grid;
+      gap: 28px;
+      margin-top: 30px;
+    }
+
+    .concierge-section {
+      display: grid;
+      gap: 18px;
+      padding-top: 22px;
+      border-top: 1px solid var(--pp-hairline);
+    }
+
+    .concierge-section h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 31px;
+      font-weight: 500;
+      line-height: 1.08;
+    }
+
+    .concierge-question {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+      padding: 18px 0;
+      border: 0;
+      border-top: 1px solid rgba(140, 112, 64, 0.14);
+    }
+
+    .concierge-question-title {
+      margin: 0;
+      padding: 0;
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 23px;
+      font-weight: 500;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .concierge-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .concierge-option {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      padding: 13px 14px;
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+    }
+
+    .concierge-option-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--pp-black);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .concierge-option input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: var(--pp-gold);
+    }
+
+    .concierge-free-text {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: var(--pp-paper);
+      padding: 9px 10px;
+      color: var(--pp-black);
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .concierge-free-text:disabled {
+      opacity: 0.45;
+    }
+
+    .privacy-confirm {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .privacy-confirm-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .privacy-confirm-row input {
+      width: 17px;
+      height: 17px;
+      margin-top: 3px;
+      accent-color: var(--pp-gold);
+    }
+
+    .totp-layout {
+      display: grid;
+      grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+      align-items: start;
+    }
+
+    .totp-qr {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+      padding: 16px;
+    }
+
+    .totp-qr svg {
+      width: min(100%, 210px);
+      height: auto;
+      display: block;
+    }
+
+    .manual-key {
+      overflow-wrap: anywhere;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      padding: 12px 14px;
+      color: var(--pp-black);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      line-height: 1.5;
+    }
+
+    .recovery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .recovery-code {
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+      padding: 10px 12px;
+      color: var(--pp-black);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .member-side {
+      display: grid;
+      align-content: start;
+      gap: 18px;
+    }
+
+    .side-panel {
+      border: 1px solid var(--pp-hairline);
+      padding: 22px;
+      background: #fffdf8;
+    }
+
+    .side-panel h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 27px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .side-panel p {
+      margin: 12px 0 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .tier-card {
+      border-color: rgba(140, 112, 64, 0.44);
+      background: rgba(140, 112, 64, 0.08);
+    }
+
+    .tier-card.is-founder {
+      background: var(--pp-black);
+      color: var(--pp-paper);
+    }
+
+    .tier-card.is-founder p,
+    .tier-card.is-founder .meta-label {
+      color: rgba(251, 249, 244, 0.72);
+    }
+
+    @media (max-width: 960px) {
+      .entry-layout,
+      .member-body {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .photo-summary,
+      .photo-grid,
+      .photo-grid.is-founder,
+      .concierge-progress,
+      .concierge-options,
+      .totp-layout,
+      .recovery-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .member-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .member-nav {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      :root {
+        --pp-page-pad: 1cm;
+      }
+
+      .brand-name {
+        font-size: 21px;
+      }
+
+      .member-body,
+      .intro,
+      .form-panel {
+        padding: 24px;
+      }
+
+      .member-topbar {
+        padding: 20px;
+      }
+
+      .section-row {
+        grid-template-columns: 1fr;
+      }
+
+      .status-badge {
+        width: fit-content;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="app" class="page-shell" aria-live="polite">
+    <section class="entry-layout">
+      <div class="panel intro">
+        <div class="brand-lockup">
+          <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+          <span class="brand-name">Presttige</span>
+        </div>
+        <p class="eyebrow">Presttige Members</p>
+        <h1 class="title">Private access.</h1>
+        <p class="copy">Sign in with the email and password attached to your Presttige member account.</p>
+      </div>
+      <div class="panel form-panel">
+        <p class="eyebrow">Member Login</p>
+        <h2 class="title">Checking session.</h2>
+        <p class="copy">Hold for a moment while we prepare the private login.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/js/qrcode-generator.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = window.location.hostname === "localhost"
+        ? "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/member-auth"
+        : "/member-api";
+      const app = document.getElementById("app");
+      const VALIDATION_REQUIRED_SECTIONS = new Set(["profile", "photos", "founder"]);
+      const PHOTO_TYPES = new Set(["image/jpeg", "image/png"]);
+      const PHOTO_MAX_SIZE = 10 * 1024 * 1024;
+      const DSAR_ERASURE_CONFIRMATION = "ERASE MY ACCOUNT";
+      const FOUNDER_TOTP_LABEL = "Presttige, Founder";
+      let currentMember = null;
+
+      loadSession();
+
+      async function loadSession() {
+        try {
+          const session = await api("session", {});
+          if (session.ok) {
+            renderMemberArea(session.member);
+            return;
+          }
+        } catch (error) {
+          if (error.payload?.status === "PASSWORD_PENDING") {
+            renderPasswordPending(error.payload);
+            return;
+          }
+        }
+        renderLogin();
+      }
+
+      function renderEntry(content) {
+        app.innerHTML = `
+          <section class="entry-layout">
+            <div class="panel intro">
+              <div class="brand-lockup">
+                <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+                <span class="brand-name">Presttige</span>
+              </div>
+              <p class="eyebrow">Presttige Members</p>
+              <h1 class="title">Private access.</h1>
+              <p class="copy">Sign in with the email and password attached to your Presttige member account.</p>
+            </div>
+            <div class="panel form-panel">${content}</div>
+          </section>
+        `;
+      }
+
+      function renderLogin(message) {
+        renderEntry(`
+          <p class="eyebrow">Member Login</p>
+          <h2 class="title">Enter Presttige.</h2>
+          <p class="copy">Use the member account created after your membership was confirmed.</p>
+          ${message ? `<div class="notice">${escapeHtml(message)}</div>` : ""}
+          <form id="login-form" class="form" novalidate>
+            <div class="field">
+              <label for="member-email">Email</label>
+              <input id="member-email" type="email" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label for="member-password">Password</label>
+              <input id="member-password" type="password" autocomplete="current-password" required>
+            </div>
+            <p id="login-error" class="hint error-text"></p>
+            <div class="actions">
+              <button id="login-submit" class="button" type="submit">Sign in</button>
+              <button class="link-button" type="button" data-forgot>Forgot password</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("login-form").addEventListener("submit", submitLogin);
+        app.querySelector("[data-forgot]").addEventListener("click", renderForgot);
+      }
+
+      async function submitLogin(event) {
+        event.preventDefault();
+        const email = document.getElementById("member-email").value.trim();
+        const password = document.getElementById("member-password").value;
+        const errorBox = document.getElementById("login-error");
+        const button = document.getElementById("login-submit");
+        errorBox.textContent = "";
+        button.disabled = true;
+        button.textContent = "Signing in...";
+
+        try {
+          const result = await api("login", { email, password });
+          if (result.status === "FOUNDER_TOTP_ENROLL_REQUIRED") {
+            renderFounderTotpEnrollment(result);
+            return;
+          }
+          if (result.status === "FOUNDER_TOTP_REQUIRED") {
+            renderFounderTotpChallenge(email);
+            return;
+          }
+          renderMemberArea(result.member);
+        } catch (error) {
+          if (error.payload?.status === "PASSWORD_PENDING") {
+            renderPasswordPending(error.payload);
+            return;
+          }
+          errorBox.textContent = "Sign-in could not be completed.";
+          button.disabled = false;
+          button.textContent = "Sign in";
+        }
+      }
+
+      function renderFounderTotpEnrollment(payload) {
+        const secret = payload.secret_code || "";
+        const otpauth = payload.otpauth_url || "";
+        renderEntry(`
+          <p class="eyebrow">Founder Security</p>
+          <h2 class="title">Set up authenticator.</h2>
+          <p class="copy">Founder access requires an authenticator. Add this account in Google Authenticator, Authy, 1Password, or another authenticator app.</p>
+          <div class="totp-layout">
+            <div class="totp-qr" aria-label="Founder authenticator QR code">
+              ${totpQrSvg(otpauth)}
+            </div>
+            <div>
+              <p class="meta-label">Authenticator label</p>
+              <p class="manual-key">${escapeHtml(payload.label || FOUNDER_TOTP_LABEL)}</p>
+              <p class="meta-label" style="margin-top:16px;">Manual key</p>
+              <p class="manual-key">${escapeHtml(secret)}</p>
+              <form id="totp-enroll-form" class="form" novalidate>
+                <div class="field">
+                  <label for="totp-enroll-code">Authenticator code</label>
+                  <input id="totp-enroll-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+                </div>
+                <p id="totp-enroll-error" class="hint error-text" aria-live="polite"></p>
+                <div class="actions">
+                  <button id="totp-enroll-submit" class="button" type="submit">Enable authenticator</button>
+                  <button class="button button--secondary" type="button" data-login>Back to login</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        `);
+        document.getElementById("totp-enroll-form").addEventListener("submit", submitFounderTotpEnrollment);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+      }
+
+      async function submitFounderTotpEnrollment(event) {
+        event.preventDefault();
+        const code = readFormValue("totp-enroll-code").replace(/\s+/g, "");
+        const errorBox = document.getElementById("totp-enroll-error");
+        const button = document.getElementById("totp-enroll-submit");
+        errorBox.textContent = "";
+        if (!/^[0-9]{6}$/.test(code)) {
+          errorBox.textContent = "Enter the six-digit authenticator code.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Enabling...";
+        try {
+          const result = await api("totp-verify", { code });
+          renderFounderRecoveryCodes(result);
+        } catch (error) {
+          errorBox.textContent = "Authenticator setup could not be completed.";
+          button.disabled = false;
+          button.textContent = "Enable authenticator";
+        }
+      }
+
+      function renderFounderRecoveryCodes(result) {
+        const codes = Array.isArray(result.recovery_codes) ? result.recovery_codes : [];
+        renderEntry(`
+          <p class="eyebrow">Founder Security</p>
+          <h2 class="title">Save recovery codes.</h2>
+          <p class="copy">These codes are shown once. Keep them privately. Each code can reset your Founder authenticator if the device is lost.</p>
+          <div class="recovery-grid">
+            ${codes.map((code) => `<span class="recovery-code">${escapeHtml(code)}</span>`).join("")}
+          </div>
+          <div class="actions">
+            <button id="totp-recovery-continue" class="button" type="button">Enter member area</button>
+          </div>
+        `);
+        document.getElementById("totp-recovery-continue").addEventListener("click", () => {
+          renderMemberArea(result.member);
+        });
+      }
+
+      function renderFounderTotpChallenge(email, message) {
+        renderEntry(`
+          <p class="eyebrow">Founder Security</p>
+          <h2 class="title">Enter authenticator code.</h2>
+          <p class="copy">Founder access requires the current six-digit code from ${escapeHtml(FOUNDER_TOTP_LABEL)}.</p>
+          ${message ? `<div class="notice">${escapeHtml(message)}</div>` : ""}
+          <form id="totp-challenge-form" class="form" novalidate>
+            <div class="field">
+              <label for="totp-challenge-code">Authenticator code</label>
+              <input id="totp-challenge-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+            </div>
+            <p id="totp-challenge-error" class="hint error-text" aria-live="polite"></p>
+            <div class="actions">
+              <button id="totp-challenge-submit" class="button" type="submit">Continue</button>
+              <button class="link-button" type="button" data-recovery>Lost authenticator?</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("totp-challenge-form").addEventListener("submit", (event) => submitFounderTotpChallenge(event, email));
+        app.querySelector("[data-recovery]").addEventListener("click", () => renderFounderTotpRecovery(email));
+      }
+
+      async function submitFounderTotpChallenge(event, email) {
+        event.preventDefault();
+        const code = readFormValue("totp-challenge-code").replace(/\s+/g, "");
+        const errorBox = document.getElementById("totp-challenge-error");
+        const button = document.getElementById("totp-challenge-submit");
+        errorBox.textContent = "";
+        if (!/^[0-9]{6}$/.test(code)) {
+          errorBox.textContent = "Enter the six-digit authenticator code.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Checking...";
+        try {
+          const result = await api("totp-challenge", { email, code });
+          renderMemberArea(result.member);
+        } catch (error) {
+          errorBox.textContent = "Founder sign-in could not be completed.";
+          button.disabled = false;
+          button.textContent = "Continue";
+        }
+      }
+
+      function renderFounderTotpRecovery(email) {
+        renderEntry(`
+          <p class="eyebrow">Founder Recovery</p>
+          <h2 class="title">Reset authenticator.</h2>
+          <p class="copy">Enter one recovery code. This resets the authenticator and requires a fresh setup on the next sign-in.</p>
+          <form id="totp-recovery-form" class="form" novalidate>
+            <div class="field">
+              <label for="totp-recovery-code">Recovery code</label>
+              <input id="totp-recovery-code" type="text" autocomplete="off" required>
+            </div>
+            <p id="totp-recovery-error" class="hint error-text" aria-live="polite"></p>
+            <div class="actions">
+              <button id="totp-recovery-submit" class="button" type="submit">Reset authenticator</button>
+              <button class="button button--secondary" type="button" data-back>Back</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("totp-recovery-form").addEventListener("submit", (event) => submitFounderTotpRecovery(event, email));
+        app.querySelector("[data-back]").addEventListener("click", () => renderFounderTotpChallenge(email));
+      }
+
+      async function submitFounderTotpRecovery(event, email) {
+        event.preventDefault();
+        const recoveryCode = readFormValue("totp-recovery-code");
+        const errorBox = document.getElementById("totp-recovery-error");
+        const button = document.getElementById("totp-recovery-submit");
+        errorBox.textContent = "";
+        if (!recoveryCode) {
+          errorBox.textContent = "Enter a recovery code.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Resetting...";
+        try {
+          const result = await api("totp-recover", { email, recovery_code: recoveryCode });
+          renderLogin(result.message || "Authenticator reset. Sign in again to set up a new authenticator.");
+        } catch (error) {
+          errorBox.textContent = "Founder recovery could not be completed.";
+          button.disabled = false;
+          button.textContent = "Reset authenticator";
+        }
+      }
+
+      function totpQrSvg(otpauth) {
+        if (!otpauth || typeof qrcode !== "function") {
+          return '<span class="photo-placeholder">Manual setup key available.</span>';
+        }
+        try {
+          const qr = qrcode(0, "M");
+          qr.addData(otpauth);
+          qr.make();
+          return qr.createSvgTag(4, 2, "Founder authenticator QR code", FOUNDER_TOTP_LABEL);
+        } catch (error) {
+          return '<span class="photo-placeholder">Manual setup key available.</span>';
+        }
+      }
+
+      function renderMemberArea(member) {
+        renderMemberShell(member, "overview");
+      }
+
+      function renderMemberShell(member, activeSectionKey) {
+        currentMember = member;
+        const tier = normalizeTier(member?.tier);
+        const tierLabel = tierLabelFor(tier);
+        const isFounder = tier === "founder";
+        const firstName = firstNameOf(member?.name);
+        const isValidated = isMemberValidated(member);
+        const sections = memberSections(tier);
+        const activeSection = activeSectionKey === "overview"
+          ? null
+          : sections.find((section) => section.key === activeSectionKey);
+
+        app.innerHTML = `
+          <section class="member-frame">
+            <header class="member-topbar">
+              <div class="brand-lockup">
+                <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+                <span class="brand-name">Presttige</span>
+              </div>
+              <nav class="member-nav" aria-label="Member area">
+                <button class="nav-item" type="button" data-section="overview" ${activeSection ? "" : 'aria-current="page"'}>Overview</button>
+                ${sections.map((section) => renderNavItem(section, isValidated, activeSectionKey)).join("")}
+              </nav>
+            </header>
+            <div class="member-body">
+              <section class="overview" aria-labelledby="member-overview-title">
+                <div>
+                  <p class="eyebrow">Member Overview</p>
+                  <h1 id="member-overview-title" class="section-title">Welcome, ${escapeHtml(firstName)}.</h1>
+                  <p class="welcome-copy">Your private Presttige area is open. This first view holds your own membership state while the next private sections are prepared.</p>
+                </div>
+                <div class="summary-grid" aria-label="Member summary">
+                  <div class="summary-item">
+                    <span class="meta-label">Member</span>
+                    <p class="meta-value">${escapeHtml(member?.name || "Member")}</p>
+                  </div>
+                  <div class="summary-item">
+                    <span class="meta-label">Tier</span>
+                    <p class="meta-value">${escapeHtml(tierLabel)}</p>
+                  </div>
+                  <div class="summary-item">
+                    <span class="meta-label">State</span>
+                    <p class="meta-value"><span class="state-pill">${escapeHtml(statusLabel(member?.account_status))}</span></p>
+                  </div>
+                </div>
+                <div>
+                  <p class="eyebrow">Next Sections</p>
+                  <div class="section-list">
+                    ${sections.map((section) => renderSectionRow(section, isValidated, activeSectionKey)).join("")}
+                  </div>
+                </div>
+                ${activeSection ? renderSectionPanel(activeSection, member) : ""}
+              </section>
+              <aside class="member-side" aria-label="Membership details">
+                <div class="side-panel tier-card ${isFounder ? "is-founder" : ""}">
+                  <span class="meta-label">Current Tier</span>
+                  <h3>${escapeHtml(tierLabel)}</h3>
+                  <p>${escapeHtml(tierDescription(tier))}</p>
+                </div>
+                <div class="side-panel">
+                  <span class="meta-label">Access</span>
+                  <h3>${escapeHtml(statusLabel(member?.account_status))}</h3>
+                  <p>Your session is active. Your access is personal to this account.</p>
+                </div>
+                <div class="actions">
+                  <button id="sign-out" class="button button--secondary" type="button">Sign out</button>
+                </div>
+              </aside>
+            </div>
+          </section>
+        `;
+        document.getElementById("sign-out").addEventListener("click", signOut);
+        app.querySelectorAll("[data-section]").forEach((button) => {
+          button.addEventListener("click", () => openMemberSection(member, button.dataset.section));
+        });
+        const profileForm = document.getElementById("profile-form");
+        if (profileForm) {
+          profileForm.addEventListener("submit", (event) => submitProfile(event, member));
+          document.getElementById("profile-cancel")?.addEventListener("click", () => renderMemberShell(member, "profile"));
+        }
+        if (document.getElementById("photos-panel")) {
+          loadMemberPhotos(member);
+        }
+        if (document.getElementById("founder-concierge-panel")) {
+          loadFounderConcierge(member);
+        }
+        const exportButton = document.getElementById("privacy-export");
+        if (exportButton) {
+          exportButton.addEventListener("click", () => downloadDataExport(member));
+        }
+        const eraseForm = document.getElementById("privacy-erase-form");
+        if (eraseForm) {
+          eraseForm.addEventListener("submit", submitErasureRequest);
+        }
+      }
+
+      function renderNavItem(section, isValidated, activeSectionKey) {
+        const locked = isSectionLocked(section, isValidated);
+        const current = activeSectionKey === section.key;
+        return `
+          <button
+            class="nav-item ${locked ? "is-silent-locked" : ""}"
+            type="button"
+            ${locked ? "disabled" : `data-section="${escapeHtml(section.key)}"`}
+            ${current ? 'aria-current="page"' : ""}
+          >${escapeHtml(section.title)}</button>
+        `;
+      }
+
+      function renderSectionRow(section, isValidated, activeSectionKey) {
+        const locked = isSectionLocked(section, isValidated);
+        const current = activeSectionKey === section.key;
+        return `
+          <article class="section-row ${locked ? "is-silent-locked" : ""} ${current ? "is-active" : ""}">
+            <div>
+              <h3>${escapeHtml(section.title)}</h3>
+              <p>${escapeHtml(section.copy)}</p>
+            </div>
+            ${locked
+              ? '<span class="status-badge"></span>'
+              : `<button class="status-badge action-badge" type="button" data-section="${escapeHtml(section.key)}">${escapeHtml(section.status)}</button>`}
+          </article>
+        `;
+      }
+
+      function renderSectionPanel(section, member) {
+        if (section.key === "profile") {
+          return renderProfilePanel(member);
+        }
+        if (section.key === "photos") {
+          return renderPhotosPanel(member);
+        }
+        if (section.key === "founder") {
+          return renderFounderConciergePanel(member);
+        }
+        if (section.key === "privacy") {
+          return renderPrivacyPanel(member);
+        }
+
+        return `
+          <div class="section-panel" aria-live="polite">
+            <p class="eyebrow">${escapeHtml(section.title)}</p>
+            <h2>${escapeHtml(section.title)}</h2>
+            <p>${escapeHtml(section.openCopy)}</p>
+          </div>
+        `;
+      }
+
+      function memberSections(tier) {
+        const base = [
+          {
+            key: "profile",
+            title: "Profile",
+            copy: "Your member profile and interests are held privately here.",
+            openCopy: "Review and edit your private profile and interests.",
+            status: "Open",
+            requiresValidation: true,
+          },
+          {
+            key: "photos",
+            title: "Photos",
+            copy: "Your private photo set is held here.",
+            openCopy: "Review and maintain your private member photos.",
+            status: "Open",
+            requiresValidation: true,
+          },
+          {
+            key: "membership",
+            title: "Membership",
+            copy: "Tier details and access state are visible here first.",
+            openCopy: "Your membership summary is available in this shell.",
+            status: "View",
+            requiresValidation: false,
+          },
+          {
+            key: "privacy",
+            title: "Privacy",
+            copy: "Access your own data, request corrections, and control erasure.",
+            openCopy: "Access your own data, request corrections, and control erasure.",
+            status: "Open",
+            requiresValidation: false,
+          },
+        ];
+
+        if (tier === "founder") {
+          base.splice(2, 0, {
+            key: "founder",
+            title: "Founder",
+            copy: "Your Concierge profile is built here.",
+            openCopy: "Shape the preferences that guide your Premium Concierge profile.",
+            status: "Open",
+            requiresValidation: true,
+          });
+        }
+
+        return base;
+      }
+
+      async function openMemberSection(member, sectionKey) {
+        if (sectionKey === "overview") {
+          renderMemberShell(member, "overview");
+          return;
+        }
+
+        const tier = normalizeTier(member?.tier);
+        const section = memberSections(tier).find((item) => item.key === sectionKey);
+        if (!section || isSectionLocked(section, isMemberValidated(member))) {
+          return;
+        }
+
+        if (section.requiresValidation) {
+          await api("member-action", { section: section.key });
+        }
+        renderMemberShell(member, section.key);
+      }
+
+      function renderProfilePanel(member) {
+        const profile = profileOf(member);
+        const interests = interestsOf(member);
+        return `
+          <div class="section-panel" aria-live="polite">
+            <p class="eyebrow">Profile</p>
+            <h2>Profile and interests</h2>
+            <p>Keep your private member profile current. Your email and account base remain fixed.</p>
+            <form id="profile-form" class="profile-form" novalidate>
+              <div class="profile-group">
+                <p class="profile-group-title">Identity</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-name">Name</label>
+                    <input id="profile-name" type="text" value="${escapeAttr(profile.name)}" readonly>
+                  </div>
+                  <div class="field">
+                    <label for="profile-email">Email</label>
+                    <input id="profile-email" type="email" value="${escapeAttr(profile.email)}" readonly>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Contact and location</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-phone-country">Phone code</label>
+                    <input id="profile-phone-country" type="text" value="${escapeAttr(profile.phone_country)}" autocomplete="tel-country-code" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-phone">Phone</label>
+                    <input id="profile-phone" type="tel" value="${escapeAttr(profile.phone)}" autocomplete="tel" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-age">Age</label>
+                    <input id="profile-age" type="text" inputmode="numeric" value="${escapeAttr(profile.age)}" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-country">Country</label>
+                    <input id="profile-country" type="text" value="${escapeAttr(profile.country)}" autocomplete="country-name" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-city">City</label>
+                    <input id="profile-city" type="text" value="${escapeAttr(profile.city)}" autocomplete="address-level2" required>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Public profile details</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-instagram">Instagram</label>
+                    <input id="profile-instagram" type="text" value="${escapeAttr(profile.instagram)}" required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-linkedin">LinkedIn</label>
+                    <input id="profile-linkedin" type="url" value="${escapeAttr(profile.linkedin)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-tiktok">TikTok</label>
+                    <input id="profile-tiktok" type="text" value="${escapeAttr(profile.tiktok)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-website">Website</label>
+                    <input id="profile-website" type="url" value="${escapeAttr(profile.website)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-occupation">Occupation</label>
+                    <input id="profile-occupation" type="text" value="${escapeAttr(profile.occupation)}">
+                  </div>
+                  <div class="field">
+                    <label for="profile-company">Company</label>
+                    <input id="profile-company" type="text" value="${escapeAttr(profile.company)}">
+                  </div>
+                  <div class="field field--wide">
+                    <label for="profile-bio">Short introduction</label>
+                    <textarea id="profile-bio" required>${escapeHtml(profile.bio)}</textarea>
+                    <p class="hint">Use at least 50 characters.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Interests</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="interest-lifestyle">Lifestyle</label>
+                    <textarea id="interest-lifestyle">${escapeHtml(interests.lifestyle)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-business">Business</label>
+                    <textarea id="interest-business">${escapeHtml(interests.business)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-travel">Travel</label>
+                    <textarea id="interest-travel">${escapeHtml(interests.travel)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-culture">Culture</label>
+                    <textarea id="interest-culture">${escapeHtml(interests.culture)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-wellbeing">Wellbeing</label>
+                    <textarea id="interest-wellbeing">${escapeHtml(interests.wellbeing)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-notes">Notes</label>
+                    <textarea id="interest-notes">${escapeHtml(interests.notes)}</textarea>
+                  </div>
+                </div>
+              </div>
+              <p id="profile-error" class="hint error-text" aria-live="polite"></p>
+              <div class="actions">
+                <button id="profile-submit" class="button" type="submit">Save profile</button>
+                <button id="profile-cancel" class="button button--secondary" type="button">Cancel</button>
+              </div>
+            </form>
+          </div>
+        `;
+      }
+
+      function renderPhotosPanel(member) {
+        const isFounder = normalizeTier(member?.tier) === "founder";
+
+        return `
+          <div id="photos-panel" class="section-panel" aria-live="polite">
+            <p class="eyebrow">Photos</p>
+            <h2>${isFounder ? "Founder photos" : "Member photos"}</h2>
+            <p>${isFounder
+              ? "One photo is required. Add more only if you wish, up to six total. Choose one as the face view."
+              : "Your photo set is private to your account. Two application references are held internally and are not shown here."}</p>
+            <div id="photos-content">
+              <p class="hint">Loading photos.</p>
+            </div>
+            <p id="photos-error" class="hint error-text" aria-live="polite"></p>
+          </div>
+        `;
+      }
+
+      function renderFounderConciergePanel(member) {
+        return `
+          <div id="founder-concierge-panel" class="section-panel" aria-live="polite">
+            <p class="eyebrow">Founder Concierge</p>
+            <h2>Concierge profile</h2>
+            <p>Your answers help Presttige understand where discretion, access, timing, and taste matter most. Share only what you wish, this profile can remain partial.</p>
+            <div id="founder-concierge-content">
+              <p class="hint">Loading Concierge profile.</p>
+            </div>
+            <p id="founder-concierge-error" class="hint error-text" aria-live="polite"></p>
+          </div>
+        `;
+      }
+
+      async function loadFounderConcierge(member) {
+        const host = document.getElementById("founder-concierge-content");
+        const errorBox = document.getElementById("founder-concierge-error");
+        if (!host || normalizeTier(member?.tier) !== "founder") {
+          return;
+        }
+
+        try {
+          const result = await api("concierge", { mode: "list" });
+          host.innerHTML = renderFounderConciergeForm(result.definition, result.concierge_profile);
+          bindFounderConciergeActions(result.definition);
+          if (errorBox) errorBox.textContent = "";
+        } catch (error) {
+          host.innerHTML = "";
+          if (errorBox) errorBox.textContent = "Concierge profile is not available right now.";
+        }
+      }
+
+      function renderFounderConciergeForm(definition, profile) {
+        const progress = profile?.progress || {};
+        const answered = Number(progress.answered_questions || 0);
+        const total = Number(progress.total_questions || definition?.total_questions || 22);
+        const percent = Number(progress.completion_percent || 0);
+        const sections = Array.isArray(definition?.sections) ? definition.sections : [];
+        return `
+          <form id="founder-concierge-form" novalidate>
+            <div class="concierge-progress" aria-label="Concierge profile progress">
+              <div class="photo-summary-item">
+                <span class="meta-label">Answered</span>
+                <strong>${escapeHtml(String(answered))}/${escapeHtml(String(total))}</strong>
+              </div>
+              <div class="photo-summary-item">
+                <span class="meta-label">Progress</span>
+                <strong>${escapeHtml(String(percent))}%</strong>
+              </div>
+            </div>
+            <div class="concierge-section-list">
+              ${sections.map((section) => renderFounderConciergeSection(section, profile)).join("")}
+            </div>
+            <div class="actions">
+              <button id="founder-concierge-submit" class="button" type="submit">Save Concierge profile</button>
+            </div>
+          </form>
+        `;
+      }
+
+      function renderFounderConciergeSection(section, profile) {
+        const questions = Array.isArray(section.questions) ? section.questions : [];
+        return `
+          <section class="concierge-section" data-concierge-section="${escapeAttr(section.id)}">
+            <div>
+              <p class="eyebrow">${escapeHtml(section.title)}</p>
+              <h3>${escapeHtml(section.title)}</h3>
+            </div>
+            ${questions.map((question) => renderFounderConciergeQuestion(question, profile)).join("")}
+          </section>
+        `;
+      }
+
+      function renderFounderConciergeQuestion(question, profile) {
+        const answer = profile?.answers?.[question.id] || {};
+        const selected = new Set(Array.isArray(answer.selected) ? answer.selected : []);
+        const options = Array.isArray(question.options) ? question.options : [];
+        const questionTitleId = `concierge-title-${question.id}`;
+        return `
+          <div class="concierge-question" data-concierge-question="${escapeAttr(question.id)}" role="group" aria-labelledby="${escapeAttr(questionTitleId)}">
+            <p id="${escapeAttr(questionTitleId)}" class="concierge-question-title">${escapeHtml(question.label)}</p>
+            <div class="concierge-options">
+              ${options.map((item) => renderFounderConciergeOption(question.id, item, selected, answer.free_text || {})).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderFounderConciergeOption(questionId, item, selected, freeText) {
+        const checked = selected.has(item.value);
+        const inputId = `concierge-${questionId}-${item.value}`;
+        const freeTextValue = freeText?.[item.value] || "";
+        return `
+          <label class="concierge-option" for="${escapeAttr(inputId)}">
+            <span class="concierge-option-row">
+              <input
+                id="${escapeAttr(inputId)}"
+                type="checkbox"
+                value="${escapeAttr(item.value)}"
+                data-concierge-option="${escapeAttr(questionId)}"
+                data-free-text="${item.free_text ? "true" : "false"}"
+                ${checked ? "checked" : ""}
+              >
+              <span>${escapeHtml(item.label)}</span>
+            </span>
+            ${item.free_text
+              ? `<input class="concierge-free-text" type="text" maxlength="240" value="${escapeAttr(freeTextValue)}" data-concierge-free-text="${escapeAttr(questionId)}" data-option-value="${escapeAttr(item.value)}" placeholder="${escapeAttr(item.label)}" ${checked ? "" : "disabled"}>`
+              : ""}
+          </label>
+        `;
+      }
+
+      function bindFounderConciergeActions(definition) {
+        const form = document.getElementById("founder-concierge-form");
+        if (!form) {
+          return;
+        }
+        form.querySelectorAll("[data-concierge-option]").forEach((checkbox) => {
+          checkbox.addEventListener("change", () => {
+            const freeText = form.querySelector(`[data-concierge-free-text="${escapeAttr(checkbox.dataset.conciergeOption)}"][data-option-value="${escapeAttr(checkbox.value)}"]`);
+            if (!freeText) {
+              return;
+            }
+            freeText.disabled = !checkbox.checked;
+            if (!checkbox.checked) {
+              freeText.value = "";
+            }
+          });
+        });
+        form.addEventListener("submit", (event) => submitFounderConcierge(event, definition));
+      }
+
+      async function submitFounderConcierge(event, definition) {
+        event.preventDefault();
+        const errorBox = document.getElementById("founder-concierge-error");
+        const button = document.getElementById("founder-concierge-submit");
+        if (errorBox) errorBox.textContent = "";
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Saving...";
+        }
+        try {
+          const payload = {
+            mode: "save",
+            answers: founderConciergePayloadFromForm(definition),
+          };
+          const result = await api("concierge", payload);
+          document.getElementById("founder-concierge-content").innerHTML = renderFounderConciergeForm(result.definition, result.concierge_profile);
+          bindFounderConciergeActions(result.definition);
+          if (errorBox) errorBox.textContent = "Concierge profile saved.";
+        } catch (error) {
+          if (errorBox) errorBox.textContent = "Concierge profile could not be saved.";
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Save Concierge profile";
+          }
+        }
+      }
+
+      function founderConciergePayloadFromForm(definition) {
+        const answers = {};
+        const questions = (definition?.sections || []).flatMap((section) => section.questions || []);
+        questions.forEach((question) => {
+          const selected = Array.from(document.querySelectorAll(`[data-concierge-option="${escapeAttr(question.id)}"]:checked`))
+            .map((item) => item.value);
+          const freeText = {};
+          selected.forEach((value) => {
+            const input = document.querySelector(`[data-concierge-free-text="${escapeAttr(question.id)}"][data-option-value="${escapeAttr(value)}"]`);
+            if (input && input.value.trim()) {
+              freeText[value] = input.value.trim();
+            }
+          });
+          if (selected.length) {
+            answers[question.id] = {
+              selected,
+              free_text: freeText,
+            };
+          }
+        });
+        return answers;
+      }
+
+      function renderPrivacyPanel(member) {
+        const email = profileOf(member).email || member?.email || "";
+        return `
+          <div class="section-panel" aria-live="polite">
+            <p class="eyebrow">Privacy</p>
+            <h2>Data rights</h2>
+            <p>This private area is available to your authenticated account even while silent validation is pending.</p>
+            <div class="privacy-actions">
+              <article class="privacy-card">
+                <h3>Access and export</h3>
+                <p>Download a portable JSON export of the Presttige member data attached to this account. It is delivered through this authenticated session only.</p>
+                <div class="actions">
+                  <button id="privacy-export" class="button" type="button">Download data export</button>
+                </div>
+                <p id="privacy-export-status" class="hint" aria-live="polite"></p>
+              </article>
+              <article class="privacy-card">
+                <h3>Rectification</h3>
+                <p>Editable profile and interest details are handled in the Profile section after silent validation. Fixed identity fields, including ${escapeHtml(email)}, can be corrected by contacting Presttige.</p>
+              </article>
+              <article class="privacy-card">
+                <h3>Erasure</h3>
+                <p>Erasure removes profile details, interests, photos, social handles, free text, and disables the member login. Minimum legal, financial, and audit records may be retained where required.</p>
+                <form id="privacy-erase-form" class="privacy-confirm" novalidate>
+                  <label class="privacy-confirm-row" for="privacy-erase-check">
+                    <input id="privacy-erase-check" type="checkbox" required>
+                    <span>I understand that my member login will be disabled and my profile data will be erased where the law allows.</span>
+                  </label>
+                  <div class="field">
+                    <label for="privacy-erase-confirmation">Confirmation phrase</label>
+                    <input id="privacy-erase-confirmation" type="text" autocomplete="off" placeholder="${escapeAttr(DSAR_ERASURE_CONFIRMATION)}" required>
+                    <p class="hint">Type ${escapeHtml(DSAR_ERASURE_CONFIRMATION)} to confirm.</p>
+                  </div>
+                  <p id="privacy-erase-status" class="hint error-text" aria-live="polite"></p>
+                  <div class="actions">
+                    <button id="privacy-erase-submit" class="button button--secondary" type="submit">Erase account data</button>
+                  </div>
+                </form>
+              </article>
+            </div>
+          </div>
+        `;
+      }
+
+      async function loadMemberPhotos(member) {
+        const host = document.getElementById("photos-content");
+        const errorBox = document.getElementById("photos-error");
+        if (!host) {
+          return;
+        }
+
+        try {
+          const result = await api("photos", { mode: "list" });
+          host.innerHTML = renderPhotosContent(result.photos || member?.photos || {});
+          bindPhotoActions(result.photos || member?.photos || {});
+          if (errorBox) errorBox.textContent = "";
+        } catch (error) {
+          host.innerHTML = "";
+          if (errorBox) errorBox.textContent = "Photos are not available right now.";
+        }
+      }
+
+      function renderPhotosContent(photos) {
+        if (isFounderPhotoModel(photos)) {
+          return renderFounderPhotosContent(photos);
+        }
+
+        const visibleSlots = Array.isArray(photos.visible_slots) ? photos.visible_slots : [];
+        const completeCount = Number(photos.complete_count || 0);
+        const requiredCount = Number(photos.required_count || 6);
+        const faceSet = Boolean(photos.face_photo_id);
+        return `
+          <div class="photo-summary" aria-label="Photo summary">
+            <div class="photo-summary-item">
+              <span class="meta-label">Total</span>
+              <strong>${escapeHtml(String(completeCount))}/${escapeHtml(String(requiredCount))}</strong>
+            </div>
+            <div class="photo-summary-item">
+              <span class="meta-label">Internal</span>
+              <strong>${escapeHtml(String(photos.seeded_internal_count || 2))}</strong>
+            </div>
+            <div class="photo-summary-item">
+              <span class="meta-label">Face</span>
+              <strong>${faceSet ? "Set" : "Choose"}</strong>
+            </div>
+          </div>
+          <div class="photo-grid">
+            ${renderInternalPhotoSlot(1)}
+            ${renderInternalPhotoSlot(2)}
+            ${visibleSlots.map(renderVisiblePhotoSlot).join("")}
+          </div>
+        `;
+      }
+
+      function renderFounderPhotosContent(photos) {
+        const visibleSlots = Array.isArray(photos.visible_slots) ? photos.visible_slots : [];
+        const completeCount = Number(photos.complete_count || 0);
+        const maxCount = Number(photos.max_count || 6);
+        const faceSet = Boolean(photos.face_photo_id);
+        const nextSlot = Number(photos.next_available_slot || 0);
+        return `
+          <div class="photo-summary" aria-label="Founder photo summary">
+            <div class="photo-summary-item">
+              <span class="meta-label">Photos</span>
+              <strong>${escapeHtml(String(completeCount))}/${escapeHtml(String(maxCount))}</strong>
+            </div>
+            <div class="photo-summary-item">
+              <span class="meta-label">Minimum</span>
+              <strong>1</strong>
+            </div>
+            <div class="photo-summary-item">
+              <span class="meta-label">Face</span>
+              <strong>${faceSet ? "Set" : "Choose"}</strong>
+            </div>
+          </div>
+          <div class="photo-grid is-founder">
+            ${visibleSlots.map((slot) => renderFounderPhotoSlot(slot, visibleSlots.length)).join("")}
+            ${nextSlot ? renderFounderAddPhotoSlot(nextSlot) : ""}
+          </div>
+        `;
+      }
+
+      function renderInternalPhotoSlot(slot) {
+        return `
+          <article class="photo-slot is-internal">
+            <div class="photo-slot-header">
+              <h3 class="photo-slot-title">Photo ${slot}</h3>
+              <span class="status-badge">Internal</span>
+            </div>
+            <div class="photo-frame">
+              <span class="photo-placeholder">Application reference held privately.</span>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderVisiblePhotoSlot(slot) {
+        const status = String(slot.status || "empty").toLowerCase();
+        const hasPhoto = Boolean(slot.photo_id);
+        const isReady = status === "ready";
+        const actionLabel = hasPhoto ? "Replace" : "Add photo";
+        const statusLabel = slot.is_face ? "Face" : isReady ? "Ready" : hasPhoto ? "Preparing" : "Empty";
+        return `
+          <article class="photo-slot" data-photo-slot="${escapeAttr(slot.slot)}">
+            <div class="photo-slot-header">
+              <h3 class="photo-slot-title">Photo ${escapeHtml(String(slot.slot))}</h3>
+              <span class="status-badge">${escapeHtml(statusLabel)}</span>
+            </div>
+            <div class="photo-frame">
+              ${slot.thumbnail_url
+                ? `<img src="${escapeAttr(slot.thumbnail_url)}" alt="">`
+                : `<span class="photo-placeholder">${hasPhoto ? "Thumbnail preparing." : "Add a private member photo."}</span>`}
+            </div>
+            <div class="photo-actions">
+              <button class="button button--small" type="button" data-photo-upload="${escapeAttr(slot.slot)}">${escapeHtml(actionLabel)}</button>
+              <input class="photo-input" type="file" accept="image/jpeg,image/png" data-photo-input="${escapeAttr(slot.slot)}">
+              <button class="button button--small button--secondary" type="button" data-photo-face="${escapeAttr(slot.photo_id)}" ${isReady && !slot.is_face ? "" : "disabled"}>Set face</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderFounderPhotoSlot(slot, totalSlots) {
+        const status = String(slot.status || "empty").toLowerCase();
+        const hasPhoto = Boolean(slot.photo_id);
+        const isReady = status === "ready";
+        const statusLabel = slot.is_face ? "Face" : isReady ? "Ready" : hasPhoto ? "Preparing" : "Empty";
+        const canRemove = hasPhoto && totalSlots > 1;
+        return `
+          <article class="photo-slot" data-photo-slot="${escapeAttr(slot.slot)}">
+            <div class="photo-slot-header">
+              <h3 class="photo-slot-title">Photo ${escapeHtml(String(slot.slot))}</h3>
+              <span class="status-badge">${escapeHtml(statusLabel)}</span>
+            </div>
+            <div class="photo-frame">
+              ${slot.thumbnail_url
+                ? `<img src="${escapeAttr(slot.thumbnail_url)}" alt="">`
+                : `<span class="photo-placeholder">${hasPhoto ? "Thumbnail preparing." : "Add a private Founder photo."}</span>`}
+            </div>
+            <div class="photo-actions">
+              <button class="button button--small" type="button" data-photo-upload="${escapeAttr(slot.slot)}">${hasPhoto ? "Replace" : "Add photo"}</button>
+              <input class="photo-input" type="file" accept="image/jpeg,image/png" data-photo-input="${escapeAttr(slot.slot)}">
+              <button class="button button--small button--secondary" type="button" data-photo-face="${escapeAttr(slot.photo_id)}" ${isReady && !slot.is_face ? "" : "disabled"}>Set face</button>
+              <button class="button button--small button--secondary" type="button" data-photo-remove="${escapeAttr(slot.photo_id)}" ${canRemove ? "" : "disabled"}>Remove</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderFounderAddPhotoSlot(slot) {
+        return `
+          <article class="photo-slot is-add" data-photo-slot="${escapeAttr(slot)}">
+            <div class="photo-slot-header">
+              <h3 class="photo-slot-title">Add photo</h3>
+              <span class="status-badge">Optional</span>
+            </div>
+            <div class="photo-frame">
+              <span class="photo-placeholder">Add another private Founder photo, up to six total.</span>
+            </div>
+            <div class="photo-actions">
+              <button class="button button--small" type="button" data-photo-upload="${escapeAttr(slot)}">Add photo</button>
+              <input class="photo-input" type="file" accept="image/jpeg,image/png" data-photo-input="${escapeAttr(slot)}">
+            </div>
+          </article>
+        `;
+      }
+
+      function bindPhotoActions(photos) {
+        document.querySelectorAll("[data-photo-upload]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const input = document.querySelector(`[data-photo-input="${button.dataset.photoUpload}"]`);
+            input?.click();
+          });
+        });
+        document.querySelectorAll("[data-photo-input]").forEach((input) => {
+          input.addEventListener("change", () => {
+            const file = input.files?.[0];
+            if (file) {
+              uploadMemberPhoto(input.dataset.photoInput, file);
+            }
+            input.value = "";
+          });
+        });
+        document.querySelectorAll("[data-photo-face]").forEach((button) => {
+          button.addEventListener("click", () => setMemberPhotoFace(button.dataset.photoFace));
+        });
+        document.querySelectorAll("[data-photo-remove]").forEach((button) => {
+          button.addEventListener("click", () => removeMemberPhoto(button.dataset.photoRemove));
+        });
+      }
+
+      async function uploadMemberPhoto(slot, file) {
+        const errorBox = document.getElementById("photos-error");
+        if (errorBox) errorBox.textContent = "";
+
+        if (!PHOTO_TYPES.has(file.type)) {
+          if (errorBox) errorBox.textContent = "Use a JPEG or PNG image.";
+          return;
+        }
+        if (file.size > PHOTO_MAX_SIZE) {
+          if (errorBox) errorBox.textContent = "Use an image under 10 MB.";
+          return;
+        }
+
+        setPhotoButtonsDisabled(true);
+        try {
+          const result = await api("photos", {
+            mode: "init-upload",
+            slot: Number(slot),
+            content_type: file.type,
+            file_size: file.size,
+          });
+          await postPhotoToS3(result.upload, file);
+          await refreshPhotosUntilReady(result.upload.photo_id);
+        } catch (error) {
+          if (errorBox) errorBox.textContent = "Photo could not be saved.";
+          setPhotoButtonsDisabled(false);
+        }
+      }
+
+      async function postPhotoToS3(upload, file) {
+        const formData = new FormData();
+        Object.entries(upload.upload_fields || {}).forEach(([key, value]) => {
+          formData.append(key, value);
+        });
+        formData.append("file", file);
+        const result = await fetch(upload.upload_url, {
+          method: "POST",
+          body: formData,
+        });
+        if (!result.ok) {
+          throw new Error("Photo upload failed");
+        }
+      }
+
+      async function refreshPhotosUntilReady(photoId) {
+        const host = document.getElementById("photos-content");
+        for (let attempt = 0; attempt < 6; attempt += 1) {
+          await sleep(attempt === 0 ? 1200 : 2500);
+          const result = await api("photos", { mode: "list" });
+          host.innerHTML = renderPhotosContent(result.photos || {});
+          bindPhotoActions(result.photos || {});
+          const slot = (result.photos?.visible_slots || []).find((item) => item.photo_id === photoId);
+          if (slot?.status === "ready") {
+            return;
+          }
+        }
+        setPhotoButtonsDisabled(false);
+      }
+
+      async function setMemberPhotoFace(photoId) {
+        const errorBox = document.getElementById("photos-error");
+        if (!photoId) {
+          return;
+        }
+        if (errorBox) errorBox.textContent = "";
+        setPhotoButtonsDisabled(true);
+        try {
+          const result = await api("photos", {
+            mode: "set-face",
+            photo_id: photoId,
+          });
+          document.getElementById("photos-content").innerHTML = renderPhotosContent(result.photos || {});
+          bindPhotoActions(result.photos || {});
+        } catch (error) {
+          if (errorBox) errorBox.textContent = "Face photo could not be set.";
+          setPhotoButtonsDisabled(false);
+        }
+      }
+
+      async function removeMemberPhoto(photoId) {
+        const errorBox = document.getElementById("photos-error");
+        if (!photoId) {
+          return;
+        }
+        if (errorBox) errorBox.textContent = "";
+        setPhotoButtonsDisabled(true);
+        try {
+          const result = await api("photos", {
+            mode: "remove",
+            photo_id: photoId,
+          });
+          document.getElementById("photos-content").innerHTML = renderPhotosContent(result.photos || {});
+          bindPhotoActions(result.photos || {});
+        } catch (error) {
+          if (errorBox) errorBox.textContent = "Photo could not be removed.";
+          setPhotoButtonsDisabled(false);
+        }
+      }
+
+      function setPhotoButtonsDisabled(disabled) {
+        document.querySelectorAll("[data-photo-upload]").forEach((button) => {
+          button.disabled = disabled;
+        });
+        document.querySelectorAll("[data-photo-remove]").forEach((button) => {
+          if (disabled) {
+            if (!button.disabled) {
+              button.dataset.reenable = "true";
+              button.disabled = true;
+            }
+            return;
+          }
+          if (button.dataset.reenable === "true") {
+            button.disabled = false;
+            delete button.dataset.reenable;
+          }
+        });
+        if (disabled) {
+          document.querySelectorAll("[data-photo-face]").forEach((button) => {
+            if (!button.disabled) {
+              button.dataset.reenable = "true";
+              button.disabled = true;
+            }
+          });
+          return;
+        }
+        document.querySelectorAll("[data-photo-face][data-reenable='true']").forEach((button) => {
+          button.disabled = false;
+          delete button.dataset.reenable;
+        });
+      }
+
+      function isFounderPhotoModel(photos) {
+        return String(photos?.photo_model || "").toLowerCase() === "founder_optional";
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => window.setTimeout(resolve, ms));
+      }
+
+      async function downloadDataExport(member) {
+        const status = document.getElementById("privacy-export-status");
+        const button = document.getElementById("privacy-export");
+        if (status) status.textContent = "";
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Preparing...";
+        }
+        try {
+          const result = await api("dsar", { mode: "export" });
+          const exportData = result.export || {};
+          const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `presttige-data-export-${safeFilePart(member?.lead_id || "member")}.json`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+          if (status) status.textContent = "Your export has been prepared.";
+        } catch (error) {
+          if (status) status.textContent = "Data export could not be prepared right now.";
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Download data export";
+          }
+        }
+      }
+
+      async function submitErasureRequest(event) {
+        event.preventDefault();
+        const confirmation = readFormValue("privacy-erase-confirmation");
+        const checked = document.getElementById("privacy-erase-check")?.checked === true;
+        const status = document.getElementById("privacy-erase-status");
+        const button = document.getElementById("privacy-erase-submit");
+        if (status) status.textContent = "";
+
+        if (!checked || confirmation !== DSAR_ERASURE_CONFIRMATION) {
+          if (status) status.textContent = "Confirm the erasure request with the exact phrase.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Erasing...";
+        try {
+          await api("dsar", {
+            mode: "erase",
+            confirmed: true,
+            confirmation,
+          });
+          renderLogin("Your account erasure request has been completed where the law allows. A confirmation email has been sent.");
+        } catch (error) {
+          if (status) status.textContent = "Erasure could not be completed right now.";
+          button.disabled = false;
+          button.textContent = "Erase account data";
+        }
+      }
+
+      async function submitProfile(event, member) {
+        event.preventDefault();
+        const button = document.getElementById("profile-submit");
+        const errorBox = document.getElementById("profile-error");
+        const payload = profilePayloadFromForm();
+        const errors = validateProfilePayload(payload);
+
+        errorBox.textContent = "";
+        if (errors.length) {
+          errorBox.textContent = `Profile needs ${errors.join(", ")}.`;
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Saving...";
+        try {
+          const result = await api("profile", payload);
+          renderMemberShell(result.member || member, "profile");
+        } catch (error) {
+          errorBox.textContent = "Profile could not be saved.";
+          button.disabled = false;
+          button.textContent = "Save profile";
+        }
+      }
+
+      function profilePayloadFromForm() {
+        return {
+          profile: {
+            phone_country: readFormValue("profile-phone-country"),
+            phone: readFormValue("profile-phone"),
+            age: readFormValue("profile-age"),
+            country: readFormValue("profile-country"),
+            city: readFormValue("profile-city"),
+            instagram: readFormValue("profile-instagram"),
+            linkedin: readFormValue("profile-linkedin"),
+            tiktok: readFormValue("profile-tiktok"),
+            website: readFormValue("profile-website"),
+            occupation: readFormValue("profile-occupation"),
+            company: readFormValue("profile-company"),
+            bio: readFormValue("profile-bio"),
+          },
+          interests: {
+            lifestyle: readFormValue("interest-lifestyle"),
+            business: readFormValue("interest-business"),
+            travel: readFormValue("interest-travel"),
+            culture: readFormValue("interest-culture"),
+            wellbeing: readFormValue("interest-wellbeing"),
+            notes: readFormValue("interest-notes"),
+          },
+        };
+      }
+
+      function validateProfilePayload(payload) {
+        const profile = payload.profile || {};
+        const required = [
+          ["phone_country", "phone code"],
+          ["phone", "phone"],
+          ["age", "age"],
+          ["country", "country"],
+          ["city", "city"],
+          ["instagram", "Instagram"],
+          ["bio", "short introduction"],
+        ];
+        const errors = required
+          .filter(([key]) => !String(profile[key] || "").trim())
+          .map(([, label]) => label);
+
+        if (profile.bio && profile.bio.length < 50) {
+          errors.push("a longer short introduction");
+        }
+        if (profile.website && !isHttpUrl(profile.website)) {
+          errors.push("a valid website URL");
+        }
+        if (profile.linkedin && !isHttpUrl(profile.linkedin)) {
+          errors.push("a valid LinkedIn URL");
+        }
+        return errors;
+      }
+
+      function isSectionLocked(section, isValidated) {
+        return Boolean(section.requiresValidation || VALIDATION_REQUIRED_SECTIONS.has(section.key)) && !isValidated;
+      }
+
+      function isMemberValidated(member) {
+        return member?.validation?.is_validated === true ||
+          String(member?.validation_status || "").toLowerCase() === "validated";
+      }
+
+      function renderPasswordPending(payload) {
+        const activationUrl = payload.activation_url || "";
+        renderEntry(`
+          <p class="eyebrow">Account Setup</p>
+          <h2 class="title">Complete setup.</h2>
+          <p class="copy">Your account setup is not complete yet. Complete the password step before entering the member area.</p>
+          <div class="actions">
+            ${activationUrl ? `<a class="button" href="${escapeHtml(activationUrl)}">Set password</a>` : ""}
+            <button class="button button--secondary" type="button" data-login>Back to login</button>
+          </div>
+        `);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+      }
+
+      function renderForgot() {
+        renderEntry(`
+          <p class="eyebrow">Password Reset</p>
+          <h2 class="title">Reset access.</h2>
+          <p class="copy">Enter your member email. If the account can be reset, instructions will be sent.</p>
+          <form id="forgot-form" class="form" novalidate>
+            <div class="field">
+              <label for="forgot-email">Email</label>
+              <input id="forgot-email" type="email" autocomplete="username" required>
+            </div>
+            <p id="forgot-message" class="hint"></p>
+            <div class="actions">
+              <button id="forgot-submit" class="button" type="submit">Send reset</button>
+              <button class="button button--secondary" type="button" data-login>Back to login</button>
+            </div>
+          </form>
+          <div class="notice">
+            Already have a reset code?
+            <button class="link-button" type="button" data-reset-code>Enter code</button>
+          </div>
+        `);
+        document.getElementById("forgot-form").addEventListener("submit", submitForgot);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+        app.querySelector("[data-reset-code]").addEventListener("click", renderResetCode);
+      }
+
+      async function submitForgot(event) {
+        event.preventDefault();
+        const email = document.getElementById("forgot-email").value.trim();
+        const message = document.getElementById("forgot-message");
+        const button = document.getElementById("forgot-submit");
+        button.disabled = true;
+        button.textContent = "Sending...";
+        try {
+          const result = await api("forgot", { email });
+          message.textContent = result.message || "If this account can be reset, instructions have been sent.";
+        } catch (error) {
+          message.textContent = "If this account can be reset, instructions have been sent.";
+        } finally {
+          button.disabled = false;
+          button.textContent = "Send reset";
+        }
+      }
+
+      function renderResetCode() {
+        renderEntry(`
+          <p class="eyebrow">Password Reset</p>
+          <h2 class="title">Enter reset code.</h2>
+          <p class="copy">Use the code sent to your email and choose a new password.</p>
+          <form id="reset-form" class="form" novalidate>
+            <div class="field">
+              <label for="reset-email">Email</label>
+              <input id="reset-email" type="email" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label for="reset-code">Reset code</label>
+              <input id="reset-code" type="text" inputmode="numeric" autocomplete="one-time-code" required>
+            </div>
+            <div class="field">
+              <label for="reset-password">New password</label>
+              <input id="reset-password" type="password" autocomplete="new-password" minlength="14" required>
+              <p class="hint">Use at least 14 characters, with uppercase, lowercase, a number and a symbol.</p>
+            </div>
+            <p id="reset-error" class="hint error-text"></p>
+            <div class="actions">
+              <button id="reset-submit" class="button" type="submit">Reset password</button>
+              <button class="button button--secondary" type="button" data-login>Back to login</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("reset-form").addEventListener("submit", submitReset);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+      }
+
+      async function submitReset(event) {
+        event.preventDefault();
+        const email = document.getElementById("reset-email").value.trim();
+        const code = document.getElementById("reset-code").value.trim();
+        const password = document.getElementById("reset-password").value;
+        const errorBox = document.getElementById("reset-error");
+        const button = document.getElementById("reset-submit");
+        const errors = validatePassword(password);
+        errorBox.textContent = "";
+        if (errors.length) {
+          errorBox.textContent = `Password needs ${errors.join(", ")}.`;
+          return;
+        }
+        button.disabled = true;
+        button.textContent = "Resetting...";
+        try {
+          await api("confirm-reset", { email, code, password });
+          renderLogin("Password reset complete. You can sign in now.");
+        } catch (error) {
+          errorBox.textContent = "Password reset could not be completed.";
+          button.disabled = false;
+          button.textContent = "Reset password";
+        }
+      }
+
+      async function signOut() {
+        await api("logout", {});
+        renderLogin("You have signed out.");
+      }
+
+      async function api(path, payload) {
+        const response = await fetch(`${API_BASE}/${path}`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload || {}),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data.message || "Request failed");
+          error.payload = data;
+          throw error;
+        }
+        return data;
+      }
+
+      function validatePassword(password) {
+        const checks = [];
+        if (password.length < 14) checks.push("14 characters");
+        if (!/[A-Z]/.test(password)) checks.push("an uppercase letter");
+        if (!/[a-z]/.test(password)) checks.push("a lowercase letter");
+        if (!/[0-9]/.test(password)) checks.push("a number");
+        if (!/[^A-Za-z0-9]/.test(password)) checks.push("a symbol");
+        return checks;
+      }
+
+      function firstNameOf(value) {
+        return String(value || "Member").trim().split(/\s+/)[0] || "Member";
+      }
+
+      function normalizeTier(value) {
+        return String(value || "free").trim().toLowerCase().replace(/_/g, "-");
+      }
+
+      function tierLabelFor(tier) {
+        const labels = {
+          subscriber: "Subscriber",
+          free: "Subscriber",
+          club: "Club",
+          premier: "Premier",
+          patron: "Patron",
+          founder: "Founder",
+          tester: "Tester",
+        };
+        return labels[tier] || titleCase(tier || "member");
+      }
+
+      function tierDescription(tier) {
+        const descriptions = {
+          subscriber: "Your membership is active at the Subscriber level.",
+          free: "Your membership is active at the Subscriber level.",
+          club: "Your Club membership is active.",
+          premier: "Your Premier membership is active.",
+          patron: "Your Patron membership is active.",
+          founder: "Your Founder identity is active. Founder-specific controls follow in the dedicated Founder step.",
+          tester: "Your Tester membership is active.",
+        };
+        return descriptions[tier] || "Your Presttige membership is active.";
+      }
+
+      function statusLabel(value) {
+        const status = String(value || "").trim().toLowerCase();
+        if (status === "active") return "Active";
+        if (status === "password_pending") return "Complete setup";
+        return titleCase(status || "Active");
+      }
+
+      function profileOf(member) {
+        const profile = member?.profile || {};
+        return {
+          name: profile.name || member?.name || "",
+          email: profile.email || member?.email || "",
+          phone_country: profile.phone_country || "",
+          phone: profile.phone || "",
+          age: profile.age || "",
+          country: profile.country || "",
+          city: profile.city || "",
+          occupation: profile.occupation || "",
+          company: profile.company || "",
+          website: profile.website || "",
+          linkedin: profile.linkedin || "",
+          instagram: profile.instagram || "",
+          tiktok: profile.tiktok || "",
+          bio: profile.bio || "",
+        };
+      }
+
+      function interestsOf(member) {
+        const interests = member?.interests || {};
+        return {
+          lifestyle: interests.lifestyle || "",
+          business: interests.business || "",
+          travel: interests.travel || "",
+          culture: interests.culture || "",
+          wellbeing: interests.wellbeing || "",
+          notes: interests.notes || "",
+        };
+      }
+
+      function readFormValue(id) {
+        return String(document.getElementById(id)?.value || "").trim();
+      }
+
+      function isHttpUrl(value) {
+        try {
+          const url = new URL(value);
+          return url.protocol === "https:" || url.protocol === "http:";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function titleCase(value) {
+        return String(value || "")
+          .split(/[_\s-]+/)
+          .filter(Boolean)
+          .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(" ");
+      }
+
+      function safeFilePart(value) {
+        return String(value || "member")
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 80) || "member";
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function escapeAttr(value) {
+        return escapeHtml(value);
+      }
+    })();
+  </script>
+</body>
+</html>
