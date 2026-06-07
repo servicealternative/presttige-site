@@ -5,6 +5,9 @@ backups/
 # Reports directory (Codex execution logs)
 reports/
 
+# Local audit scratch, canonical backups live under docs/backups and S3
+audits/
+
 # macOS
 ._*
 .Spotlight-V100
