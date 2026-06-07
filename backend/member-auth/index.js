@@ -27,6 +27,8 @@ const TABLE_NAME = process.env.TABLE_NAME || "presttige-db";
 const AUDIT_TABLE_NAME = process.env.AUDIT_TABLE_NAME || "presttige-review-audit";
 const COGNITO_SUB_INDEX_NAME = process.env.COGNITO_SUB_INDEX_NAME || "cognito_sub-index";
 const EMAIL_INDEX_NAME = process.env.EMAIL_INDEX_NAME || "email-index";
+const USERNAME_INDEX_NAME = process.env.USERNAME_INDEX_NAME || "username-index";
+const MEMBER_USERNAMES_TABLE = process.env.MEMBER_USERNAMES_TABLE || "presttige-member-usernames";
 const MEMBER_USER_POOL_ID = process.env.MEMBER_USER_POOL_ID || "us-east-1_hpwdNFGss";
 const MEMBER_CLIENT_ID = process.env.MEMBER_CLIENT_ID || "3gdek6k48cm6oirccodgrub2k1";
 const MEMBER_COGNITO_POOL_NAME = process.env.MEMBER_COGNITO_POOL_NAME || "presttige-members";
@@ -68,8 +70,13 @@ const COOKIE_FOUNDER_TOTP_ENROLL_ID = "__Host-pp_founder_totp_enroll_id";
 const COOKIE_FOUNDER_TOTP_ENROLL_REFRESH = "__Host-pp_founder_totp_enroll_refresh";
 const COOKIE_FOUNDER_TOTP_CHALLENGE_SESSION = "__Host-pp_founder_totp_challenge_session";
 const ACTIVE_ACCOUNT_STATUS = "active";
+const ARCHIVED_ACCOUNT_STATUS = "archived";
 const PASSWORD_PENDING_STATUS = "password_pending";
 const VALIDATED_STATUS = "validated";
+const PROFILE_VISIBILITY_ACTIVE = "active";
+const PROFILE_VISIBILITY_DEACTIVATED = "deactivated";
+const USERNAME_PATTERN = /^[a-z0-9_.]{3,30}$/;
+const ACCOUNT_KEEP_DATA_CONFIRMATION = "KEEP MY DATA";
 const NORMAL_MEMBER_PHOTO_REQUIRED_COUNT = 6;
 const INTERNAL_SEEDED_PHOTO_COUNT = 2;
 const MEMBER_PHOTO_SLOT_MIN = 3;
@@ -434,8 +441,14 @@ exports.handler = async (event) => {
     if (route === "member-action") {
       return handleMemberAction(event);
     }
+    if (route === "username") {
+      return handleUsername(event);
+    }
     if (route === "profile") {
       return handleProfileSave(event);
+    }
+    if (route === "profile-status") {
+      return handleProfileStatus(event);
     }
     if (route === "photos") {
       return handleMemberPhotos(event);
@@ -454,6 +467,9 @@ exports.handler = async (event) => {
     }
     if (route === "dsar") {
       return handleMemberDsar(event);
+    }
+    if (route === "account-removal") {
+      return handleAccountRemoval(event);
     }
 
     return response(event, 404, { ok: false, status: "NOT_FOUND" }, []);
@@ -936,6 +952,71 @@ async function handleMemberAction(event) {
   }, cookiesToSet);
 }
 
+async function handleUsername(event) {
+  const body = parseBody(event);
+  const mode = normalizeText(body.mode || "check").toLowerCase();
+  const requestedUsername = normalizeUsername(body.username);
+  const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
+
+  if (!session.ok) {
+    logAuth("username", session.status || "invalid", {
+      sub_hash: hashIdentifier(session.cognito_sub),
+    });
+    return response(event, session.statusCode || 401, session, clearSessionCookies());
+  }
+
+  const cookiesToSet = refreshedTokens
+    ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
+    : [];
+
+  if (!isMemberValidated(session.member)) {
+    logAuth("username", "unavailable", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+    });
+    return response(event, 403, {
+      ok: false,
+      status: "ACTION_UNAVAILABLE",
+    }, cookiesToSet);
+  }
+
+  if (mode !== "check") {
+    return response(event, 400, {
+      ok: false,
+      status: "INVALID_USERNAME_ACTION",
+    }, cookiesToSet);
+  }
+
+  const errors = usernameErrors(requestedUsername);
+  if (errors.length) {
+    logAuth("username", "invalid", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      error_count: errors.length,
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "USERNAME_INVALID",
+      available: false,
+      valid: false,
+      errors,
+      username: requestedUsername,
+    }, cookiesToSet);
+  }
+
+  const availability = await usernameAvailability(requestedUsername, session.member);
+  logAuth("username", availability.available ? "available" : "taken", {
+    lead_hash: hashIdentifier(session.member.lead_id),
+    username_hash: hashIdentifier(requestedUsername),
+  });
+  return response(event, 200, {
+    ok: true,
+    status: availability.available ? "USERNAME_AVAILABLE" : "USERNAME_TAKEN",
+    available: availability.available,
+    valid: true,
+    own_username: availability.own_username,
+    username: requestedUsername,
+  }, cookiesToSet);
+}
+
 async function handleProfileSave(event) {
   const body = parseBody(event);
   const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
@@ -974,7 +1055,31 @@ async function handleProfileSave(event) {
     }, cookiesToSet);
   }
 
-  const updated = await saveMemberProfile(session.member, normalized);
+  let updated;
+  try {
+    updated = await saveMemberProfile(session.member, normalized);
+  } catch (error) {
+    if (safeErrorType(error) === "UsernameTakenError") {
+      logAuth("profile_save", "username_taken", {
+        lead_hash: hashIdentifier(session.member.lead_id),
+        username_hash: hashIdentifier(normalized.profile.username),
+      });
+      return response(event, 409, {
+        ok: false,
+        status: "USERNAME_TAKEN",
+      }, cookiesToSet);
+    }
+    if (safeErrorType(error) === "UsernameInvalidError") {
+      logAuth("profile_save", "username_invalid", {
+        lead_hash: hashIdentifier(session.member.lead_id),
+      });
+      return response(event, 400, {
+        ok: false,
+        status: "USERNAME_INVALID",
+      }, cookiesToSet);
+    }
+    throw error;
+  }
   logAuth("profile_save", "saved", {
     lead_hash: hashIdentifier(updated.lead_id),
   });
@@ -982,6 +1087,56 @@ async function handleProfileSave(event) {
   return response(event, 200, {
     ok: true,
     status: "PROFILE_SAVED",
+    member: publicMember(updated),
+  }, cookiesToSet);
+}
+
+async function handleProfileStatus(event) {
+  const body = parseBody(event);
+  const mode = normalizeText(body.mode).toLowerCase();
+  const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
+
+  if (!session.ok) {
+    logAuth("profile_status", session.status || "invalid", {
+      sub_hash: hashIdentifier(session.cognito_sub),
+    });
+    return response(event, session.statusCode || 401, session, clearSessionCookies());
+  }
+
+  const cookiesToSet = refreshedTokens
+    ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
+    : [];
+
+  if (!isMemberValidated(session.member)) {
+    logAuth("profile_status", "unavailable", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+    });
+    return response(event, 403, {
+      ok: false,
+      status: "ACTION_UNAVAILABLE",
+    }, cookiesToSet);
+  }
+
+  if (!["deactivate", "reactivate"].includes(mode) || body.confirmed !== true) {
+    return response(event, 400, {
+      ok: false,
+      status: "PROFILE_STATUS_CONFIRMATION_REQUIRED",
+    }, cookiesToSet);
+  }
+
+  const nextStatus = mode === "deactivate" ? PROFILE_VISIBILITY_DEACTIVATED : PROFILE_VISIBILITY_ACTIVE;
+  const updated = await saveMemberProfileVisibility(session.member, nextStatus);
+  await writeMemberAudit(updated, mode === "deactivate" ? "member_profile_deactivated" : "member_profile_reactivated", {
+    category: "profile_visibility",
+    visibility_status: nextStatus,
+    discovery_effect: "applies_when_circle_enabled",
+  });
+  logAuth("profile_status", nextStatus, {
+    lead_hash: hashIdentifier(updated.lead_id),
+  });
+  return response(event, 200, {
+    ok: true,
+    status: nextStatus === PROFILE_VISIBILITY_DEACTIVATED ? "PROFILE_DEACTIVATED" : "PROFILE_REACTIVATED",
     member: publicMember(updated),
   }, cookiesToSet);
 }
@@ -1572,6 +1727,106 @@ async function handleMemberDsar(event) {
   }, cookiesToSet);
 }
 
+async function handleAccountRemoval(event) {
+  const body = parseBody(event);
+  const mode = normalizeText(body.mode).toLowerCase();
+  const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
+
+  if (!session.ok) {
+    logAuth("account_removal", session.status || "invalid", {
+      sub_hash: hashIdentifier(session.cognito_sub),
+    });
+    return response(event, session.statusCode || 401, session, clearSessionCookies());
+  }
+
+  const cookiesToSet = refreshedTokens
+    ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
+    : [];
+
+  if (mode === "keep-data") {
+    if (body.confirmed !== true || normalizeText(body.confirmation) !== ACCOUNT_KEEP_DATA_CONFIRMATION) {
+      logAuth("account_removal", "keep_data_confirmation_missing", {
+        lead_hash: hashIdentifier(session.member.lead_id),
+      });
+      return response(event, 400, {
+        ok: false,
+        status: "KEEP_DATA_CONFIRMATION_REQUIRED",
+        confirmation_phrase: ACCOUNT_KEEP_DATA_CONFIRMATION,
+      }, cookiesToSet);
+    }
+
+    const updated = await archiveMemberAccount(session.member);
+    await writeMemberAudit(updated, "member_account_keep_data_requested", {
+      category: "account_removal",
+      mode: "keep_data",
+      reversible: true,
+    });
+    await sendAccountRemovalConfirmation(updated, "keep-data");
+    logAuth("account_removal", "keep_data_archived", {
+      lead_hash: hashIdentifier(updated.lead_id),
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "ACCOUNT_ARCHIVED_KEEP_DATA",
+      archived_at: normalizeText(updated.account_archived_at),
+      reversible: true,
+      retained: {
+        member_data_preserved_for_return: true,
+      },
+      message: "Your Presttige member account has been archived with your data preserved for a future return.",
+    }, clearSessionCookies());
+  }
+
+  if (mode === "delete") {
+    if (
+      body.confirmed !== true ||
+      body.final_confirmation !== true ||
+      body.ulttra_dependency_acknowledged !== true ||
+      normalizeText(body.confirmation) !== DSAR_ERASURE_CONFIRMATION
+    ) {
+      logAuth("account_removal", "delete_confirmation_missing", {
+        lead_hash: hashIdentifier(session.member.lead_id),
+      });
+      return response(event, 400, {
+        ok: false,
+        status: "DELETE_CONFIRMATION_REQUIRED",
+        confirmation_phrase: DSAR_ERASURE_CONFIRMATION,
+        ulttra_crm_follow_up_required: true,
+      }, cookiesToSet);
+    }
+
+    await writeMemberAudit(session.member, "member_account_delete_requested", {
+      category: "account_removal",
+      mode: "delete",
+      presttige_dsar: "running",
+      ulttra_crm_follow_up_required: true,
+    });
+    const result = await eraseMemberData(session.member);
+    logAuth("account_removal", "delete_erased", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      audit_hash: hashIdentifier(result.audit_id),
+      deleted_objects: result.deleted_objects,
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "ERASURE_COMPLETED",
+      erased_at: result.erased_at,
+      deleted_photo_objects: result.deleted_objects,
+      retained: {
+        legal_financial_audit_minimum: true,
+        backups_retained_until_expiry: true,
+        ulttra_crm_follow_up_required: true,
+      },
+      message: "Your Presttige member account has been erased where the law allows. Ulttra-side erasure and backup purge remain an awaiting dependency.",
+    }, clearSessionCookies());
+  }
+
+  return response(event, 400, {
+    ok: false,
+    status: "INVALID_ACCOUNT_REMOVAL_ACTION",
+  }, cookiesToSet);
+}
+
 async function handleLogout(event) {
   logAuth("logout", "cleared", {});
   return response(event, 200, {
@@ -1917,8 +2172,12 @@ function publicMember(lead) {
     name: normalizeText(lead.name),
     email: normalizeEmail(lead.email),
     tier: canonicalTier(lead),
+    username: normalizeUsername(lead.username),
     account_status: normalizeText(lead.account_status).toLowerCase(),
+    access_status: normalizeText(lead.access_status).toLowerCase(),
+    account_archived_at: normalizeText(lead.account_archived_at),
     validation_status: normalizeText(lead.validation_status).toLowerCase() || "not_started",
+    profile_visibility_status: normalizeProfileVisibilityStatus(lead),
     validation: {
       is_validated: isMemberValidated(lead),
     },
@@ -1952,6 +2211,8 @@ function publicProfile(lead) {
     instagram: normalizeText(lead.instagram),
     tiktok: normalizeText(lead.tiktok),
     bio: normalizeText(lead.bio || lead.short_introduction),
+    username: normalizeUsername(lead.username),
+    profile_visibility_status: normalizeProfileVisibilityStatus(lead),
   };
 }
 
@@ -2162,6 +2423,7 @@ function isDiscoveryEligibleMember(lead) {
     normalizeText(lead.cognito_sub) &&
     normalizeText(lead.account_status).toLowerCase() === ACTIVE_ACCOUNT_STATUS &&
     normalizeText(lead.access_status).toLowerCase() === ACTIVE_ACCOUNT_STATUS &&
+    normalizeProfileVisibilityStatus(lead) !== PROFILE_VISIBILITY_DEACTIVATED &&
     isMemberValidated(lead) &&
     lead.erased !== true
   );
@@ -2882,6 +3144,7 @@ async function eraseMemberData(lead) {
     deleted_discovery_items: discoveryDeletion.deleted,
     cognito_status: cognitoResult.status,
   });
+  await releaseUsernameReservation(lead, normalizeUsername(lead.username)).catch(() => {});
   const completedAudit = await writeMemberAudit(updated, "member_dsar_erasure_completed", {
     category: "erasure",
     requested_audit_id: requestedAudit.audit_id,
@@ -3054,6 +3317,7 @@ async function markMemberErased(lead, erasure) {
     "linkedin",
     "instagram",
     "tiktok",
+    "username",
     "bio",
     "short_introduction",
     "member_interests",
@@ -3065,6 +3329,11 @@ async function markMemberErased(lead, erasure) {
     "photo_uploads",
     "member_discovery_visibility",
     "member_discovery_visibility_updated_at",
+    "profile_visibility_status",
+    "profile_visibility_updated_at",
+    "profile_deactivated_at",
+    "profile_reactivated_at",
+    "profile_active_at",
     "photos",
     "avatar",
     "profile_photo",
@@ -3101,6 +3370,65 @@ async function markMemberErased(lead, erasure) {
   }));
 
   return result.Attributes || { ...lead, ...fields };
+}
+
+async function sendAccountRemovalConfirmation(lead, mode) {
+  const isTest = lead?.synthetic_test === true;
+  const toAddress = isTest ? TEST_SEND_RECIPIENT : normalizeEmail(lead?.email);
+  if (!toAddress) {
+    return;
+  }
+
+  const isKeepData = mode === "keep-data";
+  const subject = isKeepData
+    ? "Presttige account archive confirmation"
+    : "Presttige account removal confirmation";
+  const html = [
+    "<!doctype html><html><body>",
+    isKeepData
+      ? "<p>Presttige has received your request to keep your data for a future return. Your member account has been archived and your data is preserved.</p>"
+      : "<p>Presttige has received your account removal request.</p>",
+    "<p>Essential transactional notices remain deliverable for security, billing, and data-rights purposes.</p>",
+    isTest ? "<p>This controlled tester notice was routed to FQ. No real member was contacted.</p>" : "",
+    "</body></html>",
+  ].join("");
+  const text = [
+    isKeepData
+      ? "Presttige has received your request to keep your data for a future return. Your member account has been archived and your data is preserved."
+      : "Presttige has received your account removal request.",
+    "Essential transactional notices remain deliverable for security, billing, and data-rights purposes.",
+    isTest ? "This controlled tester notice was routed to FQ. No real member was contacted." : "",
+  ].filter(Boolean).join("\n");
+
+  await ses.send(new SendEmailCommand({
+    Source: `Presttige <${MEMBER_EMAIL_FROM}>`,
+    ConfigurationSetName: SES_CONFIGURATION_SET,
+    ReplyToAddresses: [MEMBER_EMAIL_REPLY_TO],
+    Destination: {
+      ToAddresses: [toAddress],
+    },
+    Message: {
+      Subject: {
+        Data: subject,
+        Charset: "UTF-8",
+      },
+      Body: {
+        Text: {
+          Data: text,
+          Charset: "UTF-8",
+        },
+        Html: {
+          Data: html,
+          Charset: "UTF-8",
+        },
+      },
+    },
+  }));
+  logAuth("account_removal", "confirmation_sent", {
+    lead_hash: hashIdentifier(lead?.lead_id),
+    recipient_type: isTest ? "test_fq" : "member",
+    mode_hash: hashIdentifier(mode),
+  });
 }
 
 async function sendErasureConfirmation(lead, erasedAt) {
@@ -3156,6 +3484,11 @@ async function sendErasureConfirmation(lead, erasedAt) {
 
 function isMemberValidated(lead) {
   return normalizeText(lead?.validation_status).toLowerCase() === VALIDATED_STATUS;
+}
+
+function normalizeProfileVisibilityStatus(lead) {
+  const status = normalizeText(lead?.profile_visibility_status).toLowerCase();
+  return status === PROFILE_VISIBILITY_DEACTIVATED ? PROFILE_VISIBILITY_DEACTIVATED : PROFILE_VISIBILITY_ACTIVE;
 }
 
 function canonicalTier(lead) {
@@ -3331,6 +3664,7 @@ function normalizeProfilePayload(body) {
   const profile = body.profile && typeof body.profile === "object" ? body.profile : {};
   const interests = body.interests && typeof body.interests === "object" ? body.interests : {};
   const normalizedProfile = {
+    username: normalizeUsername(profile.username),
     phone_country: trimToLimit(profile.phone_country, 12),
     phone: trimToLimit(profile.phone, 40),
     age: trimToLimit(profile.age, 8),
@@ -3347,11 +3681,14 @@ function normalizeProfilePayload(body) {
   const normalizedInterests = normalizeInterests(interests);
   const errors = [];
 
-  for (const field of ["phone_country", "phone", "age", "country", "city", "instagram", "bio"]) {
+  for (const field of ["username", "phone_country", "phone", "age", "country", "city", "instagram", "bio"]) {
     if (!normalizedProfile[field]) {
       errors.push(field);
     }
   }
+
+  const usernameValidationErrors = usernameErrors(normalizedProfile.username);
+  usernameValidationErrors.forEach((error) => errors.push(`username_${error}`));
 
   if (normalizedProfile.bio && normalizedProfile.bio.length < 50) {
     errors.push("bio_length");
@@ -3383,6 +3720,22 @@ function normalizeInterests(value) {
 
 async function saveMemberProfile(lead, normalized) {
   const now = new Date().toISOString();
+  const currentUsername = normalizeUsername(lead.username);
+  const desiredUsername = normalizeUsername(normalized.profile.username);
+  const usernameChanged = desiredUsername !== currentUsername;
+  if (usernameErrors(desiredUsername).length) {
+    const error = new Error("Invalid username");
+    error.name = "UsernameInvalidError";
+    throw error;
+  }
+  const availability = await usernameAvailability(desiredUsername, lead);
+  if (!availability.available) {
+    const error = new Error("Username already taken");
+    error.name = "UsernameTakenError";
+    throw error;
+  }
+  await reserveUsername(lead, desiredUsername);
+
   const fields = {
     ...normalized.profile,
     member_interests: normalized.interests,
@@ -3403,20 +3756,226 @@ async function saveMemberProfile(lead, normalized) {
     assignments.push(`#${key} = :${key}`);
   });
 
-  const result = await ddb.send(
-    new UpdateCommand({
-      TableName: TABLE_NAME,
-      Key: {
-        lead_id: normalizeText(lead.lead_id),
-      },
-      UpdateExpression: `SET ${assignments.join(", ")}`,
-      ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
-      ExpressionAttributeNames: names,
-      ExpressionAttributeValues: values,
-      ReturnValues: "ALL_NEW",
-    })
-  );
+  let result;
+  try {
+    result = await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          lead_id: normalizeText(lead.lead_id),
+        },
+        UpdateExpression: `SET ${assignments.join(", ")}`,
+        ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
+        ExpressionAttributeNames: names,
+        ExpressionAttributeValues: values,
+        ReturnValues: "ALL_NEW",
+      })
+    );
+  } catch (error) {
+    if (usernameChanged) {
+      await releaseUsernameReservation(lead, desiredUsername).catch(() => {});
+    }
+    throw error;
+  }
 
+  if (usernameChanged && currentUsername) {
+    await releaseUsernameReservation(lead, currentUsername).catch(() => {});
+  }
+
+  return result.Attributes || lead;
+}
+
+function normalizeUsername(value) {
+  return normalizeText(value).toLowerCase();
+}
+
+function usernameErrors(username) {
+  const value = normalizeUsername(username);
+  const errors = [];
+  if (!value) {
+    errors.push("required");
+    return errors;
+  }
+  if (value.length < 3 || value.length > 30) {
+    errors.push("length");
+  }
+  if (!USERNAME_PATTERN.test(value)) {
+    errors.push("format");
+  }
+  return errors;
+}
+
+async function usernameAvailability(username, lead) {
+  const value = normalizeUsername(username);
+  if (usernameErrors(value).length) {
+    return {
+      valid: false,
+      available: false,
+      own_username: false,
+    };
+  }
+
+  const ownLeadId = normalizeText(lead?.lead_id);
+  const reservation = await getUsernameReservation(value);
+  if (reservation?.owner_lead_id && normalizeText(reservation.owner_lead_id) !== ownLeadId) {
+    return {
+      valid: true,
+      available: false,
+      own_username: false,
+    };
+  }
+
+  const indexedOwner = await findLeadByUsername(value);
+  if (indexedOwner?.lead_id && normalizeText(indexedOwner.lead_id) !== ownLeadId) {
+    return {
+      valid: true,
+      available: false,
+      own_username: false,
+    };
+  }
+
+  return {
+    valid: true,
+    available: true,
+    own_username: normalizeUsername(lead?.username) === value,
+  };
+}
+
+async function getUsernameReservation(username) {
+  const value = normalizeUsername(username);
+  if (!value) {
+    return null;
+  }
+  const result = await ddb.send(new GetCommand({
+    TableName: MEMBER_USERNAMES_TABLE,
+    Key: {
+      username: value,
+    },
+  }));
+  return result.Item || null;
+}
+
+async function findLeadByUsername(username) {
+  const value = normalizeUsername(username);
+  if (!value) {
+    return null;
+  }
+  const result = await ddb.send(new QueryCommand({
+    TableName: TABLE_NAME,
+    IndexName: USERNAME_INDEX_NAME,
+    KeyConditionExpression: "username = :username",
+    ExpressionAttributeValues: {
+      ":username": value,
+    },
+    Limit: 2,
+  }));
+  if (!result.Items?.length) {
+    return null;
+  }
+  return result.Items[0];
+}
+
+async function reserveUsername(lead, username) {
+  const value = normalizeUsername(username);
+  const now = new Date().toISOString();
+  await ddb.send(new PutCommand({
+    TableName: MEMBER_USERNAMES_TABLE,
+    Item: {
+      username: value,
+      owner_lead_id: normalizeText(lead.lead_id),
+      owner_cognito_sub: normalizeText(lead.cognito_sub),
+      synthetic_test: lead.synthetic_test === true,
+      created_at: now,
+      updated_at: now,
+    },
+    ConditionExpression: "attribute_not_exists(#username) OR owner_lead_id = :lead_id",
+    ExpressionAttributeNames: {
+      "#username": "username",
+    },
+    ExpressionAttributeValues: {
+      ":lead_id": normalizeText(lead.lead_id),
+    },
+  }));
+}
+
+async function releaseUsernameReservation(lead, username) {
+  const value = normalizeUsername(username);
+  if (!value) {
+    return;
+  }
+  await ddb.send(new DeleteCommand({
+    TableName: MEMBER_USERNAMES_TABLE,
+    Key: {
+      username: value,
+    },
+    ConditionExpression: "owner_lead_id = :lead_id",
+    ExpressionAttributeValues: {
+      ":lead_id": normalizeText(lead.lead_id),
+    },
+  }));
+}
+
+async function saveMemberProfileVisibility(lead, nextStatus) {
+  const now = new Date().toISOString();
+  const deactivated = nextStatus === PROFILE_VISIBILITY_DEACTIVATED;
+  const assignments = [
+    "profile_visibility_status = :status",
+    "profile_visibility_updated_at = :now",
+    "updated_at = :now",
+    deactivated ? "profile_deactivated_at = :now" : "profile_reactivated_at = :now",
+    deactivated ? "member_discovery_visibility = :hidden" : "profile_active_at = :now",
+  ];
+  const values = {
+    ":lead_id": normalizeText(lead.lead_id),
+    ":cognito_sub": normalizeText(lead.cognito_sub),
+    ":status": nextStatus,
+    ":now": now,
+  };
+  if (deactivated) {
+    values[":hidden"] = "hidden";
+  }
+  const result = await ddb.send(new UpdateCommand({
+    TableName: TABLE_NAME,
+    Key: {
+      lead_id: normalizeText(lead.lead_id),
+    },
+    UpdateExpression: `SET ${assignments.join(", ")}`,
+    ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
+    ExpressionAttributeValues: values,
+    ReturnValues: "ALL_NEW",
+  }));
+  return result.Attributes || lead;
+}
+
+async function archiveMemberAccount(lead) {
+  const now = new Date().toISOString();
+  const result = await ddb.send(new UpdateCommand({
+    TableName: TABLE_NAME,
+    Key: {
+      lead_id: normalizeText(lead.lead_id),
+    },
+    UpdateExpression: [
+      "SET account_status = :account_status",
+      "account_active = :account_active",
+      "access_status = :access_status",
+      "account_archived_at = :now",
+      "account_archive_reason = :reason",
+      "account_archive_reversible = :reversible",
+      "updated_at = :now",
+    ].join(", "),
+    ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
+    ExpressionAttributeValues: {
+      ":lead_id": normalizeText(lead.lead_id),
+      ":cognito_sub": normalizeText(lead.cognito_sub),
+      ":account_status": ARCHIVED_ACCOUNT_STATUS,
+      ":account_active": false,
+      ":access_status": ARCHIVED_ACCOUNT_STATUS,
+      ":reason": "member_keep_data_future_return",
+      ":reversible": true,
+      ":now": now,
+    },
+    ReturnValues: "ALL_NEW",
+  }));
   return result.Attributes || lead;
 }
 
@@ -4103,7 +4662,7 @@ function binaryResponse(event, statusCode, buffer, contentType, cookies = []) {
 function routeName(event) {
   const path = normalizeText(event?.rawPath || event?.requestContext?.http?.path);
   const segment = path.split("/").filter(Boolean).pop() || "";
-  if (["login", "session", "logout", "forgot", "confirm-reset", "totp-verify", "totp-challenge", "totp-recover", "member-action", "profile", "photos", "concierge", "discovery", "photo-thumbnail", "discovery-photo", "dsar"].includes(segment)) {
+  if (["login", "session", "logout", "forgot", "confirm-reset", "totp-verify", "totp-challenge", "totp-recover", "member-action", "username", "profile", "profile-status", "photos", "concierge", "discovery", "photo-thumbnail", "discovery-photo", "dsar", "account-removal"].includes(segment)) {
     return segment;
   }
   const body = safeParseBody(event);

@@ -502,6 +502,47 @@
       font-size: 22px;
     }
 
+    .membership-action-panel,
+    .profile-status-panel {
+      border: 1px solid var(--pp-hairline);
+      background: rgba(255, 253, 248, 0.72);
+      padding: 20px;
+    }
+
+    .membership-action-panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .availability-note {
+      min-height: 20px;
+      margin-top: 8px;
+      color: var(--pp-muted);
+    }
+
+    .availability-note.is-available {
+      color: var(--pp-gold);
+    }
+
+    .availability-note.is-taken,
+    .availability-note.is-invalid {
+      color: var(--pp-muted);
+    }
+
+    .account-choice {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--pp-hairline);
+    }
+
+    .account-choice:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
     .profile-form.is-silent-locked {
       opacity: 0.58;
     }
@@ -1387,11 +1428,13 @@
       const PHOTO_TYPES = new Set(["image/jpeg", "image/png"]);
       const PHOTO_MAX_SIZE = 10 * 1024 * 1024;
       const DSAR_ERASURE_CONFIRMATION = "ERASE MY ACCOUNT";
+      const ACCOUNT_KEEP_DATA_CONFIRMATION = "KEEP MY DATA";
       const FOUNDER_TOTP_LABEL = "Presttige, Founder";
       let currentMember = null;
       let currentDiscoveryStatus = { master_enabled: false };
       let discoveryStatusRefreshInFlight = false;
       let currentDiscoveryMatchId = "";
+      let usernameCheckTimer = 0;
 
       loadSession();
 
@@ -1701,7 +1744,11 @@
         if (profileForm && profileForm.dataset.locked !== "true") {
           profileForm.addEventListener("submit", (event) => submitProfile(event, member));
           document.getElementById("profile-cancel")?.addEventListener("click", () => renderMemberShell(member, "profile"));
+          bindUsernameAvailability(member);
         }
+        document.getElementById("upgrade-action")?.addEventListener("click", showUpgradePlaceholder);
+        document.getElementById("profile-deactivate")?.addEventListener("click", () => submitProfileStatus("deactivate", member));
+        document.getElementById("profile-reactivate")?.addEventListener("click", () => submitProfileStatus("reactivate", member));
         if (document.getElementById("photos-panel") && isValidated) {
           loadMemberPhotos(member);
         }
@@ -1715,10 +1762,8 @@
         if (exportButton) {
           exportButton.addEventListener("click", () => downloadDataExport(member));
         }
-        const eraseForm = document.getElementById("privacy-erase-form");
-        if (eraseForm) {
-          eraseForm.addEventListener("submit", submitErasureRequest);
-        }
+        document.getElementById("account-keep-data-form")?.addEventListener("submit", submitKeepDataRemoval);
+        document.getElementById("account-delete-form")?.addEventListener("submit", submitPermanentRemoval);
         refreshDiscoveryStatus(member, activeKey);
       }
 
@@ -1825,6 +1870,7 @@
                     <p class="readonly-value"><span class="state-pill">${escapeHtml(accessLabel)}</span></p>
                   </div>
                 </div>
+                ${renderUpgradeAction(tier)}
                 <div>
                   <p class="eyebrow">Personal Data</p>
                   <div class="membership-data-grid" aria-label="Personal data">
@@ -1845,6 +1891,27 @@
             </div>
             ${renderPrivacyPanel(member, true)}
           </section>
+        `;
+      }
+
+      function renderUpgradeAction(tier) {
+        const next = nextTierFor(tier);
+        if (!next) {
+          return `
+            <div class="membership-action-panel">
+              <p class="eyebrow">Membership Level</p>
+              <p class="hint">No higher member tier is available for this account.</p>
+            </div>
+          `;
+        }
+        return `
+          <div class="membership-action-panel">
+            <p class="eyebrow">Membership Level</p>
+            <div class="actions">
+              <button id="upgrade-action" class="button" type="button" data-next-tier="${escapeAttr(next)}">Update to ${escapeHtml(tierLabelFor(next))}</button>
+            </div>
+            <p id="upgrade-status" class="hint" aria-live="polite">This action is prepared for the member upgrade checkout flow.</p>
+          </div>
         `;
       }
 
@@ -1926,6 +1993,11 @@
                 <p class="profile-group-title">Public profile details</p>
                 <div class="profile-grid">
                   <div class="field">
+                    <label for="profile-username">Username</label>
+                    <input id="profile-username" type="text" value="${escapeAttr(profile.username)}" autocomplete="off" maxlength="30" ${disabled} required>
+                    <p id="username-availability" class="hint availability-note" aria-live="polite">${isValidated ? "Use lowercase letters, numbers, underscore or dot." : ""}</p>
+                  </div>
+                  <div class="field">
                     <label for="profile-instagram">Instagram</label>
                     <input id="profile-instagram" type="text" value="${escapeAttr(profile.instagram)}" ${disabled} required>
                   </div>
@@ -1993,12 +2065,33 @@
                   </div>`
                 : ""}
             </form>
+            ${renderProfileStatusPanel(member, isValidated)}
             ${isValidated ? renderPhotosPanel(member) : renderLockedPhotosPanel(member)}
             ${isFounder
               ? (isValidated ? renderFounderConciergePanel(member) : renderLockedFounderConciergePanel())
               : ""}
             ${currentDiscoveryStatus.master_enabled === true && isValidated ? renderDiscoveryPanel(member) : ""}
           </section>
+        `;
+      }
+
+      function renderProfileStatusPanel(member, isValidated) {
+        const status = profileVisibilityStatus(member);
+        const deactivated = status === "deactivated";
+        return `
+          <div class="profile-status-panel ${isValidated ? "" : "is-silent-locked"}">
+            <p class="eyebrow">Profile State</p>
+            <h2>${deactivated ? "Profile deactivated" : "Profile active"}</h2>
+            <p class="hint">${deactivated
+              ? "Your account and membership remain active. When the Circle opens, this profile will not participate until reactivated."
+              : "Pause the public profile layer while keeping your membership and private account data intact."}</p>
+            <div class="actions">
+              ${deactivated
+                ? `<button id="profile-reactivate" class="button" type="button" ${isValidated ? "" : "disabled"}>Reactivate profile</button>`
+                : `<button id="profile-deactivate" class="button button--secondary" type="button" ${isValidated ? "" : "disabled"}>Deactivate profile</button>`}
+            </div>
+            <p id="profile-status-message" class="hint" aria-live="polite"></p>
+          </div>
         `;
       }
 
@@ -2605,6 +2698,13 @@
         }
       }
 
+      function showUpgradePlaceholder() {
+        const status = document.getElementById("upgrade-status");
+        if (status) {
+          status.textContent = "Member upgrade checkout is awaiting the upgrade-flow block. No checkout has been started.";
+        }
+      }
+
       function renderPrivacyPanel(member, discreet = false) {
         const email = profileOf(member).email || member?.email || "";
         const panelClass = discreet ? "section-panel privacy-panel--discreet" : "section-panel";
@@ -2627,21 +2727,44 @@
                 <p>Editable profile and interest details are handled in the Profile section after silent validation. Fixed identity fields, including ${escapeHtml(email)}, can be corrected by contacting Presttige.</p>
               </article>
               <article class="privacy-card">
-                <h3>Erasure</h3>
-                <p>Erasure removes profile details, interests, photos, social handles, free text, and disables the member login. Minimum legal, financial, and audit records may be retained where required.</p>
-                <form id="privacy-erase-form" class="privacy-confirm" novalidate>
-                  <label class="privacy-confirm-row" for="privacy-erase-check">
-                    <input id="privacy-erase-check" type="checkbox" required>
-                    <span>I understand that my member login will be disabled and my profile data will be erased where the law allows.</span>
+                <h3>Remove account</h3>
+                <p>Choose whether to preserve your data for a future return, or request Presttige erasure where the law allows. Full Ulttra-side erasure and backup purge remain an awaiting dependency.</p>
+                <form id="account-keep-data-form" class="privacy-confirm account-choice" novalidate>
+                  <h4>Keep my data for a future return</h4>
+                  <p class="hint">This archives the account and preserves your member data. It is reversible through Presttige.</p>
+                  <label class="privacy-confirm-row" for="account-keep-data-check">
+                    <input id="account-keep-data-check" type="checkbox" required>
+                    <span>I want my member data preserved for a future return.</span>
                   </label>
                   <div class="field">
-                    <label for="privacy-erase-confirmation">Confirmation phrase</label>
-                    <input id="privacy-erase-confirmation" type="text" autocomplete="off" placeholder="${escapeAttr(DSAR_ERASURE_CONFIRMATION)}" required>
+                    <label for="account-keep-data-confirmation">Confirmation phrase</label>
+                    <input id="account-keep-data-confirmation" type="text" autocomplete="off" placeholder="${escapeAttr(ACCOUNT_KEEP_DATA_CONFIRMATION)}" required>
+                    <p class="hint">Type ${escapeHtml(ACCOUNT_KEEP_DATA_CONFIRMATION)} to confirm.</p>
+                  </div>
+                  <p id="account-keep-data-status" class="hint error-text" aria-live="polite"></p>
+                  <div class="actions">
+                    <button id="account-keep-data-submit" class="button button--secondary" type="submit">Archive account</button>
+                  </div>
+                </form>
+                <form id="account-delete-form" class="privacy-confirm account-choice" novalidate>
+                  <h4>Delete permanently</h4>
+                  <p class="hint">This runs the Presttige erasure path. Ulttra-side erasure and backup purge are marked as awaiting dependency.</p>
+                  <label class="privacy-confirm-row" for="account-delete-check">
+                    <input id="account-delete-check" type="checkbox" required>
+                    <span>I understand that my member login will be disabled and Presttige profile data will be erased where the law allows.</span>
+                  </label>
+                  <label class="privacy-confirm-row" for="account-delete-final-check">
+                    <input id="account-delete-final-check" type="checkbox" required>
+                    <span>I understand that Ulttra-side erasure and backup purge are still awaiting their separate process.</span>
+                  </label>
+                  <div class="field">
+                    <label for="account-delete-confirmation">Confirmation phrase</label>
+                    <input id="account-delete-confirmation" type="text" autocomplete="off" placeholder="${escapeAttr(DSAR_ERASURE_CONFIRMATION)}" required>
                     <p class="hint">Type ${escapeHtml(DSAR_ERASURE_CONFIRMATION)} to confirm.</p>
                   </div>
-                  <p id="privacy-erase-status" class="hint error-text" aria-live="polite"></p>
+                  <p id="account-delete-status" class="hint error-text" aria-live="polite"></p>
                   <div class="actions">
-                    <button id="privacy-erase-submit" class="button button--secondary" type="submit">Erase account data</button>
+                    <button id="account-delete-submit" class="button button--secondary" type="submit">Delete account data</button>
                   </div>
                 </form>
               </article>
@@ -2659,6 +2782,7 @@
 
         try {
           const result = await api("photos", { mode: "list" });
+          syncMemberPhotos(result.photos || member?.photos || {});
           host.innerHTML = renderPhotosContent(result.photos || member?.photos || {});
           bindPhotoActions(result.photos || member?.photos || {});
           if (errorBox) errorBox.textContent = "";
@@ -2858,6 +2982,7 @@
             content_type: file.type,
             file_size: file.size,
           });
+          syncMemberPhotos(result.photos || {});
           await postPhotoToS3(result.upload, file);
           await refreshPhotosUntilReady(result.upload.photo_id);
         } catch (error) {
@@ -2886,6 +3011,7 @@
         for (let attempt = 0; attempt < 6; attempt += 1) {
           await sleep(attempt === 0 ? 1200 : 2500);
           const result = await api("photos", { mode: "list" });
+          syncMemberPhotos(result.photos || {});
           host.innerHTML = renderPhotosContent(result.photos || {});
           bindPhotoActions(result.photos || {});
           const slot = (result.photos?.visible_slots || []).find((item) => item.photo_id === photoId);
@@ -2908,6 +3034,7 @@
             mode: "set-face",
             photo_id: photoId,
           });
+          syncMemberPhotos(result.photos || {});
           document.getElementById("photos-content").innerHTML = renderPhotosContent(result.photos || {});
           bindPhotoActions(result.photos || {});
         } catch (error) {
@@ -2928,6 +3055,7 @@
             mode: "remove",
             photo_id: photoId,
           });
+          syncMemberPhotos(result.photos || {});
           document.getElementById("photos-content").innerHTML = renderPhotosContent(result.photos || {});
           bindPhotoActions(result.photos || {});
         } catch (error) {
@@ -2966,6 +3094,20 @@
           button.disabled = false;
           delete button.dataset.reenable;
         });
+      }
+
+      function syncMemberPhotos(photos) {
+        if (!currentMember || !photos) {
+          return;
+        }
+        currentMember = {
+          ...currentMember,
+          photos,
+        };
+        const card = document.querySelector(".main-photo-card");
+        if (card) {
+          card.outerHTML = renderMainPhotoCard(currentMember);
+        }
       }
 
       function isFounderPhotoModel(photos) {
@@ -3009,32 +3151,135 @@
         }
       }
 
-      async function submitErasureRequest(event) {
+      async function submitKeepDataRemoval(event) {
         event.preventDefault();
-        const confirmation = readFormValue("privacy-erase-confirmation");
-        const checked = document.getElementById("privacy-erase-check")?.checked === true;
-        const status = document.getElementById("privacy-erase-status");
-        const button = document.getElementById("privacy-erase-submit");
+        const confirmation = readFormValue("account-keep-data-confirmation");
+        const checked = document.getElementById("account-keep-data-check")?.checked === true;
+        const status = document.getElementById("account-keep-data-status");
+        const button = document.getElementById("account-keep-data-submit");
         if (status) status.textContent = "";
 
-        if (!checked || confirmation !== DSAR_ERASURE_CONFIRMATION) {
-          if (status) status.textContent = "Confirm the erasure request with the exact phrase.";
+        if (!checked || confirmation !== ACCOUNT_KEEP_DATA_CONFIRMATION) {
+          if (status) status.textContent = "Confirm the archive request with the exact phrase.";
           return;
         }
 
         button.disabled = true;
-        button.textContent = "Erasing...";
+        button.textContent = "Archiving...";
         try {
-          await api("dsar", {
-            mode: "erase",
+          await api("account-removal", {
+            mode: "keep-data",
             confirmed: true,
             confirmation,
           });
-          renderLogin("Your account erasure request has been completed where the law allows. A confirmation email has been sent.");
+          renderLogin("Your account has been archived with data preserved for a future return. A confirmation email has been sent.");
         } catch (error) {
-          if (status) status.textContent = "Erasure could not be completed right now.";
+          if (status) status.textContent = "Archive request could not be completed right now.";
           button.disabled = false;
-          button.textContent = "Erase account data";
+          button.textContent = "Archive account";
+        }
+      }
+
+      async function submitPermanentRemoval(event) {
+        event.preventDefault();
+        const confirmation = readFormValue("account-delete-confirmation");
+        const checked = document.getElementById("account-delete-check")?.checked === true;
+        const finalChecked = document.getElementById("account-delete-final-check")?.checked === true;
+        const status = document.getElementById("account-delete-status");
+        const button = document.getElementById("account-delete-submit");
+        if (status) status.textContent = "";
+
+        if (!checked || !finalChecked || confirmation !== DSAR_ERASURE_CONFIRMATION) {
+          if (status) status.textContent = "Confirm the permanent deletion request with both checks and the exact phrase.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Deleting...";
+        try {
+          await api("account-removal", {
+            mode: "delete",
+            confirmed: true,
+            final_confirmation: true,
+            ulttra_dependency_acknowledged: true,
+            confirmation,
+          });
+          renderLogin("Your Presttige erasure request has been completed where the law allows. A confirmation email has been sent.");
+        } catch (error) {
+          if (status) status.textContent = "Permanent deletion could not be completed right now.";
+          button.disabled = false;
+          button.textContent = "Delete account data";
+        }
+      }
+
+      function bindUsernameAvailability(member) {
+        const input = document.getElementById("profile-username");
+        const note = document.getElementById("username-availability");
+        if (!input || !note) {
+          return;
+        }
+        input.addEventListener("input", () => {
+          const normalized = normalizeUsernameInput(input.value);
+          if (input.value !== normalized) {
+            input.value = normalized;
+          }
+          window.clearTimeout(usernameCheckTimer);
+          note.className = "hint availability-note";
+          const errors = usernameClientErrors(normalized);
+          if (errors.length) {
+            note.textContent = normalized ? "Use 3 to 30 lowercase letters, numbers, underscore or dot." : "Choose a username.";
+            note.classList.add("is-invalid");
+            return;
+          }
+          note.textContent = "Checking availability.";
+          usernameCheckTimer = window.setTimeout(() => checkUsernameAvailability(normalized, member), 350);
+        });
+      }
+
+      async function checkUsernameAvailability(username, member) {
+        const note = document.getElementById("username-availability");
+        if (!note) {
+          return;
+        }
+        try {
+          const result = await api("username", {
+            mode: "check",
+            username,
+          });
+          note.className = "hint availability-note";
+          if (result.available === true) {
+            note.textContent = result.own_username ? "This is your current username." : "Available.";
+            note.classList.add("is-available");
+            return;
+          }
+          note.textContent = "Already taken.";
+          note.classList.add("is-taken");
+        } catch (error) {
+          note.className = "hint availability-note is-invalid";
+          note.textContent = "Availability could not be checked right now.";
+        }
+      }
+
+      async function submitProfileStatus(mode, member) {
+        const button = document.getElementById(mode === "deactivate" ? "profile-deactivate" : "profile-reactivate");
+        const message = document.getElementById("profile-status-message");
+        if (message) message.textContent = "";
+        if (button) {
+          button.disabled = true;
+          button.textContent = mode === "deactivate" ? "Deactivating..." : "Reactivating...";
+        }
+        try {
+          const result = await api("profile-status", {
+            mode,
+            confirmed: true,
+          });
+          renderMemberShell(result.member || member, "profile");
+        } catch (error) {
+          if (message) message.textContent = "Profile state could not be changed right now.";
+          if (button) {
+            button.disabled = false;
+            button.textContent = mode === "deactivate" ? "Deactivate profile" : "Reactivate profile";
+          }
         }
       }
 
@@ -3057,7 +3302,13 @@
           const result = await api("profile", payload);
           renderMemberShell(result.member || member, "profile");
         } catch (error) {
-          errorBox.textContent = "Profile could not be saved.";
+          if (error.payload?.status === "USERNAME_TAKEN") {
+            errorBox.textContent = "That username is already taken.";
+          } else if (error.payload?.status === "USERNAME_INVALID") {
+            errorBox.textContent = "Choose a valid username.";
+          } else {
+            errorBox.textContent = "Profile could not be saved.";
+          }
           button.disabled = false;
           button.textContent = "Save profile";
         }
@@ -3067,6 +3318,7 @@
         const current = profileOf(member);
         return {
           profile: {
+            username: normalizeUsernameInput(readFormValue("profile-username") || current.username),
             phone_country: readFormValue("profile-phone-country") || current.phone_country,
             phone: readFormValue("profile-phone") || current.phone,
             age: readFormValue("profile-age") || current.age,
@@ -3095,6 +3347,7 @@
         const profile = payload.profile || {};
         const required = [
           ["phone_country", "phone code"],
+          ["username", "username"],
           ["phone", "phone"],
           ["age", "age"],
           ["country", "country"],
@@ -3108,6 +3361,9 @@
 
         if (profile.bio && profile.bio.length < 50) {
           errors.push("a longer short introduction");
+        }
+        if (usernameClientErrors(profile.username).length) {
+          errors.push("a valid username");
         }
         if (profile.website && !isHttpUrl(profile.website)) {
           errors.push("a valid website URL");
@@ -3317,11 +3573,29 @@
         return descriptions[tier] || "Your Presttige membership is active.";
       }
 
+      function nextTierFor(tier) {
+        const normalized = normalizeTier(tier);
+        const ladder = {
+          subscriber: "club",
+          free: "club",
+          club: "premier",
+          premier: "patron",
+        };
+        return ladder[normalized] || "";
+      }
+
       function statusLabel(value) {
         const status = String(value || "").trim().toLowerCase();
         if (status === "active") return "Active";
+        if (status === "archived") return "Archived";
         if (status === "password_pending") return "Complete setup";
         return titleCase(status || "Active");
+      }
+
+      function profileVisibilityStatus(member) {
+        const profile = member?.profile || {};
+        const status = String(member?.profile_visibility_status || profile.profile_visibility_status || "").toLowerCase();
+        return status === "deactivated" ? "deactivated" : "active";
       }
 
       function profileOf(member) {
@@ -3329,6 +3603,7 @@
         return {
           name: profile.name || member?.name || "",
           email: profile.email || member?.email || "",
+          username: profile.username || member?.username || "",
           phone_country: profile.phone_country || "",
           phone: profile.phone || "",
           age: profile.age || "",
@@ -3341,6 +3616,7 @@
           instagram: profile.instagram || "",
           tiktok: profile.tiktok || "",
           bio: profile.bio || "",
+          profile_visibility_status: profileVisibilityStatus(member),
         };
       }
 
@@ -3358,6 +3634,26 @@
 
       function readFormValue(id) {
         return String(document.getElementById(id)?.value || "").trim();
+      }
+
+      function normalizeUsernameInput(value) {
+        return String(value || "").trim().toLowerCase().replace(/\s+/g, "");
+      }
+
+      function usernameClientErrors(username) {
+        const value = normalizeUsernameInput(username);
+        const errors = [];
+        if (!value) {
+          errors.push("required");
+          return errors;
+        }
+        if (value.length < 3 || value.length > 30) {
+          errors.push("length");
+        }
+        if (!/^[a-z0-9_.]+$/.test(value)) {
+          errors.push("format");
+        }
+        return errors;
       }
 
       function isHttpUrl(value) {
