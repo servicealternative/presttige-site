@@ -560,6 +560,10 @@
       margin-top: 22px;
     }
 
+    .photo-grid.is-founder {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .photo-slot {
       display: grid;
       gap: 14px;
@@ -570,6 +574,13 @@
 
     .photo-slot.is-internal {
       background: #F0ECE4;
+    }
+
+    .photo-slot.is-add {
+      align-content: center;
+      min-height: 320px;
+      border-style: dashed;
+      background: #fffdf8;
     }
 
     .photo-frame {
@@ -794,6 +805,7 @@
 
       .photo-summary,
       .photo-grid,
+      .photo-grid.is-founder,
       .totp-layout,
       .recovery-grid {
         grid-template-columns: 1fr;
@@ -1480,21 +1492,15 @@
       }
 
       function renderPhotosPanel(member) {
-        if (normalizeTier(member?.tier) === "founder") {
-          return `
-            <div class="section-panel" aria-live="polite">
-              <p class="eyebrow">Photos</p>
-              <h2>Founder photos</h2>
-              <p>The Founder photo area follows in the dedicated Founder step.</p>
-            </div>
-          `;
-        }
+        const isFounder = normalizeTier(member?.tier) === "founder";
 
         return `
           <div id="photos-panel" class="section-panel" aria-live="polite">
             <p class="eyebrow">Photos</p>
-            <h2>Member photos</h2>
-            <p>Your photo set is private to your account. Two application references are held internally and are not shown here.</p>
+            <h2>${isFounder ? "Founder photos" : "Member photos"}</h2>
+            <p>${isFounder
+              ? "One photo is required. Add more only if you wish, up to six total. Choose one as the face view."
+              : "Your photo set is private to your account. Two application references are held internally and are not shown here."}</p>
             <div id="photos-content">
               <p class="hint">Loading photos.</p>
             </div>
@@ -1550,7 +1556,7 @@
       async function loadMemberPhotos(member) {
         const host = document.getElementById("photos-content");
         const errorBox = document.getElementById("photos-error");
-        if (!host || normalizeTier(member?.tier) === "founder") {
+        if (!host) {
           return;
         }
 
@@ -1566,6 +1572,10 @@
       }
 
       function renderPhotosContent(photos) {
+        if (isFounderPhotoModel(photos)) {
+          return renderFounderPhotosContent(photos);
+        }
+
         const visibleSlots = Array.isArray(photos.visible_slots) ? photos.visible_slots : [];
         const completeCount = Number(photos.complete_count || 0);
         const requiredCount = Number(photos.required_count || 6);
@@ -1589,6 +1599,34 @@
             ${renderInternalPhotoSlot(1)}
             ${renderInternalPhotoSlot(2)}
             ${visibleSlots.map(renderVisiblePhotoSlot).join("")}
+          </div>
+        `;
+      }
+
+      function renderFounderPhotosContent(photos) {
+        const visibleSlots = Array.isArray(photos.visible_slots) ? photos.visible_slots : [];
+        const completeCount = Number(photos.complete_count || 0);
+        const maxCount = Number(photos.max_count || 6);
+        const faceSet = Boolean(photos.face_photo_id);
+        const nextSlot = Number(photos.next_available_slot || 0);
+        return `
+          <div class="photo-summary" aria-label="Founder photo summary">
+            <div class="photo-summary-item">
+              <span class="meta-label">Photos</span>
+              <strong>${escapeHtml(String(completeCount))}/${escapeHtml(String(maxCount))}</strong>
+            </div>
+            <div class="photo-summary-item">
+              <span class="meta-label">Minimum</span>
+              <strong>1</strong>
+            </div>
+            <div class="photo-summary-item">
+              <span class="meta-label">Face</span>
+              <strong>${faceSet ? "Set" : "Choose"}</strong>
+            </div>
+          </div>
+          <div class="photo-grid is-founder">
+            ${visibleSlots.map((slot) => renderFounderPhotoSlot(slot, visibleSlots.length)).join("")}
+            ${nextSlot ? renderFounderAddPhotoSlot(nextSlot) : ""}
           </div>
         `;
       }
@@ -1633,6 +1671,51 @@
         `;
       }
 
+      function renderFounderPhotoSlot(slot, totalSlots) {
+        const status = String(slot.status || "empty").toLowerCase();
+        const hasPhoto = Boolean(slot.photo_id);
+        const isReady = status === "ready";
+        const statusLabel = slot.is_face ? "Face" : isReady ? "Ready" : hasPhoto ? "Preparing" : "Empty";
+        const canRemove = hasPhoto && totalSlots > 1;
+        return `
+          <article class="photo-slot" data-photo-slot="${escapeAttr(slot.slot)}">
+            <div class="photo-slot-header">
+              <h3 class="photo-slot-title">Photo ${escapeHtml(String(slot.slot))}</h3>
+              <span class="status-badge">${escapeHtml(statusLabel)}</span>
+            </div>
+            <div class="photo-frame">
+              ${slot.thumbnail_url
+                ? `<img src="${escapeAttr(slot.thumbnail_url)}" alt="">`
+                : `<span class="photo-placeholder">${hasPhoto ? "Thumbnail preparing." : "Add a private Founder photo."}</span>`}
+            </div>
+            <div class="photo-actions">
+              <button class="button button--small" type="button" data-photo-upload="${escapeAttr(slot.slot)}">${hasPhoto ? "Replace" : "Add photo"}</button>
+              <input class="photo-input" type="file" accept="image/jpeg,image/png" data-photo-input="${escapeAttr(slot.slot)}">
+              <button class="button button--small button--secondary" type="button" data-photo-face="${escapeAttr(slot.photo_id)}" ${isReady && !slot.is_face ? "" : "disabled"}>Set face</button>
+              <button class="button button--small button--secondary" type="button" data-photo-remove="${escapeAttr(slot.photo_id)}" ${canRemove ? "" : "disabled"}>Remove</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderFounderAddPhotoSlot(slot) {
+        return `
+          <article class="photo-slot is-add" data-photo-slot="${escapeAttr(slot)}">
+            <div class="photo-slot-header">
+              <h3 class="photo-slot-title">Add photo</h3>
+              <span class="status-badge">Optional</span>
+            </div>
+            <div class="photo-frame">
+              <span class="photo-placeholder">Add another private Founder photo, up to six total.</span>
+            </div>
+            <div class="photo-actions">
+              <button class="button button--small" type="button" data-photo-upload="${escapeAttr(slot)}">Add photo</button>
+              <input class="photo-input" type="file" accept="image/jpeg,image/png" data-photo-input="${escapeAttr(slot)}">
+            </div>
+          </article>
+        `;
+      }
+
       function bindPhotoActions(photos) {
         document.querySelectorAll("[data-photo-upload]").forEach((button) => {
           button.addEventListener("click", () => {
@@ -1651,6 +1734,9 @@
         });
         document.querySelectorAll("[data-photo-face]").forEach((button) => {
           button.addEventListener("click", () => setMemberPhotoFace(button.dataset.photoFace));
+        });
+        document.querySelectorAll("[data-photo-remove]").forEach((button) => {
+          button.addEventListener("click", () => removeMemberPhoto(button.dataset.photoRemove));
         });
       }
 
@@ -1733,9 +1819,42 @@
         }
       }
 
+      async function removeMemberPhoto(photoId) {
+        const errorBox = document.getElementById("photos-error");
+        if (!photoId) {
+          return;
+        }
+        if (errorBox) errorBox.textContent = "";
+        setPhotoButtonsDisabled(true);
+        try {
+          const result = await api("photos", {
+            mode: "remove",
+            photo_id: photoId,
+          });
+          document.getElementById("photos-content").innerHTML = renderPhotosContent(result.photos || {});
+          bindPhotoActions(result.photos || {});
+        } catch (error) {
+          if (errorBox) errorBox.textContent = "Photo could not be removed.";
+          setPhotoButtonsDisabled(false);
+        }
+      }
+
       function setPhotoButtonsDisabled(disabled) {
         document.querySelectorAll("[data-photo-upload]").forEach((button) => {
           button.disabled = disabled;
+        });
+        document.querySelectorAll("[data-photo-remove]").forEach((button) => {
+          if (disabled) {
+            if (!button.disabled) {
+              button.dataset.reenable = "true";
+              button.disabled = true;
+            }
+            return;
+          }
+          if (button.dataset.reenable === "true") {
+            button.disabled = false;
+            delete button.dataset.reenable;
+          }
         });
         if (disabled) {
           document.querySelectorAll("[data-photo-face]").forEach((button) => {
@@ -1750,6 +1869,10 @@
           button.disabled = false;
           delete button.dataset.reenable;
         });
+      }
+
+      function isFounderPhotoModel(photos) {
+        return String(photos?.photo_model || "").toLowerCase() === "founder_optional";
       }
 
       function sleep(ms) {
