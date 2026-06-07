@@ -1,0 +1,4 @@
+/Users/antonio/Desktop/presttige-site
+/Users/antonio/Desktop/presttige-site-origin-main-fontfix
+/Users/antonio/Desktop/presttige-site/.git
+/Users/antonio/Desktop/ulttra/.git

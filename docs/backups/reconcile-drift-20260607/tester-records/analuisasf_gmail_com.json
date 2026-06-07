@@ -1,0 +1,464 @@
+{
+  "ConsumedCapacity": null,
+  "Count": 1,
+  "Items": [
+    {
+      "access_status": {
+        "S": "active"
+      },
+      "account_active": {
+        "BOOL": true
+      },
+      "account_created_at": {
+        "S": "2026-06-06T17:23:13.403Z"
+      },
+      "account_status": {
+        "S": "password_pending"
+      },
+      "age": {
+        "S": "40"
+      },
+      "application_received_email_sent_at": {
+        "S": "2026-05-07T12:03:27.499Z"
+      },
+      "application_received_sent": {
+        "BOOL": false
+      },
+      "application_received_sent_at": {
+        "NULL": true
+      },
+      "application_type": {
+        "S": "access"
+      },
+      "bio": {
+        "S": "Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7"
+      },
+      "campaign_id": {
+        "S": ""
+      },
+      "city": {
+        "S": "Dubai"
+      },
+      "cognito_linked_at": {
+        "S": "2026-06-06T17:23:13.403Z"
+      },
+      "cognito_pool": {
+        "S": "presttige-members"
+      },
+      "cognito_sub": {
+        "S": "842844e8-a0f1-709f-440b-6a40cc9559bb"
+      },
+      "company": {
+        "S": "Company 1"
+      },
+      "country": {
+        "S": "United Arab Emirates"
+      },
+      "created_at": {
+        "S": "2026-05-07T12:00:36.586234"
+      },
+      "e2_sent_at": {
+        "S": "2026-05-07T12:03:27.679Z"
+      },
+      "e3_schedule_name": {
+        "S": "presttige-e3-fdm_c8f2b323a4-1778155770"
+      },
+      "e3_scheduled_at": {
+        "S": "2026-05-07T12:09:30.543780+00:00"
+      },
+      "e3_sent_at": {
+        "S": "2026-05-07T12:10:22.888Z"
+      },
+      "e3_variant": {
+        "S": "tier_select"
+      },
+      "effective_tier": {
+        "S": "tester"
+      },
+      "email": {
+        "S": "analuisasf@gmail.com"
+      },
+      "email_status": {
+        "S": "verified"
+      },
+      "email_verified_at": {
+        "S": "2026-05-07T12:01:17.314008"
+      },
+      "founder_eligible": {
+        "BOOL": false
+      },
+      "founding_rate_expires_at": {
+        "NULL": true
+      },
+      "founding_rate_locked": {
+        "BOOL": false
+      },
+      "instagram": {
+        "S": "@alsf11"
+      },
+      "internal_test_role": {
+        "S": "presttige_free_member_founder_permissions_tester"
+      },
+      "invite_send_at": {
+        "N": "1778155770"
+      },
+      "invite_status": {
+        "S": "scheduled"
+      },
+      "is_test": {
+        "BOOL": true
+      },
+      "lead_id": {
+        "S": "fdm_c8f2b323a4"
+      },
+      "linkedin": {
+        "S": ""
+      },
+      "magic_token": {
+        "S": "[REDACTED_APP_TOKEN]"
+      },
+      "magic_token_expires_at": {
+        "S": "2026-07-06T17:22:42Z"
+      },
+      "magic_token_issued_at": {
+        "S": "2026-06-06T17:22:42Z"
+      },
+      "magic_token_status": {
+        "S": "active"
+      },
+      "magic_token_used_at": {
+        "S": "2026-05-07T12:19:11.609Z"
+      },
+      "marketing_consent": {
+        "S": "true"
+      },
+      "marketing_consent_at": {
+        "S": "2026-05-07T12:03:07.809Z"
+      },
+      "name": {
+        "S": "Ana Luisa"
+      },
+      "occupation": {
+        "S": "job"
+      },
+      "onboarded_at": {
+        "S": "2026-05-07T12:19:07.142Z"
+      },
+      "payment_status": {
+        "S": "free"
+      },
+      "phone": {
+        "S": "504350310"
+      },
+      "phone_country": {
+        "S": "+971"
+      },
+      "phone_status": {
+        "S": "pending"
+      },
+      "photo_uploads": {
+        "M": {
+          "3afe430bdd3d55efbb623cd66cefb286": {
+            "M": {
+              "content_type": {
+                "S": "image/jpeg"
+              },
+              "created_at": {
+                "S": "2026-05-07T12:03:19.316Z"
+              },
+              "file_size": {
+                "N": "40438"
+              },
+              "original_key": {
+                "S": "fdm_c8f2b323a4/original/3afe430bdd3d55efbb623cd66cefb286.jpg"
+              },
+              "processed_at": {
+                "S": "2026-05-07T12:03:20.940Z"
+              },
+              "retention": {
+                "S": "tester"
+              },
+              "selected_for_committee": {
+                "BOOL": true
+              },
+              "status": {
+                "S": "ready"
+              },
+              "submitted_at": {
+                "S": "2026-05-07T12:03:25.760238+00:00"
+              },
+              "thumbnails": {
+                "M": {
+                  "1200": {
+                    "S": "fdm_c8f2b323a4/thumbnails/3afe430bdd3d55efbb623cd66cefb286-1200.jpg"
+                  },
+                  "400": {
+                    "S": "fdm_c8f2b323a4/thumbnails/3afe430bdd3d55efbb623cd66cefb286-400.jpg"
+                  }
+                }
+              }
+            }
+          },
+          "5b1bff095eb5902ea098ee18646bd44d": {
+            "M": {
+              "content_type": {
+                "S": "image/png"
+              },
+              "created_at": {
+                "S": "2026-05-07T12:03:11.696Z"
+              },
+              "file_size": {
+                "N": "1705981"
+              },
+              "original_key": {
+                "S": "fdm_c8f2b323a4/original/5b1bff095eb5902ea098ee18646bd44d.png"
+              },
+              "processed_at": {
+                "S": "2026-05-07T12:03:18.049Z"
+              },
+              "retention": {
+                "S": "tester"
+              },
+              "selected_for_committee": {
+                "BOOL": true
+              },
+              "status": {
+                "S": "ready"
+              },
+              "submitted_at": {
+                "S": "2026-05-07T12:03:25.760238+00:00"
+              },
+              "thumbnails": {
+                "M": {
+                  "1200": {
+                    "S": "fdm_c8f2b323a4/thumbnails/5b1bff095eb5902ea098ee18646bd44d-1200.jpg"
+                  },
+                  "400": {
+                    "S": "fdm_c8f2b323a4/thumbnails/5b1bff095eb5902ea098ee18646bd44d-400.jpg"
+                  }
+                }
+              }
+            }
+          },
+          "7e4cc7301e912614f517ada0071bcca0": {
+            "M": {
+              "content_type": {
+                "S": "image/jpeg"
+              },
+              "created_at": {
+                "S": "2026-05-07T12:03:22.656Z"
+              },
+              "file_size": {
+                "N": "84026"
+              },
+              "original_key": {
+                "S": "fdm_c8f2b323a4/original/7e4cc7301e912614f517ada0071bcca0.jpg"
+              },
+              "processed_at": {
+                "S": "2026-05-07T12:03:24.503Z"
+              },
+              "retention": {
+                "S": "tester"
+              },
+              "selected_for_committee": {
+                "BOOL": true
+              },
+              "status": {
+                "S": "ready"
+              },
+              "submitted_at": {
+                "S": "2026-05-07T12:03:25.760238+00:00"
+              },
+              "thumbnails": {
+                "M": {
+                  "1200": {
+                    "S": "fdm_c8f2b323a4/thumbnails/7e4cc7301e912614f517ada0071bcca0-1200.jpg"
+                  },
+                  "400": {
+                    "S": "fdm_c8f2b323a4/thumbnails/7e4cc7301e912614f517ada0071bcca0-400.jpg"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "preview_mode": {
+        "BOOL": true
+      },
+      "preview_mode_completed_at": {
+        "S": "2026-05-07T12:19:07.142Z"
+      },
+      "preview_mode_enabled_at": {
+        "S": "2026-05-07T12:00:36.586234"
+      },
+      "preview_receipt_sent_at": {
+        "S": "2026-05-07T12:19:07.595Z"
+      },
+      "profile_completed_at": {
+        "S": "2026-05-07T12:03:25.760238+00:00"
+      },
+      "profile_status": {
+        "S": "profile_submitted"
+      },
+      "profile_submitted_at": {
+        "S": "2026-05-07T12:03:09.126510+00:00"
+      },
+      "referral_code": {
+        "S": "invitation"
+      },
+      "reinvite_count": {
+        "N": "0"
+      },
+      "reinvite_eligible": {
+        "BOOL": true
+      },
+      "review_attempt_id": {
+        "S": "abbbf7b004456875"
+      },
+      "review_note": {
+        "NULL": true
+      },
+      "review_status": {
+        "S": "approved"
+      },
+      "review_token": {
+        "S": "[REDACTED_APP_TOKEN]"
+      },
+      "review_token_status": {
+        "S": "used"
+      },
+      "review_token_used_at": {
+        "S": "2026-05-07T12:04:30.272074+00:00"
+      },
+      "reviewed_at": {
+        "S": "2026-05-07T12:04:30.272074+00:00"
+      },
+      "selected_tier": {
+        "S": "tester"
+      },
+      "selected_tier_billing": {
+        "NULL": true
+      },
+      "signup_path": {
+        "S": "free"
+      },
+      "simulated_tier": {
+        "S": "free"
+      },
+      "source": {
+        "S": "invitation"
+      },
+      "submitted_photo_ids": {
+        "L": [
+          {
+            "S": "5b1bff095eb5902ea098ee18646bd44d"
+          },
+          {
+            "S": "3afe430bdd3d55efbb623cd66cefb286"
+          },
+          {
+            "S": "7e4cc7301e912614f517ada0071bcca0"
+          }
+        ]
+      },
+      "submitted_to_committee_at": {
+        "S": "2026-05-07T12:03:25.760238+00:00"
+      },
+      "subscriber_activated_at": {
+        "S": "2026-05-07T12:18:34.321Z"
+      },
+      "subscriber_type": {
+        "S": "tester"
+      },
+      "subscriber_welcome_email_sent_at": {
+        "S": "2026-05-07T12:18:35.933Z"
+      },
+      "synthetic_test": {
+        "BOOL": true
+      },
+      "synthetic_test_flagged_at": {
+        "S": "2026-05-29T13:46:04.533Z"
+      },
+      "synthetic_test_flagged_by": {
+        "S": "antonio_approved_codex_stage2"
+      },
+      "synthetic_test_reason": {
+        "S": "Approved cleanup: exclude confirmed test/preview payment artifacts from real-data counts"
+      },
+      "terms_accepted": {
+        "S": "true"
+      },
+      "terms_accepted_at": {
+        "S": "2026-05-07T12:03:07.809Z"
+      },
+      "test_founder_inviter": {
+        "BOOL": true
+      },
+      "test_founder_permission_scope": {
+        "S": "invite_and_experience"
+      },
+      "test_founder_permission_source": {
+        "S": "tester_tier_20260606"
+      },
+      "test_founder_permissions": {
+        "BOOL": true
+      },
+      "test_scope": {
+        "S": "invite_and_experience"
+      },
+      "test_simulated_tier": {
+        "S": "free"
+      },
+      "test_tier": {
+        "BOOL": true
+      },
+      "test_tier_default": {
+        "S": "free"
+      },
+      "tier": {
+        "S": "tester"
+      },
+      "tiktok": {
+        "S": ""
+      },
+      "token_status": {
+        "S": "active"
+      },
+      "updated_at": {
+        "S": "2026-06-06T19:40:24Z"
+      },
+      "updated_reason": {
+        "S": "formalize_presttige_tester_tier_20260606"
+      },
+      "upgrade_eligible_until": {
+        "S": "2026-12-31T23:59:59Z"
+      },
+      "validation_status": {
+        "S": "not_started"
+      },
+      "verification_token": {
+        "S": "df3f13cca83439d93b8dd2b03b5ece785b0f72c97e02c11b71bdb8c6f07c6c2f"
+      },
+      "verification_token_status": {
+        "S": "used"
+      },
+      "verification_token_used_at": {
+        "S": "2026-05-07T12:01:17.314008"
+      },
+      "website": {
+        "S": ""
+      },
+      "welcome_sent_at": {
+        "S": "2026-05-07T12:19:09.066Z"
+      },
+      "welcome_variant": {
+        "S": "membership_active"
+      },
+      "why": {
+        "S": "Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7 Test 7"
+      }
+    }
+  ],
+  "ScannedCount": 1
+}

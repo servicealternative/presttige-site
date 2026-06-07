@@ -1,0 +1,11 @@
+{
+  "Parameter": {
+    "ARN": "arn:aws:ssm:us-east-1:343218208384:parameter/presttige/member-discovery/enabled",
+    "DataType": "text",
+    "LastModifiedDate": "2026-06-07T06:51:24.337000+04:00",
+    "Name": "/presttige/member-discovery/enabled",
+    "Type": "String",
+    "Value": "false",
+    "Version": 4
+  }
+}

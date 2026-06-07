@@ -1,0 +1,38 @@
+{
+  "Architectures": [
+    "x86_64"
+  ],
+  "CodeSha256": "OvZxxZqEVIaUuAb2LrAW2QuMheWpQaS5/RFCSij+20g=",
+  "CodeSize": 12337,
+  "Description": " | live-refresh:2026-05-03T13:03:04Z",
+  "EphemeralStorage": {
+    "Size": 512
+  },
+  "FunctionArn": "arn:aws:lambda:us-east-1:343218208384:function:presttige-create-checkout-session",
+  "FunctionName": "presttige-create-checkout-session",
+  "Handler": "index.handler",
+  "LastModified": "2026-06-05T18:07:19.000+0000",
+  "LastUpdateStatus": "Successful",
+  "LoggingConfig": {
+    "LogFormat": "Text",
+    "LogGroup": "/aws/lambda/presttige-create-checkout-session"
+  },
+  "MemorySize": 256,
+  "PackageType": "Zip",
+  "RevisionId": "e39458ab-0d1f-4667-858d-5ceb87981010",
+  "Role": "arn:aws:iam::343218208384:role/presttige-create-checkout-session-role",
+  "Runtime": "nodejs20.x",
+  "RuntimeVersionConfig": {
+    "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:18671876e7cc385452255180c58ca50cf8763398a4248ae92ed14410d196b942"
+  },
+  "SnapStart": {
+    "ApplyOn": "None",
+    "OptimizationStatus": "Off"
+  },
+  "State": "Active",
+  "Timeout": 10,
+  "TracingConfig": {
+    "Mode": "Active"
+  },
+  "Version": "$LATEST"
+}
