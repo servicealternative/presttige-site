@@ -1738,29 +1738,29 @@
         `;
         document.getElementById("sign-out")?.addEventListener("click", signOut);
         app.querySelectorAll("[data-section]").forEach((button) => {
-          button.addEventListener("click", () => openMemberSection(member, button.dataset.section));
+          button.addEventListener("click", () => openMemberSection(currentMember || member, button.dataset.section));
         });
         const profileForm = document.getElementById("profile-form");
         if (profileForm && profileForm.dataset.locked !== "true") {
-          profileForm.addEventListener("submit", (event) => submitProfile(event, member));
-          document.getElementById("profile-cancel")?.addEventListener("click", () => renderMemberShell(member, "profile"));
-          bindUsernameAvailability(member);
+          profileForm.addEventListener("submit", (event) => submitProfile(event, currentMember || member));
+          document.getElementById("profile-cancel")?.addEventListener("click", () => renderMemberShell(currentMember || member, "profile"));
+          bindUsernameAvailability(currentMember || member);
         }
         document.getElementById("upgrade-action")?.addEventListener("click", showUpgradePlaceholder);
-        document.getElementById("profile-deactivate")?.addEventListener("click", () => submitProfileStatus("deactivate", member));
-        document.getElementById("profile-reactivate")?.addEventListener("click", () => submitProfileStatus("reactivate", member));
+        document.getElementById("profile-deactivate")?.addEventListener("click", () => submitProfileStatus("deactivate", currentMember || member));
+        document.getElementById("profile-reactivate")?.addEventListener("click", () => submitProfileStatus("reactivate", currentMember || member));
         if (document.getElementById("photos-panel") && isValidated) {
-          loadMemberPhotos(member);
+          loadMemberPhotos(currentMember || member);
         }
         if (document.getElementById("founder-concierge-panel") && isValidated) {
-          loadFounderConcierge(member);
+          loadFounderConcierge(currentMember || member);
         }
         if (document.getElementById("discovery-panel")) {
-          loadDiscoveryPanel(member);
+          loadDiscoveryPanel(currentMember || member);
         }
         const exportButton = document.getElementById("privacy-export");
         if (exportButton) {
-          exportButton.addEventListener("click", () => downloadDataExport(member));
+          exportButton.addEventListener("click", () => downloadDataExport(currentMember || member));
         }
         document.getElementById("account-keep-data-form")?.addEventListener("submit", submitKeepDataRemoval);
         document.getElementById("account-delete-form")?.addEventListener("submit", submitPermanentRemoval);
