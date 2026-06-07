@@ -620,6 +620,53 @@
       white-space: nowrap;
     }
 
+    .privacy-actions {
+      display: grid;
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .privacy-card {
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      padding: 18px;
+    }
+
+    .privacy-card h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 27px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .privacy-card p {
+      margin: 10px 0 0;
+    }
+
+    .privacy-confirm {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .privacy-confirm-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .privacy-confirm-row input {
+      width: 17px;
+      height: 17px;
+      margin-top: 3px;
+      accent-color: var(--pp-gold);
+    }
+
     .member-side {
       display: grid;
       align-content: start;
@@ -749,9 +796,10 @@
         ? "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/member-auth"
         : "/member-api";
       const app = document.getElementById("app");
-      const VALIDATION_REQUIRED_SECTIONS = new Set(["profile", "photos", "privacy", "founder"]);
+      const VALIDATION_REQUIRED_SECTIONS = new Set(["profile", "photos", "founder"]);
       const PHOTO_TYPES = new Set(["image/jpeg", "image/png"]);
       const PHOTO_MAX_SIZE = 10 * 1024 * 1024;
+      const DSAR_ERASURE_CONFIRMATION = "ERASE MY ACCOUNT";
       let currentMember = null;
 
       loadSession();
@@ -926,6 +974,14 @@
         if (document.getElementById("photos-panel")) {
           loadMemberPhotos(member);
         }
+        const exportButton = document.getElementById("privacy-export");
+        if (exportButton) {
+          exportButton.addEventListener("click", () => downloadDataExport(member));
+        }
+        const eraseForm = document.getElementById("privacy-erase-form");
+        if (eraseForm) {
+          eraseForm.addEventListener("submit", submitErasureRequest);
+        }
       }
 
       function renderNavItem(section, isValidated, activeSectionKey) {
@@ -963,6 +1019,9 @@
         }
         if (section.key === "photos") {
           return renderPhotosPanel(member);
+        }
+        if (section.key === "privacy") {
+          return renderPrivacyPanel(member);
         }
 
         return `
@@ -1003,10 +1062,10 @@
           {
             key: "privacy",
             title: "Privacy",
-            copy: "Privacy controls will appear here when the privacy area opens.",
-            openCopy: "This private privacy area is prepared for the privacy step.",
+            copy: "Access your own data, request corrections, and control erasure.",
+            openCopy: "Access your own data, request corrections, and control erasure.",
             status: "Open",
-            requiresValidation: true,
+            requiresValidation: false,
           },
         ];
 
@@ -1182,6 +1241,50 @@
               <p class="hint">Loading photos.</p>
             </div>
             <p id="photos-error" class="hint error-text" aria-live="polite"></p>
+          </div>
+        `;
+      }
+
+      function renderPrivacyPanel(member) {
+        const email = profileOf(member).email || member?.email || "";
+        return `
+          <div class="section-panel" aria-live="polite">
+            <p class="eyebrow">Privacy</p>
+            <h2>Data rights</h2>
+            <p>This private area is available to your authenticated account even while silent validation is pending.</p>
+            <div class="privacy-actions">
+              <article class="privacy-card">
+                <h3>Access and export</h3>
+                <p>Download a portable JSON export of the Presttige member data attached to this account. It is delivered through this authenticated session only.</p>
+                <div class="actions">
+                  <button id="privacy-export" class="button" type="button">Download data export</button>
+                </div>
+                <p id="privacy-export-status" class="hint" aria-live="polite"></p>
+              </article>
+              <article class="privacy-card">
+                <h3>Rectification</h3>
+                <p>Editable profile and interest details are handled in the Profile section after silent validation. Fixed identity fields, including ${escapeHtml(email)}, can be corrected by contacting Presttige.</p>
+              </article>
+              <article class="privacy-card">
+                <h3>Erasure</h3>
+                <p>Erasure removes profile details, interests, photos, social handles, free text, and disables the member login. Minimum legal, financial, and audit records may be retained where required.</p>
+                <form id="privacy-erase-form" class="privacy-confirm" novalidate>
+                  <label class="privacy-confirm-row" for="privacy-erase-check">
+                    <input id="privacy-erase-check" type="checkbox" required>
+                    <span>I understand that my member login will be disabled and my profile data will be erased where the law allows.</span>
+                  </label>
+                  <div class="field">
+                    <label for="privacy-erase-confirmation">Confirmation phrase</label>
+                    <input id="privacy-erase-confirmation" type="text" autocomplete="off" placeholder="${escapeAttr(DSAR_ERASURE_CONFIRMATION)}" required>
+                    <p class="hint">Type ${escapeHtml(DSAR_ERASURE_CONFIRMATION)} to confirm.</p>
+                  </div>
+                  <p id="privacy-erase-status" class="hint error-text" aria-live="polite"></p>
+                  <div class="actions">
+                    <button id="privacy-erase-submit" class="button button--secondary" type="submit">Erase account data</button>
+                  </div>
+                </form>
+              </article>
+            </div>
           </div>
         `;
       }
@@ -1393,6 +1496,68 @@
 
       function sleep(ms) {
         return new Promise((resolve) => window.setTimeout(resolve, ms));
+      }
+
+      async function downloadDataExport(member) {
+        const status = document.getElementById("privacy-export-status");
+        const button = document.getElementById("privacy-export");
+        if (status) status.textContent = "";
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Preparing...";
+        }
+        try {
+          const result = await api("dsar", { mode: "export" });
+          const exportData = result.export || {};
+          const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `presttige-data-export-${safeFilePart(member?.lead_id || "member")}.json`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+          if (status) status.textContent = "Your export has been prepared.";
+        } catch (error) {
+          if (status) status.textContent = "Data export could not be prepared right now.";
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Download data export";
+          }
+        }
+      }
+
+      async function submitErasureRequest(event) {
+        event.preventDefault();
+        const confirmation = readFormValue("privacy-erase-confirmation");
+        const checked = document.getElementById("privacy-erase-check")?.checked === true;
+        const status = document.getElementById("privacy-erase-status");
+        const button = document.getElementById("privacy-erase-submit");
+        if (status) status.textContent = "";
+
+        if (!checked || confirmation !== DSAR_ERASURE_CONFIRMATION) {
+          if (status) status.textContent = "Confirm the erasure request with the exact phrase.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Erasing...";
+        try {
+          await api("dsar", {
+            mode: "erase",
+            confirmed: true,
+            confirmation,
+          });
+          renderLogin("Your account erasure request has been completed where the law allows. A confirmation email has been sent.");
+        } catch (error) {
+          if (status) status.textContent = "Erasure could not be completed right now.";
+          button.disabled = false;
+          button.textContent = "Erase account data";
+        }
       }
 
       async function submitProfile(event, member) {
@@ -1719,6 +1884,14 @@
           .filter(Boolean)
           .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
           .join(" ");
+      }
+
+      function safeFilePart(value) {
+        return String(value || "member")
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 80) || "member";
       }
 
       function escapeHtml(value) {

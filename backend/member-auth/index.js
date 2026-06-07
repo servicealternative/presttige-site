@@ -2,10 +2,12 @@
 
 const crypto = require("crypto");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, QueryCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, PutCommand, QueryCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const { InvokeCommand, LambdaClient } = require("@aws-sdk/client-lambda");
-const { GetObjectCommand, S3Client } = require("@aws-sdk/client-s3");
+const { DeleteObjectCommand, GetObjectCommand, S3Client } = require("@aws-sdk/client-s3");
 const {
+  AdminDeleteUserCommand,
+  AdminDisableUserCommand,
   AdminInitiateAuthCommand,
   ConfirmForgotPasswordCommand,
   CognitoIdentityProviderClient,
@@ -17,6 +19,7 @@ const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 
 const REGION = process.env.AWS_REGION || "us-east-1";
 const TABLE_NAME = process.env.TABLE_NAME || "presttige-db";
+const AUDIT_TABLE_NAME = process.env.AUDIT_TABLE_NAME || "presttige-review-audit";
 const COGNITO_SUB_INDEX_NAME = process.env.COGNITO_SUB_INDEX_NAME || "cognito_sub-index";
 const EMAIL_INDEX_NAME = process.env.EMAIL_INDEX_NAME || "email-index";
 const MEMBER_USER_POOL_ID = process.env.MEMBER_USER_POOL_ID || "us-east-1_hpwdNFGss";
@@ -30,7 +33,9 @@ const MEMBER_EMAIL_REPLY_TO = process.env.MEMBER_EMAIL_REPLY_TO || "info@prestti
 const TEST_SEND_RECIPIENT = normalizeEmail(process.env.TEST_SEND_RECIPIENT || "fq@freequenza.net");
 const MEMBER_HOME_URL = process.env.MEMBER_HOME_URL || "https://presttige.net/member/";
 const PHOTO_UPLOAD_INIT_FUNCTION = process.env.PHOTO_UPLOAD_INIT_FUNCTION || "presttige-photo-upload-init";
+const PHOTO_ORIGINALS_BUCKET = process.env.PHOTO_ORIGINALS_BUCKET || "presttige-applicant-photos";
 const PHOTO_THUMBNAILS_BUCKET = process.env.PHOTO_THUMBNAILS_BUCKET || "presttige-applicant-photos-thumbnails";
+const DSAR_ERASURE_CONFIRMATION = "ERASE MY ACCOUNT";
 
 const APP_ORIGINS = new Set([
   "https://presttige.net",
@@ -53,7 +58,6 @@ const MEMBER_PHOTO_TYPES = new Set(["image/jpeg", "image/png"]);
 const VALIDATION_REQUIRED_ACTIONS = new Set([
   "profile",
   "photos",
-  "privacy",
   "founder",
 ]);
 
@@ -96,6 +100,9 @@ exports.handler = async (event) => {
     }
     if (route === "photo-thumbnail") {
       return handleMemberPhotoThumbnail(event);
+    }
+    if (route === "dsar") {
+      return handleMemberDsar(event);
     }
 
     return response(event, 404, { ok: false, status: "NOT_FOUND" }, []);
@@ -458,6 +465,79 @@ async function handleMemberPhotoThumbnail(event) {
   });
 
   return binaryResponse(event, 200, buffer, object.ContentType || "image/jpeg", cookiesToSet);
+}
+
+async function handleMemberDsar(event) {
+  const body = parseBody(event);
+  const mode = normalizeText(body.mode || "export").toLowerCase();
+  const { session, refreshedTokens, refreshToken } = await memberSessionFromEvent(event);
+
+  if (!session.ok) {
+    logAuth("member_dsar", session.status || "invalid", {
+      sub_hash: hashIdentifier(session.cognito_sub),
+    });
+    return response(event, session.statusCode || 401, session, clearSessionCookies());
+  }
+
+  const cookiesToSet = refreshedTokens
+    ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
+    : [];
+
+  if (mode === "export") {
+    const audit = await writeMemberAudit(session.member, "member_dsar_export", {
+      category: "access_export",
+    });
+    const exportPayload = buildMemberDataExport(session.member, audit);
+
+    logAuth("member_dsar", "exported", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      audit_hash: hashIdentifier(audit.audit_id),
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "DSAR_EXPORT_READY",
+      generated_at: exportPayload.generated_at,
+      format: "json",
+      export: exportPayload,
+    }, cookiesToSet);
+  }
+
+  if (mode === "erase") {
+    if (body.confirmed !== true || normalizeText(body.confirmation) !== DSAR_ERASURE_CONFIRMATION) {
+      logAuth("member_dsar", "erase_confirmation_missing", {
+        lead_hash: hashIdentifier(session.member.lead_id),
+      });
+      return response(event, 400, {
+        ok: false,
+        status: "ERASURE_CONFIRMATION_REQUIRED",
+        confirmation_phrase: DSAR_ERASURE_CONFIRMATION,
+      }, cookiesToSet);
+    }
+
+    const result = await eraseMemberData(session.member);
+    logAuth("member_dsar", "erased", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      audit_hash: hashIdentifier(result.audit_id),
+      deleted_objects: result.deleted_objects,
+    });
+    return response(event, 200, {
+      ok: true,
+      status: "ERASURE_COMPLETED",
+      erased_at: result.erased_at,
+      deleted_photo_objects: result.deleted_objects,
+      retained: {
+        legal_financial_audit_minimum: true,
+        backups_retained_until_expiry: true,
+        ulttra_crm_follow_up_required: true,
+      },
+      message: "Your Presttige member account has been erased where the law allows. Minimum legal, financial, and audit records are retained.",
+    }, clearSessionCookies());
+  }
+
+  return response(event, 400, {
+    ok: false,
+    status: "INVALID_DSAR_ACTION",
+  }, cookiesToSet);
 }
 
 async function handleLogout(event) {
@@ -832,6 +912,402 @@ function publicInterests(lead) {
     ? lead.member_interests
     : {};
   return normalizeInterests(stored);
+}
+
+function buildMemberDataExport(lead, audit) {
+  const generatedAt = new Date().toISOString();
+  return {
+    schema_version: 1,
+    generated_at: generatedAt,
+    export_audit_id: audit.audit_id,
+    subject: {
+      lead_id: normalizeText(lead.lead_id),
+      name: normalizeText(lead.name),
+      email: normalizeEmail(lead.email),
+    },
+    membership: pickExistingFields(lead, [
+      "subscriber_type",
+      "tier",
+      "selected_tier",
+      "effective_tier",
+      "simulated_tier",
+      "test_tier",
+      "account_status",
+      "account_active",
+      "access_status",
+      "validation_status",
+      "profile_status",
+      "review_status",
+      "payment_status",
+      "signup_path",
+      "founder_lifetime",
+      "created_at",
+      "updated_at",
+      "account_created_at",
+      "password_set_at",
+    ]),
+    identity: pickExistingFields(lead, [
+      "cognito_pool",
+      "cognito_sub",
+    ]),
+    contact_and_profile: publicProfile(lead),
+    interests: publicInterests(lead),
+    photos: exportMemberPhotoReferences(lead),
+    consents: collectFieldsByName(lead, [
+      "consent",
+      "privacy",
+      "terms",
+      "gdpr",
+      "marketing",
+      "refund",
+      "article_16",
+      "article16",
+    ]),
+    legal_financial_references: pickExistingFields(lead, [
+      "stripe_customer_id",
+      "stripe_subscription_id",
+      "stripe_session_id",
+      "stripe_payment_intent_id",
+      "payment_status",
+      "paid_at",
+      "subscription_status",
+      "subscription_current_period_end",
+    ]),
+    notes: {
+      scope: "This export contains the authenticated member record held by Presttige for this account.",
+      urls: "No file link, upload link, security token, or secret is included.",
+      correction: "Rectification is handled through the Profile section where validation permits edits, and by contacting Presttige for fixed identity fields.",
+      erasure: "Erasure can be requested from the Privacy section. Legal, financial, and audit minimum records may be retained where required.",
+      ulttra_crm: "Ulttra CRM copies are identified as a follow-up integration item and are not erased by this member self-service endpoint yet.",
+      backups: "Backups remain until their configured retention expiry.",
+    },
+  };
+}
+
+function pickExistingFields(source, keys) {
+  return Object.fromEntries(
+    keys
+      .filter((key) => Object.prototype.hasOwnProperty.call(source || {}, key))
+      .map((key) => [key, source[key]])
+  );
+}
+
+function collectFieldsByName(source, fragments) {
+  const lowered = fragments.map((fragment) => normalizeText(fragment).toLowerCase()).filter(Boolean);
+  return Object.fromEntries(
+    Object.entries(source || {})
+      .filter(([key]) => {
+        const loweredKey = normalizeText(key).toLowerCase();
+        return lowered.some((fragment) => loweredKey.includes(fragment));
+      })
+      .map(([key, value]) => [key, value])
+  );
+}
+
+function exportMemberPhotoReferences(lead) {
+  const photos = normalizeMemberPhotos(lead);
+  return {
+    schema_version: photos.schema_version,
+    required_count: photos.required_count,
+    seeded_internal_count: photos.seeded_internal_count,
+    visible_required_count: photos.visible_required_count,
+    face_photo_id: normalizeText(photos.face_photo_id),
+    visible_slots: photos.visible_slots.map((slot) => {
+      const photoId = normalizeText(slot.photo_id);
+      const photoMeta = photoId ? (lead.photo_uploads?.[photoId] || {}) : {};
+      return {
+        slot: slot.slot,
+        status: normalizeText(photoMeta.status || slot.status).toLowerCase() || "empty",
+        photo_id: photoId,
+        is_face: Boolean(photoId && photoId === photos.face_photo_id),
+        content_type: normalizeText(slot.content_type || photoMeta.content_type),
+        file_size: Number(slot.file_size || photoMeta.file_size || 0),
+        uploaded_at: normalizeText(photoMeta.uploaded_at || slot.created_at),
+        processed_at: normalizeText(photoMeta.processed_at || slot.updated_at),
+        thumbnail_status: photoMeta.thumbnails?.["400"] ? "ready" : "not_available",
+      };
+    }),
+    updated_at: photos.updated_at,
+  };
+}
+
+async function eraseMemberData(lead) {
+  const requestedAudit = await writeMemberAudit(lead, "member_dsar_erasure_requested", {
+    category: "erasure",
+  });
+  const erasedAt = new Date().toISOString();
+  const photoDeletion = await deleteMemberPhotoObjects(lead);
+  const cognitoResult = await eraseCognitoUser(lead);
+  const updated = await markMemberErased(lead, {
+    audit_id: requestedAudit.audit_id,
+    erased_at: erasedAt,
+    deleted_objects: photoDeletion.deleted,
+    cognito_status: cognitoResult.status,
+  });
+  const completedAudit = await writeMemberAudit(updated, "member_dsar_erasure_completed", {
+    category: "erasure",
+    requested_audit_id: requestedAudit.audit_id,
+    deleted_photo_objects: photoDeletion.deleted,
+    cognito_status: cognitoResult.status,
+  });
+  await sendErasureConfirmation(lead, erasedAt);
+
+  return {
+    audit_id: completedAudit.audit_id,
+    erased_at: erasedAt,
+    deleted_objects: photoDeletion.deleted,
+  };
+}
+
+async function writeMemberAudit(lead, action, metadata) {
+  const timestamp = new Date().toISOString();
+  const item = {
+    audit_id: crypto.randomUUID(),
+    timestamp,
+    action,
+    actor_type: "member_self_service",
+    actor_id: normalizeText(lead?.lead_id),
+    lead_id: normalizeText(lead?.lead_id),
+    target_lead_id: normalizeText(lead?.lead_id),
+    metadata: sanitizeAuditMetadata(metadata || {}),
+  };
+
+  await ddb.send(new PutCommand({
+    TableName: AUDIT_TABLE_NAME,
+    Item: item,
+    ConditionExpression: "attribute_not_exists(audit_id)",
+  }));
+  return item;
+}
+
+function sanitizeAuditMetadata(metadata) {
+  const safe = {};
+  Object.entries(metadata || {}).forEach(([key, value]) => {
+    if (typeof value === "number" || typeof value === "boolean") {
+      safe[key] = value;
+      return;
+    }
+    safe[key] = normalizeText(value);
+  });
+  return safe;
+}
+
+async function deleteMemberPhotoObjects(lead) {
+  const objects = memberPhotoObjectsForDeletion(lead);
+  let deleted = 0;
+  for (const object of objects) {
+    await s3.send(new DeleteObjectCommand({
+      Bucket: object.bucket,
+      Key: object.key,
+    }));
+    deleted += 1;
+  }
+  return { deleted };
+}
+
+function memberPhotoObjectsForDeletion(lead) {
+  const objects = new Map();
+  const addObject = (bucket, key) => {
+    const normalizedKey = normalizeText(key);
+    if (!bucket || !normalizedKey) {
+      return;
+    }
+    objects.set(`${bucket}/${normalizedKey}`, { bucket, key: normalizedKey });
+  };
+
+  normalizeMemberPhotos(lead).visible_slots.forEach((slot) => {
+    addObject(PHOTO_ORIGINALS_BUCKET, slot.original_key);
+  });
+
+  Object.values(lead?.photo_uploads || {}).forEach((upload) => {
+    addObject(PHOTO_ORIGINALS_BUCKET, upload.original_key);
+    Object.values(upload.thumbnails || {}).forEach((thumbnailKey) => {
+      addObject(PHOTO_THUMBNAILS_BUCKET, thumbnailKey);
+    });
+  });
+
+  return Array.from(objects.values());
+}
+
+async function eraseCognitoUser(lead) {
+  const username = normalizeEmail(lead?.email);
+  if (!username) {
+    return { status: "not_available" };
+  }
+
+  try {
+    await cognito.send(new AdminDisableUserCommand({
+      UserPoolId: MEMBER_USER_POOL_ID,
+      Username: username,
+    }));
+  } catch (error) {
+    if (safeErrorType(error) !== "UserNotFoundException") {
+      throw error;
+    }
+  }
+
+  try {
+    await cognito.send(new AdminDeleteUserCommand({
+      UserPoolId: MEMBER_USER_POOL_ID,
+      Username: username,
+    }));
+    return { status: "deleted" };
+  } catch (error) {
+    if (safeErrorType(error) === "UserNotFoundException") {
+      return { status: "already_deleted" };
+    }
+    throw error;
+  }
+}
+
+async function markMemberErased(lead, erasure) {
+  const subjectRef = hashIdentifier(`${normalizeText(lead.lead_id)}:${normalizeEmail(lead.email)}`);
+  const pseudonymousEmail = `erased-${subjectRef}@erased.presttige.local`;
+  const fields = {
+    name: "Erased member",
+    email: pseudonymousEmail,
+    account_status: "erased",
+    account_active: false,
+    access_status: "erased",
+    email_status: "erased",
+    profile_status: "erased",
+    validation_status: "erased",
+    marketing_consent: false,
+    marketing_opt_out_at: erasure.erased_at,
+    synthetic_test: lead.synthetic_test === true,
+    erased: true,
+    erasure_status: "completed",
+    erased_at: erasure.erased_at,
+    erasure_audit_id: erasure.audit_id,
+    erasure_contact_hash: hashIdentifier(lead.email),
+    erasure_subject_ref: subjectRef,
+    erasure_deleted_photo_objects: Number(erasure.deleted_objects || 0),
+    erasure_cognito_status: normalizeText(erasure.cognito_status),
+    dsar_backups_retained_until_expiry: true,
+    dsar_legal_financial_audit_retained: true,
+    updated_at: erasure.erased_at,
+  };
+  const names = {};
+  const values = {
+    ":lead_id": normalizeText(lead.lead_id),
+    ":cognito_sub": normalizeText(lead.cognito_sub),
+  };
+  const assignments = [];
+  Object.entries(fields).forEach(([key, value]) => {
+    names[`#${key}`] = key;
+    values[`:${key}`] = value;
+    assignments.push(`#${key} = :${key}`);
+  });
+
+  const removeFields = [
+    "cognito_sub",
+    "phone_country",
+    "phone",
+    "phone_full",
+    "phone_number",
+    "age",
+    "country",
+    "city",
+    "occupation",
+    "company",
+    "website",
+    "linkedin",
+    "instagram",
+    "tiktok",
+    "bio",
+    "short_introduction",
+    "member_interests",
+    "member_interests_updated_at",
+    "member_photos",
+    "member_photos_updated_at",
+    "photo_uploads",
+    "photos",
+    "avatar",
+    "profile_photo",
+    "password_set_at",
+    "password_setup_token_hash",
+    "password_setup_token_status",
+    "password_setup_started_at",
+    "password_setup_completed_at",
+    "welcome_email_sent_at",
+    "activation_email_sent_at",
+    "checkout_token",
+    "magic_token",
+    "review_token",
+    "founder_token",
+    "founder_magic_token",
+    "lead_ip",
+    "ip_address",
+    "user_agent",
+  ];
+  removeFields.forEach((key) => {
+    names[`#remove_${key}`] = key;
+  });
+
+  const result = await ddb.send(new UpdateCommand({
+    TableName: TABLE_NAME,
+    Key: {
+      lead_id: normalizeText(lead.lead_id),
+    },
+    UpdateExpression: `SET ${assignments.join(", ")} REMOVE ${removeFields.map((key) => `#remove_${key}`).join(", ")}`,
+    ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
+    ExpressionAttributeNames: names,
+    ExpressionAttributeValues: values,
+    ReturnValues: "ALL_NEW",
+  }));
+
+  return result.Attributes || { ...lead, ...fields };
+}
+
+async function sendErasureConfirmation(lead, erasedAt) {
+  const isTest = lead?.synthetic_test === true;
+  const toAddress = isTest ? TEST_SEND_RECIPIENT : normalizeEmail(lead?.email);
+  if (!toAddress) {
+    return;
+  }
+
+  const html = [
+    "<!doctype html><html><body>",
+    "<p>Presttige has completed the erasure request for your member account where the law allows.</p>",
+    "<p>Minimum legal, financial, and audit records may be retained. Backups remain until their configured retention expiry.</p>",
+    isTest ? "<p>This controlled tester notice was routed to FQ. No real member was contacted.</p>" : "",
+    "</body></html>",
+  ].join("");
+  const text = [
+    "Presttige has completed the erasure request for your member account where the law allows.",
+    "Minimum legal, financial, and audit records may be retained. Backups remain until their configured retention expiry.",
+    isTest ? "This controlled tester notice was routed to FQ. No real member was contacted." : "",
+  ].filter(Boolean).join("\n");
+
+  await ses.send(new SendEmailCommand({
+    Source: `Presttige <${MEMBER_EMAIL_FROM}>`,
+    ConfigurationSetName: SES_CONFIGURATION_SET,
+    ReplyToAddresses: [MEMBER_EMAIL_REPLY_TO],
+    Destination: {
+      ToAddresses: [toAddress],
+    },
+    Message: {
+      Subject: {
+        Data: "Presttige data erasure confirmation",
+        Charset: "UTF-8",
+      },
+      Body: {
+        Text: {
+          Data: text,
+          Charset: "UTF-8",
+        },
+        Html: {
+          Data: html,
+          Charset: "UTF-8",
+        },
+      },
+    },
+  }));
+  logAuth("member_dsar", "erasure_confirmation_sent", {
+    lead_hash: hashIdentifier(lead?.lead_id),
+    recipient_type: isTest ? "test_fq" : "member",
+    erased_hash: hashIdentifier(erasedAt),
+  });
 }
 
 function isMemberValidated(lead) {
@@ -1332,7 +1808,7 @@ function binaryResponse(event, statusCode, buffer, contentType, cookies = []) {
 function routeName(event) {
   const path = normalizeText(event?.rawPath || event?.requestContext?.http?.path);
   const segment = path.split("/").filter(Boolean).pop() || "";
-  if (["login", "session", "logout", "forgot", "confirm-reset", "member-action", "profile", "photos", "photo-thumbnail"].includes(segment)) {
+  if (["login", "session", "logout", "forgot", "confirm-reset", "member-action", "profile", "photos", "photo-thumbnail", "dsar"].includes(segment)) {
     return segment;
   }
   const body = safeParseBody(event);
