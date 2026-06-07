@@ -9,11 +9,15 @@ const {
   AdminDeleteUserCommand,
   AdminDisableUserCommand,
   AdminInitiateAuthCommand,
+  AdminRespondToAuthChallengeCommand,
+  AdminSetUserMFAPreferenceCommand,
+  AssociateSoftwareTokenCommand,
   ConfirmForgotPasswordCommand,
   CognitoIdentityProviderClient,
   ForgotPasswordCommand,
   GetUserCommand,
   InitiateAuthCommand,
+  VerifySoftwareTokenCommand,
 } = require("@aws-sdk/client-cognito-identity-provider");
 const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 
@@ -36,6 +40,9 @@ const PHOTO_UPLOAD_INIT_FUNCTION = process.env.PHOTO_UPLOAD_INIT_FUNCTION || "pr
 const PHOTO_ORIGINALS_BUCKET = process.env.PHOTO_ORIGINALS_BUCKET || "presttige-applicant-photos";
 const PHOTO_THUMBNAILS_BUCKET = process.env.PHOTO_THUMBNAILS_BUCKET || "presttige-applicant-photos-thumbnails";
 const DSAR_ERASURE_CONFIRMATION = "ERASE MY ACCOUNT";
+const FOUNDER_TOTP_LABEL = "Presttige, Founder";
+const FOUNDER_TOTP_COOKIE_MAX_AGE_SECONDS = Number(process.env.FOUNDER_TOTP_COOKIE_MAX_AGE_SECONDS || 600);
+const FOUNDER_TOTP_RECOVERY_CODE_COUNT = 8;
 
 const APP_ORIGINS = new Set([
   "https://presttige.net",
@@ -46,6 +53,10 @@ const APP_ORIGINS = new Set([
 const COOKIE_ACCESS = "__Host-pp_member_access";
 const COOKIE_ID = "__Host-pp_member_id";
 const COOKIE_REFRESH = "__Host-pp_member_refresh";
+const COOKIE_FOUNDER_TOTP_ENROLL_ACCESS = "__Host-pp_founder_totp_enroll_access";
+const COOKIE_FOUNDER_TOTP_ENROLL_ID = "__Host-pp_founder_totp_enroll_id";
+const COOKIE_FOUNDER_TOTP_ENROLL_REFRESH = "__Host-pp_founder_totp_enroll_refresh";
+const COOKIE_FOUNDER_TOTP_CHALLENGE_SESSION = "__Host-pp_founder_totp_challenge_session";
 const ACTIVE_ACCOUNT_STATUS = "active";
 const PASSWORD_PENDING_STATUS = "password_pending";
 const VALIDATED_STATUS = "validated";
@@ -88,6 +99,15 @@ exports.handler = async (event) => {
     }
     if (route === "confirm-reset") {
       return handleConfirmReset(event);
+    }
+    if (route === "totp-verify") {
+      return handleFounderTotpVerify(event);
+    }
+    if (route === "totp-challenge") {
+      return handleFounderTotpChallenge(event);
+    }
+    if (route === "totp-recover") {
+      return handleFounderTotpRecover(event);
     }
     if (route === "member-action") {
       return handleMemberAction(event);
@@ -159,6 +179,20 @@ async function handleLogin(event) {
   }
 
   if (authResult.ChallengeName) {
+    if (authResult.ChallengeName === "SOFTWARE_TOKEN_MFA") {
+      const lead = await findLeadByEmail(email);
+      if (isFounderMember(lead)) {
+        logAuth("login", "founder_totp_challenge", {
+          lead_hash: hashIdentifier(lead.lead_id),
+          challenge_hash: hashIdentifier(authResult.ChallengeName),
+        });
+        return response(event, 200, {
+          ok: true,
+          status: "FOUNDER_TOTP_REQUIRED",
+          message: "Enter the authenticator code for your Founder access.",
+        }, founderTotpChallengeCookies(authResult.Session));
+      }
+    }
     logAuth("login", "challenge", {
       email_hash: hashIdentifier(email),
       challenge_hash: hashIdentifier(authResult.ChallengeName),
@@ -171,13 +205,27 @@ async function handleLogin(event) {
   }
 
   const tokens = authResult.AuthenticationResult || {};
-  const session = await sessionFromAccessToken(tokens.AccessToken);
+  const session = await sessionFromAccessToken(tokens.AccessToken, { allowFounderTotpPending: true });
   if (!session.ok) {
     logAuth("login", session.status || "not_ready", {
       email_hash: hashIdentifier(email),
       sub_hash: hashIdentifier(session.cognito_sub),
     });
     return response(event, session.statusCode || 403, session, clearSessionCookies());
+  }
+
+  if (isFounderMember(session.member)) {
+    if (!isFounderTotpEnabled(session.member)) {
+      return startFounderTotpEnrollment(event, session.member, tokens);
+    }
+    logAuth("login", "founder_totp_not_challenged", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+    });
+    return response(event, 403, {
+      ok: false,
+      status: "FOUNDER_TOTP_REQUIRED",
+      message: "Founder sign-in requires authenticator verification.",
+    }, clearAllAuthCookies());
   }
 
   logAuth("login", "success", {
@@ -190,6 +238,284 @@ async function handleLogin(event) {
     status: "ACTIVE",
     member: publicMember(session.member),
   }, sessionCookies(tokens));
+}
+
+async function startFounderTotpEnrollment(event, member, tokens) {
+  let association;
+  try {
+    association = await cognito.send(new AssociateSoftwareTokenCommand({
+      AccessToken: tokens.AccessToken,
+    }));
+  } catch (error) {
+    logAuth("founder_totp", "associate_failed", {
+      lead_hash: hashIdentifier(member.lead_id),
+      error_type: safeErrorType(error),
+    });
+    return response(event, 500, {
+      ok: false,
+      status: "FOUNDER_TOTP_UNAVAILABLE",
+      message: "Founder authenticator setup is unavailable right now.",
+    }, clearAllAuthCookies());
+  }
+
+  const secretCode = normalizeText(association.SecretCode);
+  const otpauthUrl = founderTotpOtpauthUrl(secretCode);
+  await writeMemberAudit(member, "member_founder_totp_enrollment_started", {
+    category: "founder_totp",
+    label_hash: hashIdentifier(FOUNDER_TOTP_LABEL),
+  });
+  logAuth("founder_totp", "enrollment_started", {
+    lead_hash: hashIdentifier(member.lead_id),
+  });
+  return response(event, 200, {
+    ok: true,
+    status: "FOUNDER_TOTP_ENROLL_REQUIRED",
+    label: FOUNDER_TOTP_LABEL,
+    secret_code: secretCode,
+    otpauth_url: otpauthUrl,
+    message: "Founder access requires authenticator setup.",
+  }, founderTotpEnrollmentCookies(tokens));
+}
+
+async function handleFounderTotpVerify(event) {
+  const body = parseBody(event);
+  const code = normalizeTotpCode(body.code);
+  const cookies = parseCookies(event);
+  const accessToken = cookies[COOKIE_FOUNDER_TOTP_ENROLL_ACCESS] || "";
+  const idToken = cookies[COOKIE_FOUNDER_TOTP_ENROLL_ID] || "";
+  const refreshToken = cookies[COOKIE_FOUNDER_TOTP_ENROLL_REFRESH] || "";
+
+  if (!accessToken || !idToken || !refreshToken || !code) {
+    logAuth("founder_totp", "verify_missing", {});
+    return response(event, 400, {
+      ok: false,
+      status: "FOUNDER_TOTP_INVALID",
+      message: "Authenticator setup could not be completed.",
+    }, clearFounderTotpCookies());
+  }
+
+  const session = await sessionFromAccessToken(accessToken, { allowFounderTotpPending: true });
+  if (!session.ok || !isFounderMember(session.member)) {
+    logAuth("founder_totp", "verify_invalid_session", {
+      sub_hash: hashIdentifier(session.cognito_sub),
+    });
+    return response(event, 401, {
+      ok: false,
+      status: "NO_SESSION",
+      message: "No active Founder setup session.",
+    }, clearFounderTotpCookies());
+  }
+
+  let verifyResult;
+  try {
+    verifyResult = await cognito.send(new VerifySoftwareTokenCommand({
+      AccessToken: accessToken,
+      UserCode: code,
+      FriendlyDeviceName: FOUNDER_TOTP_LABEL,
+    }));
+  } catch (error) {
+    logAuth("founder_totp", "verify_failed", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+      error_type: safeErrorType(error),
+    });
+    return response(event, 400, {
+      ok: false,
+      status: "FOUNDER_TOTP_INVALID",
+      message: "Authenticator setup could not be completed.",
+    }, []);
+  }
+
+  if (normalizeText(verifyResult.Status).toUpperCase() !== "SUCCESS") {
+    logAuth("founder_totp", "verify_rejected", {
+      lead_hash: hashIdentifier(session.member.lead_id),
+    });
+    return response(event, 400, {
+      ok: false,
+      status: "FOUNDER_TOTP_INVALID",
+      message: "Authenticator setup could not be completed.",
+    }, []);
+  }
+
+  await cognito.send(new AdminSetUserMFAPreferenceCommand({
+    UserPoolId: MEMBER_USER_POOL_ID,
+    Username: normalizeEmail(session.member.email),
+    SoftwareTokenMfaSettings: {
+      Enabled: true,
+      PreferredMfa: true,
+    },
+  }));
+
+  const recovery = generateFounderRecoveryCodes();
+  const updated = await saveFounderTotpEnabled(session.member, recovery.hashes);
+  await writeMemberAudit(updated, "member_founder_totp_enabled", {
+    category: "founder_totp",
+    recovery_code_count: recovery.codes.length,
+  });
+  logAuth("founder_totp", "enabled", {
+    lead_hash: hashIdentifier(updated.lead_id),
+  });
+
+  return response(event, 200, {
+    ok: true,
+    status: "FOUNDER_TOTP_ENABLED",
+    member: publicMember(updated),
+    recovery_codes: recovery.codes,
+    message: "Founder authenticator is enabled.",
+  }, [
+    ...sessionCookies({
+      AccessToken: accessToken,
+      IdToken: idToken,
+      RefreshToken: refreshToken,
+    }),
+    ...clearFounderTotpCookies(),
+  ]);
+}
+
+async function handleFounderTotpChallenge(event) {
+  const body = parseBody(event);
+  const email = normalizeEmail(body.email);
+  const code = normalizeTotpCode(body.code);
+  const challengeSession = parseCookies(event)[COOKIE_FOUNDER_TOTP_CHALLENGE_SESSION] || "";
+
+  if (!email || !code || !challengeSession) {
+    logAuth("founder_totp", "challenge_missing", {
+      email_hash: hashIdentifier(email),
+    });
+    return response(event, 400, {
+      ok: false,
+      status: "FOUNDER_TOTP_INVALID",
+      message: "Founder sign-in could not be completed.",
+    }, clearFounderTotpChallengeCookies());
+  }
+
+  const lead = await findLeadByEmail(email);
+  if (!isFounderMember(lead) || !isFounderTotpEnabled(lead)) {
+    logAuth("founder_totp", "challenge_invalid_member", {
+      email_hash: hashIdentifier(email),
+    });
+    return response(event, 401, {
+      ok: false,
+      status: "AUTH_FAILED",
+      message: "Founder sign-in could not be completed.",
+    }, clearFounderTotpChallengeCookies());
+  }
+
+  let authResult;
+  try {
+    authResult = await cognito.send(new AdminRespondToAuthChallengeCommand({
+      UserPoolId: MEMBER_USER_POOL_ID,
+      ClientId: MEMBER_CLIENT_ID,
+      ChallengeName: "SOFTWARE_TOKEN_MFA",
+      Session: challengeSession,
+      ChallengeResponses: {
+        USERNAME: email,
+        SOFTWARE_TOKEN_MFA_CODE: code,
+      },
+    }));
+  } catch (error) {
+    logAuth("founder_totp", "challenge_failed", {
+      lead_hash: hashIdentifier(lead.lead_id),
+      error_type: safeErrorType(error),
+    });
+    return response(event, 401, {
+      ok: false,
+      status: "FOUNDER_TOTP_INVALID",
+      message: "Founder sign-in could not be completed.",
+    }, []);
+  }
+
+  const tokens = authResult.AuthenticationResult || {};
+  const session = await sessionFromAccessToken(tokens.AccessToken);
+  if (!session.ok) {
+    logAuth("founder_totp", "challenge_not_ready", {
+      lead_hash: hashIdentifier(lead.lead_id),
+      status_hash: hashIdentifier(session.status),
+    });
+    return response(event, 403, session, clearAllAuthCookies());
+  }
+
+  await writeMemberAudit(session.member, "member_founder_totp_login", {
+    category: "founder_totp",
+  });
+  logAuth("founder_totp", "challenge_success", {
+    lead_hash: hashIdentifier(session.member.lead_id),
+  });
+  return response(event, 200, {
+    ok: true,
+    status: "ACTIVE",
+    member: publicMember(session.member),
+  }, [
+    ...sessionCookies(tokens),
+    ...clearFounderTotpChallengeCookies(),
+  ]);
+}
+
+async function handleFounderTotpRecover(event) {
+  const body = parseBody(event);
+  const email = normalizeEmail(body.email);
+  const recoveryCode = normalizeRecoveryCode(body.recovery_code);
+  const challengeSession = parseCookies(event)[COOKIE_FOUNDER_TOTP_CHALLENGE_SESSION] || "";
+
+  if (!email || !recoveryCode || !challengeSession) {
+    logAuth("founder_totp", "recovery_missing", {
+      email_hash: hashIdentifier(email),
+    });
+    return response(event, 400, {
+      ok: false,
+      status: "FOUNDER_TOTP_RECOVERY_INVALID",
+      message: "Founder recovery could not be completed.",
+    }, clearFounderTotpChallengeCookies());
+  }
+
+  const lead = await findLeadByEmail(email);
+  if (!isFounderMember(lead) || !isFounderTotpEnabled(lead)) {
+    logAuth("founder_totp", "recovery_invalid_member", {
+      email_hash: hashIdentifier(email),
+    });
+    return response(event, 401, {
+      ok: false,
+      status: "FOUNDER_TOTP_RECOVERY_INVALID",
+      message: "Founder recovery could not be completed.",
+    }, clearFounderTotpChallengeCookies());
+  }
+
+  const matched = findMatchingRecoveryCode(lead, recoveryCode);
+  if (!matched) {
+    logAuth("founder_totp", "recovery_rejected", {
+      lead_hash: hashIdentifier(lead.lead_id),
+    });
+    return response(event, 401, {
+      ok: false,
+      status: "FOUNDER_TOTP_RECOVERY_INVALID",
+      message: "Founder recovery could not be completed.",
+    }, []);
+  }
+
+  await cognito.send(new AdminSetUserMFAPreferenceCommand({
+    UserPoolId: MEMBER_USER_POOL_ID,
+    Username: normalizeEmail(lead.email),
+    SoftwareTokenMfaSettings: {
+      Enabled: false,
+      PreferredMfa: false,
+    },
+  }));
+
+  const updated = await saveFounderTotpRecoveryReset(lead, matched);
+  await writeMemberAudit(updated, "member_founder_totp_recovery_reset", {
+    category: "founder_totp",
+    recovery_code_id_hash: hashIdentifier(matched.id),
+  });
+  logAuth("founder_totp", "recovery_reset", {
+    lead_hash: hashIdentifier(updated.lead_id),
+  });
+  return response(event, 200, {
+    ok: true,
+    status: "FOUNDER_TOTP_RESET_COMPLETE",
+    message: "Founder authenticator was reset. Sign in again to set up a new authenticator.",
+  }, [
+    ...clearSessionCookies(),
+    ...clearFounderTotpCookies(),
+  ]);
 }
 
 async function handleSession(event) {
@@ -546,7 +872,7 @@ async function handleLogout(event) {
     ok: true,
     status: "SIGNED_OUT",
     message: "Signed out.",
-  }, clearSessionCookies());
+  }, clearAllAuthCookies());
 }
 
 async function handleForgotPassword(event) {
@@ -662,7 +988,7 @@ async function memberSessionFromEvent(event) {
   return { session, refreshedTokens, refreshToken };
 }
 
-async function sessionFromAccessToken(accessToken) {
+async function sessionFromAccessToken(accessToken, options = {}) {
   if (!accessToken) {
     return {
       ok: false,
@@ -690,7 +1016,7 @@ async function sessionFromAccessToken(accessToken) {
   );
   const cognitoSub = normalizeText(attributes.sub);
   const lead = await findLeadByCognitoSub(cognitoSub);
-  const readiness = memberReadiness(lead);
+  const readiness = memberReadiness(lead, options);
 
   if (!readiness.ok) {
     return {
@@ -709,7 +1035,7 @@ async function sessionFromAccessToken(accessToken) {
   };
 }
 
-function memberReadiness(lead) {
+function memberReadiness(lead, options = {}) {
   if (!lead) {
     return {
       ok: false,
@@ -745,6 +1071,15 @@ function memberReadiness(lead) {
       statusCode: 403,
       status: "MEMBER_NOT_READY",
       message: "This member account is not ready.",
+    };
+  }
+
+  if (isFounderMember(lead) && !options.allowFounderTotpPending && !isFounderTotpEnabled(lead)) {
+    return {
+      ok: false,
+      statusCode: 403,
+      status: "FOUNDER_TOTP_ENROLL_REQUIRED",
+      message: "Founder authenticator setup is required.",
     };
   }
 
@@ -884,6 +1219,11 @@ function publicMember(lead) {
     profile: publicProfile(lead),
     interests: publicInterests(lead),
     photos: canUseNormalMemberPhotos(lead) ? publicMemberPhotos(lead) : lockedMemberPhotos(),
+    security: {
+      founder_totp_required: isFounderMember(lead),
+      founder_totp_enabled: isFounderTotpEnabled(lead),
+      founder_totp_label: isFounderMember(lead) ? FOUNDER_TOTP_LABEL : "",
+    },
     member_area_ready: true,
   };
 }
@@ -1321,6 +1661,154 @@ function canonicalTier(lead) {
   );
 }
 
+function isFounderMember(lead) {
+  if (!lead) {
+    return false;
+  }
+  const values = [
+    canonicalTier(lead),
+    lead.signup_path,
+    lead.tier,
+    lead.selected_tier,
+    lead.effective_tier,
+    lead.simulated_tier,
+    lead.subscriber_type,
+  ].map((value) => normalizeText(value).toLowerCase());
+  return values.some((value) => value === "founder" || value === "paid_founder");
+}
+
+function isFounderTotpEnabled(lead) {
+  return normalizeText(lead?.founder_totp_status).toLowerCase() === "enabled" &&
+    Boolean(normalizeText(lead?.founder_totp_enabled_at));
+}
+
+function founderTotpOtpauthUrl(secretCode) {
+  const label = encodeURIComponent(FOUNDER_TOTP_LABEL);
+  const issuer = encodeURIComponent(FOUNDER_TOTP_LABEL);
+  return `otpauth://totp/${label}?secret=${encodeURIComponent(secretCode)}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
+}
+
+async function saveFounderTotpEnabled(lead, recoveryCodeHashes) {
+  const now = new Date().toISOString();
+  const result = await ddb.send(new UpdateCommand({
+    TableName: TABLE_NAME,
+    Key: {
+      lead_id: normalizeText(lead.lead_id),
+    },
+    UpdateExpression: [
+      "SET founder_totp_status = :status",
+      "founder_totp_enabled_at = :now",
+      "founder_totp_label = :label",
+      "founder_totp_recovery_codes = :codes",
+      "founder_totp_recovery_codes_generated_at = :now",
+      "updated_at = :now",
+      "REMOVE founder_totp_reset_at, founder_totp_reset_reason",
+    ].join(", ").replace(", REMOVE", " REMOVE"),
+    ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
+    ExpressionAttributeValues: {
+      ":lead_id": normalizeText(lead.lead_id),
+      ":cognito_sub": normalizeText(lead.cognito_sub),
+      ":status": "enabled",
+      ":now": now,
+      ":label": FOUNDER_TOTP_LABEL,
+      ":codes": recoveryCodeHashes,
+    },
+    ReturnValues: "ALL_NEW",
+  }));
+  return result.Attributes || lead;
+}
+
+async function saveFounderTotpRecoveryReset(lead, matched) {
+  const now = new Date().toISOString();
+  const recoveryCodes = (Array.isArray(lead.founder_totp_recovery_codes)
+    ? lead.founder_totp_recovery_codes
+    : []
+  ).map((item) => {
+    if (normalizeText(item.id) !== matched.id) {
+      return item;
+    }
+    return {
+      ...item,
+      used_at: now,
+    };
+  });
+  const result = await ddb.send(new UpdateCommand({
+    TableName: TABLE_NAME,
+    Key: {
+      lead_id: normalizeText(lead.lead_id),
+    },
+    UpdateExpression: [
+      "SET founder_totp_status = :status",
+      "founder_totp_reset_at = :now",
+      "founder_totp_reset_reason = :reason",
+      "founder_totp_recovery_codes = :codes",
+      "updated_at = :now",
+      "REMOVE founder_totp_enabled_at",
+    ].join(", ").replace(", REMOVE", " REMOVE"),
+    ConditionExpression: "lead_id = :lead_id AND cognito_sub = :cognito_sub",
+    ExpressionAttributeValues: {
+      ":lead_id": normalizeText(lead.lead_id),
+      ":cognito_sub": normalizeText(lead.cognito_sub),
+      ":status": "reset_required",
+      ":now": now,
+      ":reason": "recovery_code",
+      ":codes": recoveryCodes,
+    },
+    ReturnValues: "ALL_NEW",
+  }));
+  return result.Attributes || lead;
+}
+
+function generateFounderRecoveryCodes() {
+  const codes = [];
+  const hashes = [];
+  for (let index = 0; index < FOUNDER_TOTP_RECOVERY_CODE_COUNT; index += 1) {
+    const code = `PP-${crypto.randomBytes(4).toString("hex").toUpperCase()}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+    const salt = crypto.randomBytes(16).toString("hex");
+    codes.push(code);
+    hashes.push({
+      id: crypto.randomUUID(),
+      salt,
+      hash: recoveryCodeHash(code, salt),
+      created_at: new Date().toISOString(),
+    });
+  }
+  return { codes, hashes };
+}
+
+function findMatchingRecoveryCode(lead, recoveryCode) {
+  const normalized = normalizeRecoveryCode(recoveryCode);
+  if (!normalized) {
+    return null;
+  }
+  const codes = Array.isArray(lead?.founder_totp_recovery_codes)
+    ? lead.founder_totp_recovery_codes
+    : [];
+  return codes.find((item) => {
+    if (normalizeText(item.used_at)) {
+      return false;
+    }
+    const salt = normalizeText(item.salt);
+    const expected = normalizeText(item.hash);
+    return salt && expected && recoveryCodeHash(normalized, salt) === expected;
+  }) || null;
+}
+
+function recoveryCodeHash(code, salt) {
+  return crypto.createHash("sha256")
+    .update(`${normalizeText(salt)}:${normalizeRecoveryCode(code)}`)
+    .digest("hex");
+}
+
+function normalizeTotpCode(value) {
+  const normalized = normalizeText(value).replace(/\s+/g, "");
+  return /^[0-9]{6}$/.test(normalized) ? normalized : "";
+}
+
+function normalizeRecoveryCode(value) {
+  return normalizeText(value).toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
 function activationUrlForLead(lead) {
   const checkoutToken = normalizeText(lead.checkout_token);
   if (checkoutToken) {
@@ -1750,11 +2238,56 @@ function sessionCookies(tokens) {
   return cookies;
 }
 
+function founderTotpEnrollmentCookies(tokens) {
+  const cookies = [];
+  if (tokens.AccessToken) {
+    cookies.push(makeCookie(COOKIE_FOUNDER_TOTP_ENROLL_ACCESS, tokens.AccessToken, FOUNDER_TOTP_COOKIE_MAX_AGE_SECONDS));
+  }
+  if (tokens.IdToken) {
+    cookies.push(makeCookie(COOKIE_FOUNDER_TOTP_ENROLL_ID, tokens.IdToken, FOUNDER_TOTP_COOKIE_MAX_AGE_SECONDS));
+  }
+  if (tokens.RefreshToken) {
+    cookies.push(makeCookie(COOKIE_FOUNDER_TOTP_ENROLL_REFRESH, tokens.RefreshToken, FOUNDER_TOTP_COOKIE_MAX_AGE_SECONDS));
+  }
+  return cookies;
+}
+
+function founderTotpChallengeCookies(challengeSession) {
+  if (!challengeSession) {
+    return clearFounderTotpChallengeCookies();
+  }
+  return [
+    makeCookie(COOKIE_FOUNDER_TOTP_CHALLENGE_SESSION, challengeSession, FOUNDER_TOTP_COOKIE_MAX_AGE_SECONDS),
+  ];
+}
+
 function clearSessionCookies() {
   return [
     makeCookie(COOKIE_ACCESS, "", 0),
     makeCookie(COOKIE_ID, "", 0),
     makeCookie(COOKIE_REFRESH, "", 0),
+  ];
+}
+
+function clearFounderTotpCookies() {
+  return [
+    makeCookie(COOKIE_FOUNDER_TOTP_ENROLL_ACCESS, "", 0),
+    makeCookie(COOKIE_FOUNDER_TOTP_ENROLL_ID, "", 0),
+    makeCookie(COOKIE_FOUNDER_TOTP_ENROLL_REFRESH, "", 0),
+    ...clearFounderTotpChallengeCookies(),
+  ];
+}
+
+function clearFounderTotpChallengeCookies() {
+  return [
+    makeCookie(COOKIE_FOUNDER_TOTP_CHALLENGE_SESSION, "", 0),
+  ];
+}
+
+function clearAllAuthCookies() {
+  return [
+    ...clearSessionCookies(),
+    ...clearFounderTotpCookies(),
   ];
 }
 
@@ -1808,7 +2341,7 @@ function binaryResponse(event, statusCode, buffer, contentType, cookies = []) {
 function routeName(event) {
   const path = normalizeText(event?.rawPath || event?.requestContext?.http?.path);
   const segment = path.split("/").filter(Boolean).pop() || "";
-  if (["login", "session", "logout", "forgot", "confirm-reset", "member-action", "profile", "photos", "photo-thumbnail", "dsar"].includes(segment)) {
+  if (["login", "session", "logout", "forgot", "confirm-reset", "totp-verify", "totp-challenge", "totp-recover", "member-action", "profile", "photos", "photo-thumbnail", "dsar"].includes(segment)) {
     return segment;
   }
   const body = safeParseBody(event);

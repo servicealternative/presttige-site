@@ -683,6 +683,58 @@
       accent-color: var(--pp-gold);
     }
 
+    .totp-layout {
+      display: grid;
+      grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+      align-items: start;
+    }
+
+    .totp-qr {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+      padding: 16px;
+    }
+
+    .totp-qr svg {
+      width: min(100%, 210px);
+      height: auto;
+      display: block;
+    }
+
+    .manual-key {
+      overflow-wrap: anywhere;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      padding: 12px 14px;
+      color: var(--pp-black);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      line-height: 1.5;
+    }
+
+    .recovery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .recovery-code {
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+      padding: 10px 12px;
+      color: var(--pp-black);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
     .member-side {
       display: grid;
       align-content: start;
@@ -741,7 +793,9 @@
       }
 
       .photo-summary,
-      .photo-grid {
+      .photo-grid,
+      .totp-layout,
+      .recovery-grid {
         grid-template-columns: 1fr;
       }
 
@@ -804,6 +858,7 @@
     </section>
   </main>
 
+  <script src="/assets/js/qrcode-generator.js"></script>
   <script>
     (function () {
       "use strict";
@@ -816,6 +871,7 @@
       const PHOTO_TYPES = new Set(["image/jpeg", "image/png"]);
       const PHOTO_MAX_SIZE = 10 * 1024 * 1024;
       const DSAR_ERASURE_CONFIRMATION = "ERASE MY ACCOUNT";
+      const FOUNDER_TOTP_LABEL = "Presttige, Founder";
       let currentMember = null;
 
       loadSession();
@@ -891,6 +947,14 @@
 
         try {
           const result = await api("login", { email, password });
+          if (result.status === "FOUNDER_TOTP_ENROLL_REQUIRED") {
+            renderFounderTotpEnrollment(result);
+            return;
+          }
+          if (result.status === "FOUNDER_TOTP_REQUIRED") {
+            renderFounderTotpChallenge(email);
+            return;
+          }
           renderMemberArea(result.member);
         } catch (error) {
           if (error.payload?.status === "PASSWORD_PENDING") {
@@ -900,6 +964,184 @@
           errorBox.textContent = "Sign-in could not be completed.";
           button.disabled = false;
           button.textContent = "Sign in";
+        }
+      }
+
+      function renderFounderTotpEnrollment(payload) {
+        const secret = payload.secret_code || "";
+        const otpauth = payload.otpauth_url || "";
+        renderEntry(`
+          <p class="eyebrow">Founder Security</p>
+          <h2 class="title">Set up authenticator.</h2>
+          <p class="copy">Founder access requires an authenticator. Add this account in Google Authenticator, Authy, 1Password, or another authenticator app.</p>
+          <div class="totp-layout">
+            <div class="totp-qr" aria-label="Founder authenticator QR code">
+              ${totpQrSvg(otpauth)}
+            </div>
+            <div>
+              <p class="meta-label">Authenticator label</p>
+              <p class="manual-key">${escapeHtml(payload.label || FOUNDER_TOTP_LABEL)}</p>
+              <p class="meta-label" style="margin-top:16px;">Manual key</p>
+              <p class="manual-key">${escapeHtml(secret)}</p>
+              <form id="totp-enroll-form" class="form" novalidate>
+                <div class="field">
+                  <label for="totp-enroll-code">Authenticator code</label>
+                  <input id="totp-enroll-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+                </div>
+                <p id="totp-enroll-error" class="hint error-text" aria-live="polite"></p>
+                <div class="actions">
+                  <button id="totp-enroll-submit" class="button" type="submit">Enable authenticator</button>
+                  <button class="button button--secondary" type="button" data-login>Back to login</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        `);
+        document.getElementById("totp-enroll-form").addEventListener("submit", submitFounderTotpEnrollment);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+      }
+
+      async function submitFounderTotpEnrollment(event) {
+        event.preventDefault();
+        const code = readFormValue("totp-enroll-code").replace(/\s+/g, "");
+        const errorBox = document.getElementById("totp-enroll-error");
+        const button = document.getElementById("totp-enroll-submit");
+        errorBox.textContent = "";
+        if (!/^[0-9]{6}$/.test(code)) {
+          errorBox.textContent = "Enter the six-digit authenticator code.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Enabling...";
+        try {
+          const result = await api("totp-verify", { code });
+          renderFounderRecoveryCodes(result);
+        } catch (error) {
+          errorBox.textContent = "Authenticator setup could not be completed.";
+          button.disabled = false;
+          button.textContent = "Enable authenticator";
+        }
+      }
+
+      function renderFounderRecoveryCodes(result) {
+        const codes = Array.isArray(result.recovery_codes) ? result.recovery_codes : [];
+        renderEntry(`
+          <p class="eyebrow">Founder Security</p>
+          <h2 class="title">Save recovery codes.</h2>
+          <p class="copy">These codes are shown once. Keep them privately. Each code can reset your Founder authenticator if the device is lost.</p>
+          <div class="recovery-grid">
+            ${codes.map((code) => `<span class="recovery-code">${escapeHtml(code)}</span>`).join("")}
+          </div>
+          <div class="actions">
+            <button id="totp-recovery-continue" class="button" type="button">Enter member area</button>
+          </div>
+        `);
+        document.getElementById("totp-recovery-continue").addEventListener("click", () => {
+          renderMemberArea(result.member);
+        });
+      }
+
+      function renderFounderTotpChallenge(email, message) {
+        renderEntry(`
+          <p class="eyebrow">Founder Security</p>
+          <h2 class="title">Enter authenticator code.</h2>
+          <p class="copy">Founder access requires the current six-digit code from ${escapeHtml(FOUNDER_TOTP_LABEL)}.</p>
+          ${message ? `<div class="notice">${escapeHtml(message)}</div>` : ""}
+          <form id="totp-challenge-form" class="form" novalidate>
+            <div class="field">
+              <label for="totp-challenge-code">Authenticator code</label>
+              <input id="totp-challenge-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+            </div>
+            <p id="totp-challenge-error" class="hint error-text" aria-live="polite"></p>
+            <div class="actions">
+              <button id="totp-challenge-submit" class="button" type="submit">Continue</button>
+              <button class="link-button" type="button" data-recovery>Lost authenticator?</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("totp-challenge-form").addEventListener("submit", (event) => submitFounderTotpChallenge(event, email));
+        app.querySelector("[data-recovery]").addEventListener("click", () => renderFounderTotpRecovery(email));
+      }
+
+      async function submitFounderTotpChallenge(event, email) {
+        event.preventDefault();
+        const code = readFormValue("totp-challenge-code").replace(/\s+/g, "");
+        const errorBox = document.getElementById("totp-challenge-error");
+        const button = document.getElementById("totp-challenge-submit");
+        errorBox.textContent = "";
+        if (!/^[0-9]{6}$/.test(code)) {
+          errorBox.textContent = "Enter the six-digit authenticator code.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Checking...";
+        try {
+          const result = await api("totp-challenge", { email, code });
+          renderMemberArea(result.member);
+        } catch (error) {
+          errorBox.textContent = "Founder sign-in could not be completed.";
+          button.disabled = false;
+          button.textContent = "Continue";
+        }
+      }
+
+      function renderFounderTotpRecovery(email) {
+        renderEntry(`
+          <p class="eyebrow">Founder Recovery</p>
+          <h2 class="title">Reset authenticator.</h2>
+          <p class="copy">Enter one recovery code. This resets the authenticator and requires a fresh setup on the next sign-in.</p>
+          <form id="totp-recovery-form" class="form" novalidate>
+            <div class="field">
+              <label for="totp-recovery-code">Recovery code</label>
+              <input id="totp-recovery-code" type="text" autocomplete="off" required>
+            </div>
+            <p id="totp-recovery-error" class="hint error-text" aria-live="polite"></p>
+            <div class="actions">
+              <button id="totp-recovery-submit" class="button" type="submit">Reset authenticator</button>
+              <button class="button button--secondary" type="button" data-back>Back</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("totp-recovery-form").addEventListener("submit", (event) => submitFounderTotpRecovery(event, email));
+        app.querySelector("[data-back]").addEventListener("click", () => renderFounderTotpChallenge(email));
+      }
+
+      async function submitFounderTotpRecovery(event, email) {
+        event.preventDefault();
+        const recoveryCode = readFormValue("totp-recovery-code");
+        const errorBox = document.getElementById("totp-recovery-error");
+        const button = document.getElementById("totp-recovery-submit");
+        errorBox.textContent = "";
+        if (!recoveryCode) {
+          errorBox.textContent = "Enter a recovery code.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Resetting...";
+        try {
+          const result = await api("totp-recover", { email, recovery_code: recoveryCode });
+          renderLogin(result.message || "Authenticator reset. Sign in again to set up a new authenticator.");
+        } catch (error) {
+          errorBox.textContent = "Founder recovery could not be completed.";
+          button.disabled = false;
+          button.textContent = "Reset authenticator";
+        }
+      }
+
+      function totpQrSvg(otpauth) {
+        if (!otpauth || typeof qrcode !== "function") {
+          return '<span class="photo-placeholder">Manual setup key available.</span>';
+        }
+        try {
+          const qr = qrcode(0, "M");
+          qr.addData(otpauth);
+          qr.make();
+          return qr.createSvgTag(4, 2, "Founder authenticator QR code", FOUNDER_TOTP_LABEL);
+        } catch (error) {
+          return '<span class="photo-placeholder">Manual setup key available.</span>';
         }
       }
 
