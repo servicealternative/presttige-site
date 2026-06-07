@@ -1,0 +1,675 @@
+{
+  "Items": [
+    {
+      "review_status": {
+        "S": "approved"
+      },
+      "activation_email_started_at": {
+        "S": "2026-06-06T21:06:56.641Z"
+      },
+      "subscription_current_period_end": {
+        "S": "2026-07-06T20:11:16+00:00"
+      },
+      "last_event_type": {
+        "S": "payment_intent.succeeded"
+      },
+      "payment_status_reason": {
+        "S": "founder_payment_succeeded"
+      },
+      "validation_status_updated_at": {
+        "S": "2026-06-07T00:37:36Z"
+      },
+      "test_founder_inviter": {
+        "BOOL": true
+      },
+      "token_status": {
+        "S": "active"
+      },
+      "updated_reason": {
+        "S": "formalize_presttige_tester_tier_20260606"
+      },
+      "selected_contract_key": {
+        "S": "founder_lifetime"
+      },
+      "privacy_accepted": {
+        "BOOL": true
+      },
+      "last_event_id": {
+        "S": "evt_identity_step3c_founder_1780777134"
+      },
+      "first_name": {
+        "S": "Codex"
+      },
+      "subscriber_activated_at": {
+        "S": "2026-06-06T17:23:11.324Z"
+      },
+      "magic_token_status": {
+        "S": "active"
+      },
+      "subscription_status": {
+        "S": "none"
+      },
+      "phone": {
+        "S": "000000000"
+      },
+      "test_founder_permission_scope": {
+        "S": "invite_and_experience"
+      },
+      "password_setup_token_status": {
+        "S": "used"
+      },
+      "selected_tier_billing": {
+        "S": "lifetime"
+      },
+      "password_setup_started_at": {
+        "S": "2026-06-06T21:06:57.762Z"
+      },
+      "source": {
+        "S": "codex_authorised_test_tier"
+      },
+      "test_scope": {
+        "S": "invite_and_experience"
+      },
+      "password_setup_token_type": {
+        "S": "magic"
+      },
+      "marketing_consent": {
+        "BOOL": false
+      },
+      "stripe_last_event_id": {
+        "S": "evt_identity_step3c_founder_1780777134"
+      },
+      "terms_accepted": {
+        "BOOL": true
+      },
+      "magic_token_issued_at": {
+        "S": "2026-06-06T17:22:42Z"
+      },
+      "member_photos": {
+        "M": {
+          "schema_version": {
+            "N": "1"
+          },
+          "visible_slots": {
+            "L": [
+              {
+                "M": {
+                  "photo_id": {
+                    "S": "55215303f71a6508fcb2057967fd24d8"
+                  },
+                  "content_type": {
+                    "S": "image/png"
+                  },
+                  "updated_at": {
+                    "S": "2026-06-07T00:33:23.407Z"
+                  },
+                  "original_key": {
+                    "S": "fdm_test_codex_subscriber_tester/original/55215303f71a6508fcb2057967fd24d8.png"
+                  },
+                  "created_at": {
+                    "S": "2026-06-07T00:32:41.888Z"
+                  },
+                  "slot": {
+                    "N": "3"
+                  },
+                  "source": {
+                    "S": "member_upload"
+                  },
+                  "file_size": {
+                    "N": "2895"
+                  },
+                  "status": {
+                    "S": "ready"
+                  }
+                }
+              },
+              {
+                "M": {
+                  "photo_id": {
+                    "S": "3f587c28c55ac888cfd78e6b8a078a5e"
+                  },
+                  "content_type": {
+                    "S": "image/png"
+                  },
+                  "updated_at": {
+                    "S": "2026-06-07T00:33:24.986Z"
+                  },
+                  "original_key": {
+                    "S": "fdm_test_codex_subscriber_tester/original/3f587c28c55ac888cfd78e6b8a078a5e.png"
+                  },
+                  "created_at": {
+                    "S": "2026-06-07T00:33:24.986Z"
+                  },
+                  "slot": {
+                    "N": "4"
+                  },
+                  "source": {
+                    "S": "member_upload"
+                  },
+                  "file_size": {
+                    "N": "2895"
+                  },
+                  "status": {
+                    "S": "ready"
+                  }
+                }
+              },
+              {
+                "M": {
+                  "photo_id": {
+                    "S": "36aa2f8ef7428bbc7f8eaf43158dd624"
+                  },
+                  "content_type": {
+                    "S": "image/png"
+                  },
+                  "updated_at": {
+                    "S": "2026-06-07T00:33:25.986Z"
+                  },
+                  "original_key": {
+                    "S": "fdm_test_codex_subscriber_tester/original/36aa2f8ef7428bbc7f8eaf43158dd624.png"
+                  },
+                  "created_at": {
+                    "S": "2026-06-07T00:33:25.986Z"
+                  },
+                  "slot": {
+                    "N": "5"
+                  },
+                  "source": {
+                    "S": "member_upload"
+                  },
+                  "file_size": {
+                    "N": "2895"
+                  },
+                  "status": {
+                    "S": "ready"
+                  }
+                }
+              },
+              {
+                "M": {
+                  "photo_id": {
+                    "S": "26ecdd1cfe65bc82183f084045cd2322"
+                  },
+                  "content_type": {
+                    "S": "image/png"
+                  },
+                  "updated_at": {
+                    "S": "2026-06-07T00:33:26.846Z"
+                  },
+                  "original_key": {
+                    "S": "fdm_test_codex_subscriber_tester/original/26ecdd1cfe65bc82183f084045cd2322.png"
+                  },
+                  "created_at": {
+                    "S": "2026-06-07T00:33:26.846Z"
+                  },
+                  "slot": {
+                    "N": "6"
+                  },
+                  "source": {
+                    "S": "member_upload"
+                  },
+                  "file_size": {
+                    "N": "2895"
+                  },
+                  "status": {
+                    "S": "ready"
+                  }
+                }
+              }
+            ]
+          },
+          "visible_required_count": {
+            "N": "4"
+          },
+          "updated_at": {
+            "S": "2026-06-07T00:34:57.392Z"
+          },
+          "required_count": {
+            "N": "6"
+          },
+          "face_photo_id": {
+            "S": "55215303f71a6508fcb2057967fd24d8"
+          },
+          "seeded_internal_count": {
+            "N": "2"
+          }
+        }
+      },
+      "email": {
+        "S": "codex.subscriber.tester@presttige.net"
+      },
+      "last_name": {
+        "S": "Subscriber Tester"
+      },
+      "simulated_tier": {
+        "S": "free"
+      },
+      "phone_country": {
+        "S": "+971"
+      },
+      "upgrade_eligible_until": {
+        "S": "2026-12-31T23:59:59Z"
+      },
+      "selected_tier": {
+        "S": "tester"
+      },
+      "member_interests": {
+        "M": {
+          "notes": {
+            "S": "Synthetic tester notes for Step 5d verification only."
+          },
+          "business": {
+            "S": "Business access interests for synthetic Step 5d verification."
+          },
+          "travel": {
+            "S": "Travel interests for synthetic Step 5d verification."
+          },
+          "culture": {
+            "S": "Culture interests for synthetic Step 5d verification."
+          },
+          "wellbeing": {
+            "S": "Wellbeing interests for synthetic Step 5d verification."
+          },
+          "lifestyle": {
+            "S": "Private lifestyle preferences for synthetic Step 5d verification."
+          }
+        }
+      },
+      "subscription_cancel_at_period_end": {
+        "BOOL": false
+      },
+      "welcome_email_status": {
+        "S": "sent"
+      },
+      "instagram": {
+        "S": "@codex_subscriber_tester"
+      },
+      "test_tier": {
+        "BOOL": true
+      },
+      "photo_uploads": {
+        "M": {
+          "26ecdd1cfe65bc82183f084045cd2322": {
+            "M": {
+              "content_type": {
+                "S": "image/png"
+              },
+              "created_at": {
+                "S": "2026-06-07T00:33:26.823Z"
+              },
+              "file_size": {
+                "N": "2895"
+              },
+              "original_key": {
+                "S": "fdm_test_codex_subscriber_tester/original/26ecdd1cfe65bc82183f084045cd2322.png"
+              },
+              "processed_at": {
+                "S": "2026-06-07T00:33:28.734Z"
+              },
+              "retention": {
+                "S": "tester"
+              },
+              "status": {
+                "S": "ready"
+              },
+              "thumbnails": {
+                "M": {
+                  "400": {
+                    "S": "fdm_test_codex_subscriber_tester/thumbnails/26ecdd1cfe65bc82183f084045cd2322-400.jpg"
+                  },
+                  "1200": {
+                    "S": "fdm_test_codex_subscriber_tester/thumbnails/26ecdd1cfe65bc82183f084045cd2322-1200.jpg"
+                  }
+                }
+              }
+            }
+          },
+          "36aa2f8ef7428bbc7f8eaf43158dd624": {
+            "M": {
+              "content_type": {
+                "S": "image/png"
+              },
+              "created_at": {
+                "S": "2026-06-07T00:33:25.962Z"
+              },
+              "file_size": {
+                "N": "2895"
+              },
+              "original_key": {
+                "S": "fdm_test_codex_subscriber_tester/original/36aa2f8ef7428bbc7f8eaf43158dd624.png"
+              },
+              "processed_at": {
+                "S": "2026-06-07T00:33:27.895Z"
+              },
+              "retention": {
+                "S": "tester"
+              },
+              "status": {
+                "S": "ready"
+              },
+              "thumbnails": {
+                "M": {
+                  "400": {
+                    "S": "fdm_test_codex_subscriber_tester/thumbnails/36aa2f8ef7428bbc7f8eaf43158dd624-400.jpg"
+                  },
+                  "1200": {
+                    "S": "fdm_test_codex_subscriber_tester/thumbnails/36aa2f8ef7428bbc7f8eaf43158dd624-1200.jpg"
+                  }
+                }
+              }
+            }
+          },
+          "3f587c28c55ac888cfd78e6b8a078a5e": {
+            "M": {
+              "content_type": {
+                "S": "image/png"
+              },
+              "created_at": {
+                "S": "2026-06-07T00:33:24.923Z"
+              },
+              "file_size": {
+                "N": "2895"
+              },
+              "original_key": {
+                "S": "fdm_test_codex_subscriber_tester/original/3f587c28c55ac888cfd78e6b8a078a5e.png"
+              },
+              "processed_at": {
+                "S": "2026-06-07T00:33:26.970Z"
+              },
+              "retention": {
+                "S": "tester"
+              },
+              "status": {
+                "S": "ready"
+              },
+              "thumbnails": {
+                "M": {
+                  "400": {
+                    "S": "fdm_test_codex_subscriber_tester/thumbnails/3f587c28c55ac888cfd78e6b8a078a5e-400.jpg"
+                  },
+                  "1200": {
+                    "S": "fdm_test_codex_subscriber_tester/thumbnails/3f587c28c55ac888cfd78e6b8a078a5e-1200.jpg"
+                  }
+                }
+              }
+            }
+          },
+          "55215303f71a6508fcb2057967fd24d8": {
+            "M": {
+              "content_type": {
+                "S": "image/png"
+              },
+              "created_at": {
+                "S": "2026-06-07T00:33:23.344Z"
+              },
+              "file_size": {
+                "N": "2895"
+              },
+              "original_key": {
+                "S": "fdm_test_codex_subscriber_tester/original/55215303f71a6508fcb2057967fd24d8.png"
+              },
+              "processed_at": {
+                "S": "2026-06-07T00:33:25.327Z"
+              },
+              "retention": {
+                "S": "tester"
+              },
+              "status": {
+                "S": "ready"
+              },
+              "thumbnails": {
+                "M": {
+                  "400": {
+                    "S": "fdm_test_codex_subscriber_tester/thumbnails/55215303f71a6508fcb2057967fd24d8-400.jpg"
+                  },
+                  "1200": {
+                    "S": "fdm_test_codex_subscriber_tester/thumbnails/55215303f71a6508fcb2057967fd24d8-1200.jpg"
+                  }
+                }
+              }
+            }
+          },
+          "57b2e4cf4c8ec71c04be908c7a555a6f": {
+            "M": {
+              "content_type": {
+                "S": "image/png"
+              },
+              "created_at": {
+                "S": "2026-06-07T00:32:41.862Z"
+              },
+              "file_size": {
+                "N": "2895"
+              },
+              "original_key": {
+                "S": "fdm_test_codex_subscriber_tester/original/57b2e4cf4c8ec71c04be908c7a555a6f.png"
+              },
+              "processed_at": {
+                "S": "2026-06-07T00:32:45.697Z"
+              },
+              "retention": {
+                "S": "tester"
+              },
+              "status": {
+                "S": "ready"
+              },
+              "thumbnails": {
+                "M": {
+                  "400": {
+                    "S": "fdm_test_codex_subscriber_tester/thumbnails/57b2e4cf4c8ec71c04be908c7a555a6f-400.jpg"
+                  },
+                  "1200": {
+                    "S": "fdm_test_codex_subscriber_tester/thumbnails/57b2e4cf4c8ec71c04be908c7a555a6f-1200.jpg"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "age": {
+        "S": "30"
+      },
+      "test_simulated_tier": {
+        "S": "free"
+      },
+      "signup_path": {
+        "S": "founder"
+      },
+      "founding_rate_expires_at": {
+        "NULL": true
+      },
+      "activation_email_message_id": {
+        "S": "0100019e9ec2a497-12675cfb-6c64-41f7-b2f4-846e91ec06bf-000000"
+      },
+      "subscriber_type": {
+        "S": "tester"
+      },
+      "subscription_current_period_start": {
+        "S": "2026-06-06T20:11:16+00:00"
+      },
+      "cognito_pool": {
+        "S": "presttige-members"
+      },
+      "stripe_checkout_completed_at": {
+        "S": "2026-06-06T20:11:21.229126+00:00"
+      },
+      "tier": {
+        "S": "tester"
+      },
+      "email_status": {
+        "S": "verified"
+      },
+      "account_created_at": {
+        "S": "2026-06-06T17:23:11.324Z"
+      },
+      "last_payment_at": {
+        "S": "2026-06-06T20:18:58.755559+00:00"
+      },
+      "member_interests_updated_at": {
+        "S": "2026-06-07T00:14:41.465Z"
+      },
+      "stripe_event_type": {
+        "S": "payment_intent.succeeded"
+      },
+      "country": {
+        "S": "United Arab Emirates"
+      },
+      "cognito_linked_at": {
+        "S": "2026-06-06T17:23:11.324Z"
+      },
+      "is_test": {
+        "BOOL": true
+      },
+      "magic_token": {
+        "REDACTED": true
+      },
+      "account_active": {
+        "BOOL": true
+      },
+      "welcome_email_message_id": {
+        "S": "0100019e9ef30a73-5168ab01-f5e5-4d5f-8583-6b166fc1ed77-000000"
+      },
+      "created_at": {
+        "S": "2026-06-05T11:03:50.420299Z"
+      },
+      "tiktok": {
+        "S": ""
+      },
+      "cancel_at_period_end": {
+        "BOOL": false
+      },
+      "name": {
+        "S": "Codex Subscriber Tester"
+      },
+      "profile_status": {
+        "S": "profile_submitted"
+      },
+      "account_status": {
+        "S": "active"
+      },
+      "internal_test_role": {
+        "S": "presttige_free_member_founder_permissions_tester"
+      },
+      "welcome_email_sent_at": {
+        "S": "2026-06-06T21:59:48.680Z"
+      },
+      "city": {
+        "S": "Dubai"
+      },
+      "synthetic_test": {
+        "BOOL": true
+      },
+      "validation_status": {
+        "S": "not_started"
+      },
+      "password_setup_completed_at": {
+        "S": "2026-06-06T21:06:58.446Z"
+      },
+      "profile_updated_at": {
+        "S": "2026-06-07T00:14:41.465Z"
+      },
+      "founder_eligible": {
+        "BOOL": false
+      },
+      "stripe_subscription_id": {
+        "S": "sub_identity_step3b_1780776676"
+      },
+      "welcome_email_recipient_hash": {
+        "S": "e2f7a45a7cf5ac0f"
+      },
+      "effective_tier": {
+        "S": "tester"
+      },
+      "stripe_payment_intent_id": {
+        "S": "pi_identity_step3c_1780777134"
+      },
+      "password_setup_token_hash": {
+        "S": "ba66d15452dcd47b"
+      },
+      "payment_status": {
+        "S": "paid"
+      },
+      "founding_rate_locked": {
+        "BOOL": false
+      },
+      "access_status": {
+        "S": "active"
+      },
+      "password_set_at": {
+        "S": "2026-06-06T21:06:58.446Z"
+      },
+      "test_founder_permissions": {
+        "BOOL": true
+      },
+      "validation_status_updated_by": {
+        "S": "codex-step5e-browser-restore"
+      },
+      "bio": {
+        "S": "Dedicated Presttige TEST tier record authorised for Codex validation only. Step 5d profile editing verified."
+      },
+      "occupation": {
+        "S": "Presttige test subscriber"
+      },
+      "cognito_sub": {
+        "S": "e4a81458-50d1-704b-a71c-10b90450c7d4"
+      },
+      "founder_lifetime": {
+        "BOOL": true
+      },
+      "updated_at": {
+        "S": "2026-06-07T00:34:57.392Z"
+      },
+      "confirmed_payment_at": {
+        "S": "2026-06-06T20:18:58.755563+00:00"
+      },
+      "activation_email_recipient_hash": {
+        "S": "e2f7a45a7cf5ac0f"
+      },
+      "activation_email_sent_at": {
+        "S": "2026-06-06T21:06:56.902Z"
+      },
+      "linkedin": {
+        "S": ""
+      },
+      "test_founder_permission_source": {
+        "S": "tester_tier_20260606"
+      },
+      "lead_id": {
+        "S": "fdm_test_codex_subscriber_tester"
+      },
+      "magic_token_expires_at": {
+        "S": "2026-07-06T17:22:42Z"
+      },
+      "welcome_email_started_at": {
+        "S": "2026-06-06T21:59:48.523Z"
+      },
+      "notes": {
+        "S": "Authorised by Antonio on 2026-06-05. Codex must not create any other test records without explicit authorisation."
+      },
+      "activation_email_status": {
+        "S": "sent"
+      },
+      "test_tier_default": {
+        "S": "free"
+      },
+      "founder_activated_at": {
+        "S": "2026-06-06T20:18:58.755563+00:00"
+      },
+      "member_photos_updated_at": {
+        "S": "2026-06-07T00:34:57.392Z"
+      },
+      "website": {
+        "S": "https://presttige.net"
+      },
+      "company": {
+        "S": "Presttige"
+      },
+      "stripe_customer_id": {
+        "S": "cus_identity_step3c_1780777134"
+      }
+    }
+  ],
+  "Count": 1,
+  "ScannedCount": 1,
+  "ConsumedCapacity": null
+}

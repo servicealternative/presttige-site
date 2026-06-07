@@ -1,0 +1,15 @@
+docs/backups/identity-step5f-dsar-20260607/aws/presttige-applicant-photos-encryption.json
+docs/backups/identity-step5f-dsar-20260607/aws/presttige-applicant-photos-public-access-block.json
+docs/backups/identity-step5f-dsar-20260607/aws/presttige-applicant-photos-thumbnails-encryption.json
+docs/backups/identity-step5f-dsar-20260607/aws/presttige-applicant-photos-thumbnails-public-access-block.json
+docs/backups/identity-step5f-dsar-20260607/aws/presttige-member-auth-function-configuration.json
+docs/backups/identity-step5f-dsar-20260607/aws/presttige-member-auth-role-policies.json
+docs/backups/identity-step5f-dsar-20260607/aws/presttige-member-auth-role-policy-presttige-member-auth-policy.json
+docs/backups/identity-step5f-dsar-20260607/aws/presttige-member-auth-role.json
+docs/backups/identity-step5f-dsar-20260607/aws/presttige-review-audit-table.json
+docs/backups/identity-step5f-dsar-20260607/code/member-auth-index.js
+docs/backups/identity-step5f-dsar-20260607/code/member-auth-package.json
+docs/backups/identity-step5f-dsar-20260607/code/member-index.html
+docs/backups/identity-step5f-dsar-20260607/code/package-presttige-member-auth.sh
+docs/backups/identity-step5f-dsar-20260607/data/codex-subscriber-tester-record.json
+docs/backups/identity-step5f-dsar-20260607/manifest.txt
