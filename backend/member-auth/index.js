@@ -1125,14 +1125,18 @@ function normalizeMemberPhotos(lead) {
 
   for (let slot = MEMBER_PHOTO_SLOT_MIN; slot <= MEMBER_PHOTO_SLOT_MAX; slot += 1) {
     const existing = slotsByNumber.get(slot) || {};
+    const photoId = normalizeText(existing.photo_id);
+    const uploadStatus = photoId
+      ? normalizeText(lead?.photo_uploads?.[photoId]?.status).toLowerCase()
+      : "";
     visibleSlots.push({
       slot,
       source: "member_upload",
-      photo_id: normalizeText(existing.photo_id),
+      photo_id: photoId,
       original_key: normalizeText(existing.original_key),
       content_type: normalizeText(existing.content_type),
       file_size: Number(existing.file_size || 0),
-      status: normalizeText(existing.status || "empty").toLowerCase() || "empty",
+      status: uploadStatus || normalizeText(existing.status || "empty").toLowerCase() || "empty",
       created_at: normalizeText(existing.created_at),
       updated_at: normalizeText(existing.updated_at),
     });
