@@ -1,0 +1,43 @@
+{
+  "Architectures": [
+    "x86_64"
+  ],
+  "CodeSha256": "Ai6JVaoPDBThWy+0mHWKVF+pr797X/jVAr/v40dt4SY=",
+  "CodeSize": 11045,
+  "Description": "",
+  "Environment": {
+    "Variables": {
+      "IAM_REFRESH": "20260603T0916Z"
+    }
+  },
+  "EphemeralStorage": {
+    "Size": 512
+  },
+  "FunctionArn": "arn:aws:lambda:us-east-1:343218208384:function:presttige-checkout-context",
+  "FunctionName": "presttige-checkout-context",
+  "Handler": "index.handler",
+  "LastModified": "2026-06-05T18:07:18.000+0000",
+  "LastUpdateStatus": "Successful",
+  "LoggingConfig": {
+    "LogFormat": "Text",
+    "LogGroup": "/aws/lambda/presttige-checkout-context"
+  },
+  "MemorySize": 256,
+  "PackageType": "Zip",
+  "RevisionId": "16864a80-1045-44dd-a3e0-79de5d6670b8",
+  "Role": "arn:aws:iam::343218208384:role/presttige-checkout-view-role",
+  "Runtime": "nodejs20.x",
+  "RuntimeVersionConfig": {
+    "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:18671876e7cc385452255180c58ca50cf8763398a4248ae92ed14410d196b942"
+  },
+  "SnapStart": {
+    "ApplyOn": "None",
+    "OptimizationStatus": "Off"
+  },
+  "State": "Active",
+  "Timeout": 15,
+  "TracingConfig": {
+    "Mode": "PassThrough"
+  },
+  "Version": "$LATEST"
+}

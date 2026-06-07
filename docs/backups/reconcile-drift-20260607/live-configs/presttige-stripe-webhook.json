@@ -1,0 +1,50 @@
+{
+  "Architectures": [
+    "x86_64"
+  ],
+  "CodeSha256": "KecJz26Ybm0kYzoSZ9q/KkL0X4Z0hFmuk+Ym3BZPHcQ=",
+  "CodeSize": 2218956,
+  "Description": "Presttige Stripe webhook runtime refresh 2026-05-03T05:57:48Z | live-refresh:2026-05-03T13:03:04Z",
+  "Environment": {
+    "Variables": {
+      "MEMBER_COGNITO_POOL_NAME": "presttige-members",
+      "MEMBER_USER_POOL_ID": "us-east-1_hpwdNFGss"
+    }
+  },
+  "EphemeralStorage": {
+    "Size": 512
+  },
+  "FunctionArn": "arn:aws:lambda:us-east-1:343218208384:function:presttige-stripe-webhook",
+  "FunctionName": "presttige-stripe-webhook",
+  "Handler": "lambda_function.lambda_handler",
+  "LastModified": "2026-06-06T20:18:21.000+0000",
+  "LastUpdateStatus": "Successful",
+  "Layers": [
+    {
+      "Arn": "arn:aws:lambda:us-east-1:343218208384:layer:stripe-layer:1",
+      "CodeSize": 3006077
+    }
+  ],
+  "LoggingConfig": {
+    "LogFormat": "Text",
+    "LogGroup": "/aws/lambda/presttige-stripe-webhook"
+  },
+  "MemorySize": 128,
+  "PackageType": "Zip",
+  "RevisionId": "1e0fefc0-4ce7-461d-81f4-be0c1231d208",
+  "Role": "arn:aws:iam::343218208384:role/service-role/presttige-stripe-webhook-role-xop9vqhp",
+  "Runtime": "python3.12",
+  "RuntimeVersionConfig": {
+    "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:0eb6fb00a97c1a17d2e3014b04c79bfc9bea4301466439e3458f985dc75cadcc"
+  },
+  "SnapStart": {
+    "ApplyOn": "None",
+    "OptimizationStatus": "Off"
+  },
+  "State": "Active",
+  "Timeout": 15,
+  "TracingConfig": {
+    "Mode": "Active"
+  },
+  "Version": "$LATEST"
+}
