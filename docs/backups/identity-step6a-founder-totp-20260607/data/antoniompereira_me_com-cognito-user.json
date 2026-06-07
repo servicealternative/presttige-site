@@ -1,0 +1,25 @@
+{
+  "Enabled": true,
+  "UserAttributes": [
+    {
+      "Name": "email",
+      "Value": "antoniompereira@me.com"
+    },
+    {
+      "Name": "email_verified",
+      "Value": "true"
+    },
+    {
+      "Name": "name",
+      "Value": "Antonio Manuel Pereira"
+    },
+    {
+      "Name": "sub",
+      "Value": "8438f438-3041-704d-6039-a1e78578043b"
+    }
+  ],
+  "UserCreateDate": "2026-06-06T21:23:09.703000+04:00",
+  "UserLastModifiedDate": "2026-06-06T21:23:09.703000+04:00",
+  "UserStatus": "FORCE_CHANGE_PASSWORD",
+  "Username": "8438f438-3041-704d-6039-a1e78578043b"
+}

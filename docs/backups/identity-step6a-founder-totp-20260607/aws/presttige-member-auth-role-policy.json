@@ -1,0 +1,103 @@
+{
+  "PolicyDocument": {
+    "Statement": [
+      {
+        "Action": [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:logs:us-east-1:343218208384:*",
+        "Sid": "CloudWatchLogs"
+      },
+      {
+        "Action": [
+          "dynamodb:Query"
+        ],
+        "Effect": "Allow",
+        "Resource": [
+          "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db/index/cognito_sub-index",
+          "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db/index/email-index"
+        ],
+        "Sid": "ReadPresttigeMemberRecords"
+      },
+      {
+        "Action": [
+          "cognito-idp:AdminInitiateAuth",
+          "cognito-idp:GetUser",
+          "cognito-idp:InitiateAuth",
+          "cognito-idp:ForgotPassword",
+          "cognito-idp:ConfirmForgotPassword"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:cognito-idp:us-east-1:343218208384:userpool/us-east-1_hpwdNFGss",
+        "Sid": "MemberPoolPasswordAuth"
+      },
+      {
+        "Action": "ses:SendEmail",
+        "Condition": {
+          "StringEquals": {
+            "ses:FromAddress": "private@presttige.net"
+          }
+        },
+        "Effect": "Allow",
+        "Resource": "*",
+        "Sid": "SyntheticResetNoticeToFQ"
+      },
+      {
+        "Action": [
+          "dynamodb:UpdateItem"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-db",
+        "Sid": "WriteOwnPresttigeMemberProfile"
+      },
+      {
+        "Action": "lambda:InvokeFunction",
+        "Effect": "Allow",
+        "Resource": "arn:aws:lambda:us-east-1:343218208384:function:presttige-photo-upload-init",
+        "Sid": "MemberPhotoUploadInit"
+      },
+      {
+        "Action": "s3:GetObject",
+        "Effect": "Allow",
+        "Resource": "arn:aws:s3:::presttige-applicant-photos-thumbnails/*",
+        "Sid": "ReadOwnMemberPhotoThumbnails"
+      },
+      {
+        "Action": "kms:Decrypt",
+        "Effect": "Allow",
+        "Resource": "arn:aws:kms:us-east-1:343218208384:key/723bb788-9911-4c49-bf1d-792b73685e7c",
+        "Sid": "DecryptPhotoThumbnails"
+      },
+      {
+        "Action": "dynamodb:PutItem",
+        "Effect": "Allow",
+        "Resource": "arn:aws:dynamodb:us-east-1:343218208384:table/presttige-review-audit",
+        "Sid": "AppendMemberDsarAudit"
+      },
+      {
+        "Action": "s3:DeleteObject",
+        "Effect": "Allow",
+        "Resource": [
+          "arn:aws:s3:::presttige-applicant-photos/*",
+          "arn:aws:s3:::presttige-applicant-photos-thumbnails/*"
+        ],
+        "Sid": "EraseOwnMemberPhotos"
+      },
+      {
+        "Action": [
+          "cognito-idp:AdminDisableUser",
+          "cognito-idp:AdminDeleteUser"
+        ],
+        "Effect": "Allow",
+        "Resource": "arn:aws:cognito-idp:us-east-1:343218208384:userpool/us-east-1_hpwdNFGss",
+        "Sid": "ErasePresttigeMemberCognitoUser"
+      }
+    ],
+    "Version": "2012-10-17"
+  },
+  "PolicyName": "presttige-member-auth-policy",
+  "RoleName": "presttige-member-auth-role"
+}

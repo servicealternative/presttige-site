@@ -1,0 +1,12 @@
+{
+  "DomainDescription": {
+    "AWSAccountId": "343218208384",
+    "CloudFrontDistribution": "d3oia8etllorh5.cloudfront.net",
+    "Domain": "presttige-members",
+    "ManagedLoginVersion": 1,
+    "S3Bucket": "aws-cognito-prod-iad-assets",
+    "Status": "ACTIVE",
+    "UserPoolId": "us-east-1_hpwdNFGss",
+    "Version": "20260606153113"
+  }
+}

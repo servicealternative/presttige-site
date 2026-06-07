@@ -1,0 +1,25 @@
+{
+  "Enabled": true,
+  "UserAttributes": [
+    {
+      "Name": "email",
+      "Value": "codex.subscriber.tester@presttige.net"
+    },
+    {
+      "Name": "email_verified",
+      "Value": "true"
+    },
+    {
+      "Name": "name",
+      "Value": "Codex Subscriber Tester"
+    },
+    {
+      "Name": "sub",
+      "Value": "b4e894b8-0001-70b4-4fde-a1cf2f795209"
+    }
+  ],
+  "UserCreateDate": "2026-06-07T04:51:20.308000+04:00",
+  "UserLastModifiedDate": "2026-06-07T04:51:21.904000+04:00",
+  "UserStatus": "CONFIRMED",
+  "Username": "b4e894b8-0001-70b4-4fde-a1cf2f795209"
+}

@@ -1,0 +1,46 @@
+{
+  "UserPoolClient": {
+    "AccessTokenValidity": 1,
+    "AllowedOAuthFlows": [
+      "code"
+    ],
+    "AllowedOAuthFlowsUserPoolClient": true,
+    "AllowedOAuthScopes": [
+      "email",
+      "openid",
+      "profile"
+    ],
+    "AuthSessionValidity": 3,
+    "CallbackURLs": [
+      "https://presttige.net/member/",
+      "https://presttige.net/member/callback"
+    ],
+    "ClientId": "3gdek6k48cm6oirccodgrub2k1",
+    "ClientName": "presttige-member-web",
+    "CreationDate": "2026-06-06T19:31:14.941000+04:00",
+    "EnablePropagateAdditionalUserContextData": false,
+    "EnableTokenRevocation": true,
+    "ExplicitAuthFlows": [
+      "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+      "ALLOW_REFRESH_TOKEN_AUTH",
+      "ALLOW_USER_SRP_AUTH"
+    ],
+    "IdTokenValidity": 1,
+    "LastModifiedDate": "2026-06-07T02:15:52.791000+04:00",
+    "LogoutURLs": [
+      "https://presttige.net/",
+      "https://presttige.net/member/"
+    ],
+    "PreventUserExistenceErrors": "ENABLED",
+    "RefreshTokenValidity": 30,
+    "SupportedIdentityProviders": [
+      "COGNITO"
+    ],
+    "TokenValidityUnits": {
+      "AccessToken": "hours",
+      "IdToken": "hours",
+      "RefreshToken": "days"
+    },
+    "UserPoolId": "us-east-1_hpwdNFGss"
+  }
+}
