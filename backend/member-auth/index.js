@@ -1356,7 +1356,8 @@ async function handleMemberDiscovery(event) {
   const cookiesToSet = refreshedTokens
     ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
     : [];
-  const switchState = await memberDiscoverySwitch();
+  const rawSwitchState = await memberDiscoverySwitch();
+  const switchState = effectiveMemberDiscoverySwitch(rawSwitchState, session.member);
 
   if (!switchState.enabled) {
     logAuth("member_discovery", "switch_off", {
@@ -1598,7 +1599,8 @@ async function handleMemberDiscoveryPhoto(event) {
   const cookiesToSet = refreshedTokens
     ? sessionCookies({ ...refreshedTokens, RefreshToken: refreshToken })
     : [];
-  const switchState = await memberDiscoverySwitch();
+  const rawSwitchState = await memberDiscoverySwitch();
+  const switchState = effectiveMemberDiscoverySwitch(rawSwitchState, session.member);
 
   if (!switchState.enabled || !isDiscoveryEligibleMember(session.member)) {
     logAuth("member_discovery_photo", "unavailable", {
@@ -2388,8 +2390,25 @@ async function memberDiscoverySwitch() {
 function publicDiscoverySwitchState(switchState) {
   return {
     master_enabled: switchState?.enabled === true,
+    public_master_enabled: switchState?.public_enabled === true,
+    test_mode: switchState?.test_mode === true,
     switch_parameter: MEMBER_DISCOVERY_SWITCH_PARAMETER,
   };
+}
+
+function effectiveMemberDiscoverySwitch(switchState, member) {
+  const publicEnabled = switchState?.enabled === true;
+  const testMode = !publicEnabled && isSyntheticDiscoveryTester(member);
+  return {
+    ...switchState,
+    public_enabled: publicEnabled,
+    enabled: publicEnabled || testMode,
+    test_mode: testMode,
+  };
+}
+
+function isSyntheticDiscoveryTester(member) {
+  return member?.synthetic_test === true && normalizeText(member?.lead_id);
 }
 
 function publicOwnDiscoveryStatus(state, switchState) {
@@ -2543,7 +2562,9 @@ function discoveryPublicProfile(lead) {
   const face = photos.find((photo) => photo.is_face) || photos[0] || null;
   return {
     member_id: normalizeText(lead.lead_id),
-    name: normalizeText(lead.name),
+    name: discoveryDisplayName(lead),
+    display_name: normalizeText(lead.name),
+    username: normalizeUsername(lead.username),
     tier,
     tier_badge: tierLabel(tier),
     age: normalizeText(lead.age),
@@ -2555,6 +2576,17 @@ function discoveryPublicProfile(lead) {
     face_photo_url: face ? discoveryPhotoUrl(lead.lead_id, face.photo_id, face.updated_at) : "",
     photos,
   };
+}
+
+function discoveryDisplayName(lead) {
+  const tier = canonicalTier(lead);
+  const username = normalizeUsername(lead?.username);
+  const realName = normalizeText(lead?.name);
+  const visibility = normalizeText(lead?.discovery_name_visibility).toLowerCase();
+  if (["premier", "patron"].includes(tier) && visibility === "real_name") {
+    return realName || username;
+  }
+  return username || realName || "member";
 }
 
 function discoveryPhotosForLead(lead) {
@@ -4275,6 +4307,11 @@ function normalizeMemberPhotos(lead) {
   const raw = lead?.member_photos && typeof lead.member_photos === "object"
     ? lead.member_photos
     : {};
+  const syntheticAiProfile = isSyntheticAiProfile(lead);
+  const slotMin = syntheticAiProfile ? 1 : MEMBER_PHOTO_SLOT_MIN;
+  const slotMax = MEMBER_PHOTO_SLOT_MAX;
+  const seededInternalCount = syntheticAiProfile ? 0 : INTERNAL_SEEDED_PHOTO_COUNT;
+  const visibleRequiredCount = NORMAL_MEMBER_PHOTO_REQUIRED_COUNT - seededInternalCount;
   const existingSlots = Array.isArray(raw.visible_slots)
     ? raw.visible_slots
     : [];
@@ -4285,7 +4322,7 @@ function normalizeMemberPhotos(lead) {
   );
   const visibleSlots = [];
 
-  for (let slot = MEMBER_PHOTO_SLOT_MIN; slot <= MEMBER_PHOTO_SLOT_MAX; slot += 1) {
+  for (let slot = slotMin; slot <= slotMax; slot += 1) {
     const existing = slotsByNumber.get(slot) || {};
     const photoId = normalizeText(existing.photo_id);
     const uploadStatus = photoId
@@ -4308,12 +4345,19 @@ function normalizeMemberPhotos(lead) {
   return {
     schema_version: 1,
     required_count: NORMAL_MEMBER_PHOTO_REQUIRED_COUNT,
-    seeded_internal_count: INTERNAL_SEEDED_PHOTO_COUNT,
-    visible_required_count: NORMAL_MEMBER_PHOTO_REQUIRED_COUNT - INTERNAL_SEEDED_PHOTO_COUNT,
+    seeded_internal_count: seededInternalCount,
+    visible_required_count: visibleRequiredCount,
     face_photo_id: facePhotoId,
     visible_slots: visibleSlots,
     updated_at: normalizeText(raw.updated_at),
   };
+}
+
+function isSyntheticAiProfile(lead) {
+  return lead?.synthetic_test === true && (
+    lead?.ai_profile === true ||
+    normalizeText(lead?.profile_origin).toLowerCase() === "ai_circle_test"
+  );
 }
 
 function normalizeFounderPhotos(lead) {
@@ -4395,10 +4439,10 @@ function publicMemberPhotos(lead) {
     complete_count: photos.seeded_internal_count + readyVisibleCount,
     is_complete: readyVisibleCount === photos.visible_required_count && faceReady,
     face_photo_id: faceReady ? photos.face_photo_id : "",
-    internal_slots: [
-      { slot: 1, status: "internal_seeded" },
-      { slot: 2, status: "internal_seeded" },
-    ],
+    internal_slots: Array.from({ length: photos.seeded_internal_count }, (_, index) => ({
+      slot: index + 1,
+      status: "internal_seeded",
+    })),
     visible_slots: slots,
     updated_at: photos.updated_at,
   };
@@ -4460,10 +4504,10 @@ function lockedMemberPhotos() {
     complete_count: INTERNAL_SEEDED_PHOTO_COUNT,
     is_complete: false,
     face_photo_id: "",
-    internal_slots: [
-      { slot: 1, status: "internal_seeded" },
-      { slot: 2, status: "internal_seeded" },
-    ],
+    internal_slots: Array.from({ length: INTERNAL_SEEDED_PHOTO_COUNT }, (_, index) => ({
+      slot: index + 1,
+      status: "internal_seeded",
+    })),
     visible_slots: visibleSlots,
     updated_at: "",
   };
