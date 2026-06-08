@@ -3389,6 +3389,8 @@
         const status = value && typeof value === "object" ? value : {};
         return {
           master_enabled: status.master_enabled === true,
+          public_master_enabled: status.public_master_enabled === true,
+          test_mode: status.test_mode === true,
           eligible: status.eligible === true,
           visible: status.visible === true,
           member_id: String(status.member_id || ""),
