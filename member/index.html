@@ -2450,6 +2450,7 @@
 
       function renderDiscoveryCard(member) {
         const location = [member.city, member.country].filter(Boolean).join(", ");
+        const meta = [member.tier_badge, member.age, location].filter(Boolean).join(", ");
         return `
           <button class="discovery-card" type="button" data-discovery-profile="${escapeAttr(member.member_id)}">
             <span class="discovery-card-photo">
@@ -2459,7 +2460,7 @@
             </span>
             <span>
               <h3>${escapeHtml(member.name || "Member")}</h3>
-              <p>${escapeHtml([member.tier_badge, location].filter(Boolean).join(", "))}</p>
+              <p>${escapeHtml(meta)}</p>
               ${renderDiscoveryPills(member.interests || [])}
             </span>
           </button>
@@ -2800,6 +2801,7 @@
         const visibleSlots = Array.isArray(photos.visible_slots) ? photos.visible_slots : [];
         const completeCount = Number(photos.complete_count || 0);
         const requiredCount = Number(photos.required_count || 6);
+        const internalSlots = Array.isArray(photos.internal_slots) ? photos.internal_slots : [];
         const faceSet = Boolean(photos.face_photo_id);
         return `
           <div class="photo-summary" aria-label="Photo summary">
@@ -2817,8 +2819,7 @@
             </div>
           </div>
           <div class="photo-grid">
-            ${renderInternalPhotoSlot(1)}
-            ${renderInternalPhotoSlot(2)}
+            ${internalSlots.map((slot) => renderInternalPhotoSlot(slot.slot)).join("")}
             ${visibleSlots.map(renderVisiblePhotoSlot).join("")}
           </div>
         `;
