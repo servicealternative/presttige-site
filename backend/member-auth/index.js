@@ -1358,6 +1358,7 @@ async function handleMemberDiscovery(event) {
     : [];
   const rawSwitchState = await memberDiscoverySwitch();
   const switchState = effectiveMemberDiscoverySwitch(rawSwitchState, session.member);
+  const testViewer = switchState.test_mode === true && isSyntheticDiscoveryTester(session.member);
 
   if (!switchState.enabled) {
     logAuth("member_discovery", "switch_off", {
@@ -1371,7 +1372,7 @@ async function handleMemberDiscovery(event) {
     }, cookiesToSet);
   }
 
-  if (!isDiscoveryEligibleMember(session.member)) {
+  if (!isDiscoveryEligibleMember(session.member) && !testViewer) {
     logAuth("member_discovery", "unavailable", {
       lead_hash: hashIdentifier(session.member.lead_id),
       mode_hash: hashIdentifier(mode),
@@ -1382,7 +1383,9 @@ async function handleMemberDiscovery(event) {
     }, cookiesToSet);
   }
 
-  const actor = await upsertMemberDiscoveryState(session.member);
+  const actor = testViewer
+    ? syntheticDiscoveryTestActor(session.member)
+    : await upsertMemberDiscoveryState(session.member);
 
   if (mode === "status") {
     return response(event, 200, {
@@ -1601,8 +1604,9 @@ async function handleMemberDiscoveryPhoto(event) {
     : [];
   const rawSwitchState = await memberDiscoverySwitch();
   const switchState = effectiveMemberDiscoverySwitch(rawSwitchState, session.member);
+  const testViewer = switchState.test_mode === true && isSyntheticDiscoveryTester(session.member);
 
-  if (!switchState.enabled || !isDiscoveryEligibleMember(session.member)) {
+  if (!switchState.enabled || (!isDiscoveryEligibleMember(session.member) && !testViewer)) {
     logAuth("member_discovery_photo", "unavailable", {
       lead_hash: hashIdentifier(session.member.lead_id),
     });
@@ -1612,7 +1616,9 @@ async function handleMemberDiscoveryPhoto(event) {
     }, cookiesToSet);
   }
 
-  const actor = await upsertMemberDiscoveryState(session.member);
+  const actor = testViewer
+    ? syntheticDiscoveryTestActor(session.member)
+    : await upsertMemberDiscoveryState(session.member);
   const memberId = normalizeText(event?.queryStringParameters?.member_id || safeParseBody(event).member_id);
   const photoId = normalizeText(event?.queryStringParameters?.photo_id || safeParseBody(event).photo_id);
   const target = memberId === actor.member_id
@@ -2409,6 +2415,17 @@ function effectiveMemberDiscoverySwitch(switchState, member) {
 
 function isSyntheticDiscoveryTester(member) {
   return member?.synthetic_test === true && normalizeText(member?.lead_id);
+}
+
+function syntheticDiscoveryTestActor(member) {
+  return {
+    member_id: normalizeText(member?.lead_id),
+    audience: discoveryAudience(member),
+    eligible: true,
+    visible: false,
+    is_founder: isFounderMember(member),
+    synthetic_test: true,
+  };
 }
 
 function publicOwnDiscoveryStatus(state, switchState) {

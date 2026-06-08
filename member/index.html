@@ -1953,6 +1953,7 @@
         const tier = normalizeTier(member?.tier);
         const isFounder = tier === "founder";
         const isValidated = isMemberValidated(member);
+        const canViewDiscovery = isValidated || currentDiscoveryStatus.test_mode === true;
         const disabled = isValidated ? "" : "disabled";
         const lockedClass = isValidated ? "" : "is-silent-locked";
         return `
@@ -2070,7 +2071,7 @@
             ${isFounder
               ? (isValidated ? renderFounderConciergePanel(member) : renderLockedFounderConciergePanel())
               : ""}
-            ${currentDiscoveryStatus.master_enabled === true && isValidated ? renderDiscoveryPanel(member) : ""}
+            ${currentDiscoveryStatus.master_enabled === true && canViewDiscovery ? renderDiscoveryPanel(member) : ""}
           </section>
         `;
       }
