@@ -2414,7 +2414,11 @@ function effectiveMemberDiscoverySwitch(switchState, member) {
 }
 
 function isSyntheticDiscoveryTester(member) {
-  return member?.synthetic_test === true && normalizeText(member?.lead_id);
+  const syntheticFlag = member?.synthetic_test === true ||
+    normalizeText(member?.synthetic_test).toLowerCase() === "true";
+  const testerTier = normalizeText(member?.tier).toLowerCase() === "tester" ||
+    normalizeText(member?.subscriber_type).toLowerCase() === "tester";
+  return Boolean((syntheticFlag || testerTier) && normalizeText(member?.lead_id));
 }
 
 function syntheticDiscoveryTestActor(member) {
