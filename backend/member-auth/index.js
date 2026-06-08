@@ -2640,10 +2640,21 @@ function discoveryPhotoUrl(memberId, photoId, version) {
 
 function discoveryInterestPills(lead) {
   const interests = publicInterests(lead);
+  const seen = new Set();
   return Object.values(interests)
     .flatMap((value) => normalizeText(value).split(/[,\n]/))
     .map((value) => trimToLimit(value, 36))
-    .filter(Boolean)
+    .filter((value) => {
+      if (!value) {
+        return false;
+      }
+      const key = value.toLowerCase();
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
     .slice(0, 8);
 }
 
