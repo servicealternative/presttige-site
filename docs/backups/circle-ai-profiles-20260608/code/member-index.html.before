@@ -1,0 +1,3699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presttige Member Area</title>
+  <script src="/assets/js/consent-banner.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pp-black: #0A0A0A;
+      --pp-gold: #8C7040;
+      --pp-paper: #FBF9F4;
+      --pp-background: #F5F2ED;
+      --pp-hairline: #D8D1C3;
+      --pp-hairline-strong: #BFB6A5;
+      --pp-muted: #5F5B54;
+      --pp-soft: #ECE6DA;
+      --pp-error: #8B1E1E;
+      --pp-success-tint: rgba(140, 112, 64, 0.08);
+      --pp-error-tint: rgba(139, 30, 30, 0.08);
+      --pp-shadow: 0 24px 60px rgba(10, 10, 10, 0.06);
+      --pp-page-pad: max(1cm, 24px);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--pp-background);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: var(--pp-page-pad);
+      background: var(--pp-background);
+      color: var(--pp-black);
+      font-family: "Source Serif 4", Georgia, serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .page-shell {
+      width: min(100%, 1180px);
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      margin: 0 auto;
+    }
+
+    .entry-layout {
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      display: grid;
+      grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .panel,
+    .member-frame {
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      box-shadow: var(--pp-shadow);
+    }
+
+    .intro,
+    .form-panel {
+      padding: clamp(26px, 4vw, 38px);
+    }
+
+    .brand-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .brand-lockup img {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .brand-name {
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(40px, 6vw, 66px);
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 0.98;
+    }
+
+    .section-title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(30px, 4vw, 46px);
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.08;
+    }
+
+    .copy {
+      margin: 18px 0 0;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.8;
+      max-width: 58ch;
+    }
+
+    .form {
+      display: grid;
+      gap: 18px;
+      margin-top: 26px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label,
+    .meta-label {
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: #fffdf8;
+      color: var(--pp-black);
+      font-size: 16px;
+      padding: 12px 14px;
+    }
+
+    .field input,
+    .field select {
+      min-height: 48px;
+    }
+
+    .field textarea {
+      min-height: 132px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    .field input[readonly],
+    .field input:disabled,
+    .field textarea:disabled {
+      background: #F0ECE4;
+      color: var(--pp-muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 100%;
+      min-height: 48px;
+      padding: 13px 18px;
+      border: 1px solid var(--pp-gold);
+      background: var(--pp-gold);
+      color: var(--pp-paper);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      cursor: pointer;
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .button--secondary {
+      background: transparent;
+      color: var(--pp-gold);
+    }
+
+    .link-button {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--pp-gold);
+      font-size: 14px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .notice,
+    .failure {
+      margin-top: 22px;
+      padding: 16px 18px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .notice {
+      border: 1px solid rgba(140, 112, 64, 0.18);
+      background: var(--pp-success-tint);
+      color: var(--pp-black);
+    }
+
+    .failure {
+      border: 1px solid rgba(139, 30, 30, 0.2);
+      background: var(--pp-error-tint);
+      color: var(--pp-error);
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .error-text {
+      color: var(--pp-error);
+    }
+
+    .member-frame {
+      min-height: calc(100vh - (var(--pp-page-pad) * 2));
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .member-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 24px clamp(22px, 4vw, 42px);
+      border-bottom: 1px solid var(--pp-hairline);
+    }
+
+    .member-topbar .brand-lockup {
+      margin: 0;
+    }
+
+    .member-topbar .brand-lockup img {
+      width: 44px;
+      height: 44px;
+    }
+
+    .member-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .nav-item {
+      min-height: 38px;
+      padding: 9px 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--pp-muted);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .nav-item:not(:disabled) {
+      cursor: pointer;
+    }
+
+    .nav-item[aria-current="page"] {
+      border-color: rgba(140, 112, 64, 0.34);
+      color: var(--pp-gold);
+    }
+
+    .nav-item:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+    }
+
+    .nav-item.is-silent-locked {
+      color: #A9A196;
+      opacity: 1;
+    }
+
+    .member-body {
+      display: block;
+      padding: clamp(26px, 5vw, 54px);
+    }
+
+    .member-body > *,
+    .overview,
+    .membership-view,
+    .profile-view,
+    .section-list,
+    .section-row,
+    .section-panel,
+    .member-side,
+    .side-panel,
+    .privacy-card {
+      min-width: 0;
+    }
+
+    .membership-view,
+    .profile-view {
+      display: grid;
+      align-content: start;
+      gap: clamp(24px, 4vw, 38px);
+    }
+
+    .membership-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+      gap: clamp(22px, 4vw, 40px);
+      align-items: start;
+    }
+
+    .membership-main,
+    .profile-main {
+      display: grid;
+      gap: clamp(24px, 4vw, 34px);
+      min-width: 0;
+    }
+
+    .membership-header {
+      display: grid;
+      gap: 14px;
+    }
+
+    .membership-name {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .membership-copy {
+      margin: 0;
+      max-width: 62ch;
+      color: var(--pp-muted);
+      font-size: 17px;
+      line-height: 1.75;
+    }
+
+    .membership-status-grid,
+    .membership-data-grid,
+    .profile-identity-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .membership-data-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .readonly-field,
+    .profile-identity-item {
+      min-width: 0;
+      min-height: 104px;
+      display: grid;
+      align-content: space-between;
+      gap: 14px;
+      padding: 18px;
+      background: rgba(255, 253, 248, 0.76);
+    }
+
+    .readonly-value,
+    .profile-identity-value {
+      margin: 0;
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(23px, 3vw, 30px);
+      font-weight: 500;
+      line-height: 1.08;
+      overflow-wrap: anywhere;
+    }
+
+    .membership-aside {
+      display: grid;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .main-photo-card,
+    .profile-subpanel,
+    .privacy-panel--discreet {
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+      padding: 22px;
+      min-width: 0;
+    }
+
+    .main-photo-frame {
+      overflow: hidden;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      display: grid;
+      place-items: center;
+      margin-top: 14px;
+      border: 1px solid rgba(140, 112, 64, 0.2);
+      background: var(--pp-paper);
+      color: var(--pp-muted);
+    }
+
+    .main-photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .profile-subpanel {
+      margin-top: 0;
+    }
+
+    .profile-subpanel.is-silent-locked {
+      background: #F0ECE4;
+      color: #A39B90;
+    }
+
+    .profile-subpanel.is-silent-locked h2,
+    .profile-subpanel.is-silent-locked p,
+    .profile-subpanel.is-silent-locked .hint {
+      color: #A39B90;
+    }
+
+    .locked-photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .locked-photo-slot {
+      min-height: 170px;
+      border: 1px solid rgba(140, 112, 64, 0.2);
+      background: rgba(255, 253, 248, 0.42);
+    }
+
+    .privacy-panel--discreet {
+      padding: 18px;
+    }
+
+    .privacy-panel--discreet h2 {
+      font-size: 27px;
+    }
+
+    .privacy-panel--discreet p,
+    .privacy-panel--discreet .hint,
+    .privacy-panel--discreet .privacy-confirm-row {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .privacy-panel--discreet .privacy-card h3 {
+      font-size: 22px;
+    }
+
+    .membership-action-panel,
+    .profile-status-panel {
+      border: 1px solid var(--pp-hairline);
+      background: rgba(255, 253, 248, 0.72);
+      padding: 20px;
+    }
+
+    .membership-action-panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .availability-note {
+      min-height: 20px;
+      margin-top: 8px;
+      color: var(--pp-muted);
+    }
+
+    .availability-note.is-available {
+      color: var(--pp-gold);
+    }
+
+    .availability-note.is-taken,
+    .availability-note.is-invalid {
+      color: var(--pp-muted);
+    }
+
+    .account-choice {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--pp-hairline);
+    }
+
+    .account-choice:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .profile-form.is-silent-locked {
+      opacity: 0.58;
+    }
+
+    .profile-form.is-silent-locked input,
+    .profile-form.is-silent-locked textarea {
+      cursor: not-allowed;
+    }
+
+    .overview {
+      display: grid;
+      align-content: start;
+      gap: 30px;
+    }
+
+    .welcome-copy {
+      margin: 16px 0 0;
+      color: var(--pp-muted);
+      font-size: 18px;
+      line-height: 1.75;
+      max-width: 62ch;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px solid var(--pp-hairline);
+      border-left: 1px solid var(--pp-hairline);
+    }
+
+    .summary-item {
+      min-height: 126px;
+      display: grid;
+      align-content: space-between;
+      gap: 18px;
+      padding: 22px;
+      border-right: 1px solid var(--pp-hairline);
+      border-bottom: 1px solid var(--pp-hairline);
+      background: rgba(255, 253, 248, 0.72);
+    }
+
+    .meta-value {
+      margin: 0;
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.05;
+    }
+
+    .state-pill {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 8px;
+      color: var(--pp-black);
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .state-pill::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--pp-gold);
+      content: "";
+    }
+
+    .section-list {
+      display: grid;
+      gap: 1px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .section-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 20px 22px;
+      background: var(--pp-paper);
+    }
+
+    .section-row.is-silent-locked {
+      background: #F0ECE4;
+      color: #A39B90;
+    }
+
+    .section-row.is-silent-locked h3,
+    .section-row.is-silent-locked p {
+      color: #A39B90;
+    }
+
+    .section-row h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 25px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.12;
+    }
+
+    .section-row p {
+      margin: 6px 0 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .status-badge {
+      min-width: 92px;
+      border: 1px solid rgba(140, 112, 64, 0.26);
+      padding: 8px 10px;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-align: center;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .status-badge:empty {
+      display: none;
+    }
+
+    .status-badge.action-badge {
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .status-badge.action-badge:focus-visible {
+      outline: 1px solid var(--pp-gold);
+      outline-offset: 3px;
+    }
+
+    .section-row.is-active {
+      border-left: 2px solid var(--pp-gold);
+    }
+
+    .section-panel {
+      border: 1px solid var(--pp-hairline);
+      padding: 24px;
+      background: #fffdf8;
+    }
+
+    .section-panel h2 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 34px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .section-panel p {
+      margin: 12px 0 0;
+      color: var(--pp-muted);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+
+    .profile-form {
+      display: grid;
+      gap: 28px;
+      margin-top: 26px;
+    }
+
+    .profile-group {
+      display: grid;
+      gap: 16px;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .profile-grid .field--wide {
+      grid-column: 1 / -1;
+    }
+
+    .profile-group-title {
+      margin: 0;
+      color: var(--pp-gold);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .photo-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 22px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .photo-summary-item {
+      min-height: 104px;
+      display: grid;
+      align-content: space-between;
+      gap: 12px;
+      padding: 18px;
+      background: var(--pp-paper);
+    }
+
+    .photo-summary-item strong {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .photo-grid.is-founder {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .photo-slot {
+      display: grid;
+      gap: 14px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      padding: 16px;
+    }
+
+    .photo-slot.is-internal {
+      background: #F0ECE4;
+    }
+
+    .photo-slot.is-add {
+      align-content: center;
+      min-height: 320px;
+      border-style: dashed;
+      background: #fffdf8;
+    }
+
+    .photo-frame {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(140, 112, 64, 0.2);
+      background: #fffdf8;
+      color: var(--pp-muted);
+    }
+
+    .photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-placeholder {
+      padding: 18px;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .photo-slot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .photo-slot-title {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 23px;
+      font-weight: 500;
+      line-height: 1.1;
+    }
+
+    .photo-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .button--small {
+      min-height: 38px;
+      padding: 9px 12px;
+      font-size: 11px;
+    }
+
+    .photo-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    .privacy-actions {
+      display: grid;
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .privacy-card {
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      padding: 18px;
+    }
+
+    .privacy-card h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 27px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .privacy-card p {
+      margin: 10px 0 0;
+      overflow-wrap: anywhere;
+    }
+
+    .discovery-panel {
+      border-color: rgba(140, 112, 64, 0.44);
+      background: var(--pp-black);
+      color: var(--pp-paper);
+    }
+
+    .discovery-panel h2,
+    .discovery-panel h3 {
+      color: var(--pp-paper);
+    }
+
+    .discovery-panel p,
+    .discovery-panel .hint {
+      color: rgba(245, 242, 237, 0.74);
+    }
+
+    .discovery-panel .eyebrow,
+    .discovery-panel .meta-label {
+      color: #B59C72;
+    }
+
+    .discovery-toolbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 22px;
+      padding: 18px;
+      border: 1px solid rgba(181, 156, 114, 0.34);
+      background: rgba(181, 156, 114, 0.1);
+    }
+
+    .discovery-toolbar h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 27px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .discovery-layout {
+      display: grid;
+      grid-template-columns: minmax(230px, 0.82fr) minmax(0, 1.18fr);
+      gap: 18px;
+      margin-top: 22px;
+      align-items: start;
+    }
+
+    .circle-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .discovery-card,
+    .discovery-profile-card,
+    .match-card,
+    .message-card {
+      border: 1px solid rgba(181, 156, 114, 0.28);
+      background: rgba(245, 242, 237, 0.06);
+    }
+
+    .discovery-card {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 13px;
+      width: 100%;
+      padding: 12px;
+      color: var(--pp-paper);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .discovery-card:hover,
+    .discovery-card:focus-visible {
+      border-color: rgba(140, 112, 64, 0.58);
+      outline: none;
+    }
+
+    .discovery-card-photo,
+    .discovery-profile-hero {
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(181, 156, 114, 0.28);
+      background: rgba(245, 242, 237, 0.08);
+      color: rgba(245, 242, 237, 0.68);
+    }
+
+    .discovery-card-photo {
+      width: 70px;
+      aspect-ratio: 1;
+    }
+
+    .discovery-card-photo img,
+    .discovery-profile-hero img,
+    .discovery-photo-strip img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .discovery-card h3,
+    .match-card h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.08;
+    }
+
+    .discovery-card p,
+    .match-card p,
+    .message-card p {
+      margin: 6px 0 0;
+      color: rgba(245, 242, 237, 0.68);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .discovery-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .discovery-pill {
+      border: 1px solid rgba(181, 156, 114, 0.34);
+      padding: 5px 8px;
+      color: #B59C72;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .discovery-profile-card {
+      padding: 18px;
+    }
+
+    .discovery-profile-hero {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      margin-bottom: 18px;
+    }
+
+    .discovery-profile-card h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(32px, 4vw, 46px);
+      font-weight: 500;
+      line-height: 1.04;
+    }
+
+    .discovery-profile-meta {
+      margin-top: 8px;
+      color: #B59C72;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .discovery-photo-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .discovery-photo-strip a {
+      overflow: hidden;
+      aspect-ratio: 1;
+      border: 1px solid rgba(181, 156, 114, 0.28);
+      background: rgba(245, 242, 237, 0.08);
+    }
+
+    .discovery-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .matches-panel {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid var(--pp-hairline);
+    }
+
+    .match-list,
+    .message-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .match-card,
+    .message-card {
+      padding: 14px;
+    }
+
+    .message-card.is-self {
+      border-color: rgba(181, 156, 114, 0.48);
+      background: rgba(181, 156, 114, 0.12);
+    }
+
+    .message-form {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .concierge-progress {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 24px;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-hairline);
+    }
+
+    .concierge-section-list {
+      display: grid;
+      gap: 28px;
+      margin-top: 30px;
+    }
+
+    .concierge-section {
+      display: grid;
+      gap: 18px;
+      padding-top: 22px;
+      border-top: 1px solid var(--pp-hairline);
+    }
+
+    .concierge-section h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 31px;
+      font-weight: 500;
+      line-height: 1.08;
+    }
+
+    .concierge-question {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+      padding: 18px 0;
+      border: 0;
+      border-top: 1px solid rgba(140, 112, 64, 0.14);
+    }
+
+    .concierge-question-title {
+      margin: 0;
+      padding: 0;
+      color: var(--pp-black);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 23px;
+      font-weight: 500;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .concierge-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .concierge-option {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      padding: 13px 14px;
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+    }
+
+    .concierge-option-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--pp-black);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .concierge-option input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: var(--pp-gold);
+    }
+
+    .concierge-free-text {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--pp-hairline);
+      border-radius: 0;
+      background: var(--pp-paper);
+      padding: 9px 10px;
+      color: var(--pp-black);
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .concierge-free-text:disabled {
+      opacity: 0.45;
+    }
+
+    .privacy-confirm {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .privacy-confirm-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--pp-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .privacy-confirm-row input {
+      width: 17px;
+      height: 17px;
+      margin-top: 3px;
+      accent-color: var(--pp-gold);
+    }
+
+    .totp-layout {
+      display: grid;
+      grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+      align-items: start;
+    }
+
+    .totp-qr {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+      padding: 16px;
+    }
+
+    .totp-qr svg {
+      width: min(100%, 210px);
+      height: auto;
+      display: block;
+    }
+
+    .manual-key {
+      overflow-wrap: anywhere;
+      border: 1px solid var(--pp-hairline);
+      background: var(--pp-paper);
+      padding: 12px 14px;
+      color: var(--pp-black);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      line-height: 1.5;
+    }
+
+    .recovery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .recovery-code {
+      border: 1px solid var(--pp-hairline);
+      background: #fffdf8;
+      padding: 10px 12px;
+      color: var(--pp-black);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .member-side {
+      display: grid;
+      align-content: start;
+      gap: 18px;
+    }
+
+    .side-panel {
+      border: 1px solid var(--pp-hairline);
+      padding: 22px;
+      background: #fffdf8;
+    }
+
+    .side-panel h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 27px;
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+
+    .side-panel p {
+      margin: 12px 0 0;
+      color: var(--pp-muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .tier-card {
+      border-color: rgba(140, 112, 64, 0.44);
+      background: rgba(140, 112, 64, 0.08);
+    }
+
+    .tier-card.is-founder {
+      background: var(--pp-black);
+      color: var(--pp-paper);
+    }
+
+    .tier-card.is-founder p,
+    .tier-card.is-founder .meta-label {
+      color: rgba(251, 249, 244, 0.72);
+    }
+
+    @media (max-width: 960px) {
+      .entry-layout,
+      .membership-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid,
+      .membership-status-grid,
+      .membership-data-grid,
+      .profile-identity-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .photo-summary,
+      .photo-grid,
+      .photo-grid.is-founder,
+      .locked-photo-grid,
+      .discovery-layout,
+      .concierge-progress,
+      .concierge-options,
+      .totp-layout,
+      .recovery-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .member-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .member-nav {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      :root {
+        --pp-page-pad: 1cm;
+      }
+
+      .brand-name {
+        font-size: 21px;
+      }
+
+      .member-body,
+      .intro,
+      .form-panel {
+        padding: 24px;
+      }
+
+      .member-topbar {
+        padding: 20px;
+      }
+
+      .discovery-toolbar {
+        display: grid;
+      }
+
+      .discovery-card {
+        grid-template-columns: 58px 1fr;
+      }
+
+      .discovery-card-photo {
+        width: 58px;
+      }
+
+      .discovery-photo-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .section-row {
+        grid-template-columns: 1fr;
+      }
+
+      .status-badge {
+        width: fit-content;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="app" class="page-shell" aria-live="polite">
+    <section class="entry-layout">
+      <div class="panel intro">
+        <div class="brand-lockup">
+          <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+          <span class="brand-name">Presttige</span>
+        </div>
+        <p class="eyebrow">Presttige Members</p>
+        <h1 class="title">Private access.</h1>
+        <p class="copy">Sign in with the email and password attached to your Presttige member account.</p>
+      </div>
+      <div class="panel form-panel">
+        <p class="eyebrow">Member Login</p>
+        <h2 class="title">Checking session.</h2>
+        <p class="copy">Hold for a moment while we prepare the private login.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/js/qrcode-generator.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      const API_BASE = window.location.hostname === "localhost"
+        ? "https://rwkz3d86u0.execute-api.us-east-1.amazonaws.com/member-auth"
+        : "/member-api";
+      const app = document.getElementById("app");
+      const VALIDATION_REQUIRED_SECTIONS = new Set(["profile", "photos", "founder"]);
+      const PHOTO_TYPES = new Set(["image/jpeg", "image/png"]);
+      const PHOTO_MAX_SIZE = 10 * 1024 * 1024;
+      const DSAR_ERASURE_CONFIRMATION = "ERASE MY ACCOUNT";
+      const ACCOUNT_KEEP_DATA_CONFIRMATION = "KEEP MY DATA";
+      const FOUNDER_TOTP_LABEL = "Presttige, Founder";
+      let currentMember = null;
+      let currentDiscoveryStatus = { master_enabled: false };
+      let discoveryStatusRefreshInFlight = false;
+      let currentDiscoveryMatchId = "";
+      let usernameCheckTimer = 0;
+
+      loadSession();
+
+      async function loadSession() {
+        try {
+          const session = await api("session", {});
+          if (session.ok) {
+            renderMemberArea(session.member);
+            return;
+          }
+        } catch (error) {
+          if (error.payload?.status === "PASSWORD_PENDING") {
+            renderPasswordPending(error.payload);
+            return;
+          }
+        }
+        renderLogin();
+      }
+
+      function renderEntry(content) {
+        app.innerHTML = `
+          <section class="entry-layout">
+            <div class="panel intro">
+              <div class="brand-lockup">
+                <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+                <span class="brand-name">Presttige</span>
+              </div>
+              <p class="eyebrow">Presttige Members</p>
+              <h1 class="title">Private access.</h1>
+              <p class="copy">Sign in with the email and password attached to your Presttige member account.</p>
+            </div>
+            <div class="panel form-panel">${content}</div>
+          </section>
+        `;
+      }
+
+      function renderLogin(message) {
+        renderEntry(`
+          <p class="eyebrow">Member Login</p>
+          <h2 class="title">Enter Presttige.</h2>
+          <p class="copy">Use the member account created after your membership was confirmed.</p>
+          ${message ? `<div class="notice">${escapeHtml(message)}</div>` : ""}
+          <form id="login-form" class="form" novalidate>
+            <div class="field">
+              <label for="member-email">Email</label>
+              <input id="member-email" type="email" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label for="member-password">Password</label>
+              <input id="member-password" type="password" autocomplete="current-password" required>
+            </div>
+            <p id="login-error" class="hint error-text"></p>
+            <div class="actions">
+              <button id="login-submit" class="button" type="submit">Sign in</button>
+              <button class="link-button" type="button" data-forgot>Forgot password</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("login-form").addEventListener("submit", submitLogin);
+        app.querySelector("[data-forgot]").addEventListener("click", renderForgot);
+      }
+
+      async function submitLogin(event) {
+        event.preventDefault();
+        const email = document.getElementById("member-email").value.trim();
+        const password = document.getElementById("member-password").value;
+        const errorBox = document.getElementById("login-error");
+        const button = document.getElementById("login-submit");
+        errorBox.textContent = "";
+        button.disabled = true;
+        button.textContent = "Signing in...";
+
+        try {
+          const result = await api("login", { email, password });
+          if (result.status === "FOUNDER_TOTP_ENROLL_REQUIRED") {
+            renderFounderTotpEnrollment(result);
+            return;
+          }
+          if (result.status === "FOUNDER_TOTP_REQUIRED") {
+            renderFounderTotpChallenge(email);
+            return;
+          }
+          renderMemberArea(result.member);
+        } catch (error) {
+          if (error.payload?.status === "PASSWORD_PENDING") {
+            renderPasswordPending(error.payload);
+            return;
+          }
+          errorBox.textContent = "Sign-in could not be completed.";
+          button.disabled = false;
+          button.textContent = "Sign in";
+        }
+      }
+
+      function renderFounderTotpEnrollment(payload) {
+        const secret = payload.secret_code || "";
+        const otpauth = payload.otpauth_url || "";
+        renderEntry(`
+          <p class="eyebrow">Founder Security</p>
+          <h2 class="title">Set up authenticator.</h2>
+          <p class="copy">Founder access requires an authenticator. Add this account in Google Authenticator, Authy, 1Password, or another authenticator app.</p>
+          <div class="totp-layout">
+            <div class="totp-qr" aria-label="Founder authenticator QR code">
+              ${totpQrSvg(otpauth)}
+            </div>
+            <div>
+              <p class="meta-label">Authenticator label</p>
+              <p class="manual-key">${escapeHtml(payload.label || FOUNDER_TOTP_LABEL)}</p>
+              <p class="meta-label" style="margin-top:16px;">Manual key</p>
+              <p class="manual-key">${escapeHtml(secret)}</p>
+              <form id="totp-enroll-form" class="form" novalidate>
+                <div class="field">
+                  <label for="totp-enroll-code">Authenticator code</label>
+                  <input id="totp-enroll-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+                </div>
+                <p id="totp-enroll-error" class="hint error-text" aria-live="polite"></p>
+                <div class="actions">
+                  <button id="totp-enroll-submit" class="button" type="submit">Enable authenticator</button>
+                  <button class="button button--secondary" type="button" data-login>Back to login</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        `);
+        document.getElementById("totp-enroll-form").addEventListener("submit", submitFounderTotpEnrollment);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+      }
+
+      async function submitFounderTotpEnrollment(event) {
+        event.preventDefault();
+        const code = readFormValue("totp-enroll-code").replace(/\s+/g, "");
+        const errorBox = document.getElementById("totp-enroll-error");
+        const button = document.getElementById("totp-enroll-submit");
+        errorBox.textContent = "";
+        if (!/^[0-9]{6}$/.test(code)) {
+          errorBox.textContent = "Enter the six-digit authenticator code.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Enabling...";
+        try {
+          const result = await api("totp-verify", { code });
+          renderFounderRecoveryCodes(result);
+        } catch (error) {
+          errorBox.textContent = "Authenticator setup could not be completed.";
+          button.disabled = false;
+          button.textContent = "Enable authenticator";
+        }
+      }
+
+      function renderFounderRecoveryCodes(result) {
+        const codes = Array.isArray(result.recovery_codes) ? result.recovery_codes : [];
+        renderEntry(`
+          <p class="eyebrow">Founder Security</p>
+          <h2 class="title">Save recovery codes.</h2>
+          <p class="copy">These codes are shown once. Keep them privately. Each code can reset your Founder authenticator if the device is lost.</p>
+          <div class="recovery-grid">
+            ${codes.map((code) => `<span class="recovery-code">${escapeHtml(code)}</span>`).join("")}
+          </div>
+          <div class="actions">
+            <button id="totp-recovery-continue" class="button" type="button">Enter member area</button>
+          </div>
+        `);
+        document.getElementById("totp-recovery-continue").addEventListener("click", () => {
+          renderMemberArea(result.member);
+        });
+      }
+
+      function renderFounderTotpChallenge(email, message) {
+        renderEntry(`
+          <p class="eyebrow">Founder Security</p>
+          <h2 class="title">Enter authenticator code.</h2>
+          <p class="copy">Founder access requires the current six-digit code from ${escapeHtml(FOUNDER_TOTP_LABEL)}.</p>
+          ${message ? `<div class="notice">${escapeHtml(message)}</div>` : ""}
+          <form id="totp-challenge-form" class="form" novalidate>
+            <div class="field">
+              <label for="totp-challenge-code">Authenticator code</label>
+              <input id="totp-challenge-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+            </div>
+            <p id="totp-challenge-error" class="hint error-text" aria-live="polite"></p>
+            <div class="actions">
+              <button id="totp-challenge-submit" class="button" type="submit">Continue</button>
+              <button class="link-button" type="button" data-recovery>Lost authenticator?</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("totp-challenge-form").addEventListener("submit", (event) => submitFounderTotpChallenge(event, email));
+        app.querySelector("[data-recovery]").addEventListener("click", () => renderFounderTotpRecovery(email));
+      }
+
+      async function submitFounderTotpChallenge(event, email) {
+        event.preventDefault();
+        const code = readFormValue("totp-challenge-code").replace(/\s+/g, "");
+        const errorBox = document.getElementById("totp-challenge-error");
+        const button = document.getElementById("totp-challenge-submit");
+        errorBox.textContent = "";
+        if (!/^[0-9]{6}$/.test(code)) {
+          errorBox.textContent = "Enter the six-digit authenticator code.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Checking...";
+        try {
+          const result = await api("totp-challenge", { email, code });
+          renderMemberArea(result.member);
+        } catch (error) {
+          errorBox.textContent = "Founder sign-in could not be completed.";
+          button.disabled = false;
+          button.textContent = "Continue";
+        }
+      }
+
+      function renderFounderTotpRecovery(email) {
+        renderEntry(`
+          <p class="eyebrow">Founder Recovery</p>
+          <h2 class="title">Reset authenticator.</h2>
+          <p class="copy">Enter one recovery code. This resets the authenticator and requires a fresh setup on the next sign-in.</p>
+          <form id="totp-recovery-form" class="form" novalidate>
+            <div class="field">
+              <label for="totp-recovery-code">Recovery code</label>
+              <input id="totp-recovery-code" type="text" autocomplete="off" required>
+            </div>
+            <p id="totp-recovery-error" class="hint error-text" aria-live="polite"></p>
+            <div class="actions">
+              <button id="totp-recovery-submit" class="button" type="submit">Reset authenticator</button>
+              <button class="button button--secondary" type="button" data-back>Back</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("totp-recovery-form").addEventListener("submit", (event) => submitFounderTotpRecovery(event, email));
+        app.querySelector("[data-back]").addEventListener("click", () => renderFounderTotpChallenge(email));
+      }
+
+      async function submitFounderTotpRecovery(event, email) {
+        event.preventDefault();
+        const recoveryCode = readFormValue("totp-recovery-code");
+        const errorBox = document.getElementById("totp-recovery-error");
+        const button = document.getElementById("totp-recovery-submit");
+        errorBox.textContent = "";
+        if (!recoveryCode) {
+          errorBox.textContent = "Enter a recovery code.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Resetting...";
+        try {
+          const result = await api("totp-recover", { email, recovery_code: recoveryCode });
+          renderLogin(result.message || "Authenticator reset. Sign in again to set up a new authenticator.");
+        } catch (error) {
+          errorBox.textContent = "Founder recovery could not be completed.";
+          button.disabled = false;
+          button.textContent = "Reset authenticator";
+        }
+      }
+
+      function totpQrSvg(otpauth) {
+        if (!otpauth || typeof qrcode !== "function") {
+          return '<span class="photo-placeholder">Manual setup key available.</span>';
+        }
+        try {
+          const qr = qrcode(0, "M");
+          qr.addData(otpauth);
+          qr.make();
+          return qr.createSvgTag(4, 2, "Founder authenticator QR code", FOUNDER_TOTP_LABEL);
+        } catch (error) {
+          return '<span class="photo-placeholder">Manual setup key available.</span>';
+        }
+      }
+
+      function renderMemberArea(member) {
+        renderMemberShell(member, "membership");
+      }
+
+      function renderMemberShell(member, activeSectionKey) {
+        currentMember = member;
+        currentDiscoveryStatus = normalizeDiscoveryStatus(member?.discovery || currentDiscoveryStatus);
+        const tier = normalizeTier(member?.tier);
+        const isValidated = isMemberValidated(member);
+        const sections = memberSections(tier);
+        const activeSection = sections.find((section) => section.key === activeSectionKey) || sections[0];
+        const activeKey = activeSection.key;
+
+        app.innerHTML = `
+          <section class="member-frame">
+            <header class="member-topbar">
+              <div class="brand-lockup">
+                <img src="/assets/images/presttige-p-ring-no-fund.svg" alt="" aria-hidden="true">
+                <span class="brand-name">Presttige</span>
+              </div>
+              <nav class="member-nav" aria-label="Member area">
+                ${sections.map((section) => renderNavItem(section, isValidated, activeKey)).join("")}
+              </nav>
+            </header>
+            <div class="member-body">
+              ${renderSectionPanel(activeSection, member)}
+            </div>
+          </section>
+        `;
+        document.getElementById("sign-out")?.addEventListener("click", signOut);
+        app.querySelectorAll("[data-section]").forEach((button) => {
+          button.addEventListener("click", () => openMemberSection(currentMember || member, button.dataset.section));
+        });
+        const profileForm = document.getElementById("profile-form");
+        if (profileForm && profileForm.dataset.locked !== "true") {
+          profileForm.addEventListener("submit", (event) => submitProfile(event, currentMember || member));
+          document.getElementById("profile-cancel")?.addEventListener("click", () => renderMemberShell(currentMember || member, "profile"));
+          bindUsernameAvailability(currentMember || member);
+        }
+        document.getElementById("upgrade-action")?.addEventListener("click", showUpgradePlaceholder);
+        document.getElementById("profile-deactivate")?.addEventListener("click", () => submitProfileStatus("deactivate", currentMember || member));
+        document.getElementById("profile-reactivate")?.addEventListener("click", () => submitProfileStatus("reactivate", currentMember || member));
+        if (document.getElementById("photos-panel") && isValidated) {
+          loadMemberPhotos(currentMember || member);
+        }
+        if (document.getElementById("founder-concierge-panel") && isValidated) {
+          loadFounderConcierge(currentMember || member);
+        }
+        if (document.getElementById("discovery-panel")) {
+          loadDiscoveryPanel(currentMember || member);
+        }
+        const exportButton = document.getElementById("privacy-export");
+        if (exportButton) {
+          exportButton.addEventListener("click", () => downloadDataExport(currentMember || member));
+        }
+        document.getElementById("account-keep-data-form")?.addEventListener("submit", submitKeepDataRemoval);
+        document.getElementById("account-delete-form")?.addEventListener("submit", submitPermanentRemoval);
+        refreshDiscoveryStatus(member, activeKey);
+      }
+
+      function renderNavItem(section, isValidated, activeSectionKey) {
+        const current = activeSectionKey === section.key;
+        return `
+          <button
+            class="nav-item"
+            type="button"
+            data-section="${escapeHtml(section.key)}"
+            ${current ? 'aria-current="page"' : ""}
+          >${escapeHtml(section.title)}</button>
+        `;
+      }
+
+      function renderSectionRow(section, isValidated, activeSectionKey) {
+        const locked = isSectionLocked(section, isValidated);
+        const current = activeSectionKey === section.key;
+        return `
+          <article class="section-row ${locked ? "is-silent-locked" : ""} ${current ? "is-active" : ""}">
+            <div>
+              <h3>${escapeHtml(section.title)}</h3>
+              <p>${escapeHtml(section.copy)}</p>
+            </div>
+            ${locked
+              ? '<span class="status-badge"></span>'
+              : `<button class="status-badge action-badge" type="button" data-section="${escapeHtml(section.key)}">${escapeHtml(section.status)}</button>`}
+          </article>
+        `;
+      }
+
+      function renderSectionPanel(section, member) {
+        if (section.key === "membership") {
+          return renderMembershipPanel(member);
+        }
+        if (section.key === "profile") {
+          return renderProfilePanel(member);
+        }
+
+        return `
+          <div class="section-panel" aria-live="polite">
+            <p class="eyebrow">${escapeHtml(section.title)}</p>
+            <h2>${escapeHtml(section.title)}</h2>
+            <p>${escapeHtml(section.openCopy)}</p>
+          </div>
+        `;
+      }
+
+      function memberSections(tier) {
+        return [
+          {
+            key: "membership",
+            title: "Membership",
+            copy: "Your private relationship with the Presttige platform.",
+            openCopy: "Your membership record, access state, private identity, and data rights.",
+            status: "View",
+            requiresValidation: false,
+          },
+          {
+            key: "profile",
+            title: "Profile",
+            copy: "Your presence in the Presttige app and Circle.",
+            openCopy: "Review and edit your app profile, interests, photos, and tier-specific profile details.",
+            status: "Open",
+            requiresValidation: false,
+          },
+        ];
+      }
+
+      async function openMemberSection(member, sectionKey) {
+        const tier = normalizeTier(member?.tier);
+        const section = memberSections(tier).find((item) => item.key === sectionKey);
+        if (!section) {
+          return;
+        }
+
+        if (section.key === "profile" && isMemberValidated(member)) {
+          await api("member-action", { section: section.key });
+        }
+        renderMemberShell(member, section.key);
+      }
+
+      function renderMembershipPanel(member) {
+        const profile = profileOf(member);
+        const tier = normalizeTier(member?.tier);
+        const tierLabel = tierLabelFor(tier);
+        const accessLabel = statusLabel(member?.account_status || member?.access_status);
+        return `
+          <section class="membership-view" aria-labelledby="membership-title">
+            <div class="membership-header">
+              <p class="eyebrow">Membership</p>
+              <h1 id="membership-title" class="section-title membership-name">${escapeHtml(member?.name || profile.name || "Member")}</h1>
+              <p class="membership-copy">This is your private relationship with Presttige, visible only to you and Presttige.</p>
+            </div>
+            <div class="membership-layout">
+              <div class="membership-main">
+                <div class="membership-status-grid" aria-label="Membership status">
+                  <div class="readonly-field">
+                    <span class="meta-label">Tier</span>
+                    <p class="readonly-value">${escapeHtml(tierLabel)}</p>
+                  </div>
+                  <div class="readonly-field">
+                    <span class="meta-label">Access</span>
+                    <p class="readonly-value"><span class="state-pill">${escapeHtml(accessLabel)}</span></p>
+                  </div>
+                </div>
+                ${renderUpgradeAction(tier)}
+                <div>
+                  <p class="eyebrow">Personal Data</p>
+                  <div class="membership-data-grid" aria-label="Personal data">
+                    ${renderReadonlyField("Full legal name", profile.name || member?.name || "")}
+                    ${renderReadonlyField("Email", profile.email || member?.email || "")}
+                    ${renderReadonlyField("Phone", [profile.phone_country, profile.phone].filter(Boolean).join(" "))}
+                    ${renderReadonlyField("Country", profile.country)}
+                    ${renderReadonlyField("City", profile.city)}
+                  </div>
+                </div>
+              </div>
+              <aside class="membership-aside" aria-label="Private membership actions">
+                ${renderMainPhotoCard(member)}
+                <div class="actions">
+                  <button id="sign-out" class="button button--secondary" type="button">Sign out</button>
+                </div>
+              </aside>
+            </div>
+            ${renderPrivacyPanel(member, true)}
+          </section>
+        `;
+      }
+
+      function renderUpgradeAction(tier) {
+        const next = nextTierFor(tier);
+        if (!next) {
+          return `
+            <div class="membership-action-panel">
+              <p class="eyebrow">Membership Level</p>
+              <p class="hint">No higher member tier is available for this account.</p>
+            </div>
+          `;
+        }
+        return `
+          <div class="membership-action-panel">
+            <p class="eyebrow">Membership Level</p>
+            <div class="actions">
+              <button id="upgrade-action" class="button" type="button" data-next-tier="${escapeAttr(next)}">Update to ${escapeHtml(tierLabelFor(next))}</button>
+            </div>
+            <p id="upgrade-status" class="hint" aria-live="polite">This action is prepared for the member upgrade checkout flow.</p>
+          </div>
+        `;
+      }
+
+      function renderReadonlyField(label, value) {
+        return `
+          <div class="readonly-field">
+            <span class="meta-label">${escapeHtml(label)}</span>
+            <p class="readonly-value">${escapeHtml(value || "Not set")}</p>
+          </div>
+        `;
+      }
+
+      function renderMainPhotoCard(member) {
+        const photo = mainPhotoOf(member);
+        return `
+          <article class="main-photo-card">
+            <p class="eyebrow">Main Photo</p>
+            <div class="main-photo-frame">
+              ${photo?.thumbnail_url
+                ? `<img src="${escapeAttr(photo.thumbnail_url)}" alt="">`
+                : '<span class="photo-placeholder">Main photo</span>'}
+            </div>
+          </article>
+        `;
+      }
+
+      function mainPhotoOf(member) {
+        const photos = member?.photos || {};
+        const slots = Array.isArray(photos.visible_slots) ? photos.visible_slots : [];
+        const facePhotoId = String(photos.face_photo_id || "");
+        return slots.find((slot) => slot.photo_id && slot.photo_id === facePhotoId && slot.thumbnail_url) ||
+          slots.find((slot) => slot.photo_id && slot.thumbnail_url) ||
+          null;
+      }
+
+      function renderProfilePanel(member) {
+        const profile = profileOf(member);
+        const interests = interestsOf(member);
+        const tier = normalizeTier(member?.tier);
+        const isFounder = tier === "founder";
+        const isValidated = isMemberValidated(member);
+        const disabled = isValidated ? "" : "disabled";
+        const lockedClass = isValidated ? "" : "is-silent-locked";
+        return `
+          <section class="profile-view" aria-labelledby="profile-title">
+            <div>
+              <p class="eyebrow">Profile</p>
+              <h1 id="profile-title" class="section-title">Your app profile.</h1>
+              <p class="membership-copy">This is the presence prepared for the Presttige app and, when the Circle opens, for other validated members.</p>
+            </div>
+            <div class="profile-identity-grid" aria-label="Shared identity">
+              <div class="profile-identity-item">
+                <span class="meta-label">Age</span>
+                <p class="profile-identity-value">${escapeHtml(profile.age || "Not set")}</p>
+              </div>
+              <div class="profile-identity-item">
+                <span class="meta-label">City</span>
+                <p class="profile-identity-value">${escapeHtml(profile.city || "Not set")}</p>
+              </div>
+            </div>
+            <form id="profile-form" class="profile-form ${lockedClass}" data-locked="${isValidated ? "false" : "true"}" novalidate>
+              <input id="profile-phone-country" type="hidden" value="${escapeAttr(profile.phone_country)}">
+              <input id="profile-phone" type="hidden" value="${escapeAttr(profile.phone)}">
+              <input id="profile-country" type="hidden" value="${escapeAttr(profile.country)}">
+              <div class="profile-group">
+                <p class="profile-group-title">Shared identity</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-age">Age</label>
+                    <input id="profile-age" type="text" inputmode="numeric" value="${escapeAttr(profile.age)}" ${disabled} required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-city">City</label>
+                    <input id="profile-city" type="text" value="${escapeAttr(profile.city)}" autocomplete="address-level2" ${disabled} required>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Public profile details</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="profile-username">Username</label>
+                    <input id="profile-username" type="text" value="${escapeAttr(profile.username)}" autocomplete="off" maxlength="30" ${disabled} required>
+                    <p id="username-availability" class="hint availability-note" aria-live="polite">${isValidated ? "Use lowercase letters, numbers, underscore or dot." : ""}</p>
+                  </div>
+                  <div class="field">
+                    <label for="profile-instagram">Instagram</label>
+                    <input id="profile-instagram" type="text" value="${escapeAttr(profile.instagram)}" ${disabled} required>
+                  </div>
+                  <div class="field">
+                    <label for="profile-linkedin">LinkedIn</label>
+                    <input id="profile-linkedin" type="url" value="${escapeAttr(profile.linkedin)}" ${disabled}>
+                  </div>
+                  <div class="field">
+                    <label for="profile-tiktok">TikTok</label>
+                    <input id="profile-tiktok" type="text" value="${escapeAttr(profile.tiktok)}" ${disabled}>
+                  </div>
+                  <div class="field">
+                    <label for="profile-website">Website</label>
+                    <input id="profile-website" type="url" value="${escapeAttr(profile.website)}" ${disabled}>
+                  </div>
+                  <div class="field">
+                    <label for="profile-occupation">Occupation</label>
+                    <input id="profile-occupation" type="text" value="${escapeAttr(profile.occupation)}" ${disabled}>
+                  </div>
+                  <div class="field">
+                    <label for="profile-company">Company</label>
+                    <input id="profile-company" type="text" value="${escapeAttr(profile.company)}" ${disabled}>
+                  </div>
+                  <div class="field field--wide">
+                    <label for="profile-bio">Short introduction</label>
+                    <textarea id="profile-bio" ${disabled} required>${escapeHtml(profile.bio)}</textarea>
+                    <p class="hint">Use at least 50 characters.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-group">
+                <p class="profile-group-title">Interests</p>
+                <div class="profile-grid">
+                  <div class="field">
+                    <label for="interest-lifestyle">Lifestyle</label>
+                    <textarea id="interest-lifestyle" ${disabled}>${escapeHtml(interests.lifestyle)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-business">Business</label>
+                    <textarea id="interest-business" ${disabled}>${escapeHtml(interests.business)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-travel">Travel</label>
+                    <textarea id="interest-travel" ${disabled}>${escapeHtml(interests.travel)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-culture">Culture</label>
+                    <textarea id="interest-culture" ${disabled}>${escapeHtml(interests.culture)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-wellbeing">Wellbeing</label>
+                    <textarea id="interest-wellbeing" ${disabled}>${escapeHtml(interests.wellbeing)}</textarea>
+                  </div>
+                  <div class="field">
+                    <label for="interest-notes">Notes</label>
+                    <textarea id="interest-notes" ${disabled}>${escapeHtml(interests.notes)}</textarea>
+                  </div>
+                </div>
+              </div>
+              <p id="profile-error" class="hint error-text" aria-live="polite"></p>
+              ${isValidated
+                ? `<div class="actions">
+                    <button id="profile-submit" class="button" type="submit">Save profile</button>
+                    <button id="profile-cancel" class="button button--secondary" type="button">Cancel</button>
+                  </div>`
+                : ""}
+            </form>
+            ${renderProfileStatusPanel(member, isValidated)}
+            ${isValidated ? renderPhotosPanel(member) : renderLockedPhotosPanel(member)}
+            ${isFounder
+              ? (isValidated ? renderFounderConciergePanel(member) : renderLockedFounderConciergePanel())
+              : ""}
+            ${currentDiscoveryStatus.master_enabled === true && isValidated ? renderDiscoveryPanel(member) : ""}
+          </section>
+        `;
+      }
+
+      function renderProfileStatusPanel(member, isValidated) {
+        const status = profileVisibilityStatus(member);
+        const deactivated = status === "deactivated";
+        return `
+          <div class="profile-status-panel ${isValidated ? "" : "is-silent-locked"}">
+            <p class="eyebrow">Profile State</p>
+            <h2>${deactivated ? "Profile deactivated" : "Profile active"}</h2>
+            <p class="hint">${deactivated
+              ? "Your account and membership remain active. When the Circle opens, this profile will not participate until reactivated."
+              : "Pause the public profile layer while keeping your membership and private account data intact."}</p>
+            <div class="actions">
+              ${deactivated
+                ? `<button id="profile-reactivate" class="button" type="button" ${isValidated ? "" : "disabled"}>Reactivate profile</button>`
+                : `<button id="profile-deactivate" class="button button--secondary" type="button" ${isValidated ? "" : "disabled"}>Deactivate profile</button>`}
+            </div>
+            <p id="profile-status-message" class="hint" aria-live="polite"></p>
+          </div>
+        `;
+      }
+
+      function renderPhotosPanel(member) {
+        const isFounder = normalizeTier(member?.tier) === "founder";
+
+        return `
+          <div id="photos-panel" class="section-panel profile-subpanel" aria-live="polite">
+            <p class="eyebrow">Photos</p>
+            <h2>${isFounder ? "Founder photos" : "Member photos"}</h2>
+            <p>${isFounder
+              ? "One photo is required. Add more only if you wish, up to six total. Choose one as the face view."
+              : "Your photo set is private to your account. Two application references are held internally and are not shown here."}</p>
+            <div id="photos-content">
+              <p class="hint">Loading photos.</p>
+            </div>
+            <p id="photos-error" class="hint error-text" aria-live="polite"></p>
+          </div>
+        `;
+      }
+
+      function renderLockedPhotosPanel(member) {
+        const isFounder = normalizeTier(member?.tier) === "founder";
+        const slots = Array.from({ length: 6 });
+        return `
+          <div class="section-panel profile-subpanel is-silent-locked" aria-live="polite">
+            <p class="eyebrow">Photos</p>
+            <h2>${isFounder ? "Founder photos" : "Member photos"}</h2>
+            <div class="locked-photo-grid" aria-label="Photo management locked">
+              ${slots.map(() => '<div class="locked-photo-slot"></div>').join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderFounderConciergePanel(member) {
+        return `
+          <div id="founder-concierge-panel" class="section-panel profile-subpanel" aria-live="polite">
+            <p class="eyebrow">Founder Concierge</p>
+            <h2>Concierge profile</h2>
+            <p>Your answers help Presttige understand where discretion, access, timing, and taste matter most. Share only what you wish, this profile can remain partial.</p>
+            <div id="founder-concierge-content">
+              <p class="hint">Loading Concierge profile.</p>
+            </div>
+            <p id="founder-concierge-error" class="hint error-text" aria-live="polite"></p>
+          </div>
+        `;
+      }
+
+      function renderLockedFounderConciergePanel() {
+        return `
+          <div class="section-panel profile-subpanel is-silent-locked" aria-live="polite">
+            <p class="eyebrow">Founder Concierge</p>
+            <h2>Concierge profile</h2>
+          </div>
+        `;
+      }
+
+      async function loadFounderConcierge(member) {
+        const host = document.getElementById("founder-concierge-content");
+        const errorBox = document.getElementById("founder-concierge-error");
+        if (!host || normalizeTier(member?.tier) !== "founder") {
+          return;
+        }
+
+        try {
+          const result = await api("concierge", { mode: "list" });
+          host.innerHTML = renderFounderConciergeForm(result.definition, result.concierge_profile);
+          bindFounderConciergeActions(result.definition);
+          if (errorBox) errorBox.textContent = "";
+        } catch (error) {
+          host.innerHTML = "";
+          if (errorBox) errorBox.textContent = "Concierge profile is not available right now.";
+        }
+      }
+
+      function renderFounderConciergeForm(definition, profile) {
+        const progress = profile?.progress || {};
+        const answered = Number(progress.answered_questions || 0);
+        const total = Number(progress.total_questions || definition?.total_questions || 22);
+        const percent = Number(progress.completion_percent || 0);
+        const sections = Array.isArray(definition?.sections) ? definition.sections : [];
+        return `
+          <form id="founder-concierge-form" novalidate>
+            <div class="concierge-progress" aria-label="Concierge profile progress">
+              <div class="photo-summary-item">
+                <span class="meta-label">Answered</span>
+                <strong>${escapeHtml(String(answered))}/${escapeHtml(String(total))}</strong>
+              </div>
+              <div class="photo-summary-item">
+                <span class="meta-label">Progress</span>
+                <strong>${escapeHtml(String(percent))}%</strong>
+              </div>
+            </div>
+            <div class="concierge-section-list">
+              ${sections.map((section) => renderFounderConciergeSection(section, profile)).join("")}
+            </div>
+            <div class="actions">
+              <button id="founder-concierge-submit" class="button" type="submit">Save Concierge profile</button>
+            </div>
+          </form>
+        `;
+      }
+
+      function renderFounderConciergeSection(section, profile) {
+        const questions = Array.isArray(section.questions) ? section.questions : [];
+        return `
+          <section class="concierge-section" data-concierge-section="${escapeAttr(section.id)}">
+            <div>
+              <p class="eyebrow">${escapeHtml(section.title)}</p>
+              <h3>${escapeHtml(section.title)}</h3>
+            </div>
+            ${questions.map((question) => renderFounderConciergeQuestion(question, profile)).join("")}
+          </section>
+        `;
+      }
+
+      function renderFounderConciergeQuestion(question, profile) {
+        const answer = profile?.answers?.[question.id] || {};
+        const selected = new Set(Array.isArray(answer.selected) ? answer.selected : []);
+        const options = Array.isArray(question.options) ? question.options : [];
+        const questionTitleId = `concierge-title-${question.id}`;
+        return `
+          <div class="concierge-question" data-concierge-question="${escapeAttr(question.id)}" role="group" aria-labelledby="${escapeAttr(questionTitleId)}">
+            <p id="${escapeAttr(questionTitleId)}" class="concierge-question-title">${escapeHtml(question.label)}</p>
+            <div class="concierge-options">
+              ${options.map((item) => renderFounderConciergeOption(question.id, item, selected, answer.free_text || {})).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderFounderConciergeOption(questionId, item, selected, freeText) {
+        const checked = selected.has(item.value);
+        const inputId = `concierge-${questionId}-${item.value}`;
+        const freeTextValue = freeText?.[item.value] || "";
+        return `
+          <label class="concierge-option" for="${escapeAttr(inputId)}">
+            <span class="concierge-option-row">
+              <input
+                id="${escapeAttr(inputId)}"
+                type="checkbox"
+                value="${escapeAttr(item.value)}"
+                data-concierge-option="${escapeAttr(questionId)}"
+                data-free-text="${item.free_text ? "true" : "false"}"
+                ${checked ? "checked" : ""}
+              >
+              <span>${escapeHtml(item.label)}</span>
+            </span>
+            ${item.free_text
+              ? `<input class="concierge-free-text" type="text" maxlength="240" value="${escapeAttr(freeTextValue)}" data-concierge-free-text="${escapeAttr(questionId)}" data-option-value="${escapeAttr(item.value)}" placeholder="${escapeAttr(item.label)}" ${checked ? "" : "disabled"}>`
+              : ""}
+          </label>
+        `;
+      }
+
+      function bindFounderConciergeActions(definition) {
+        const form = document.getElementById("founder-concierge-form");
+        if (!form) {
+          return;
+        }
+        form.querySelectorAll("[data-concierge-option]").forEach((checkbox) => {
+          checkbox.addEventListener("change", () => {
+            const freeText = form.querySelector(`[data-concierge-free-text="${escapeAttr(checkbox.dataset.conciergeOption)}"][data-option-value="${escapeAttr(checkbox.value)}"]`);
+            if (!freeText) {
+              return;
+            }
+            freeText.disabled = !checkbox.checked;
+            if (!checkbox.checked) {
+              freeText.value = "";
+            }
+          });
+        });
+        form.addEventListener("submit", (event) => submitFounderConcierge(event, definition));
+      }
+
+      async function submitFounderConcierge(event, definition) {
+        event.preventDefault();
+        const errorBox = document.getElementById("founder-concierge-error");
+        const button = document.getElementById("founder-concierge-submit");
+        if (errorBox) errorBox.textContent = "";
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Saving...";
+        }
+        try {
+          const payload = {
+            mode: "save",
+            answers: founderConciergePayloadFromForm(definition),
+          };
+          const result = await api("concierge", payload);
+          document.getElementById("founder-concierge-content").innerHTML = renderFounderConciergeForm(result.definition, result.concierge_profile);
+          bindFounderConciergeActions(result.definition);
+          if (errorBox) errorBox.textContent = "Concierge profile saved.";
+        } catch (error) {
+          if (errorBox) errorBox.textContent = "Concierge profile could not be saved.";
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Save Concierge profile";
+          }
+        }
+      }
+
+      function founderConciergePayloadFromForm(definition) {
+        const answers = {};
+        const questions = (definition?.sections || []).flatMap((section) => section.questions || []);
+        questions.forEach((question) => {
+          const selected = Array.from(document.querySelectorAll(`[data-concierge-option="${escapeAttr(question.id)}"]:checked`))
+            .map((item) => item.value);
+          const freeText = {};
+          selected.forEach((value) => {
+            const input = document.querySelector(`[data-concierge-free-text="${escapeAttr(question.id)}"][data-option-value="${escapeAttr(value)}"]`);
+            if (input && input.value.trim()) {
+              freeText[value] = input.value.trim();
+            }
+          });
+          if (selected.length) {
+            answers[question.id] = {
+              selected,
+              free_text: freeText,
+            };
+          }
+        });
+        return answers;
+      }
+
+      async function refreshDiscoveryStatus(member, activeSectionKey) {
+        if (discoveryStatusRefreshInFlight) {
+          return;
+        }
+        discoveryStatusRefreshInFlight = true;
+        const previousEnabled = currentDiscoveryStatus.master_enabled === true;
+        try {
+          const result = await api("discovery", { mode: "status" });
+          currentDiscoveryStatus = normalizeDiscoveryStatus(result.discovery || {});
+          const nextEnabled = currentDiscoveryStatus.master_enabled === true;
+          if (currentMember) {
+            currentMember = {
+              ...currentMember,
+              discovery: currentDiscoveryStatus,
+            };
+          }
+          if (previousEnabled !== nextEnabled) {
+            const nextSection = activeSectionKey === "profile" ? "profile" : "membership";
+            renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, nextSection);
+          }
+        } catch (error) {
+          if (error.payload?.status === "DISCOVERY_DISABLED") {
+            currentDiscoveryStatus = normalizeDiscoveryStatus(error.payload.discovery || { master_enabled: false });
+            if (previousEnabled) {
+              renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, "membership");
+            }
+          }
+        } finally {
+          discoveryStatusRefreshInFlight = false;
+        }
+      }
+
+      function renderDiscoveryPanel(member) {
+        const discovery = normalizeDiscoveryStatus(currentDiscoveryStatus);
+        const founderControl = discovery.founder_visibility_control === true;
+        return `
+          <div id="discovery-panel" class="section-panel profile-subpanel discovery-panel" aria-live="polite">
+            <p class="eyebrow">Circle</p>
+            <h2>Private member Circle</h2>
+            <p>Visible profiles are active, validated members only. Direct contact opens after both members show interest.</p>
+            ${founderControl ? renderFounderDiscoveryControl(discovery) : ""}
+            <div id="discovery-content">
+              <p class="hint">Loading the private Circle.</p>
+            </div>
+            <div id="discovery-matches" class="matches-panel"></div>
+            <p id="discovery-status" class="hint" aria-live="polite"></p>
+          </div>
+        `;
+      }
+
+      function renderFounderDiscoveryControl(discovery) {
+        const visible = discovery.visible === true;
+        return `
+          <div class="discovery-toolbar">
+            <div>
+              <h3>Founder visibility</h3>
+              <p>Founders can see the Circle. Founders remain invisible unless they choose to appear.</p>
+            </div>
+            <button
+              id="discovery-founder-visibility"
+              class="button ${visible ? "button--secondary" : ""}"
+              type="button"
+              data-visible="${visible ? "false" : "true"}"
+            >${visible ? "Hide profile" : "Become visible"}</button>
+          </div>
+        `;
+      }
+
+      async function loadDiscoveryPanel(member) {
+        const host = document.getElementById("discovery-content");
+        const matchHost = document.getElementById("discovery-matches");
+        const status = document.getElementById("discovery-status");
+        const visibilityButton = document.getElementById("discovery-founder-visibility");
+        if (!host) {
+          return;
+        }
+
+        if (visibilityButton) {
+          visibilityButton.addEventListener("click", () => saveDiscoveryVisibility(visibilityButton.dataset.visible === "true"));
+        }
+
+        try {
+          const [circleResult, matchResult] = await Promise.all([
+            api("discovery", { mode: "circle" }),
+            api("discovery", { mode: "matches" }),
+          ]);
+          currentDiscoveryStatus = normalizeDiscoveryStatus(circleResult.discovery || currentDiscoveryStatus);
+          host.innerHTML = renderDiscoveryContent(circleResult.members || []);
+          bindDiscoveryProfileButtons();
+          if (matchHost) {
+            matchHost.innerHTML = renderDiscoveryMatches(matchResult.matches || []);
+            bindDiscoveryMatchButtons();
+          }
+          if (status) status.textContent = "";
+        } catch (error) {
+          if (error.payload?.status === "DISCOVERY_DISABLED") {
+            currentDiscoveryStatus = normalizeDiscoveryStatus(error.payload.discovery || { master_enabled: false });
+            renderMemberShell({ ...member, discovery: currentDiscoveryStatus }, "membership");
+            return;
+          }
+          host.innerHTML = "";
+          if (matchHost) matchHost.innerHTML = "";
+          if (status) status.textContent = "The private Circle is not available right now.";
+        }
+      }
+
+      function renderDiscoveryContent(members) {
+        if (!members.length) {
+          return `
+            <div class="notice">
+              The Circle is quiet for now. Active, validated members will appear here when they are visible.
+            </div>
+          `;
+        }
+        return `
+          <div class="discovery-layout">
+            <div class="circle-grid" aria-label="Visible members">
+              ${members.map(renderDiscoveryCard).join("")}
+            </div>
+            <div id="discovery-profile">
+              <div class="discovery-profile-card">
+                <p class="eyebrow">Profile</p>
+                <h3>Select a member.</h3>
+                <p>Open a profile to see the shared, validated discovery details.</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderDiscoveryCard(member) {
+        const location = [member.city, member.country].filter(Boolean).join(", ");
+        return `
+          <button class="discovery-card" type="button" data-discovery-profile="${escapeAttr(member.member_id)}">
+            <span class="discovery-card-photo">
+              ${member.face_photo_url
+                ? `<img src="${escapeAttr(member.face_photo_url)}" alt="">`
+                : '<span class="photo-placeholder">Photo</span>'}
+            </span>
+            <span>
+              <h3>${escapeHtml(member.name || "Member")}</h3>
+              <p>${escapeHtml([member.tier_badge, location].filter(Boolean).join(", "))}</p>
+              ${renderDiscoveryPills(member.interests || [])}
+            </span>
+          </button>
+        `;
+      }
+
+      function bindDiscoveryProfileButtons() {
+        document.querySelectorAll("[data-discovery-profile]").forEach((button) => {
+          button.addEventListener("click", () => openDiscoveryProfile(button.dataset.discoveryProfile));
+        });
+      }
+
+      async function openDiscoveryProfile(memberId) {
+        const host = document.getElementById("discovery-profile");
+        const status = document.getElementById("discovery-status");
+        if (!host) {
+          return;
+        }
+        if (status) status.textContent = "";
+        host.innerHTML = '<div class="discovery-profile-card"><p class="hint">Loading profile.</p></div>';
+        try {
+          const result = await api("discovery", { mode: "profile", member_id: memberId });
+          host.innerHTML = renderDiscoveryProfile(result.profile);
+          bindDiscoveryProfileActions();
+        } catch (error) {
+          host.innerHTML = "";
+          if (status) status.textContent = "This profile is no longer available.";
+        }
+      }
+
+      function renderDiscoveryProfile(profile) {
+        const location = [profile.city, profile.country].filter(Boolean).join(", ");
+        return `
+          <article class="discovery-profile-card">
+            <div class="discovery-profile-hero">
+              ${profile.face_photo_url
+                ? `<img src="${escapeAttr(profile.face_photo_url)}" alt="">`
+                : '<span class="photo-placeholder">Validated profile</span>'}
+            </div>
+            <p class="eyebrow">${escapeHtml(profile.tier_badge || "Member")}</p>
+            <h3>${escapeHtml(profile.name || "Member")}</h3>
+            <div class="discovery-profile-meta">${escapeHtml([location, profile.age ? `${profile.age}` : ""].filter(Boolean).join(", "))}</div>
+            ${profile.bio ? `<p>${escapeHtml(profile.bio)}</p>` : ""}
+            ${renderDiscoveryPills(profile.interests || [])}
+            ${renderDiscoveryPhotoStrip(profile.photos || [])}
+            <div class="discovery-actions">
+              <button class="button" type="button" data-discovery-action="like" data-member-id="${escapeAttr(profile.member_id)}">Like</button>
+              <button class="button button--secondary" type="button" data-discovery-action="pass" data-member-id="${escapeAttr(profile.member_id)}">Pass</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderDiscoveryPills(items) {
+        const values = Array.isArray(items) ? items.filter(Boolean).slice(0, 6) : [];
+        if (!values.length) {
+          return "";
+        }
+        return `<span class="discovery-pill-row">${values.map((item) => `<span class="discovery-pill">${escapeHtml(item)}</span>`).join("")}</span>`;
+      }
+
+      function renderDiscoveryPhotoStrip(photos) {
+        const visible = Array.isArray(photos) ? photos.filter((photo) => photo.thumbnail_url).slice(0, 4) : [];
+        if (!visible.length) {
+          return "";
+        }
+        return `
+          <div class="discovery-photo-strip" aria-label="Member photos">
+            ${visible.map((photo) => `
+              <a href="${escapeAttr(photo.thumbnail_url)}" target="_blank" rel="noreferrer">
+                <img src="${escapeAttr(photo.thumbnail_url)}" alt="">
+              </a>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      function bindDiscoveryProfileActions() {
+        document.querySelectorAll("[data-discovery-action]").forEach((button) => {
+          button.addEventListener("click", () => submitDiscoveryAction(button.dataset.discoveryAction, button.dataset.memberId));
+        });
+      }
+
+      async function submitDiscoveryAction(mode, memberId) {
+        const status = document.getElementById("discovery-status");
+        if (status) status.textContent = "";
+        try {
+          const result = await api("discovery", { mode, member_id: memberId });
+          if (status) {
+            status.textContent = result.matched
+              ? "A mutual match is open. You can now exchange messages."
+              : mode === "like" ? "Interest saved." : "Profile passed.";
+          }
+          if (result.matched) {
+            await loadDiscoveryMatches();
+          }
+        } catch (error) {
+          if (status) status.textContent = "The action could not be completed.";
+        }
+      }
+
+      async function loadDiscoveryMatches() {
+        const matchHost = document.getElementById("discovery-matches");
+        if (!matchHost) {
+          return;
+        }
+        try {
+          const result = await api("discovery", { mode: "matches" });
+          matchHost.innerHTML = renderDiscoveryMatches(result.matches || []);
+          bindDiscoveryMatchButtons();
+        } catch (error) {
+          matchHost.innerHTML = "";
+        }
+      }
+
+      function renderDiscoveryMatches(matches) {
+        return `
+          <p class="eyebrow">Matches</p>
+          <h2>Mutual connections</h2>
+          ${matches.length
+            ? `<div class="match-list">${matches.map(renderDiscoveryMatch).join("")}</div>`
+            : '<p class="hint">Messages open after both members show interest.</p>'}
+          <div id="discovery-thread"></div>
+        `;
+      }
+
+      function renderDiscoveryMatch(match) {
+        const profile = match.matched_member || {};
+        return `
+          <article class="match-card">
+            <h3>${escapeHtml(profile.name || "Member")}</h3>
+            <p>${escapeHtml([profile.tier_badge, profile.city, profile.country].filter(Boolean).join(", "))}</p>
+            <div class="actions">
+              <button class="button button--small" type="button" data-discovery-match="${escapeAttr(match.match_id)}">Open messages</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function bindDiscoveryMatchButtons() {
+        document.querySelectorAll("[data-discovery-match]").forEach((button) => {
+          button.addEventListener("click", () => openDiscoveryMessages(button.dataset.discoveryMatch));
+        });
+      }
+
+      async function openDiscoveryMessages(matchId) {
+        const thread = document.getElementById("discovery-thread");
+        if (!thread) {
+          return;
+        }
+        currentDiscoveryMatchId = matchId;
+        thread.innerHTML = '<p class="hint">Loading messages.</p>';
+        try {
+          const result = await api("discovery", { mode: "messages", match_id: matchId });
+          thread.innerHTML = renderDiscoveryThread(result.match, result.messages || []);
+          const form = document.getElementById("discovery-message-form");
+          form?.addEventListener("submit", submitDiscoveryMessage);
+        } catch (error) {
+          thread.innerHTML = '<p class="hint error-text">Messages are not available right now.</p>';
+        }
+      }
+
+      function renderDiscoveryThread(match, messages) {
+        const profile = match?.matched_member || {};
+        return `
+          <div class="message-list" aria-label="Messages with ${escapeAttr(profile.name || "member")}">
+            ${messages.length
+              ? messages.map(renderDiscoveryMessage).join("")
+              : '<p class="hint">No messages yet.</p>'}
+          </div>
+          <form id="discovery-message-form" class="message-form" novalidate>
+            <div class="field">
+              <label for="discovery-message">Message</label>
+              <textarea id="discovery-message" maxlength="1000" required></textarea>
+            </div>
+            <div class="actions">
+              <button id="discovery-message-submit" class="button" type="submit">Send message</button>
+            </div>
+            <p id="discovery-message-status" class="hint" aria-live="polite"></p>
+          </form>
+        `;
+      }
+
+      function renderDiscoveryMessage(message) {
+        return `
+          <article class="message-card ${message.sender_is_self ? "is-self" : ""}">
+            <p>${escapeHtml(message.message)}</p>
+            <p>${escapeHtml(message.sender_is_self ? "You" : "Member")}, ${escapeHtml(message.sent_at || "")}</p>
+          </article>
+        `;
+      }
+
+      async function submitDiscoveryMessage(event) {
+        event.preventDefault();
+        const message = readFormValue("discovery-message");
+        const status = document.getElementById("discovery-message-status");
+        const button = document.getElementById("discovery-message-submit");
+        if (status) status.textContent = "";
+        if (!message) {
+          if (status) status.textContent = "Enter a message.";
+          return;
+        }
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Sending...";
+        }
+        try {
+          await api("discovery", {
+            mode: "send-message",
+            match_id: currentDiscoveryMatchId,
+            message,
+          });
+          await openDiscoveryMessages(currentDiscoveryMatchId);
+        } catch (error) {
+          if (status) status.textContent = "Message could not be sent.";
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Send message";
+          }
+        }
+      }
+
+      async function saveDiscoveryVisibility(visible) {
+        const status = document.getElementById("discovery-status");
+        if (status) status.textContent = "";
+        try {
+          const result = await api("discovery", {
+            mode: "visibility",
+            visible,
+          });
+          currentDiscoveryStatus = normalizeDiscoveryStatus(result.discovery || currentDiscoveryStatus);
+          renderMemberShell({ ...currentMember, discovery: currentDiscoveryStatus }, "profile");
+        } catch (error) {
+          if (status) status.textContent = "Visibility could not be changed.";
+        }
+      }
+
+      function showUpgradePlaceholder() {
+        const status = document.getElementById("upgrade-status");
+        if (status) {
+          status.textContent = "Member upgrade checkout is awaiting the upgrade-flow block. No checkout has been started.";
+        }
+      }
+
+      function renderPrivacyPanel(member, discreet = false) {
+        const email = profileOf(member).email || member?.email || "";
+        const panelClass = discreet ? "section-panel privacy-panel--discreet" : "section-panel";
+        return `
+          <div class="${panelClass}" aria-live="polite">
+            <p class="eyebrow">Privacy</p>
+            <h2>Data rights</h2>
+            <p>This private area is available to your authenticated account even while silent validation is pending.</p>
+            <div class="privacy-actions">
+              <article class="privacy-card">
+                <h3>Access and export</h3>
+                <p>Download a portable JSON export of the Presttige member data attached to this account. It is delivered through this authenticated session only.</p>
+                <div class="actions">
+                  <button id="privacy-export" class="button" type="button">Download data export</button>
+                </div>
+                <p id="privacy-export-status" class="hint" aria-live="polite"></p>
+              </article>
+              <article class="privacy-card">
+                <h3>Rectification</h3>
+                <p>Editable profile and interest details are handled in the Profile section after silent validation. Fixed identity fields, including ${escapeHtml(email)}, can be corrected by contacting Presttige.</p>
+              </article>
+              <article class="privacy-card">
+                <h3>Remove account</h3>
+                <p>Choose whether to preserve your data for a future return, or request Presttige erasure where the law allows. Full Ulttra-side erasure and backup purge remain an awaiting dependency.</p>
+                <form id="account-keep-data-form" class="privacy-confirm account-choice" novalidate>
+                  <h4>Keep my data for a future return</h4>
+                  <p class="hint">This archives the account and preserves your member data. It is reversible through Presttige.</p>
+                  <label class="privacy-confirm-row" for="account-keep-data-check">
+                    <input id="account-keep-data-check" type="checkbox" required>
+                    <span>I want my member data preserved for a future return.</span>
+                  </label>
+                  <div class="field">
+                    <label for="account-keep-data-confirmation">Confirmation phrase</label>
+                    <input id="account-keep-data-confirmation" type="text" autocomplete="off" placeholder="${escapeAttr(ACCOUNT_KEEP_DATA_CONFIRMATION)}" required>
+                    <p class="hint">Type ${escapeHtml(ACCOUNT_KEEP_DATA_CONFIRMATION)} to confirm.</p>
+                  </div>
+                  <p id="account-keep-data-status" class="hint error-text" aria-live="polite"></p>
+                  <div class="actions">
+                    <button id="account-keep-data-submit" class="button button--secondary" type="submit">Archive account</button>
+                  </div>
+                </form>
+                <form id="account-delete-form" class="privacy-confirm account-choice" novalidate>
+                  <h4>Delete permanently</h4>
+                  <p class="hint">This runs the Presttige erasure path. Ulttra-side erasure and backup purge are marked as awaiting dependency.</p>
+                  <label class="privacy-confirm-row" for="account-delete-check">
+                    <input id="account-delete-check" type="checkbox" required>
+                    <span>I understand that my member login will be disabled and Presttige profile data will be erased where the law allows.</span>
+                  </label>
+                  <label class="privacy-confirm-row" for="account-delete-final-check">
+                    <input id="account-delete-final-check" type="checkbox" required>
+                    <span>I understand that Ulttra-side erasure and backup purge are still awaiting their separate process.</span>
+                  </label>
+                  <div class="field">
+                    <label for="account-delete-confirmation">Confirmation phrase</label>
+                    <input id="account-delete-confirmation" type="text" autocomplete="off" placeholder="${escapeAttr(DSAR_ERASURE_CONFIRMATION)}" required>
+                    <p class="hint">Type ${escapeHtml(DSAR_ERASURE_CONFIRMATION)} to confirm.</p>
+                  </div>
+                  <p id="account-delete-status" class="hint error-text" aria-live="polite"></p>
+                  <div class="actions">
+                    <button id="account-delete-submit" class="button button--secondary" type="submit">Delete account data</button>
+                  </div>
+                </form>
+              </article>
+            </div>
+          </div>
+        `;
+      }
+
+      async function loadMemberPhotos(member) {
+        const host = document.getElementById("photos-content");
+        const errorBox = document.getElementById("photos-error");
+        if (!host) {
+          return;
+        }
+
+        try {
+          const result = await api("photos", { mode: "list" });
+          syncMemberPhotos(result.photos || member?.photos || {});
+          host.innerHTML = renderPhotosContent(result.photos || member?.photos || {});
+          bindPhotoActions(result.photos || member?.photos || {});
+          if (errorBox) errorBox.textContent = "";
+        } catch (error) {
+          host.innerHTML = "";
+          if (errorBox) errorBox.textContent = "Photos are not available right now.";
+        }
+      }
+
+      function renderPhotosContent(photos) {
+        if (isFounderPhotoModel(photos)) {
+          return renderFounderPhotosContent(photos);
+        }
+
+        const visibleSlots = Array.isArray(photos.visible_slots) ? photos.visible_slots : [];
+        const completeCount = Number(photos.complete_count || 0);
+        const requiredCount = Number(photos.required_count || 6);
+        const faceSet = Boolean(photos.face_photo_id);
+        return `
+          <div class="photo-summary" aria-label="Photo summary">
+            <div class="photo-summary-item">
+              <span class="meta-label">Total</span>
+              <strong>${escapeHtml(String(completeCount))}/${escapeHtml(String(requiredCount))}</strong>
+            </div>
+            <div class="photo-summary-item">
+              <span class="meta-label">Internal</span>
+              <strong>${escapeHtml(String(photos.seeded_internal_count || 2))}</strong>
+            </div>
+            <div class="photo-summary-item">
+              <span class="meta-label">Face</span>
+              <strong>${faceSet ? "Set" : "Choose"}</strong>
+            </div>
+          </div>
+          <div class="photo-grid">
+            ${renderInternalPhotoSlot(1)}
+            ${renderInternalPhotoSlot(2)}
+            ${visibleSlots.map(renderVisiblePhotoSlot).join("")}
+          </div>
+        `;
+      }
+
+      function renderFounderPhotosContent(photos) {
+        const visibleSlots = Array.isArray(photos.visible_slots) ? photos.visible_slots : [];
+        const completeCount = Number(photos.complete_count || 0);
+        const maxCount = Number(photos.max_count || 6);
+        const faceSet = Boolean(photos.face_photo_id);
+        const nextSlot = Number(photos.next_available_slot || 0);
+        return `
+          <div class="photo-summary" aria-label="Founder photo summary">
+            <div class="photo-summary-item">
+              <span class="meta-label">Photos</span>
+              <strong>${escapeHtml(String(completeCount))}/${escapeHtml(String(maxCount))}</strong>
+            </div>
+            <div class="photo-summary-item">
+              <span class="meta-label">Minimum</span>
+              <strong>1</strong>
+            </div>
+            <div class="photo-summary-item">
+              <span class="meta-label">Face</span>
+              <strong>${faceSet ? "Set" : "Choose"}</strong>
+            </div>
+          </div>
+          <div class="photo-grid is-founder">
+            ${visibleSlots.map((slot) => renderFounderPhotoSlot(slot, visibleSlots.length)).join("")}
+            ${nextSlot ? renderFounderAddPhotoSlot(nextSlot) : ""}
+          </div>
+        `;
+      }
+
+      function renderInternalPhotoSlot(slot) {
+        return `
+          <article class="photo-slot is-internal">
+            <div class="photo-slot-header">
+              <h3 class="photo-slot-title">Photo ${slot}</h3>
+              <span class="status-badge">Internal</span>
+            </div>
+            <div class="photo-frame">
+              <span class="photo-placeholder">Application reference held privately.</span>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderVisiblePhotoSlot(slot) {
+        const status = String(slot.status || "empty").toLowerCase();
+        const hasPhoto = Boolean(slot.photo_id);
+        const isReady = status === "ready";
+        const actionLabel = hasPhoto ? "Replace" : "Add photo";
+        const statusLabel = slot.is_face ? "Face" : isReady ? "Ready" : hasPhoto ? "Preparing" : "Empty";
+        return `
+          <article class="photo-slot" data-photo-slot="${escapeAttr(slot.slot)}">
+            <div class="photo-slot-header">
+              <h3 class="photo-slot-title">Photo ${escapeHtml(String(slot.slot))}</h3>
+              <span class="status-badge">${escapeHtml(statusLabel)}</span>
+            </div>
+            <div class="photo-frame">
+              ${slot.thumbnail_url
+                ? `<img src="${escapeAttr(slot.thumbnail_url)}" alt="">`
+                : `<span class="photo-placeholder">${hasPhoto ? "Thumbnail preparing." : "Add a private member photo."}</span>`}
+            </div>
+            <div class="photo-actions">
+              <button class="button button--small" type="button" data-photo-upload="${escapeAttr(slot.slot)}">${escapeHtml(actionLabel)}</button>
+              <input class="photo-input" type="file" accept="image/jpeg,image/png" data-photo-input="${escapeAttr(slot.slot)}">
+              <button class="button button--small button--secondary" type="button" data-photo-face="${escapeAttr(slot.photo_id)}" ${isReady && !slot.is_face ? "" : "disabled"}>Set face</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderFounderPhotoSlot(slot, totalSlots) {
+        const status = String(slot.status || "empty").toLowerCase();
+        const hasPhoto = Boolean(slot.photo_id);
+        const isReady = status === "ready";
+        const statusLabel = slot.is_face ? "Face" : isReady ? "Ready" : hasPhoto ? "Preparing" : "Empty";
+        const canRemove = hasPhoto && totalSlots > 1;
+        return `
+          <article class="photo-slot" data-photo-slot="${escapeAttr(slot.slot)}">
+            <div class="photo-slot-header">
+              <h3 class="photo-slot-title">Photo ${escapeHtml(String(slot.slot))}</h3>
+              <span class="status-badge">${escapeHtml(statusLabel)}</span>
+            </div>
+            <div class="photo-frame">
+              ${slot.thumbnail_url
+                ? `<img src="${escapeAttr(slot.thumbnail_url)}" alt="">`
+                : `<span class="photo-placeholder">${hasPhoto ? "Thumbnail preparing." : "Add a private Founder photo."}</span>`}
+            </div>
+            <div class="photo-actions">
+              <button class="button button--small" type="button" data-photo-upload="${escapeAttr(slot.slot)}">${hasPhoto ? "Replace" : "Add photo"}</button>
+              <input class="photo-input" type="file" accept="image/jpeg,image/png" data-photo-input="${escapeAttr(slot.slot)}">
+              <button class="button button--small button--secondary" type="button" data-photo-face="${escapeAttr(slot.photo_id)}" ${isReady && !slot.is_face ? "" : "disabled"}>Set face</button>
+              <button class="button button--small button--secondary" type="button" data-photo-remove="${escapeAttr(slot.photo_id)}" ${canRemove ? "" : "disabled"}>Remove</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderFounderAddPhotoSlot(slot) {
+        return `
+          <article class="photo-slot is-add" data-photo-slot="${escapeAttr(slot)}">
+            <div class="photo-slot-header">
+              <h3 class="photo-slot-title">Add photo</h3>
+              <span class="status-badge">Optional</span>
+            </div>
+            <div class="photo-frame">
+              <span class="photo-placeholder">Add another private Founder photo, up to six total.</span>
+            </div>
+            <div class="photo-actions">
+              <button class="button button--small" type="button" data-photo-upload="${escapeAttr(slot)}">Add photo</button>
+              <input class="photo-input" type="file" accept="image/jpeg,image/png" data-photo-input="${escapeAttr(slot)}">
+            </div>
+          </article>
+        `;
+      }
+
+      function bindPhotoActions(photos) {
+        document.querySelectorAll("[data-photo-upload]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const input = document.querySelector(`[data-photo-input="${button.dataset.photoUpload}"]`);
+            input?.click();
+          });
+        });
+        document.querySelectorAll("[data-photo-input]").forEach((input) => {
+          input.addEventListener("change", () => {
+            const file = input.files?.[0];
+            if (file) {
+              uploadMemberPhoto(input.dataset.photoInput, file);
+            }
+            input.value = "";
+          });
+        });
+        document.querySelectorAll("[data-photo-face]").forEach((button) => {
+          button.addEventListener("click", () => setMemberPhotoFace(button.dataset.photoFace));
+        });
+        document.querySelectorAll("[data-photo-remove]").forEach((button) => {
+          button.addEventListener("click", () => removeMemberPhoto(button.dataset.photoRemove));
+        });
+      }
+
+      async function uploadMemberPhoto(slot, file) {
+        const errorBox = document.getElementById("photos-error");
+        if (errorBox) errorBox.textContent = "";
+
+        if (!PHOTO_TYPES.has(file.type)) {
+          if (errorBox) errorBox.textContent = "Use a JPEG or PNG image.";
+          return;
+        }
+        if (file.size > PHOTO_MAX_SIZE) {
+          if (errorBox) errorBox.textContent = "Use an image under 10 MB.";
+          return;
+        }
+
+        setPhotoButtonsDisabled(true);
+        try {
+          const result = await api("photos", {
+            mode: "init-upload",
+            slot: Number(slot),
+            content_type: file.type,
+            file_size: file.size,
+          });
+          syncMemberPhotos(result.photos || {});
+          await postPhotoToS3(result.upload, file);
+          await refreshPhotosUntilReady(result.upload.photo_id);
+        } catch (error) {
+          if (errorBox) errorBox.textContent = "Photo could not be saved.";
+          setPhotoButtonsDisabled(false);
+        }
+      }
+
+      async function postPhotoToS3(upload, file) {
+        const formData = new FormData();
+        Object.entries(upload.upload_fields || {}).forEach(([key, value]) => {
+          formData.append(key, value);
+        });
+        formData.append("file", file);
+        const result = await fetch(upload.upload_url, {
+          method: "POST",
+          body: formData,
+        });
+        if (!result.ok) {
+          throw new Error("Photo upload failed");
+        }
+      }
+
+      async function refreshPhotosUntilReady(photoId) {
+        const host = document.getElementById("photos-content");
+        for (let attempt = 0; attempt < 6; attempt += 1) {
+          await sleep(attempt === 0 ? 1200 : 2500);
+          const result = await api("photos", { mode: "list" });
+          syncMemberPhotos(result.photos || {});
+          host.innerHTML = renderPhotosContent(result.photos || {});
+          bindPhotoActions(result.photos || {});
+          const slot = (result.photos?.visible_slots || []).find((item) => item.photo_id === photoId);
+          if (slot?.status === "ready") {
+            return;
+          }
+        }
+        setPhotoButtonsDisabled(false);
+      }
+
+      async function setMemberPhotoFace(photoId) {
+        const errorBox = document.getElementById("photos-error");
+        if (!photoId) {
+          return;
+        }
+        if (errorBox) errorBox.textContent = "";
+        setPhotoButtonsDisabled(true);
+        try {
+          const result = await api("photos", {
+            mode: "set-face",
+            photo_id: photoId,
+          });
+          syncMemberPhotos(result.photos || {});
+          document.getElementById("photos-content").innerHTML = renderPhotosContent(result.photos || {});
+          bindPhotoActions(result.photos || {});
+        } catch (error) {
+          if (errorBox) errorBox.textContent = "Face photo could not be set.";
+          setPhotoButtonsDisabled(false);
+        }
+      }
+
+      async function removeMemberPhoto(photoId) {
+        const errorBox = document.getElementById("photos-error");
+        if (!photoId) {
+          return;
+        }
+        if (errorBox) errorBox.textContent = "";
+        setPhotoButtonsDisabled(true);
+        try {
+          const result = await api("photos", {
+            mode: "remove",
+            photo_id: photoId,
+          });
+          syncMemberPhotos(result.photos || {});
+          document.getElementById("photos-content").innerHTML = renderPhotosContent(result.photos || {});
+          bindPhotoActions(result.photos || {});
+        } catch (error) {
+          if (errorBox) errorBox.textContent = "Photo could not be removed.";
+          setPhotoButtonsDisabled(false);
+        }
+      }
+
+      function setPhotoButtonsDisabled(disabled) {
+        document.querySelectorAll("[data-photo-upload]").forEach((button) => {
+          button.disabled = disabled;
+        });
+        document.querySelectorAll("[data-photo-remove]").forEach((button) => {
+          if (disabled) {
+            if (!button.disabled) {
+              button.dataset.reenable = "true";
+              button.disabled = true;
+            }
+            return;
+          }
+          if (button.dataset.reenable === "true") {
+            button.disabled = false;
+            delete button.dataset.reenable;
+          }
+        });
+        if (disabled) {
+          document.querySelectorAll("[data-photo-face]").forEach((button) => {
+            if (!button.disabled) {
+              button.dataset.reenable = "true";
+              button.disabled = true;
+            }
+          });
+          return;
+        }
+        document.querySelectorAll("[data-photo-face][data-reenable='true']").forEach((button) => {
+          button.disabled = false;
+          delete button.dataset.reenable;
+        });
+      }
+
+      function syncMemberPhotos(photos) {
+        if (!currentMember || !photos) {
+          return;
+        }
+        currentMember = {
+          ...currentMember,
+          photos,
+        };
+        const card = document.querySelector(".main-photo-card");
+        if (card) {
+          card.outerHTML = renderMainPhotoCard(currentMember);
+        }
+      }
+
+      function isFounderPhotoModel(photos) {
+        return String(photos?.photo_model || "").toLowerCase() === "founder_optional";
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => window.setTimeout(resolve, ms));
+      }
+
+      async function downloadDataExport(member) {
+        const status = document.getElementById("privacy-export-status");
+        const button = document.getElementById("privacy-export");
+        if (status) status.textContent = "";
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Preparing...";
+        }
+        try {
+          const result = await api("dsar", { mode: "export" });
+          const exportData = result.export || {};
+          const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `presttige-data-export-${safeFilePart(member?.lead_id || "member")}.json`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+          if (status) status.textContent = "Your export has been prepared.";
+        } catch (error) {
+          if (status) status.textContent = "Data export could not be prepared right now.";
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Download data export";
+          }
+        }
+      }
+
+      async function submitKeepDataRemoval(event) {
+        event.preventDefault();
+        const confirmation = readFormValue("account-keep-data-confirmation");
+        const checked = document.getElementById("account-keep-data-check")?.checked === true;
+        const status = document.getElementById("account-keep-data-status");
+        const button = document.getElementById("account-keep-data-submit");
+        if (status) status.textContent = "";
+
+        if (!checked || confirmation !== ACCOUNT_KEEP_DATA_CONFIRMATION) {
+          if (status) status.textContent = "Confirm the archive request with the exact phrase.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Archiving...";
+        try {
+          await api("account-removal", {
+            mode: "keep-data",
+            confirmed: true,
+            confirmation,
+          });
+          renderLogin("Your account has been archived with data preserved for a future return. A confirmation email has been sent.");
+        } catch (error) {
+          if (status) status.textContent = "Archive request could not be completed right now.";
+          button.disabled = false;
+          button.textContent = "Archive account";
+        }
+      }
+
+      async function submitPermanentRemoval(event) {
+        event.preventDefault();
+        const confirmation = readFormValue("account-delete-confirmation");
+        const checked = document.getElementById("account-delete-check")?.checked === true;
+        const finalChecked = document.getElementById("account-delete-final-check")?.checked === true;
+        const status = document.getElementById("account-delete-status");
+        const button = document.getElementById("account-delete-submit");
+        if (status) status.textContent = "";
+
+        if (!checked || !finalChecked || confirmation !== DSAR_ERASURE_CONFIRMATION) {
+          if (status) status.textContent = "Confirm the permanent deletion request with both checks and the exact phrase.";
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Deleting...";
+        try {
+          await api("account-removal", {
+            mode: "delete",
+            confirmed: true,
+            final_confirmation: true,
+            ulttra_dependency_acknowledged: true,
+            confirmation,
+          });
+          renderLogin("Your Presttige erasure request has been completed where the law allows. A confirmation email has been sent.");
+        } catch (error) {
+          if (status) status.textContent = "Permanent deletion could not be completed right now.";
+          button.disabled = false;
+          button.textContent = "Delete account data";
+        }
+      }
+
+      function bindUsernameAvailability(member) {
+        const input = document.getElementById("profile-username");
+        const note = document.getElementById("username-availability");
+        if (!input || !note) {
+          return;
+        }
+        input.addEventListener("input", () => {
+          const normalized = normalizeUsernameInput(input.value);
+          if (input.value !== normalized) {
+            input.value = normalized;
+          }
+          window.clearTimeout(usernameCheckTimer);
+          note.className = "hint availability-note";
+          const errors = usernameClientErrors(normalized);
+          if (errors.length) {
+            note.textContent = normalized ? "Use 3 to 30 lowercase letters, numbers, underscore or dot." : "Choose a username.";
+            note.classList.add("is-invalid");
+            return;
+          }
+          note.textContent = "Checking availability.";
+          usernameCheckTimer = window.setTimeout(() => checkUsernameAvailability(normalized, member), 350);
+        });
+      }
+
+      async function checkUsernameAvailability(username, member) {
+        const note = document.getElementById("username-availability");
+        if (!note) {
+          return;
+        }
+        try {
+          const result = await api("username", {
+            mode: "check",
+            username,
+          });
+          note.className = "hint availability-note";
+          if (result.available === true) {
+            note.textContent = result.own_username ? "This is your current username." : "Available.";
+            note.classList.add("is-available");
+            return;
+          }
+          note.textContent = "Already taken.";
+          note.classList.add("is-taken");
+        } catch (error) {
+          note.className = "hint availability-note is-invalid";
+          note.textContent = "Availability could not be checked right now.";
+        }
+      }
+
+      async function submitProfileStatus(mode, member) {
+        const button = document.getElementById(mode === "deactivate" ? "profile-deactivate" : "profile-reactivate");
+        const message = document.getElementById("profile-status-message");
+        if (message) message.textContent = "";
+        if (button) {
+          button.disabled = true;
+          button.textContent = mode === "deactivate" ? "Deactivating..." : "Reactivating...";
+        }
+        try {
+          const result = await api("profile-status", {
+            mode,
+            confirmed: true,
+          });
+          renderMemberShell(result.member || member, "profile");
+        } catch (error) {
+          if (message) message.textContent = "Profile state could not be changed right now.";
+          if (button) {
+            button.disabled = false;
+            button.textContent = mode === "deactivate" ? "Deactivate profile" : "Reactivate profile";
+          }
+        }
+      }
+
+      async function submitProfile(event, member) {
+        event.preventDefault();
+        const button = document.getElementById("profile-submit");
+        const errorBox = document.getElementById("profile-error");
+        const payload = profilePayloadFromForm(member);
+        const errors = validateProfilePayload(payload);
+
+        errorBox.textContent = "";
+        if (errors.length) {
+          errorBox.textContent = `Profile needs ${errors.join(", ")}.`;
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Saving...";
+        try {
+          const result = await api("profile", payload);
+          renderMemberShell(result.member || member, "profile");
+        } catch (error) {
+          if (error.payload?.status === "USERNAME_TAKEN") {
+            errorBox.textContent = "That username is already taken.";
+          } else if (error.payload?.status === "USERNAME_INVALID") {
+            errorBox.textContent = "Choose a valid username.";
+          } else {
+            errorBox.textContent = "Profile could not be saved.";
+          }
+          button.disabled = false;
+          button.textContent = "Save profile";
+        }
+      }
+
+      function profilePayloadFromForm(member) {
+        const current = profileOf(member);
+        return {
+          profile: {
+            username: normalizeUsernameInput(readFormValue("profile-username") || current.username),
+            phone_country: readFormValue("profile-phone-country") || current.phone_country,
+            phone: readFormValue("profile-phone") || current.phone,
+            age: readFormValue("profile-age") || current.age,
+            country: readFormValue("profile-country") || current.country,
+            city: readFormValue("profile-city") || current.city,
+            instagram: readFormValue("profile-instagram"),
+            linkedin: readFormValue("profile-linkedin"),
+            tiktok: readFormValue("profile-tiktok"),
+            website: readFormValue("profile-website"),
+            occupation: readFormValue("profile-occupation"),
+            company: readFormValue("profile-company"),
+            bio: readFormValue("profile-bio"),
+          },
+          interests: {
+            lifestyle: readFormValue("interest-lifestyle"),
+            business: readFormValue("interest-business"),
+            travel: readFormValue("interest-travel"),
+            culture: readFormValue("interest-culture"),
+            wellbeing: readFormValue("interest-wellbeing"),
+            notes: readFormValue("interest-notes"),
+          },
+        };
+      }
+
+      function validateProfilePayload(payload) {
+        const profile = payload.profile || {};
+        const required = [
+          ["phone_country", "phone code"],
+          ["username", "username"],
+          ["phone", "phone"],
+          ["age", "age"],
+          ["country", "country"],
+          ["city", "city"],
+          ["instagram", "Instagram"],
+          ["bio", "short introduction"],
+        ];
+        const errors = required
+          .filter(([key]) => !String(profile[key] || "").trim())
+          .map(([, label]) => label);
+
+        if (profile.bio && profile.bio.length < 50) {
+          errors.push("a longer short introduction");
+        }
+        if (usernameClientErrors(profile.username).length) {
+          errors.push("a valid username");
+        }
+        if (profile.website && !isHttpUrl(profile.website)) {
+          errors.push("a valid website URL");
+        }
+        if (profile.linkedin && !isHttpUrl(profile.linkedin)) {
+          errors.push("a valid LinkedIn URL");
+        }
+        return errors;
+      }
+
+      function isSectionLocked(section, isValidated) {
+        return Boolean(section.requiresValidation || VALIDATION_REQUIRED_SECTIONS.has(section.key)) && !isValidated;
+      }
+
+      function isMemberValidated(member) {
+        return member?.validation?.is_validated === true ||
+          String(member?.validation_status || "").toLowerCase() === "validated";
+      }
+
+      function normalizeDiscoveryStatus(value) {
+        const status = value && typeof value === "object" ? value : {};
+        return {
+          master_enabled: status.master_enabled === true,
+          eligible: status.eligible === true,
+          visible: status.visible === true,
+          member_id: String(status.member_id || ""),
+          founder_invisible_by_default: status.founder_invisible_by_default === true,
+          founder_visibility_control: status.founder_visibility_control === true,
+        };
+      }
+
+      function renderPasswordPending(payload) {
+        const activationUrl = payload.activation_url || "";
+        renderEntry(`
+          <p class="eyebrow">Account Setup</p>
+          <h2 class="title">Complete setup.</h2>
+          <p class="copy">Your account setup is not complete yet. Complete the password step before entering the member area.</p>
+          <div class="actions">
+            ${activationUrl ? `<a class="button" href="${escapeHtml(activationUrl)}">Set password</a>` : ""}
+            <button class="button button--secondary" type="button" data-login>Back to login</button>
+          </div>
+        `);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+      }
+
+      function renderForgot() {
+        renderEntry(`
+          <p class="eyebrow">Password Reset</p>
+          <h2 class="title">Reset access.</h2>
+          <p class="copy">Enter your member email. If the account can be reset, instructions will be sent.</p>
+          <form id="forgot-form" class="form" novalidate>
+            <div class="field">
+              <label for="forgot-email">Email</label>
+              <input id="forgot-email" type="email" autocomplete="username" required>
+            </div>
+            <p id="forgot-message" class="hint"></p>
+            <div class="actions">
+              <button id="forgot-submit" class="button" type="submit">Send reset</button>
+              <button class="button button--secondary" type="button" data-login>Back to login</button>
+            </div>
+          </form>
+          <div class="notice">
+            Already have a reset code?
+            <button class="link-button" type="button" data-reset-code>Enter code</button>
+          </div>
+        `);
+        document.getElementById("forgot-form").addEventListener("submit", submitForgot);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+        app.querySelector("[data-reset-code]").addEventListener("click", renderResetCode);
+      }
+
+      async function submitForgot(event) {
+        event.preventDefault();
+        const email = document.getElementById("forgot-email").value.trim();
+        const message = document.getElementById("forgot-message");
+        const button = document.getElementById("forgot-submit");
+        button.disabled = true;
+        button.textContent = "Sending...";
+        try {
+          const result = await api("forgot", { email });
+          message.textContent = result.message || "If this account can be reset, instructions have been sent.";
+        } catch (error) {
+          message.textContent = "If this account can be reset, instructions have been sent.";
+        } finally {
+          button.disabled = false;
+          button.textContent = "Send reset";
+        }
+      }
+
+      function renderResetCode() {
+        renderEntry(`
+          <p class="eyebrow">Password Reset</p>
+          <h2 class="title">Enter reset code.</h2>
+          <p class="copy">Use the code sent to your email and choose a new password.</p>
+          <form id="reset-form" class="form" novalidate>
+            <div class="field">
+              <label for="reset-email">Email</label>
+              <input id="reset-email" type="email" autocomplete="username" required>
+            </div>
+            <div class="field">
+              <label for="reset-code">Reset code</label>
+              <input id="reset-code" type="text" inputmode="numeric" autocomplete="one-time-code" required>
+            </div>
+            <div class="field">
+              <label for="reset-password">New password</label>
+              <input id="reset-password" type="password" autocomplete="new-password" minlength="14" required>
+              <p class="hint">Use at least 14 characters, with uppercase, lowercase, a number and a symbol.</p>
+            </div>
+            <p id="reset-error" class="hint error-text"></p>
+            <div class="actions">
+              <button id="reset-submit" class="button" type="submit">Reset password</button>
+              <button class="button button--secondary" type="button" data-login>Back to login</button>
+            </div>
+          </form>
+        `);
+        document.getElementById("reset-form").addEventListener("submit", submitReset);
+        app.querySelector("[data-login]").addEventListener("click", () => renderLogin());
+      }
+
+      async function submitReset(event) {
+        event.preventDefault();
+        const email = document.getElementById("reset-email").value.trim();
+        const code = document.getElementById("reset-code").value.trim();
+        const password = document.getElementById("reset-password").value;
+        const errorBox = document.getElementById("reset-error");
+        const button = document.getElementById("reset-submit");
+        const errors = validatePassword(password);
+        errorBox.textContent = "";
+        if (errors.length) {
+          errorBox.textContent = `Password needs ${errors.join(", ")}.`;
+          return;
+        }
+        button.disabled = true;
+        button.textContent = "Resetting...";
+        try {
+          await api("confirm-reset", { email, code, password });
+          renderLogin("Password reset complete. You can sign in now.");
+        } catch (error) {
+          errorBox.textContent = "Password reset could not be completed.";
+          button.disabled = false;
+          button.textContent = "Reset password";
+        }
+      }
+
+      async function signOut() {
+        await api("logout", {});
+        renderLogin("You have signed out.");
+      }
+
+      async function api(path, payload) {
+        const response = await fetch(`${API_BASE}/${path}`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload || {}),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const error = new Error(data.message || "Request failed");
+          error.payload = data;
+          throw error;
+        }
+        return data;
+      }
+
+      function validatePassword(password) {
+        const checks = [];
+        if (password.length < 14) checks.push("14 characters");
+        if (!/[A-Z]/.test(password)) checks.push("an uppercase letter");
+        if (!/[a-z]/.test(password)) checks.push("a lowercase letter");
+        if (!/[0-9]/.test(password)) checks.push("a number");
+        if (!/[^A-Za-z0-9]/.test(password)) checks.push("a symbol");
+        return checks;
+      }
+
+      function firstNameOf(value) {
+        return String(value || "Member").trim().split(/\s+/)[0] || "Member";
+      }
+
+      function normalizeTier(value) {
+        return String(value || "free").trim().toLowerCase().replace(/_/g, "-");
+      }
+
+      function tierLabelFor(tier) {
+        const labels = {
+          subscriber: "Subscriber",
+          free: "Subscriber",
+          club: "Club",
+          premier: "Premier",
+          patron: "Patron",
+          founder: "Founder",
+          tester: "Tester",
+        };
+        return labels[tier] || titleCase(tier || "member");
+      }
+
+      function tierDescription(tier) {
+        const descriptions = {
+          subscriber: "Your membership is active at the Subscriber level.",
+          free: "Your membership is active at the Subscriber level.",
+          club: "Your Club membership is active.",
+          premier: "Your Premier membership is active.",
+          patron: "Your Patron membership is active.",
+          founder: "Your Founder identity is active. Founder-specific controls follow in the dedicated Founder step.",
+          tester: "Your Tester membership is active.",
+        };
+        return descriptions[tier] || "Your Presttige membership is active.";
+      }
+
+      function nextTierFor(tier) {
+        const normalized = normalizeTier(tier);
+        const ladder = {
+          subscriber: "club",
+          free: "club",
+          club: "premier",
+          premier: "patron",
+        };
+        return ladder[normalized] || "";
+      }
+
+      function statusLabel(value) {
+        const status = String(value || "").trim().toLowerCase();
+        if (status === "active") return "Active";
+        if (status === "archived") return "Archived";
+        if (status === "password_pending") return "Complete setup";
+        return titleCase(status || "Active");
+      }
+
+      function profileVisibilityStatus(member) {
+        const profile = member?.profile || {};
+        const status = String(member?.profile_visibility_status || profile.profile_visibility_status || "").toLowerCase();
+        return status === "deactivated" ? "deactivated" : "active";
+      }
+
+      function profileOf(member) {
+        const profile = member?.profile || {};
+        return {
+          name: profile.name || member?.name || "",
+          email: profile.email || member?.email || "",
+          username: profile.username || member?.username || "",
+          phone_country: profile.phone_country || "",
+          phone: profile.phone || "",
+          age: profile.age || "",
+          country: profile.country || "",
+          city: profile.city || "",
+          occupation: profile.occupation || "",
+          company: profile.company || "",
+          website: profile.website || "",
+          linkedin: profile.linkedin || "",
+          instagram: profile.instagram || "",
+          tiktok: profile.tiktok || "",
+          bio: profile.bio || "",
+          profile_visibility_status: profileVisibilityStatus(member),
+        };
+      }
+
+      function interestsOf(member) {
+        const interests = member?.interests || {};
+        return {
+          lifestyle: interests.lifestyle || "",
+          business: interests.business || "",
+          travel: interests.travel || "",
+          culture: interests.culture || "",
+          wellbeing: interests.wellbeing || "",
+          notes: interests.notes || "",
+        };
+      }
+
+      function readFormValue(id) {
+        return String(document.getElementById(id)?.value || "").trim();
+      }
+
+      function normalizeUsernameInput(value) {
+        return String(value || "").trim().toLowerCase().replace(/\s+/g, "");
+      }
+
+      function usernameClientErrors(username) {
+        const value = normalizeUsernameInput(username);
+        const errors = [];
+        if (!value) {
+          errors.push("required");
+          return errors;
+        }
+        if (value.length < 3 || value.length > 30) {
+          errors.push("length");
+        }
+        if (!/^[a-z0-9_.]+$/.test(value)) {
+          errors.push("format");
+        }
+        return errors;
+      }
+
+      function isHttpUrl(value) {
+        try {
+          const url = new URL(value);
+          return url.protocol === "https:" || url.protocol === "http:";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function titleCase(value) {
+        return String(value || "")
+          .split(/[_\s-]+/)
+          .filter(Boolean)
+          .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+          .join(" ");
+      }
+
+      function safeFilePart(value) {
+        return String(value || "member")
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 80) || "member";
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function escapeAttr(value) {
+        return escapeHtml(value);
+      }
+    })();
+  </script>
+</body>
+</html>
